@@ -11,7 +11,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Kodachi Manager">
 
-<!-- PWA Manifest inline -->
 <link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22Laporan%20Manager%20Kodachi%20Shop%20Monjali%22%2C%22short_name%22%3A%22Kodachi%20Mgr%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f5f6f8%22%2C%22theme_color%22%3A%22%232563eb%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%2520viewBox%3D'0%25200%252096%252096'%253E%253Crect%2520width%3D'96'%2520height%3D'96'%2520rx%3D'22'%2520fill%3D'%25232563eb'%2F%253E%253Ctext%2520x%3D'48'%2520y%3D'62'%2520font-size%3D'48'%2520text-anchor%3D'middle'%2520fill%3D'white'%253E%25F0%259F%2591%259F%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,7 +55,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .setup-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--hint); transition: background 0.3s; }
 .setup-dot.connected { background: var(--green); box-shadow: 0 0 5px rgba(22,163,74,0.5); }
 
-/* ── LOCATION TRACKER BANNER ── */
+/* LOCATION BANNER */
 .loc-banner { max-width: 680px; margin: 12px auto 0; padding: 0 20px; }
 .loc-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
 .loc-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
@@ -82,6 +81,58 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .time-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.5s ease; }
 .time-bar-fill.done { background: var(--green); }
 .time-bar-label { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: var(--muted); font-family: var(--mono); }
+
+/* ── D01 GPS CARD ── */
+.d01-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  margin-bottom: 6px;
+  transition: border-color 0.2s;
+}
+.d01-card.d01-done {
+  border-color: rgba(22,163,74,0.35);
+  background: rgba(22,163,74,0.05);
+}
+.d01-card.d01-warn {
+  border-color: rgba(217,119,6,0.35);
+  background: rgba(217,119,6,0.04);
+}
+.d01-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.d01-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--hint); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; font-weight: 700; color: #fff; transition: all 0.3s; }
+.d01-check.done { background: var(--green); border-color: var(--green); }
+.d01-check.warn { background: var(--orange); border-color: var(--orange); }
+.d01-check.empty { background: transparent; color: transparent; }
+.d01-title { font-size: 13px; font-weight: 600; flex: 1; }
+.d01-badge { font-family: var(--mono); font-size: 10px; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; }
+.d01-badge.done { background: rgba(22,163,74,0.12); color: var(--green); }
+.d01-badge.warn { background: rgba(217,119,6,0.12); color: var(--orange); }
+.d01-badge.empty { background: var(--surface); color: var(--hint); }
+
+/* Duration display */
+.d01-dur-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 10px; }
+.d01-dur-box { flex: 1; background: var(--surface); border-radius: 10px; padding: 10px 12px; text-align: center; }
+.d01-dur-val { font-family: var(--mono); font-size: 20px; font-weight: 500; line-height: 1; }
+.d01-dur-val.green { color: var(--green); }
+.d01-dur-val.orange { color: var(--orange); }
+.d01-dur-val.muted { color: var(--muted); }
+.d01-dur-label { font-size: 9px; color: var(--hint); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* Progress bar D01 */
+.d01-prog-track { height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+.d01-prog-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease, background 0.3s; }
+.d01-prog-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--hint); font-family: var(--mono); }
+
+/* Status caption */
+.d01-caption { font-size: 11px; color: var(--muted); margin-top: 8px; display: flex; align-items: center; gap: 6px; }
+.d01-caption .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.d01-caption .dot.green { background: var(--green); animation: blink 1.5s infinite; }
+.d01-caption .dot.orange { background: var(--orange); }
+.d01-caption .dot.grey { background: var(--hint); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.task-auto-tag { font-size: 10px; color: var(--accent); background: rgba(37,99,235,0.08); padding: 2px 8px; border-radius: 20px; display: inline-block; margin-top: 4px; }
 
 /* TABS */
 .tabs-wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; position: sticky; top: 0; z-index: 50; background: var(--bg); }
@@ -136,16 +187,13 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 /* TASK ITEM */
 .task-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 6px; transition: border-color 0.15s; cursor: pointer; }
 .task-item.done { border-color: rgba(22,163,74,0.3); background: rgba(22,163,74,0.06); }
-.task-item.auto-done { border-color: rgba(37,99,235,0.3); background: rgba(37,99,235,0.04); cursor: default; }
 .task-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--hint); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; margin-top: 1px; }
 .task-item.done .task-check { border-color: var(--green); background: var(--green); }
-.task-item.auto-done .task-check { border-color: var(--accent); background: var(--accent); }
 .check-icon { display: none; color: #fff; font-size: 13px; font-weight: 700; }
-.task-item.done .check-icon, .task-item.auto-done .check-icon { display: block; }
+.task-item.done .check-icon { display: block; }
 .task-body { flex: 1; min-width: 0; }
 .task-name { font-size: 13px; font-weight: 500; line-height: 1.4; }
 .task-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.task-auto-tag { font-size: 10px; color: var(--accent); background: rgba(37,99,235,0.08); padding: 2px 8px; border-radius: 20px; display: inline-block; margin-top: 4px; }
 .task-note-toggle { font-size: 11px; color: var(--hint); margin-top: 6px; cursor: pointer; display: inline-block; transition: color 0.15s; }
 .task-note-toggle:hover { color: var(--accent); }
 .task-note-input { width: 100%; margin-top: 8px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 12px; outline: none; resize: none; line-height: 1.5; }
@@ -318,7 +366,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 <div class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      <span class="brand-tag">Manager · v3.0</span>
+      <span class="brand-tag">Manager · v3.1</span>
       <span class="brand-name">Kodachi Shop Monjali</span>
       <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
     </div>
@@ -481,7 +529,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
   <!-- ── TAB LOKASI ── -->
   <div class="panel" id="panel-lokasi">
     <div class="alert info" style="margin-bottom:16px">
-      📍 <b>Tracker Otomatis</b> — Aplikasi menghitung jam kehadiran saat kamu berada dalam radius <b>200 meter</b> dari Kodachi Shop Monjali (Jl. Monjali No. 107). D01 akan otomatis ✓ jika sudah ≥ 4 jam.
+      📍 <b>Tracker Otomatis</b> — Aplikasi menghitung jam kehadiran saat kamu berada dalam radius <b>200 meter</b> dari Kodachi Shop Monjali (Jl. Monjali No. 107). D01 selalu <b>✓</b> saat disimpan — durasi aktual tercatat di catatan.
     </div>
 
     <button class="loc-perm-btn" onclick="requestLocationPermission()" id="loc-perm-btn" style="display:none">
@@ -572,10 +620,9 @@ const BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','A
 const DAY_SHORT = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 
 // ─────────────────────────────────────────────
-// LOKASI TOKO — Jl. Monjali No. 107, Yogyakarta
+// LOKASI TOKO
 // ─────────────────────────────────────────────
 const TOKO = { lat: -7.7448, lng: 110.3716, radius: 200, nama: 'Kodachi Shop Monjali' };
-// Radius 200m — mencakup area parkir + toko
 const TARGET_MENIT = 240; // 4 jam
 
 // ─────────────────────────────────────────────
@@ -591,9 +638,9 @@ let selectedStatus = null;
 // Location state
 let geoWatchId = null;
 let isAtStore = false;
-let sessionStart = null;         // timestamp saat masuk toko sesi ini
-let totalMinutesToday = 0;       // akumulasi menit hari ini
-let locationLog = [];            // [{type:'masuk'|'keluar'|'update', time, lat, lng, dist}]
+let sessionStart = null;
+let totalMinutesToday = 0;
+let locationLog = [];
 let lastKnownPos = null;
 let geoInterval = null;
 let timerInterval = null;
@@ -601,7 +648,7 @@ let timerInterval = null;
 const TODAY_KEY = () => new Date().toISOString().split('T')[0];
 
 // ─────────────────────────────────────────────
-// LOAD / SAVE LOKASI DATA (localStorage per hari)
+// LOAD / SAVE LOKASI DATA
 // ─────────────────────────────────────────────
 function saveLocData() {
   const key = 'loc_' + TODAY_KEY();
@@ -621,16 +668,11 @@ function loadLocData() {
     totalMinutesToday = d.totalMinutes || 0;
     sessionStart = d.sessionStart || null;
     locationLog = d.log || [];
-    // Jika ada sesi aktif yang tersimpan (app di-reload), hitung tambahan menit
-    if (sessionStart) {
-      const extra = (Date.now() - sessionStart) / 60000;
-      // Jangan tambahkan dulu — akan dihitung real-time
-    }
   } catch(e) {}
 }
 
 // ─────────────────────────────────────────────
-// HAVERSINE — jarak dalam meter
+// HAVERSINE
 // ─────────────────────────────────────────────
 function haversine(lat1, lng1, lat2, lng2) {
   const R = 6371000;
@@ -642,86 +684,63 @@ function haversine(lat1, lng1, lat2, lng2) {
 }
 
 // ─────────────────────────────────────────────
-// REQUEST GPS PERMISSION & START WATCHING
+// GPS PERMISSION & WATCH
 // ─────────────────────────────────────────────
 function requestLocationPermission() {
-  if (!('geolocation' in navigator)) {
-    updateLocBanner('unsupported');
-    return;
-  }
+  if (!('geolocation' in navigator)) { updateLocBanner('unsupported'); return; }
   document.getElementById('loc-perm-btn').style.display = 'none';
   updateLocBanner('waiting');
-
-  // High-accuracy continuous watch
   geoWatchId = navigator.geolocation.watchPosition(
-    onLocationUpdate,
-    onLocationError,
+    onLocationUpdate, onLocationError,
     { enableHighAccuracy: true, maximumAge: 30000, timeout: 20000 }
   );
-
-  // Backup interval setiap 60 detik — paksa update
   geoInterval = setInterval(() => {
-    navigator.geolocation.getCurrentPosition(
-      onLocationUpdate,
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 60000, timeout: 15000 }
-    );
+    navigator.geolocation.getCurrentPosition(onLocationUpdate, ()=>{},
+      { enableHighAccuracy: true, maximumAge: 60000, timeout: 15000 });
   }, 60000);
-
-  // Timer display setiap detik
   timerInterval = setInterval(updateTimerDisplay, 1000);
-
   localStorage.setItem('loc_perm', '1');
 }
 
 // ─────────────────────────────────────────────
-// LOCATION UPDATE CALLBACK
+// LOCATION UPDATE
 // ─────────────────────────────────────────────
 function onLocationUpdate(pos) {
   const { latitude, longitude, accuracy } = pos.coords;
   lastKnownPos = { lat: latitude, lng: longitude, accuracy };
-
   const dist = Math.round(haversine(latitude, longitude, TOKO.lat, TOKO.lng));
   const nowInStore = dist <= TOKO.radius;
 
-  // Update UI distance & accuracy
   document.getElementById('loc-distance').textContent = dist + ' m';
   document.getElementById('loc-accuracy').textContent = Math.round(accuracy) + ' m';
 
   if (nowInStore && !isAtStore) {
-    // ── MASUK TOKO ──
     isAtStore = true;
     sessionStart = Date.now();
-    locationLog.push({ type: 'masuk', time: Date.now(), lat: latitude, lng: longitude, dist });
+    locationLog.push({ type:'masuk', time:Date.now(), lat:latitude, lng:longitude, dist });
     saveLocData();
     updateLocBanner('in');
     addLocLog('masuk', dist);
     showToast('✓ Kamu tiba di Kodachi Shop!', 'ok');
     updateLocTab();
-
+    updateD01Card();
   } else if (!nowInStore && isAtStore) {
-    // ── KELUAR TOKO ──
     isAtStore = false;
     if (sessionStart) {
-      const menit = (Date.now() - sessionStart) / 60000;
-      totalMinutesToday += menit;
-      saveLocData();
+      totalMinutesToday += (Date.now() - sessionStart) / 60000;
       sessionStart = null;
     }
-    locationLog.push({ type: 'keluar', time: Date.now(), lat: latitude, lng: longitude, dist });
+    locationLog.push({ type:'keluar', time:Date.now(), lat:latitude, lng:longitude, dist });
     saveLocData();
     updateLocBanner('out');
     addLocLog('keluar', dist);
     updateLocTab();
-    checkD01AutoComplete();
-
+    updateD01Card();
   } else {
-    // Update banner tanpa perubahan status
     updateLocBanner(isAtStore ? 'in' : 'out');
   }
-
   updateLocTab();
-  checkD01AutoComplete();
+  updateD01Card();
 }
 
 function onLocationError(err) {
@@ -730,24 +749,114 @@ function onLocationError(err) {
 }
 
 // ─────────────────────────────────────────────
-// HITUNG TOTAL MENIT REAL-TIME
+// TOTAL MENIT REAL-TIME
 // ─────────────────────────────────────────────
 function getCurrentTotalMinutes() {
   let total = totalMinutesToday;
-  if (isAtStore && sessionStart) {
-    total += (Date.now() - sessionStart) / 60000;
-  }
+  if (isAtStore && sessionStart) total += (Date.now() - sessionStart) / 60000;
   return total;
+}
+
+function fmtDur(menit) {
+  const h = Math.floor(menit / 60);
+  const m = Math.floor(menit % 60);
+  return h > 0 ? `${h}j ${m}m` : `${m}m`;
+}
+
+// ─────────────────────────────────────────────
+// UPDATE D01 CARD — tampilan khusus D01
+// ─────────────────────────────────────────────
+function updateD01Card() {
+  const total = getCurrentTotalMinutes();
+  const pct   = Math.min(100, (total / TARGET_MENIT) * 100);
+  const done  = total >= TARGET_MENIT; // ≥ 4 jam
+  const h     = Math.floor(total / 60);
+  const m     = Math.floor(total % 60);
+
+  const card  = document.getElementById('d01-card');
+  const chk   = document.getElementById('d01-check');
+  const badge = document.getElementById('d01-badge');
+  const durVal= document.getElementById('d01-dur-val');
+  const prog  = document.getElementById('d01-prog-fill');
+  const cap   = document.getElementById('d01-caption-text');
+  const dot   = document.getElementById('d01-caption-dot');
+
+  if (!card) return;
+
+  // Card state
+  card.className = 'd01-card ' + (done ? 'd01-done' : total > 0 ? 'd01-warn' : '');
+
+  // Check circle
+  chk.textContent = '✓';
+  // D01 selalu ✓ saat disimpan — tampilkan centang setelah ada durasi
+  if (total > 0) {
+    chk.className = 'd01-check ' + (done ? 'done' : 'warn');
+  } else {
+    chk.className = 'd01-check empty';
+    chk.textContent = '';
+  }
+
+  // Badge
+  if (total === 0) {
+    badge.textContent = 'GPS aktif';
+    badge.className = 'd01-badge empty';
+  } else if (done) {
+    badge.textContent = '≥ 4 jam ✓';
+    badge.className = 'd01-badge done';
+  } else {
+    badge.textContent = '< 4 jam';
+    badge.className = 'd01-badge warn';
+  }
+
+  // Duration value
+  if (total === 0) {
+    durVal.textContent = '0j 0m';
+    durVal.className = 'd01-dur-val muted';
+  } else {
+    durVal.textContent = `${h}j ${m}m`;
+    durVal.className = 'd01-dur-val ' + (done ? 'green' : 'orange');
+  }
+
+  // Progress bar
+  const barColor = done ? 'var(--green)' : total > 0 ? 'var(--orange)' : 'var(--hint)';
+  prog.style.width = pct + '%';
+  prog.style.background = barColor;
+
+  // Caption
+  if (isAtStore) {
+    dot.className = 'dot green';
+    cap.textContent = 'Sedang di dalam toko — timer berjalan';
+  } else if (total > 0) {
+    dot.className = 'dot orange';
+    cap.textContent = done
+      ? `Target tercapai — durasi akan tersimpan saat klik Simpan`
+      : `Durasi ${fmtDur(total)} akan tersimpan sebagai catatan D01`;
+  } else {
+    dot.className = 'dot grey';
+    cap.textContent = 'Belum ada durasi tercatat hari ini';
+  }
+
+  // Auto-update notes for D01 to match current GPS duration
+  // D01 selalu ✓ kalau ada durasi GPS apapun, atau ditandai ✓ manual saat save
+  notes['D01'] = total > 0
+    ? `GPS: ${h}j ${m}m di toko${done ? '' : ' (< target 4j)'} · ${isAtStore ? 'Sedang di toko' : 'Sudah keluar toko'}`
+    : '';
+
+  // Always mark D01 checked if there is any duration recorded
+  // (even < 4 jam — user still came to the store)
+  if (total > 0 && !checked['D01']) {
+    checked['D01'] = true;
+    updateStats();
+  }
 }
 
 // ─────────────────────────────────────────────
 // UPDATE BANNER ATAS
 // ─────────────────────────────────────────────
 function updateLocBanner(state) {
-  const icon = document.getElementById('loc-icon');
+  const icon   = document.getElementById('loc-icon');
   const status = document.getElementById('loc-status');
   const detail = document.getElementById('loc-detail');
-  const timer = document.getElementById('loc-timer');
 
   if (state === 'in') {
     icon.textContent = '🟢'; icon.className = 'loc-icon active';
@@ -774,13 +883,12 @@ function updateLocBanner(state) {
 }
 
 // ─────────────────────────────────────────────
-// UPDATE TIMER (dipanggil tiap detik)
+// TIMER — dipanggil tiap detik
 // ─────────────────────────────────────────────
 function updateTimerDisplay() {
   const total = getCurrentTotalMinutes();
-  const jam = Math.floor(total / 60);
+  const jam   = Math.floor(total / 60);
   const menit = Math.floor(total % 60);
-  const detik = Math.floor((total * 60) % 60);
   const timerEl = document.getElementById('loc-timer');
   timerEl.textContent = `${jam}:${String(menit).padStart(2,'0')}`;
 
@@ -789,85 +897,35 @@ function updateTimerDisplay() {
   barFill.style.width = pct + '%';
   barFill.className = 'time-bar-fill' + (pct >= 100 ? ' done' : '');
 
-  const totalMenitDisplay = total >= 60
-    ? `${jam} jam ${menit} menit di toko`
-    : `${Math.floor(total)} menit di toko`;
-  document.getElementById('time-bar-left').textContent = totalMenitDisplay;
+  document.getElementById('time-bar-left').textContent =
+    total >= 60 ? `${jam} jam ${menit} menit di toko` : `${Math.floor(total)} menit di toko`;
 
-  if (pct >= 100) {
-    timerEl.className = 'loc-timer done';
-  } else if (pct >= 50) {
-    timerEl.className = 'loc-timer warn';
-  } else {
-    timerEl.className = 'loc-timer';
-  }
+  timerEl.className = 'loc-timer' + (pct >= 100 ? ' done' : pct >= 50 ? ' warn' : '');
+  document.getElementById('loc-total-today').textContent = jam + 'j ' + menit + 'm';
 
-  // Update stat card
-  document.getElementById('loc-total-today').textContent =
-    jam + 'j ' + menit + 'm';
+  // Update D01 card every tick
+  updateD01Card();
 }
 
 // ─────────────────────────────────────────────
-// AUTO-COMPLETE D01 JIKA ≥ 4 JAM
-// ─────────────────────────────────────────────
-function checkD01AutoComplete() {
-  const total = getCurrentTotalMinutes();
-  const isTarget = total >= TARGET_MENIT;
-  if (isTarget && !checked['D01']) {
-    checked['D01'] = true;
-    notes['D01'] = `Auto: ${Math.floor(total/60)}j ${Math.floor(total%60)}m di toko · GPS Tracker`;
-    rerenderTask('D01');
-    updateStats();
-    showToast('🎉 D01 otomatis ✓ — sudah 4 jam di toko!', 'ok');
-  }
-  // Update display catatan
-  const noteEl = document.getElementById('note-D01');
-  if (noteEl && isAtStore) {
-    const m = Math.floor(total % 60);
-    const h = Math.floor(total / 60);
-    if (!checked['D01']) {
-      noteEl.value = `Sedang di toko: ${h}j ${m}m (target 4j)`;
-      notes['D01'] = noteEl.value;
-    }
-  }
-}
-
-// ─────────────────────────────────────────────
-// RERENDER SATU TASK
-// ─────────────────────────────────────────────
-function rerenderTask(kode) {
-  const el = document.getElementById('task-' + kode);
-  if (!el) return;
-  const isDone = checked[kode];
-  const task = HARIAN.find(t => t.kode === kode);
-  const isAuto = task && task.autoTrack;
-  el.className = 'task-item' + (isDone ? (isAuto ? ' auto-done' : ' done') : '');
-}
-
-// ─────────────────────────────────────────────
-// ADD TO LOCATION LOG
+// LOG ENTRY
 // ─────────────────────────────────────────────
 function addLocLog(type, dist) {
   const list = document.getElementById('loc-log-list');
-  const now = new Date();
+  const now  = new Date();
   const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-
-  const div = document.createElement('div');
+  const div  = document.createElement('div');
   div.className = 'loc-log-item';
-  const icon = type === 'masuk' ? '🟢' : '🔴';
+  const icon  = type === 'masuk' ? '🟢' : '🔴';
   const title = type === 'masuk' ? 'Tiba di toko' : 'Meninggalkan toko';
   div.innerHTML = `
     <div class="loc-log-icon">${icon}</div>
     <div class="loc-log-body">
       <div class="loc-log-title">${title}</div>
       <div class="loc-log-meta">${timeStr} · Jarak: ${dist}m dari toko</div>
-    </div>
-  `;
-
-  // Remove empty state
+    </div>`;
   const empty = list.querySelector('.empty');
   if (empty) empty.remove();
-
   list.insertBefore(div, list.firstChild);
 }
 
@@ -876,7 +934,7 @@ function addLocLog(type, dist) {
 // ─────────────────────────────────────────────
 function updateLocTab() {
   const total = getCurrentTotalMinutes();
-  const jam = Math.floor(total / 60);
+  const jam   = Math.floor(total / 60);
   const menit = Math.floor(total % 60);
   document.getElementById('loc-total-today').textContent = jam + 'j ' + menit + 'm';
   document.getElementById('loc-sessions-count').textContent =
@@ -898,58 +956,41 @@ window.addEventListener('DOMContentLoaded', () => {
   checkTodayFilled();
   checkLaporanBadge();
 
-  // Load data lokasi hari ini
   loadLocData();
   updateTimerDisplay();
 
-  // Auto-start GPS jika sudah pernah izin
   if (localStorage.getItem('loc_perm') === '1') {
     requestLocationPermission();
   } else {
     document.getElementById('loc-perm-btn').style.display = 'block';
     updateLocBanner('waiting');
-    // Tetap coba minta otomatis (browser mungkin sudah remember)
     setTimeout(() => requestLocationPermission(), 500);
   }
 
-  // Service Worker
   if ('serviceWorker' in navigator) {
     const swCode = `
       const CACHE = 'kodachi-v1';
-      self.addEventListener('install', e => {
-        self.skipWaiting();
-      });
-      self.addEventListener('activate', e => {
-        e.waitUntil(clients.claim());
-      });
+      self.addEventListener('install', e => { self.skipWaiting(); });
+      self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
       self.addEventListener('fetch', e => {
-        if (e.request.url.includes('fonts.googleapis') || e.request.url.includes('script.google.com')) {
-          return;
-        }
-        e.respondWith(
-          caches.open(CACHE).then(cache =>
-            cache.match(e.request).then(resp => resp || fetch(e.request).then(r => {
-              cache.put(e.request, r.clone()); return r;
-            }).catch(() => resp))
-          )
-        );
-      });
-    `;
+        if (e.request.url.includes('fonts.googleapis') || e.request.url.includes('script.google.com')) return;
+        e.respondWith(caches.open(CACHE).then(cache =>
+          cache.match(e.request).then(resp => resp || fetch(e.request).then(r => {
+            cache.put(e.request, r.clone()); return r;
+          }).catch(() => resp))
+        ));
+      });`;
     const blob = new Blob([swCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(blob);
-    navigator.serviceWorker.register(swUrl).catch(() => {});
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
   }
 });
 
 function setToday(id) {
-  const d = new Date();
-  document.getElementById(id).value = d.toISOString().split('T')[0];
+  document.getElementById(id).value = new Date().toISOString().split('T')[0];
 }
-
 function setCurrentMonth(id) {
   const d = new Date();
-  const mm = String(d.getMonth()+1).padStart(2,'0');
-  document.getElementById(id).value = `${d.getFullYear()}-${mm}`;
+  document.getElementById(id).value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
 
 // ─────────────────────────────────────────────
@@ -964,13 +1005,13 @@ function switchTab(name, btn) {
 }
 
 // ─────────────────────────────────────────────
-// RENDER HARIAN
+// RENDER HARIAN — D01 pakai card khusus
 // ─────────────────────────────────────────────
 function renderHarian() {
-  const list = document.getElementById('harian-list');
+  const list   = document.getElementById('harian-list');
   list.innerHTML = '';
-  const groups = ['Wajib','Penting','Pendukung'];
-  const dotClass = {Wajib:'wajib',Penting:'penting',Pendukung:'pendukung'};
+  const groups  = ['Wajib','Penting','Pendukung'];
+  const dotClass= {Wajib:'wajib',Penting:'penting',Pendukung:'pendukung'};
 
   groups.forEach(pri => {
     const tasks = HARIAN.filter(t => t.prioritas === pri);
@@ -979,26 +1020,63 @@ function renderHarian() {
     hdr.className = 'section-hdr';
     hdr.innerHTML = `<span class="section-hdr-label"><span class="pri-dot ${dotClass[pri]}"></span>${pri}</span><div class="section-hdr-line"></div>`;
     list.appendChild(hdr);
+
     tasks.forEach(t => {
-      const el = document.createElement('div');
-      const isDone = checked[t.kode];
-      const isAuto = t.autoTrack;
-      el.className = 'task-item' + (isDone ? (isAuto ? ' auto-done' : ' done') : '');
-      el.id = 'task-' + t.kode;
-      el.innerHTML = `
-        <div class="task-check"><span class="check-icon">✓</span></div>
-        <div class="task-body">
-          <div class="task-name">${t.nama}</div>
-          <div class="task-meta">${t.kode} · ${t.kategori} · KPI: ${t.kpi}</div>
-          ${isAuto ? '<span class="task-auto-tag">📍 Otomatis dari GPS Tracker</span>' : ''}
-          <span class="task-note-toggle" onclick="toggleNote(event,'${t.kode}')">+ Tambah catatan</span>
-          <textarea class="task-note-input" id="note-${t.kode}" placeholder="${isAuto ? 'Auto-diisi oleh tracker...' : 'Catatan...'}" rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes['${t.kode}']=this.value"></textarea>
-        </div>
-      `;
-      if (!isAuto) {
+      if (t.autoTrack) {
+        // ── D01: card khusus GPS ──
+        const el = document.createElement('div');
+        el.innerHTML = `
+          <div class="d01-card" id="d01-card">
+            <div class="d01-header">
+              <div class="d01-check empty" id="d01-check"></div>
+              <div class="d01-title">${t.nama}</div>
+              <div class="d01-badge empty" id="d01-badge">GPS aktif</div>
+            </div>
+            <div class="d01-dur-row">
+              <div class="d01-dur-box">
+                <div class="d01-dur-val muted" id="d01-dur-val">0j 0m</div>
+                <div class="d01-dur-label">Durasi di toko hari ini</div>
+              </div>
+              <div class="d01-dur-box" style="flex:0 0 auto;min-width:80px">
+                <div class="d01-dur-val muted" style="font-size:14px" id="d01-target-val">4j 0m</div>
+                <div class="d01-dur-label">Target</div>
+              </div>
+            </div>
+            <div class="d01-prog-track">
+              <div class="d01-prog-fill" id="d01-prog-fill" style="width:0%;background:var(--hint)"></div>
+            </div>
+            <div class="d01-prog-labels">
+              <span>0</span><span>1j</span><span>2j</span><span>3j</span><span>4j</span>
+            </div>
+            <div class="d01-caption">
+              <span class="dot grey" id="d01-caption-dot"></span>
+              <span id="d01-caption-text">Belum ada durasi tercatat hari ini</span>
+            </div>
+            <div style="margin-top:8px">
+              <span class="task-auto-tag">📍 Otomatis dari GPS Tracker · D01 · ${t.kategori}</span>
+            </div>
+          </div>`;
+        list.appendChild(el);
+        // Render initial state
+        setTimeout(updateD01Card, 50);
+      } else {
+        // ── Tugas biasa ──
+        const el = document.createElement('div');
+        const isDone = checked[t.kode];
+        el.className = 'task-item' + (isDone ? ' done' : '');
+        el.id = 'task-' + t.kode;
+        el.innerHTML = `
+          <div class="task-check"><span class="check-icon">✓</span></div>
+          <div class="task-body">
+            <div class="task-name">${t.nama}</div>
+            <div class="task-meta">${t.kode} · ${t.kategori} · KPI: ${t.kpi}</div>
+            <span class="task-note-toggle" onclick="toggleNote(event,'${t.kode}')">+ Tambah catatan</span>
+            <textarea class="task-note-input" id="note-${t.kode}" placeholder="Catatan..." rows="2" style="display:none"
+              onclick="event.stopPropagation()" oninput="notes['${t.kode}']=this.value"></textarea>
+          </div>`;
         el.addEventListener('click', () => toggleCheck(t.kode));
+        list.appendChild(el);
       }
-      list.appendChild(el);
     });
   });
   updateStats();
@@ -1007,7 +1085,7 @@ function renderHarian() {
 function toggleCheck(kode) {
   checked[kode] = !checked[kode];
   const el = document.getElementById('task-' + kode);
-  el.classList.toggle('done', checked[kode]);
+  if (el) el.classList.toggle('done', checked[kode]);
   updateStats();
 }
 
@@ -1018,15 +1096,17 @@ function toggleNote(e, kode) {
 }
 
 function updateStats() {
-  const done = Object.values(checked).filter(Boolean).length;
+  // D01 dihitung selalu ✓ saat disimpan (jika ada durasi GPS),
+  // tapi di stat card kita pakai checked state
+  const done  = Object.values(checked).filter(Boolean).length;
   const total = HARIAN.length;
-  const skip = total - done;
-  const pct = Math.round(done/total*100);
+  const skip  = total - done;
+  const pct   = Math.round(done/total*100);
   document.getElementById('stat-done').textContent = done;
   document.getElementById('stat-skip').textContent = skip;
-  document.getElementById('stat-pct').textContent = pct + '%';
-  document.getElementById('stat-pct').style.color = pct >= 90 ? 'var(--green)' : pct >= 70 ? 'var(--orange)' : 'var(--red)';
-  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('stat-pct').textContent  = pct + '%';
+  document.getElementById('stat-pct').style.color  = pct >= 90 ? 'var(--green)' : pct >= 70 ? 'var(--orange)' : 'var(--red)';
+  document.getElementById('prog-pct').textContent  = pct + '%';
   const fill = document.getElementById('prog-fill');
   fill.style.width = pct + '%';
   fill.className = 'prog-fill' + (pct >= 90 ? '' : pct >= 70 ? ' mid' : ' low');
@@ -1041,7 +1121,7 @@ async function checkTodayFilled() {
   try {
     const r = await fetch(`${scriptUrl}?type=cek&tanggal=${today}`);
     const d = await r.json();
-    const badge = document.getElementById('badge-harian');
+    const badge    = document.getElementById('badge-harian');
     const notifDiv = document.getElementById('notif-harian');
     if (d.filled) {
       badge.classList.remove('show');
@@ -1078,31 +1158,41 @@ async function saveHarian() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Menyimpan...';
 
-  // Sertakan data durasi GPS untuk D01
+  // D01: selalu ✓, catatan berisi durasi GPS
   const totalMenit = getCurrentTotalMinutes();
+  const h = Math.floor(totalMenit / 60);
+  const m = Math.floor(totalMenit % 60);
   const gpsNote = totalMenit > 0
-    ? `GPS: ${Math.floor(totalMenit/60)}j ${Math.floor(totalMenit%60)}m di toko · ${isAtStore ? 'Sedang di toko' : 'Di luar toko'}`
-    : '';
+    ? `GPS: ${h}j ${m}m di toko${totalMenit >= TARGET_MENIT ? '' : ' (< target 4j)'} · ${isAtStore ? 'Masih di toko' : 'Sudah keluar toko'}`
+    : 'GPS: tidak ada durasi tercatat (GPS mungkin mati)';
 
   const entries = HARIAN.map(t => ({
-    tanggal, kode: t.kode, nama: t.nama,
-    kategori: t.kategori, prioritas: t.prioritas,
-    status: checked[t.kode] ? '✓' : '✗',
-    catatan: t.autoTrack ? (gpsNote || notes[t.kode] || '') : (notes[t.kode] || '')
+    tanggal,
+    kode: t.kode,
+    nama: t.nama,
+    kategori: t.kategori,
+    prioritas: t.prioritas,
+    // D01 selalu ✓, tugas lain ikut checked state
+    status: t.autoTrack ? '✓' : (checked[t.kode] ? '✓' : '✗'),
+    catatan: t.autoTrack ? gpsNote : (notes[t.kode] || '')
   }));
 
   try {
     const r = await fetch(scriptUrl, {
       method: 'POST',
-      body: JSON.stringify({type:'harian', entries}),
+      body: JSON.stringify({ type: 'harian', entries }),
     });
     const d = await r.json();
     if (d.status === 'ok') {
       showToast('✓ Tersimpan ke Google Sheets', 'ok');
       checkTodayFilled();
       checkLaporanBadge();
-    } else { showToast('Gagal: ' + (d.message||'unknown'), 'err'); }
-  } catch(e) { showToast('Gagal terhubung ke Sheets', 'err'); }
+    } else {
+      showToast('Gagal: ' + (d.message || 'unknown'), 'err');
+    }
+  } catch(e) {
+    showToast('Gagal terhubung ke Sheets', 'err');
+  }
 
   btn.disabled = false;
   btn.textContent = 'Simpan ke Google Sheets';
@@ -1118,19 +1208,14 @@ function renderEventGrid() {
     const el = document.createElement('div');
     el.className = 'event-card';
     el.id = 'ev-' + e.kode;
-    el.innerHTML = `
-      <div class="event-kode">${e.kode}</div>
-      <div class="event-nama">${e.nama}</div>
-      <div class="event-meta">${e.frekuensi} · ${e.prioritas}</div>
-    `;
+    el.innerHTML = `<div class="event-kode">${e.kode}</div><div class="event-nama">${e.nama}</div><div class="event-meta">${e.frekuensi} · ${e.prioritas}</div>`;
     el.onclick = () => selectEvent(e);
     grid.appendChild(el);
   });
 }
 
 function selectEvent(ev) {
-  selectedEvent = ev;
-  selectedStatus = null;
+  selectedEvent = ev; selectedStatus = null;
   document.querySelectorAll('.event-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('ev-' + ev.kode).classList.add('selected');
   document.getElementById('sbtn-ok').className = 'status-btn';
@@ -1148,19 +1233,18 @@ function setStatus(s) {
 
 async function saveEvent() {
   if (!scriptUrl) { openModal(); return; }
-  if (!selectedEvent) { showToast('Pilih tugas dulu', 'err'); return; }
-  if (!selectedStatus) { showToast('Pilih status dulu', 'err'); return; }
+  if (!selectedEvent) { showToast('Pilih tugas dulu','err'); return; }
+  if (!selectedStatus) { showToast('Pilih status dulu','err'); return; }
   const tanggal = document.getElementById('tgl-event').value;
-  if (!tanggal) { showToast('Pilih tanggal dulu', 'err'); return; }
+  if (!tanggal) { showToast('Pilih tanggal dulu','err'); return; }
   try {
     const r = await fetch(scriptUrl, {
       method: 'POST',
       body: JSON.stringify({
-        type: 'event',
-        tanggal, kode: selectedEvent.kode, nama: selectedEvent.nama,
-        kategori: selectedEvent.kategori, frekuensi: selectedEvent.frekuensi,
-        prioritas: selectedEvent.prioritas, status: selectedStatus,
-        catatan: document.getElementById('event-note').value
+        type:'event', tanggal, kode:selectedEvent.kode, nama:selectedEvent.nama,
+        kategori:selectedEvent.kategori, frekuensi:selectedEvent.frekuensi,
+        prioritas:selectedEvent.prioritas, status:selectedStatus,
+        catatan:document.getElementById('event-note').value
       })
     });
     const d = await r.json();
@@ -1169,8 +1253,8 @@ async function saveEvent() {
       document.getElementById('event-detail').style.display = 'none';
       selectedEvent = null; selectedStatus = null;
       document.querySelectorAll('.event-card').forEach(c => c.classList.remove('selected'));
-    } else { showToast('Gagal: ' + (d.message||'unknown'), 'err'); }
-  } catch(e) { showToast('Gagal terhubung ke Sheets', 'err'); }
+    } else { showToast('Gagal: ' + (d.message||'unknown'),'err'); }
+  } catch(e) { showToast('Gagal terhubung ke Sheets','err'); }
 }
 
 // ─────────────────────────────────────────────
@@ -1184,8 +1268,7 @@ async function loadGrid() {
   cont.innerHTML = '<div class="empty"><span class="spinner"></span> Memuat data...</div>';
   try {
     const r = await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);
-    const d = await r.json();
-    renderGrid(d, bulan);
+    renderGrid(await r.json(), bulan);
   } catch(e) {
     cont.innerHTML = '<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat data</div></div>';
   }
@@ -1201,9 +1284,8 @@ function renderGrid(data, bulan) {
   const daysInMonth = new Date(yr, mo, 0).getDate();
   let headerDays = '';
   for (let d = 1; d <= daysInMonth; d++) {
-    const dayOfWeek = new Date(yr, mo-1, d).getDay();
-    const isSun = dayOfWeek === 0;
-    headerDays += `<th class="${isSun?'sunday':''}">${d}<br><span style="font-weight:400;opacity:0.6">${DAY_SHORT[dayOfWeek]}</span></th>`;
+    const dow = new Date(yr, mo-1, d).getDay();
+    headerDays += `<th class="${dow===0?'sunday':''}">${d}<br><span style="font-weight:400;opacity:0.6">${DAY_SHORT[dow]}</span></th>`;
   }
   const dataMap = {};
   data.rows.forEach(row => {
@@ -1215,64 +1297,52 @@ function renderGrid(data, bulan) {
   let rows = '';
   const taskPcts = {};
   HARIAN.forEach(t => {
-    const taskData = dataMap[t.kode] || {};
-    let doneCount = 0;
-    let cells = '';
+    const td = dataMap[t.kode] || {};
+    let doneCount = 0, cells = '';
     for (let d = 1; d <= daysInMonth; d++) {
-      const dayOfWeek = new Date(yr, mo-1, d).getDay();
-      const isSun = dayOfWeek === 0;
-      const val = taskData[d];
+      const dow = new Date(yr, mo-1, d).getDay();
+      const isSun = dow === 0;
+      const val   = td[d];
       if (isSun) {
         cells += `<td class="sunday"><div class="grid-cell sunday">—</div></td>`;
       } else {
         const isDone = val === '✓';
         if (isDone) doneCount++;
         const isPast = new Date(yr, mo-1, d) < new Date();
-        if (isDone) {
-          cells += `<td><div class="grid-cell done">✓</div></td>`;
-        } else if (isPast) {
-          cells += `<td><div class="grid-cell empty" style="color:var(--red);opacity:0.4">✗</div></td>`;
-        } else {
-          cells += `<td><div class="grid-cell empty"></div></td>`;
-        }
+        cells += `<td><div class="grid-cell ${isDone?'done':isPast?'empty':''}" style="${!isDone&&isPast?'color:var(--red);opacity:0.4':''}">${isDone?'✓':isPast?'✗':''}</div></td>`;
       }
     }
-    const pastWorkDays = Array.from({length: daysInMonth}, (_,i)=>i+1)
-      .filter(d => new Date(yr, mo-1, d).getDay() !== 0 && new Date(yr, mo-1, d) < new Date()).length;
-    const pct = pastWorkDays > 0 ? Math.round(doneCount/pastWorkDays*100) : 0;
+    const pastWork = Array.from({length:daysInMonth},(_,i)=>i+1)
+      .filter(d => new Date(yr,mo-1,d).getDay()!==0 && new Date(yr,mo-1,d)<new Date()).length;
+    const pct = pastWork > 0 ? Math.round(doneCount/pastWork*100) : 0;
     taskPcts[t.kode] = pct;
-    const pctClass = pct >= 90 ? 'pct-hi' : pct >= 70 ? 'pct-mid' : 'pct-lo';
-    const priColor = t.prioritas === 'Wajib' ? 'var(--red)' : t.prioritas === 'Penting' ? 'var(--orange)' : 'var(--blue)';
+    const pctClass = pct>=90?'pct-hi':pct>=70?'pct-mid':'pct-lo';
+    const priColor  = t.prioritas==='Wajib'?'var(--red)':t.prioritas==='Penting'?'var(--orange)':'var(--blue)';
     rows += `<tr>
       <td class="task-info">
         <div class="task-code" style="color:${priColor}">${t.kode}${t.autoTrack?' 📍':''}</div>
         <div class="task-name-cell">${t.nama}</div>
-      </td>
-      ${cells}
+      </td>${cells}
       <td><div class="grid-pct ${pctClass}">${pct}%</div></td>
     </tr>`;
   });
-  const allPcts = Object.values(taskPcts);
-  const avgAll = allPcts.length ? Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length) : 0;
-  const wajibPcts = HARIAN.filter(t=>t.prioritas==='Wajib').map(t=>taskPcts[t.kode]||0);
-  const avgWajib = wajibPcts.length ? Math.round(wajibPcts.reduce((a,b)=>a+b,0)/wajibPcts.length) : 0;
-  const pentingPcts = HARIAN.filter(t=>t.prioritas==='Penting').map(t=>taskPcts[t.kode]||0);
-  const avgPenting = pentingPcts.length ? Math.round(pentingPcts.reduce((a,b)=>a+b,0)/pentingPcts.length) : 0;
-  function avgCell(v) {
+  const allPcts    = Object.values(taskPcts);
+  const avgAll     = allPcts.length ? Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length) : 0;
+  const wajibPcts  = HARIAN.filter(t=>t.prioritas==='Wajib').map(t=>taskPcts[t.kode]||0);
+  const avgWajib   = wajibPcts.length ? Math.round(wajibPcts.reduce((a,b)=>a+b,0)/wajibPcts.length) : 0;
+  const pentPcts   = HARIAN.filter(t=>t.prioritas==='Penting').map(t=>taskPcts[t.kode]||0);
+  const avgPenting = pentPcts.length ? Math.round(pentPcts.reduce((a,b)=>a+b,0)/pentPcts.length) : 0;
+  const avgCell = v => {
     const cls = v>=90?'pct-hi':v>=70?'pct-mid':'pct-lo';
     return `<td colspan="${daysInMonth}" style="text-align:left;padding-left:12px"><span class="grid-pct ${cls}">${v}%</span></td><td></td>`;
-  }
-  cont.innerHTML = `
-    <div class="grid-wrap">
-      <table class="grid-table">
-        <thead><tr><th class="task-col">Tugas</th>${headerDays}<th>%</th></tr></thead>
-        <tbody>${rows}
-          <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">RATA-RATA SEMUA</td>${avgCell(avgAll)}</tr>
-          <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata WAJIB 🔴</td>${avgCell(avgWajib)}</tr>
-          <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata PENTING 🟡</td>${avgCell(avgPenting)}</tr>
-        </tbody>
-      </table>
-    </div>`;
+  };
+  cont.innerHTML = `<div class="grid-wrap"><table class="grid-table">
+    <thead><tr><th class="task-col">Tugas</th>${headerDays}<th>%</th></tr></thead>
+    <tbody>${rows}
+      <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">RATA-RATA SEMUA</td>${avgCell(avgAll)}</tr>
+      <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata WAJIB 🔴</td>${avgCell(avgWajib)}</tr>
+      <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata PENTING 🟡</td>${avgCell(avgPenting)}</tr>
+    </tbody></table></div>`;
 }
 
 // ─────────────────────────────────────────────
@@ -1286,8 +1356,7 @@ async function loadLaporan() {
   cont.innerHTML = '<div class="empty"><span class="spinner"></span> Memuat laporan...</div>';
   try {
     const r = await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);
-    const d = await r.json();
-    renderLaporan(d, bulan);
+    renderLaporan(await r.json(), bulan);
   } catch(e) {
     cont.innerHTML = '<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat laporan</div></div>';
   }
@@ -1297,21 +1366,21 @@ function renderLaporan(data, bulan) {
   const cont = document.getElementById('laporan-container');
   const [yr, mo] = bulan.split('-').map(Number);
   const daysInMonth = new Date(yr, mo, 0).getDate();
-  const bulanName = BULAN_NAMES[mo-1] + ' ' + yr;
+  const bulanName   = BULAN_NAMES[mo-1] + ' ' + yr;
   const dataMap = {};
-  (data.rows || []).forEach(row => {
+  (data.rows||[]).forEach(row => {
     const kode = row[1];
     if (!dataMap[kode]) dataMap[kode] = {};
     const day = parseInt((row[0]||'').split('-')[2]) || 0;
     if (day) dataMap[kode][day] = row[5];
   });
   const weeks = [];
-  let weekStart = 1;
-  while (weekStart <= daysInMonth) {
-    let weekEnd = weekStart;
-    while (weekEnd < daysInMonth && new Date(yr, mo-1, weekEnd+1).getDay() !== 1) weekEnd++;
-    weeks.push({start: weekStart, end: weekEnd});
-    weekStart = weekEnd + 1;
+  let ws = 1;
+  while (ws <= daysInMonth) {
+    let we = ws;
+    while (we < daysInMonth && new Date(yr,mo-1,we+1).getDay() !== 1) we++;
+    weeks.push({start:ws, end:we});
+    ws = we + 1;
   }
   const taskPcts = {};
   let notifHTML = '';
@@ -1320,68 +1389,59 @@ function renderLaporan(data, bulan) {
   HARIAN.forEach(t => {
     const td = dataMap[t.kode] || {};
     const done = pastDays.filter(d => td[d]==='✓').length;
-    const pct = pastDays.length > 0 ? Math.round(done/pastDays.length*100) : null;
+    const pct  = pastDays.length > 0 ? Math.round(done/pastDays.length*100) : null;
     taskPcts[t.kode] = pct;
-    if (pct !== null && pct < 70) {
-      notifHTML += `<div class="notif-item warn">⚠ ${t.kode} · ${t.nama}: hanya <b>${pct}%</b> (target ≥ 70%)</div>`;
-    }
+    if (pct!==null && pct<70) notifHTML += `<div class="notif-item warn">⚠ ${t.kode} · ${t.nama}: hanya <b>${pct}%</b> (target ≥ 70%)</div>`;
   });
   const weekPcts = weeks.map(w => {
     const wDays = Array.from({length:w.end-w.start+1},(_,i)=>w.start+i)
       .filter(d => new Date(yr,mo-1,d).getDay()!==0 && new Date(yr,mo-1,d)<new Date());
     if (!wDays.length) return null;
-    const allDone = HARIAN.reduce((sum, t) => {
-      const td = dataMap[t.kode] || {};
-      return sum + wDays.filter(d => td[d]==='✓').length;
+    const allDone = HARIAN.reduce((sum,t) => {
+      const td = dataMap[t.kode]||{};
+      return sum + wDays.filter(d=>td[d]==='✓').length;
     }, 0);
     const total = HARIAN.length * wDays.length;
     return total > 0 ? Math.round(allDone/total*100) : 0;
   });
-  const maxPct = Math.max(...weekPcts.filter(p=>p!==null), 1);
-  let barsHTML = weekPcts.map((p, i) => {
-    if (p === null) return `<div class="bar-col"><div class="bar-label">Mg ${i+1}</div></div>`;
+  const barsHTML = weekPcts.map((p,i) => {
+    if (p===null) return `<div class="bar-col"><div class="bar-label">Mg ${i+1}</div></div>`;
     const h = Math.round((p/100)*80);
     const color = p>=90?'var(--green)':p>=70?'var(--orange)':'var(--red)';
-    return `<div class="bar-col">
-      <div class="bar-val">${p}%</div>
-      <div class="bar-rect" style="height:${h}px;background:${color}"></div>
-      <div class="bar-label">Mg ${i+1}</div>
-    </div>`;
+    return `<div class="bar-col"><div class="bar-val">${p}%</div><div class="bar-rect" style="height:${h}px;background:${color}"></div><div class="bar-label">Mg ${i+1}</div></div>`;
   }).join('');
-  let weeksHTML = weeks.map((w, wi) => {
-    const wLabel = `Minggu ${wi+1}: ${w.start}–${w.end}/${mo.toString().padStart(2,'0')}`;
-    const wDays = Array.from({length:w.end-w.start+1},(_,i)=>w.start+i)
+  const weeksHTML = weeks.map((w,wi) => {
+    const wLabel = `Minggu ${wi+1}: ${w.start}–${w.end}/${String(mo).padStart(2,'0')}`;
+    const wDays  = Array.from({length:w.end-w.start+1},(_,i)=>w.start+i)
       .filter(d => new Date(yr,mo-1,d).getDay()!==0 && new Date(yr,mo-1,d)<new Date());
-    const wPct = weekPcts[wi];
-    if (wPct === null) return '';
+    const wPct   = weekPcts[wi];
+    if (wPct===null) return '';
     const pctColor = wPct>=90?'var(--green)':wPct>=70?'var(--orange)':'var(--red)';
     const taskRows = HARIAN.map(t => {
-      const td = dataMap[t.kode] || {};
-      const done = wDays.filter(d => td[d]==='✓').length;
-      const pct = wDays.length > 0 ? Math.round(done/wDays.length*100) : 0;
-      const barColor = pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';
-      const pctTxt = wDays.length > 0 ? pct+'%' : '—';
+      const td   = dataMap[t.kode]||{};
+      const done = wDays.filter(d=>td[d]==='✓').length;
+      const pct  = wDays.length > 0 ? Math.round(done/wDays.length*100) : 0;
+      const bc   = pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';
       return `<div class="laporan-task-row">
         <div class="lt-kode">${t.kode}</div>
         <div class="lt-name">${t.nama}${t.autoTrack?' 📍':''}</div>
-        <div class="lt-bar-wrap"><div class="lt-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
-        <div class="lt-pct" style="color:${barColor}">${pctTxt}</div>
+        <div class="lt-bar-wrap"><div class="lt-bar-fill" style="width:${pct}%;background:${bc}"></div></div>
+        <div class="lt-pct" style="color:${bc}">${wDays.length>0?pct+'%':'—'}</div>
       </div>`;
     }).join('');
     return `<div class="laporan-week">
       <div class="week-title">${wLabel}</div>
       <div class="week-avg" style="color:${pctColor}">${wPct}%</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px">rata-rata semua tugas</div>
-      ${taskRows}
-    </div>`;
+      ${taskRows}</div>`;
   }).join('');
   cont.innerHTML = `
-    ${notifHTML ? `<div class="notif-list">${notifHTML}</div>` : ''}
+    ${notifHTML?`<div class="notif-list">${notifHTML}</div>`:''}
     <div class="chart-wrap">
       <div class="chart-title">% Penyelesaian per Minggu — ${bulanName}</div>
       <div class="bar-chart">${barsHTML}</div>
     </div>
-    ${weeksHTML || '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>'}`;
+    ${weeksHTML||'<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>'}`;
 }
 
 // ─────────────────────────────────────────────
@@ -1399,16 +1459,14 @@ async function loadRiwayat() {
       fetch(`${scriptUrl}?type=event&bulan=${bulan}`).then(r=>r.json()).catch(()=>null),
     ]);
     renderRiwayat(rH, rE, bulan);
-  } catch(e) {
-    cont.innerHTML = '<div class="empty">Gagal memuat riwayat</div>';
-  }
+  } catch(e) { cont.innerHTML = '<div class="empty">Gagal memuat riwayat</div>'; }
 }
 
 function renderRiwayat(rH, rE, bulan) {
-  const cont = document.getElementById('riwayat-container');
+  const cont   = document.getElementById('riwayat-container');
   const [yr, mo] = bulan.split('-').map(Number);
   const byDate = {};
-  (rH?.rows || []).forEach(row => {
+  (rH?.rows||[]).forEach(row => {
     const tgl = row[0]; if (!tgl) return;
     if (!byDate[tgl]) byDate[tgl] = [];
     byDate[tgl].push({kode:row[1], nama:row[2], status:row[5], catatan:row[6]});
@@ -1423,10 +1481,10 @@ function renderRiwayat(rH, rE, bulan) {
     html += `<div class="section-hdr"><span class="section-hdr-label">Tugas Harian</span><div class="section-hdr-line"></div></div>`;
     dates.forEach(tgl => {
       const tasks = byDate[tgl];
-      const done = tasks.filter(t=>t.status==='✓').length;
-      const pct = Math.round(done/tasks.length*100);
-      const tags = tasks.map(t => `<span class="history-tag ${t.status==='✓'?'done':'skip'}">${t.kode}</span>`).join('');
-      const d = new Date(tgl);
+      const done  = tasks.filter(t=>t.status==='✓').length;
+      const pct   = Math.round(done/tasks.length*100);
+      const tags  = tasks.map(t=>`<span class="history-tag ${t.status==='✓'?'done':'skip'}">${t.kode}</span>`).join('');
+      const d     = new Date(tgl);
       const label = `${d.getDate()} ${BULAN_NAMES[d.getMonth()]} — ${DAY_SHORT[d.getDay()]}`;
       html += `<div class="history-item">
         <div class="history-date">${label}</div>
@@ -1441,9 +1499,8 @@ function renderRiwayat(rH, rE, bulan) {
       const [tgl,,kode,nama,,,,status,catatan] = row;
       if (!tgl) return;
       const d = new Date(tgl);
-      const label = `${d.getDate()} ${BULAN_NAMES[d.getMonth()]}`;
       html += `<div class="history-item">
-        <div class="history-date">${label} · ${kode}</div>
+        <div class="history-date">${d.getDate()} ${BULAN_NAMES[d.getMonth()]} · ${kode}</div>
         <div style="font-size:12px;font-weight:500">${nama}</div>
         <div class="history-summary" style="margin-top:4px">Status: <span style="color:${status==='✓'?'var(--green)':'var(--red)'}">${status}</span>${catatan?' · '+catatan:''}</div>
       </div>`;
@@ -1462,18 +1519,21 @@ function openModal() {
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
 function saveUrl() {
   const val = document.getElementById('url-input').value.trim();
-  if (!val.startsWith('http')) { showToast('URL tidak valid', 'err'); return; }
+  if (!val.startsWith('http')) { showToast('URL tidak valid','err'); return; }
   scriptUrl = val;
   localStorage.setItem('mtg_url', val);
   updateConnected();
   closeModal();
-  showToast('URL tersimpan ✓', 'ok');
+  showToast('URL tersimpan ✓','ok');
   checkTodayFilled();
   checkLaporanBadge();
 }
 function updateConnected() {
-  document.getElementById('setup-dot').className = 'setup-dot' + (scriptUrl ? ' connected' : '');
+  document.getElementById('setup-dot').className = 'setup-dot' + (scriptUrl?' connected':'');
 }
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
 
 // ─────────────────────────────────────────────
 // TOAST
@@ -1487,10 +1547,6 @@ function showToast(msg, type='') {
   _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-document.getElementById('modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-
 // ─────────────────────────────────────────────
 // PASSWORD
 // ─────────────────────────────────────────────
@@ -1498,7 +1554,7 @@ const PW = 'kodachi123';
 function checkPw() {
   const val = document.getElementById('pw-input').value;
   if (val === PW) {
-    sessionStorage.setItem('mtg_auth', '1');
+    sessionStorage.setItem('mtg_auth','1');
     document.getElementById('pw-overlay').style.display = 'none';
   } else {
     const inp = document.getElementById('pw-input');
@@ -1507,7 +1563,7 @@ function checkPw() {
     inp.classList.add('shake');
     document.getElementById('pw-err').textContent = 'Password salah, coba lagi';
     inp.value = '';
-    setTimeout(() => inp.classList.remove('shake'), 400);
+    setTimeout(()=>inp.classList.remove('shake'), 400);
   }
 }
 if (sessionStorage.getItem('mtg_auth') === '1') {
