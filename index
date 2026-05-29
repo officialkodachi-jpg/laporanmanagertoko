@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MTG · Sepatu Kodachi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0d0d0f;
+  --surface:  #141417;
+  --card:     #1a1a1f;
+  --card2:    #1f1f25;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --text:     #f0efe8;
+  --muted:    #8a8a94;
+  --hint:     #4a4a52;
+  --accent:   #e8c547;
+  --accent2:  #f5d96a;
+  --green:    #3ecf8e;
+  --red:      #f06a6a;
+  --orange:   #f0a05a;
+  --blue:     #6a9ff0;
+  --mono:     'DM Mono', monospace;
+  --sans:     'Sora', sans-serif;
+  --r:        14px;
+  --r-lg:     20px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--hint); border-radius: 2px; }
+
+/* TOPBAR */
+.topbar { padding: 20px 20px 0; max-width: 680px; margin: 0 auto; }
+.topbar-inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.brand { display: flex; flex-direction: column; gap: 3px; }
+.brand-tag { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; }
+.brand-name { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
+.brand-sub { font-size: 12px; color: var(--muted); font-weight: 300; margin-top: 2px; }
+.setup-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--card); border: 1px solid var(--border2); border-radius: 50px; color: var(--muted); font-family: var(--sans); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.setup-btn:hover { border-color: var(--accent); color: var(--accent); }
+.setup-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--hint); transition: background 0.3s; }
+.setup-dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+/* TABS */
+.tabs-wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; position: sticky; top: 0; z-index: 50; background: var(--bg); }
+.tabs { display: flex; gap: 2px; padding: 14px 0 0; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: none; padding: 10px 14px; text-align: center; font-family: var(--sans); font-size: 12px; font-weight: 500; color: var(--hint); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; letter-spacing: 0.02em; white-space: nowrap; position: relative; }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-badge { position: absolute; top: 6px; right: 4px; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; display: none; }
+.tab-badge.show { display: flex; }
+.tabs-line { height: 1px; background: var(--border); margin-bottom: 20px; }
+
+/* CONTENT */
+.content { max-width: 680px; margin: 0 auto; padding: 0 20px 60px; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* DATE ROW */
+.date-row { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
+.date-input { flex: 1; padding: 11px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-family: var(--mono); font-size: 13px; outline: none; transition: border-color 0.2s; color-scheme: dark; }
+.date-input:focus { border-color: var(--accent); }
+.today-btn { padding: 11px 16px; background: var(--accent); color: #0d0d0f; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
+.today-btn:active { opacity: 0.8; }
+
+/* STATS ROW */
+.stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 12px; text-align: center; }
+.stat-val { font-family: var(--mono); font-size: 24px; font-weight: 500; line-height: 1; }
+.stat-val.green { color: var(--green); }
+.stat-val.orange { color: var(--orange); }
+.stat-val.red { color: var(--red); }
+.stat-label { font-size: 10px; color: var(--muted); margin-top: 4px; letter-spacing: 0.05em; }
+
+/* PROGRESS BAR */
+.prog-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 16px; }
+.prog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.prog-label { font-size: 12px; color: var(--muted); }
+.prog-pct { font-family: var(--mono); font-size: 14px; color: var(--accent); font-weight: 500; }
+.prog-bar { height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 3px; background: var(--green); transition: width 0.4s ease; }
+.prog-fill.mid { background: var(--orange); }
+.prog-fill.low { background: var(--red); }
+
+/* SECTION HEADER */
+.section-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; margin-top: 4px; }
+.section-hdr-line { flex: 1; height: 1px; background: var(--border); }
+.section-hdr-label { font-size: 10px; color: var(--hint); letter-spacing: 0.12em; text-transform: uppercase; font-family: var(--mono); display: flex; align-items: center; gap: 6px; }
+.pri-dot { width: 6px; height: 6px; border-radius: 50%; }
+.pri-dot.wajib { background: var(--red); }
+.pri-dot.penting { background: var(--orange); }
+.pri-dot.pendukung { background: var(--blue); }
+
+/* TASK ITEM */
+.task-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 6px; transition: border-color 0.15s; cursor: pointer; }
+.task-item.done { border-color: rgba(62,207,142,0.25); background: rgba(62,207,142,0.05); }
+.task-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--hint); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; margin-top: 1px; }
+.task-item.done .task-check { border-color: var(--green); background: var(--green); }
+.check-icon { display: none; color: #0d0d0f; font-size: 13px; font-weight: 700; }
+.task-item.done .check-icon { display: block; }
+.task-body { flex: 1; min-width: 0; }
+.task-name { font-size: 13px; font-weight: 500; line-height: 1.4; }
+.task-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.task-note-toggle { font-size: 11px; color: var(--hint); margin-top: 6px; cursor: pointer; display: inline-block; transition: color 0.15s; }
+.task-note-toggle:hover { color: var(--accent); }
+.task-note-input { width: 100%; margin-top: 8px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 12px; outline: none; resize: none; line-height: 1.5; }
+.task-note-input:focus { border-color: var(--accent); }
+
+/* SAVE BTN */
+.save-btn { width: 100%; padding: 16px; background: var(--accent); color: #0d0d0f; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 16px; transition: opacity 0.15s; letter-spacing: 0.02em; }
+.save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.save-btn:not(:disabled):active { opacity: 0.8; }
+
+/* ALERT */
+.alert { padding: 12px 16px; border-radius: var(--r); margin-bottom: 16px; font-size: 12px; line-height: 1.6; }
+.alert.info { background: rgba(106,159,240,0.1); border: 1px solid rgba(106,159,240,0.2); color: var(--blue); }
+.alert.warn { background: rgba(240,160,90,0.1); border: 1px solid rgba(240,160,90,0.2); color: var(--orange); }
+.alert.danger { background: rgba(240,106,106,0.1); border: 1px solid rgba(240,106,106,0.2); color: var(--red); }
+.alert.success { background: rgba(62,207,142,0.1); border: 1px solid rgba(62,207,142,0.2); color: var(--green); }
+
+/* NOTIF BANNER */
+.notif-list { margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px; }
+.notif-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(240,106,106,0.08); border: 1px solid rgba(240,106,106,0.18); border-radius: var(--r); font-size: 12px; color: var(--red); }
+.notif-item.warn { background: rgba(240,160,90,0.08); border-color: rgba(240,160,90,0.18); color: var(--orange); }
+
+/* GRID VIEW */
+.grid-controls { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+.month-select { flex: 1; min-width: 120px; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-family: var(--mono); font-size: 13px; outline: none; color-scheme: dark; }
+.month-select:focus { border-color: var(--accent); }
+.load-btn { padding: 10px 18px; background: var(--accent); color: #0d0d0f; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 12px; font-weight: 700; cursor: pointer; }
+.grid-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--border); }
+.grid-table { border-collapse: collapse; width: 100%; min-width: 700px; font-size: 11px; }
+.grid-table th { padding: 8px 6px; background: var(--card2); color: var(--muted); font-weight: 600; text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); white-space: nowrap; font-family: var(--mono); }
+.grid-table th.task-col { text-align: left; min-width: 160px; padding-left: 12px; }
+.grid-table td { padding: 6px; text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+.grid-table td.task-info { text-align: left; padding: 8px 12px; background: var(--card); white-space: nowrap; position: sticky; left: 0; z-index: 2; }
+.grid-table td.task-code { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.grid-table td.task-name-cell { font-size: 11px; font-weight: 500; }
+.grid-table td.sunday { background: rgba(74,74,82,0.15); color: var(--hint); }
+.grid-cell { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin: auto; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.grid-cell.done { background: rgba(62,207,142,0.2); color: var(--green); }
+.grid-cell.empty { background: transparent; color: var(--hint); }
+.grid-cell.empty:hover { background: var(--surface); }
+.grid-cell.sunday { cursor: default; color: var(--hint); font-size: 10px; }
+.grid-pct { font-family: var(--mono); font-size: 11px; font-weight: 600; }
+.pct-hi { color: var(--green); }
+.pct-mid { color: var(--orange); }
+.pct-lo { color: var(--red); }
+.grid-avg-row td { background: var(--card2); font-family: var(--mono); font-size: 11px; font-weight: 600; }
+
+/* EVENT FORM */
+.event-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.event-card { padding: 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); cursor: pointer; transition: all 0.2s; }
+.event-card:hover { border-color: var(--border2); }
+.event-card.selected { border-color: var(--accent); background: rgba(232,197,71,0.06); }
+.event-kode { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 4px; }
+.event-nama { font-size: 12px; font-weight: 500; line-height: 1.4; }
+.event-meta { font-size: 10px; color: var(--muted); margin-top: 3px; }
+.event-detail { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 16px; }
+.field-label { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 6px; text-transform: uppercase; }
+.status-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.status-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-family: var(--sans); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: center; }
+.status-btn.sel-ok { border-color: var(--green); background: rgba(62,207,142,0.1); color: var(--green); }
+.status-btn.sel-no { border-color: var(--red); background: rgba(240,106,106,0.1); color: var(--red); }
+.note-input { width: 100%; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); font-family: var(--sans); font-size: 13px; outline: none; resize: vertical; line-height: 1.5; min-height: 70px; }
+.note-input:focus { border-color: var(--accent); }
+.send-btn { width: 100%; padding: 14px; background: var(--accent); color: #0d0d0f; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+
+/* LAPORAN */
+.laporan-week { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 12px; }
+.week-title { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 12px; font-family: var(--mono); }
+.week-avg { font-family: var(--mono); font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+.laporan-task-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.laporan-task-row:last-child { border-bottom: none; }
+.lt-kode { font-family: var(--mono); font-size: 10px; color: var(--hint); width: 28px; flex-shrink: 0; }
+.lt-name { font-size: 11px; flex: 1; }
+.lt-bar-wrap { width: 80px; height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+.lt-bar-fill { height: 100%; border-radius: 3px; }
+.lt-pct { font-family: var(--mono); font-size: 11px; width: 36px; text-align: right; flex-shrink: 0; }
+
+/* CHART */
+.chart-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 16px; }
+.chart-title { font-size: 12px; color: var(--muted); margin-bottom: 14px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
+.bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+.bar-rect { width: 100%; border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.5s ease; }
+.bar-label { font-family: var(--mono); font-size: 9px; color: var(--muted); white-space: nowrap; }
+.bar-val { font-family: var(--mono); font-size: 9px; color: var(--text); }
+
+/* HISTORY */
+.history-item { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 8px; }
+.history-date { font-family: var(--mono); font-size: 11px; color: var(--accent); margin-bottom: 6px; }
+.history-tasks { display: flex; flex-wrap: wrap; gap: 4px; }
+.history-tag { padding: 3px 8px; border-radius: 6px; font-family: var(--mono); font-size: 10px; }
+.history-tag.done { background: rgba(62,207,142,0.15); color: var(--green); }
+.history-tag.skip { background: rgba(240,106,106,0.1); color: var(--red); }
+.history-summary { font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+/* MODAL */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--card); border: 1px solid var(--border2); border-radius: var(--r-lg); padding: 24px; width: 100%; max-width: 420px; }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+.modal-input { width: 100%; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--r); color: var(--text); font-family: var(--mono); font-size: 12px; outline: none; margin-bottom: 12px; }
+.modal-input:focus { border-color: var(--accent); }
+.modal-btns { display: flex; gap: 8px; }
+.modal-cancel { flex: 1; padding: 12px; background: transparent; border: 1px solid var(--border); border-radius: var(--r); color: var(--muted); font-family: var(--sans); font-size: 13px; cursor: pointer; }
+.modal-save { flex: 2; padding: 12px; background: var(--accent); color: #0d0d0f; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card2); border: 1px solid var(--border2); border-radius: 50px; padding: 10px 20px; font-size: 13px; color: var(--text); z-index: 200; transition: transform 0.3s, opacity 0.3s; opacity: 0; white-space: nowrap; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.ok { border-color: rgba(62,207,142,0.3); color: var(--green); }
+.toast.err { border-color: rgba(240,106,106,0.3); color: var(--red); }
+
+/* EMPTY STATE */
+.empty { text-align: center; padding: 40px 20px; color: var(--hint); }
+.empty-icon { font-size: 32px; margin-bottom: 10px; }
+.empty-text { font-size: 13px; line-height: 1.6; }
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--hint); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-tag">MTG · v2.0</span>
+      <span class="brand-name">Sepatu Kodachi</span>
+      <span class="brand-sub">Tracker Harian & Laporan</span>
+    </div>
+    <button class="setup-btn" onclick="openModal()">
+      <span class="setup-dot" id="setup-dot"></span>
+      <span>⚙ Setup URL</span>
+    </button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('harian',this)">
+      Harian
+      <span class="tab-badge" id="badge-harian">!</span>
+    </button>
+    <button class="tab" onclick="switchTab('grid',this)">Grid</button>
+    <button class="tab" onclick="switchTab('event',this)">Non-Harian</button>
+    <button class="tab" onclick="switchTab('laporan',this)">
+      Laporan
+      <span class="tab-badge" id="badge-laporan">!</span>
+    </button>
+    <button class="tab" onclick="switchTab('riwayat',this)">Riwayat</button>
+  </div>
+  <div class="tabs-line"></div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ── TAB HARIAN ── -->
+  <div class="panel active" id="panel-harian">
+    <div class="date-row">
+      <input type="date" class="date-input" id="tgl-harian" onchange="checkTodayFilled()">
+      <button class="today-btn" onclick="setToday('tgl-harian')">Hari ini</button>
+    </div>
+
+    <div id="notif-harian" class="notif-list" style="display:none"></div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val green" id="stat-done">0</div>
+        <div class="stat-label">selesai</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val orange" id="stat-skip">12</div>
+        <div class="stat-label">belum</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-pct" style="color:var(--muted)">0%</div>
+        <div class="stat-label">selesai hari ini</div>
+      </div>
+    </div>
+
+    <div class="prog-wrap">
+      <div class="prog-header">
+        <span class="prog-label">Progress hari ini</span>
+        <span class="prog-pct" id="prog-pct">0%</span>
+      </div>
+      <div class="prog-bar">
+        <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div id="harian-list"></div>
+
+    <button class="save-btn" id="save-harian-btn" onclick="saveHarian()">
+      Simpan ke Google Sheets
+    </button>
+  </div>
+
+  <!-- ── TAB GRID ── -->
+  <div class="panel" id="panel-grid">
+    <div class="grid-controls">
+      <input type="month" class="month-select" id="grid-month" style="flex:1">
+      <button class="load-btn" onclick="loadGrid()">Tampilkan</button>
+    </div>
+    <div id="grid-container">
+      <div class="empty">
+        <div class="empty-icon">📊</div>
+        <div class="empty-text">Pilih bulan dan klik Tampilkan<br>untuk melihat grid tugas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB NON-HARIAN ── -->
+  <div class="panel" id="panel-event">
+    <div class="date-row">
+      <input type="date" class="date-input" id="tgl-event">
+      <button class="today-btn" onclick="setToday('tgl-event')">Hari ini</button>
+    </div>
+
+    <div class="section-hdr">
+      <span class="section-hdr-label">Pilih tugas</span>
+      <div class="section-hdr-line"></div>
+    </div>
+
+    <div class="event-grid" id="event-grid"></div>
+
+    <div class="event-detail" id="event-detail" style="display:none">
+      <div class="field-label" style="margin-bottom:8px">Status</div>
+      <div class="status-row">
+        <button class="status-btn" id="sbtn-ok" onclick="setStatus('✓')">✓ Selesai</button>
+        <button class="status-btn" id="sbtn-no" onclick="setStatus('✗')">✗ Tidak dilakukan</button>
+      </div>
+      <div class="field-label">Catatan / Hasil</div>
+      <textarea class="note-input" id="event-note" placeholder="Opsional: isi catatan atau hasil kerja..."></textarea>
+      <button class="send-btn" onclick="saveEvent()" style="margin-top:10px">Catat →</button>
+    </div>
+  </div>
+
+  <!-- ── TAB LAPORAN ── -->
+  <div class="panel" id="panel-laporan">
+    <div class="grid-controls">
+      <input type="month" class="month-select" id="laporan-month">
+      <button class="load-btn" onclick="loadLaporan()">Tampilkan</button>
+    </div>
+    <div id="laporan-container">
+      <div class="empty">
+        <div class="empty-icon">📈</div>
+        <div class="empty-text">Pilih bulan untuk melihat laporan mingguan</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB RIWAYAT ── -->
+  <div class="panel" id="panel-riwayat">
+    <div class="grid-controls">
+      <input type="month" class="month-select" id="riwayat-month">
+      <button class="load-btn" onclick="loadRiwayat()">Tampilkan</button>
+    </div>
+    <div id="riwayat-container">
+      <div class="empty">
+        <div class="empty-icon">🗂</div>
+        <div class="empty-text">Pilih bulan untuk melihat riwayat pengisian</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-title">Setup URL Google Sheets</div>
+    <div class="modal-sub">Paste URL dari Google Apps Script Web App. Buat dari <b>Extensions → Apps Script → Deploy → New Deployment → Web App</b>.</div>
+    <input class="modal-input" id="url-input" placeholder="https://script.google.com/macros/s/...">
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Batal</button>
+      <button class="modal-save" onclick="saveUrl()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+const HARIAN = [
+  {kode:'D01',nama:'Kehadiran efektif di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Min. 4 jam/hari',target:'Min. 4 jam/hari'},
+  {kode:'D02',nama:'Paket terkirim ke ekspedisi non-J&T (SPX dll)',kategori:'Operasional',prioritas:'Wajib',kpi:'0 komplain pengiriman',target:'100% terkirim'},
+  {kode:'D03',nama:'Stok sepatu, kaos kaki & tali tersedia di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Tidak ada kehabisan mendadak',target:'Selalu ada'},
+  {kode:'D04',nama:'Catatan uang diambil, setor & kembalian terisi',kategori:'Keuangan',prioritas:'Wajib',kpi:'Catatan lengkap tanpa selisih',target:'Selisih = 0'},
+  {kode:'D05',nama:'Uang kembalian cukup di toko',kategori:'Operasional',prioritas:'Penting',kpi:'0 transaksi gagal karena uang receh',target:'Selalu ada'},
+  {kode:'D06',nama:'Partimer datang & pulang tepat waktu',kategori:'SDM',prioritas:'Penting',kpi:'Ketepatan waktu partimer',target:'100%'},
+  {kode:'D07',nama:'Inventaris toko tersedia (plastik, lakban dll)',kategori:'Inventaris',prioritas:'Penting',kpi:'Tidak ada kehabisan bahan',target:'Selalu ada'},
+  {kode:'D08',nama:'Toko bersih dan rapi (cek buka & tutup)',kategori:'Visual',prioritas:'Penting',kpi:'Kondisi bersih tiap hari operasional',target:'100% hari'},
+  {kode:'D09',nama:'Produk terdisplay rapi — tidak ada rak kosong',kategori:'Visual',prioritas:'Penting',kpi:'Tidak ada rak kosong/berantakan',target:'100% hari'},
+  {kode:'D10',nama:'Chat WA & Instagram dibalas',kategori:'Layanan',prioritas:'Penting',kpi:'Response time ≤ 1 jam',target:'100% dibalas'},
+  {kode:'D11',nama:'Partimer melayani customer dengan baik',kategori:'Layanan',prioritas:'Penting',kpi:'0 komplain tidak ditindaklanjuti',target:'100%'},
+  {kode:'D12',nama:'Banner & signage layak tampil',kategori:'Visual',prioritas:'Pendukung',kpi:'Banner dalam kondisi baik',target:'100%'},
+];
+
+const EVENTS = [
+  {kode:'E01',nama:'Input stok masuk dari gudang',kategori:'Operasional',frekuensi:'Mingguan',prioritas:'Penting'},
+  {kode:'E02',nama:'Setor uang ke owner & laporan keuangan',kategori:'Keuangan',frekuensi:'Mingguan',prioritas:'Wajib'},
+  {kode:'E03',nama:'Stok opname — aktual vs sistem',kategori:'Inventaris',frekuensi:'2x/Bulan',prioritas:'Wajib'},
+  {kode:'E04',nama:'Laporan stok minus / kehilangan ke owner',kategori:'Inventaris',frekuensi:'Insidental',prioritas:'Wajib'},
+  {kode:'E05',nama:'Laporan stok datang dari pabrik',kategori:'Inventaris',frekuensi:'Insidental',prioritas:'Penting'},
+  {kode:'E06',nama:'Menegur partimer yang melanggar',kategori:'SDM',frekuensi:'Insidental',prioritas:'Wajib'},
+  {kode:'E07',nama:'Isi shift kosong — carikan pengganti',kategori:'SDM',frekuensi:'Insidental',prioritas:'Wajib'},
+  {kode:'E08',nama:'Training partimer baru',kategori:'SDM',frekuensi:'Insidental',prioritas:'Pendukung'},
+  {kode:'E09',nama:'Sampaikan keluhan partimer ke owner',kategori:'SDM',frekuensi:'Insidental',prioritas:'Penting'},
+];
+
+const BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const DAY_SHORT = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let checked = {};
+let notes = {};
+let scriptUrl = localStorage.getItem('mtg_url') || '';
+let selectedEvent = null;
+let selectedStatus = null;
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  setToday('tgl-harian');
+  setToday('tgl-event');
+  setCurrentMonth('grid-month');
+  setCurrentMonth('laporan-month');
+  setCurrentMonth('riwayat-month');
+  renderHarian();
+  renderEventGrid();
+  updateConnected();
+  checkTodayFilled();
+  checkLaporanBadge();
+});
+
+function setToday(id) {
+  const d = new Date();
+  document.getElementById(id).value = d.toISOString().split('T')[0];
+}
+
+function setCurrentMonth(id) {
+  const d = new Date();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  document.getElementById(id).value = `${d.getFullYear()}-${mm}`;
+}
+
+// ─────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ─────────────────────────────────────────────
+// RENDER HARIAN
+// ─────────────────────────────────────────────
+function renderHarian() {
+  const list = document.getElementById('harian-list');
+  list.innerHTML = '';
+  const groups = ['Wajib','Penting','Pendukung'];
+  const dotClass = {Wajib:'wajib',Penting:'penting',Pendukung:'pendukung'};
+
+  groups.forEach(pri => {
+    const tasks = HARIAN.filter(t => t.prioritas === pri);
+    if (!tasks.length) return;
+    const hdr = document.createElement('div');
+    hdr.className = 'section-hdr';
+    hdr.innerHTML = `<span class="section-hdr-label"><span class="pri-dot ${dotClass[pri]}"></span>${pri}</span><div class="section-hdr-line"></div>`;
+    list.appendChild(hdr);
+    tasks.forEach(t => {
+      const el = document.createElement('div');
+      el.className = 'task-item' + (checked[t.kode] ? ' done' : '');
+      el.id = 'task-' + t.kode;
+      el.innerHTML = `
+        <div class="task-check"><span class="check-icon">✓</span></div>
+        <div class="task-body">
+          <div class="task-name">${t.nama}</div>
+          <div class="task-meta">${t.kode} · ${t.kategori} · KPI: ${t.kpi}</div>
+          <span class="task-note-toggle" onclick="toggleNote(event,'${t.kode}')">+ Tambah catatan</span>
+          <textarea class="task-note-input" id="note-${t.kode}" placeholder="Catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes['${t.kode}']=this.value"></textarea>
+        </div>
+      `;
+      el.addEventListener('click', () => toggleCheck(t.kode));
+      list.appendChild(el);
+    });
+  });
+  updateStats();
+}
+
+function toggleCheck(kode) {
+  checked[kode] = !checked[kode];
+  const el = document.getElementById('task-' + kode);
+  el.classList.toggle('done', checked[kode]);
+  updateStats();
+}
+
+function toggleNote(e, kode) {
+  e.stopPropagation();
+  const ta = document.getElementById('note-' + kode);
+  ta.style.display = ta.style.display === 'none' ? 'block' : 'none';
+}
+
+function updateStats() {
+  const done = Object.values(checked).filter(Boolean).length;
+  const total = HARIAN.length;
+  const skip = total - done;
+  const pct = Math.round(done/total*100);
+  document.getElementById('stat-done').textContent = done;
+  document.getElementById('stat-skip').textContent = skip;
+  document.getElementById('stat-pct').textContent = pct + '%';
+  document.getElementById('stat-pct').style.color = pct >= 90 ? 'var(--green)' : pct >= 70 ? 'var(--orange)' : 'var(--red)';
+  document.getElementById('prog-pct').textContent = pct + '%';
+  const fill = document.getElementById('prog-fill');
+  fill.style.width = pct + '%';
+  fill.className = 'prog-fill' + (pct >= 90 ? '' : pct >= 70 ? ' mid' : ' low');
+}
+
+// ─────────────────────────────────────────────
+// NOTIF — cek apakah hari ini sudah diisi
+// ─────────────────────────────────────────────
+async function checkTodayFilled() {
+  if (!scriptUrl) return;
+  const today = new Date().toISOString().split('T')[0];
+  const bulan = today.substring(0,7);
+  try {
+    const r = await fetch(`${scriptUrl}?type=cek&tanggal=${today}`);
+    const d = await r.json();
+    const badge = document.getElementById('badge-harian');
+    const notifDiv = document.getElementById('notif-harian');
+    if (d.filled) {
+      badge.classList.remove('show');
+      notifDiv.style.display = 'none';
+    } else {
+      badge.classList.add('show');
+      notifDiv.style.display = 'flex';
+      notifDiv.innerHTML = `<div class="notif-item">⚠ Hari ini belum ada data yang disimpan ke Google Sheets</div>`;
+    }
+  } catch(e) {}
+}
+
+async function checkLaporanBadge() {
+  // cek apakah ada tugas < 70% di bulan ini
+  if (!scriptUrl) return;
+  try {
+    const bulan = document.getElementById('laporan-month').value;
+    const r = await fetch(`${scriptUrl}?type=rekap&bulan=${bulan}`);
+    const d = await r.json();
+    if (!d.tasks) return;
+    const hasLow = d.tasks.some(t => t.pct < 70 && t.pct > 0);
+    const badge = document.getElementById('badge-laporan');
+    badge.classList.toggle('show', hasLow);
+  } catch(e) {}
+}
+
+// ─────────────────────────────────────────────
+// SAVE HARIAN
+// ─────────────────────────────────────────────
+async function saveHarian() {
+  if (!scriptUrl) { openModal(); return; }
+  const tanggal = document.getElementById('tgl-harian').value;
+  if (!tanggal) { showToast('Pilih tanggal dulu', 'err'); return; }
+
+  const btn = document.getElementById('save-harian-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Menyimpan...';
+
+  const entries = HARIAN.map(t => ({
+    tanggal, kode: t.kode, nama: t.nama,
+    kategori: t.kategori, prioritas: t.prioritas,
+    status: checked[t.kode] ? '✓' : '✗',
+    catatan: notes[t.kode] || ''
+  }));
+
+  try {
+    const r = await fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify({type:'harian', entries}),
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      showToast('✓ Tersimpan ke Google Sheets', 'ok');
+      checkTodayFilled();
+      checkLaporanBadge();
+    } else { showToast('Gagal: ' + (d.message||'unknown'), 'err'); }
+  } catch(e) { showToast('Gagal terhubung ke Sheets', 'err'); }
+
+  btn.disabled = false;
+  btn.textContent = 'Simpan ke Google Sheets';
+}
+
+// ─────────────────────────────────────────────
+// EVENT / NON-HARIAN
+// ─────────────────────────────────────────────
+function renderEventGrid() {
+  const grid = document.getElementById('event-grid');
+  grid.innerHTML = '';
+  EVENTS.forEach(e => {
+    const el = document.createElement('div');
+    el.className = 'event-card';
+    el.id = 'ev-' + e.kode;
+    el.innerHTML = `
+      <div class="event-kode">${e.kode}</div>
+      <div class="event-nama">${e.nama}</div>
+      <div class="event-meta">${e.frekuensi} · ${e.prioritas}</div>
+    `;
+    el.onclick = () => selectEvent(e);
+    grid.appendChild(el);
+  });
+}
+
+function selectEvent(ev) {
+  selectedEvent = ev;
+  selectedStatus = null;
+  document.querySelectorAll('.event-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('ev-' + ev.kode).classList.add('selected');
+  document.getElementById('sbtn-ok').className = 'status-btn';
+  document.getElementById('sbtn-no').className = 'status-btn';
+  document.getElementById('event-note').value = '';
+  document.getElementById('event-detail').style.display = 'block';
+  document.getElementById('event-detail').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function setStatus(s) {
+  selectedStatus = s;
+  document.getElementById('sbtn-ok').className = 'status-btn' + (s==='✓'?' sel-ok':'');
+  document.getElementById('sbtn-no').className = 'status-btn' + (s==='✗'?' sel-no':'');
+}
+
+async function saveEvent() {
+  if (!scriptUrl) { openModal(); return; }
+  if (!selectedEvent) { showToast('Pilih tugas dulu', 'err'); return; }
+  if (!selectedStatus) { showToast('Pilih status dulu', 'err'); return; }
+  const tanggal = document.getElementById('tgl-event').value;
+  if (!tanggal) { showToast('Pilih tanggal dulu', 'err'); return; }
+
+  try {
+    const r = await fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'event',
+        tanggal, kode: selectedEvent.kode, nama: selectedEvent.nama,
+        kategori: selectedEvent.kategori, frekuensi: selectedEvent.frekuensi,
+        prioritas: selectedEvent.prioritas, status: selectedStatus,
+        catatan: document.getElementById('event-note').value
+      })
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      showToast('✓ Tercatat', 'ok');
+      document.getElementById('event-detail').style.display = 'none';
+      selectedEvent = null; selectedStatus = null;
+      document.querySelectorAll('.event-card').forEach(c => c.classList.remove('selected'));
+    } else { showToast('Gagal: ' + (d.message||'unknown'), 'err'); }
+  } catch(e) { showToast('Gagal terhubung ke Sheets', 'err'); }
+}
+
+// ─────────────────────────────────────────────
+// GRID VIEW
+// ─────────────────────────────────────────────
+async function loadGrid() {
+  if (!scriptUrl) { openModal(); return; }
+  const bulan = document.getElementById('grid-month').value;
+  if (!bulan) return;
+
+  const cont = document.getElementById('grid-container');
+  cont.innerHTML = '<div class="empty"><span class="spinner"></span> Memuat data...</div>';
+
+  try {
+    const r = await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);
+    const d = await r.json();
+    renderGrid(d, bulan);
+  } catch(e) {
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat data</div></div>';
+  }
+}
+
+function renderGrid(data, bulan) {
+  const cont = document.getElementById('grid-container');
+  if (!data || !data.rows || !data.rows.length) {
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>';
+    return;
+  }
+
+  const [yr, mo] = bulan.split('-').map(Number);
+  const daysInMonth = new Date(yr, mo, 0).getDate();
+
+  // Build header: day numbers + day names
+  let headerDays = '';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dayOfWeek = new Date(yr, mo-1, d).getDay();
+    const isSun = dayOfWeek === 0;
+    headerDays += `<th class="${isSun?'sunday':''}">${d}<br><span style="font-weight:400;opacity:0.6">${DAY_SHORT[dayOfWeek]}</span></th>`;
+  }
+
+  // Map data: kode → {day → status}
+  const dataMap = {};
+  data.rows.forEach(row => {
+    const kode = row[1]; // kode tugas
+    if (!dataMap[kode]) dataMap[kode] = {};
+    // row[0] = tanggal YYYY-MM-DD
+    const day = parseInt((row[0]||'').split('-')[2]) || 0;
+    if (day) dataMap[kode][day] = row[5]; // status
+  });
+
+  // Build rows
+  let rows = '';
+  const taskPcts = {};
+  HARIAN.forEach(t => {
+    const taskData = dataMap[t.kode] || {};
+    let doneCount = 0; let workDays = 0;
+    let cells = '';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dayOfWeek = new Date(yr, mo-1, d).getDay();
+      const isSun = dayOfWeek === 0;
+      const val = taskData[d];
+      if (isSun) {
+        cells += `<td class="sunday"><div class="grid-cell sunday">—</div></td>`;
+      } else {
+        workDays++;
+        const isDone = val === '✓';
+        if (isDone) doneCount++;
+        const isPast = new Date(yr, mo-1, d) < new Date();
+        if (isDone) {
+          cells += `<td><div class="grid-cell done">✓</div></td>`;
+        } else if (isPast) {
+          cells += `<td><div class="grid-cell empty" style="color:var(--red);opacity:0.4">✗</div></td>`;
+        } else {
+          cells += `<td><div class="grid-cell empty"></div></td>`;
+        }
+      }
+    }
+    const pastWorkDays = Array.from({length: daysInMonth}, (_,i)=>i+1)
+      .filter(d => new Date(yr, mo-1, d).getDay() !== 0 && new Date(yr, mo-1, d) < new Date()).length;
+    const pct = pastWorkDays > 0 ? Math.round(doneCount/pastWorkDays*100) : 0;
+    taskPcts[t.kode] = pct;
+    const pctClass = pct >= 90 ? 'pct-hi' : pct >= 70 ? 'pct-mid' : 'pct-lo';
+    const priColor = t.prioritas === 'Wajib' ? 'var(--red)' : t.prioritas === 'Penting' ? 'var(--orange)' : 'var(--blue)';
+    rows += `<tr>
+      <td class="task-info">
+        <div class="task-code" style="color:${priColor}">${t.kode}</div>
+        <div class="task-name-cell">${t.nama}</div>
+      </td>
+      ${cells}
+      <td><div class="grid-pct ${pctClass}">${pct}%</div></td>
+    </tr>`;
+  });
+
+  // Avg row
+  const allPcts = Object.values(taskPcts);
+  const avgAll = allPcts.length ? Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length) : 0;
+  const wajibPcts = HARIAN.filter(t=>t.prioritas==='Wajib').map(t=>taskPcts[t.kode]||0);
+  const avgWajib = wajibPcts.length ? Math.round(wajibPcts.reduce((a,b)=>a+b,0)/wajibPcts.length) : 0;
+  const pentingPcts = HARIAN.filter(t=>t.prioritas==='Penting').map(t=>taskPcts[t.kode]||0);
+  const avgPenting = pentingPcts.length ? Math.round(pentingPcts.reduce((a,b)=>a+b,0)/pentingPcts.length) : 0;
+
+  function avgCell(v) {
+    const cls = v>=90?'pct-hi':v>=70?'pct-mid':'pct-lo';
+    return `<td colspan="${daysInMonth}" style="text-align:left;padding-left:12px"><span class="grid-pct ${cls}">${v}%</span></td><td></td>`;
+  }
+
+  cont.innerHTML = `
+    <div class="grid-wrap">
+      <table class="grid-table">
+        <thead>
+          <tr>
+            <th class="task-col">Tugas</th>
+            ${headerDays}
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr class="grid-avg-row">
+            <td class="task-info" style="background:var(--card2)">RATA-RATA SEMUA</td>
+            ${avgCell(avgAll)}
+          </tr>
+          <tr class="grid-avg-row">
+            <td class="task-info" style="background:var(--card2)">Rata-rata WAJIB 🔴</td>
+            ${avgCell(avgWajib)}
+          </tr>
+          <tr class="grid-avg-row">
+            <td class="task-info" style="background:var(--card2)">Rata-rata PENTING 🟡</td>
+            ${avgCell(avgPenting)}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+// LAPORAN
+// ─────────────────────────────────────────────
+async function loadLaporan() {
+  if (!scriptUrl) { openModal(); return; }
+  const bulan = document.getElementById('laporan-month').value;
+  if (!bulan) return;
+
+  const cont = document.getElementById('laporan-container');
+  cont.innerHTML = '<div class="empty"><span class="spinner"></span> Memuat laporan...</div>';
+
+  try {
+    const r = await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);
+    const d = await r.json();
+    renderLaporan(d, bulan);
+  } catch(e) {
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat laporan</div></div>';
+  }
+}
+
+function renderLaporan(data, bulan) {
+  const cont = document.getElementById('laporan-container');
+  const [yr, mo] = bulan.split('-').map(Number);
+  const daysInMonth = new Date(yr, mo, 0).getDate();
+  const bulanName = BULAN_NAMES[mo-1] + ' ' + yr;
+
+  // Map data
+  const dataMap = {};
+  (data.rows || []).forEach(row => {
+    const kode = row[1];
+    if (!dataMap[kode]) dataMap[kode] = {};
+    const day = parseInt((row[0]||'').split('-')[2]) || 0;
+    if (day) dataMap[kode][day] = row[5];
+  });
+
+  // Build weeks
+  const weeks = [];
+  let weekStart = 1;
+  while (weekStart <= daysInMonth) {
+    let weekEnd = weekStart;
+    while (weekEnd < daysInMonth && new Date(yr, mo-1, weekEnd+1).getDay() !== 1) weekEnd++;
+    weeks.push({start: weekStart, end: weekEnd});
+    weekStart = weekEnd + 1;
+  }
+
+  // Notif: tugas < 70% keseluruhan bulan
+  const taskPcts = {};
+  let notifHTML = '';
+  const pastDays = Array.from({length:daysInMonth},(_,i)=>i+1)
+    .filter(d => new Date(yr,mo-1,d).getDay()!==0 && new Date(yr,mo-1,d)<new Date());
+
+  HARIAN.forEach(t => {
+    const td = dataMap[t.kode] || {};
+    const done = pastDays.filter(d => td[d]==='✓').length;
+    const pct = pastDays.length > 0 ? Math.round(done/pastDays.length*100) : null;
+    taskPcts[t.kode] = pct;
+    if (pct !== null && pct < 70) {
+      notifHTML += `<div class="notif-item warn">⚠ ${t.kode} · ${t.nama}: hanya <b>${pct}%</b> (target ≥ 70%)</div>`;
+    }
+  });
+
+  // Bar chart: % per minggu (rata-rata semua tugas)
+  const weekPcts = weeks.map(w => {
+    const wDays = Array.from({length:w.end-w.start+1},(_,i)=>w.start+i)
+      .filter(d => new Date(yr,mo-1,d).getDay()!==0 && new Date(yr,mo-1,d)<new Date());
+    if (!wDays.length) return null;
+    const allDone = HARIAN.reduce((sum, t) => {
+      const td = dataMap[t.kode] || {};
+      return sum + wDays.filter(d => td[d]==='✓').length;
+    }, 0);
+    const total = HARIAN.length * wDays.length;
+    return total > 0 ? Math.round(allDone/total*100) : 0;
+  });
+
+  const maxPct = Math.max(...weekPcts.filter(p=>p!==null), 1);
+  let barsHTML = weekPcts.map((p, i) => {
+    if (p === null) return `<div class="bar-col"><div class="bar-label">Mg ${i+1}</div></div>`;
+    const h = Math.round((p/100)*80);
+    const color = p>=90?'var(--green)':p>=70?'var(--orange)':'var(--red)';
+    return `<div class="bar-col">
+      <div class="bar-val">${p}%</div>
+      <div class="bar-rect" style="height:${h}px;background:${color}"></div>
+      <div class="bar-label">Mg ${i+1}</div>
+    </div>`;
+  }).join('');
+
+  // Week detail tables
+  let weeksHTML = weeks.map((w, wi) => {
+    const wLabel = `Minggu ${wi+1}: ${w.start}–${w.end}/${mo.toString().padStart(2,'0')}`;
+    const wDays = Array.from({length:w.end-w.start+1},(_,i)=>w.start+i)
+      .filter(d => new Date(yr,mo-1,d).getDay()!==0 && new Date(yr,mo-1,d)<new Date());
+
+    const wPct = weekPcts[wi];
+    if (wPct === null) return '';
+
+    const pctColor = wPct>=90?'var(--green)':wPct>=70?'var(--orange)':'var(--red)';
+
+    const taskRows = HARIAN.map(t => {
+      const td = dataMap[t.kode] || {};
+      const done = wDays.filter(d => td[d]==='✓').length;
+      const pct = wDays.length > 0 ? Math.round(done/wDays.length*100) : 0;
+      const barColor = pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';
+      const pctTxt = wDays.length > 0 ? pct+'%' : '—';
+      return `<div class="laporan-task-row">
+        <div class="lt-kode">${t.kode}</div>
+        <div class="lt-name">${t.nama}</div>
+        <div class="lt-bar-wrap"><div class="lt-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        <div class="lt-pct" style="color:${barColor}">${pctTxt}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="laporan-week">
+      <div class="week-title">${wLabel}</div>
+      <div class="week-avg" style="color:${pctColor}">${wPct}%</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">rata-rata semua tugas</div>
+      ${taskRows}
+    </div>`;
+  }).join('');
+
+  cont.innerHTML = `
+    ${notifHTML ? `<div class="notif-list">${notifHTML}</div>` : ''}
+    <div class="chart-wrap">
+      <div class="chart-title">% Penyelesaian per Minggu — ${bulanName}</div>
+      <div class="bar-chart">${barsHTML}</div>
+    </div>
+    ${weeksHTML || '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>'}
+  `;
+}
+
+// ─────────────────────────────────────────────
+// RIWAYAT
+// ─────────────────────────────────────────────
+async function loadRiwayat() {
+  if (!scriptUrl) { openModal(); return; }
+  const bulan = document.getElementById('riwayat-month').value;
+  if (!bulan) return;
+
+  const cont = document.getElementById('riwayat-container');
+  cont.innerHTML = '<div class="empty"><span class="spinner"></span> Memuat riwayat...</div>';
+
+  try {
+    const [rH, rE] = await Promise.all([
+      fetch(`${scriptUrl}?type=harian&bulan=${bulan}`).then(r=>r.json()).catch(()=>null),
+      fetch(`${scriptUrl}?type=event&bulan=${bulan}`).then(r=>r.json()).catch(()=>null),
+    ]);
+    renderRiwayat(rH, rE, bulan);
+  } catch(e) {
+    cont.innerHTML = '<div class="empty">Gagal memuat riwayat</div>';
+  }
+}
+
+function renderRiwayat(rH, rE, bulan) {
+  const cont = document.getElementById('riwayat-container');
+  const [yr, mo] = bulan.split('-').map(Number);
+
+  // Group harian by date
+  const byDate = {};
+  (rH?.rows || []).forEach(row => {
+    const tgl = row[0]; if (!tgl) return;
+    if (!byDate[tgl]) byDate[tgl] = [];
+    byDate[tgl].push({kode:row[1], nama:row[2], status:row[5], catatan:row[6]});
+  });
+
+  const dates = Object.keys(byDate).sort().reverse();
+  if (!dates.length && !(rE?.rows?.length)) {
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>';
+    return;
+  }
+
+  let html = '';
+
+  // Harian history
+  if (dates.length) {
+    html += `<div class="section-hdr"><span class="section-hdr-label">Tugas Harian</span><div class="section-hdr-line"></div></div>`;
+    dates.forEach(tgl => {
+      const tasks = byDate[tgl];
+      const done = tasks.filter(t=>t.status==='✓').length;
+      const pct = Math.round(done/tasks.length*100);
+      const tags = tasks.map(t =>
+        `<span class="history-tag ${t.status==='✓'?'done':'skip'}">${t.kode}</span>`
+      ).join('');
+      const d = new Date(tgl);
+      const label = `${d.getDate()} ${BULAN_NAMES[d.getMonth()]} — ${DAY_SHORT[d.getDay()]}`;
+      html += `<div class="history-item">
+        <div class="history-date">${label}</div>
+        <div class="history-tasks">${tags}</div>
+        <div class="history-summary">${done}/${tasks.length} selesai (${pct}%)</div>
+      </div>`;
+    });
+  }
+
+  // Event history
+  if (rE?.rows?.length) {
+    html += `<div class="section-hdr" style="margin-top:16px"><span class="section-hdr-label">Tugas Non-Harian</span><div class="section-hdr-line"></div></div>`;
+    [...rE.rows].reverse().forEach(row => {
+      const [tgl,,kode,nama,,,,status,catatan] = row;
+      if (!tgl) return;
+      const d = new Date(tgl);
+      const label = `${d.getDate()} ${BULAN_NAMES[d.getMonth()]}`;
+      html += `<div class="history-item">
+        <div class="history-date">${label} · ${kode}</div>
+        <div style="font-size:12px;font-weight:500">${nama}</div>
+        <div class="history-summary" style="margin-top:4px">Status: <span style="color:${status==='✓'?'var(--green)':'var(--red)'}">${status}</span>${catatan?' · '+catatan:''}</div>
+      </div>`;
+    });
+  }
+
+  cont.innerHTML = html;
+}
+
+// ─────────────────────────────────────────────
+// MODAL & URL
+// ─────────────────────────────────────────────
+function openModal() {
+  document.getElementById('url-input').value = scriptUrl;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+function saveUrl() {
+  const val = document.getElementById('url-input').value.trim();
+  if (!val.startsWith('http')) { showToast('URL tidak valid', 'err'); return; }
+  scriptUrl = val;
+  localStorage.setItem('mtg_url', val);
+  updateConnected();
+  closeModal();
+  showToast('URL tersimpan ✓', 'ok');
+  checkTodayFilled();
+  checkLaporanBadge();
+}
+function updateConnected() {
+  document.getElementById('setup-dot').className = 'setup-dot' + (scriptUrl ? ' connected' : '');
+}
+
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
+let _toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type?' '+type:'');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Close modal on bg click
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
