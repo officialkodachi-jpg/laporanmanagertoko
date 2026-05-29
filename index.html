@@ -104,8 +104,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .section-hdr-label{font-size:10px;color:var(--hint);letter-spacing:.12em;text-transform:uppercase;font-family:var(--mono);display:flex;align-items:center;gap:6px}
 .pri-dot{width:6px;height:6px;border-radius:50%}
 .pri-dot.wajib{background:var(--red)}.pri-dot.penting{background:var(--orange)}.pri-dot.pendukung{background:var(--blue)}
-.task-item{display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;cursor:pointer}
-.task-item.done{border-color:rgba(22,163,74,.3);background:rgba(22,163,74,.06)}
+.task-item{display:flex;align-items:flex-start;gap:12px;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;border-left:4px solid var(--hint);transition:all .25s;-webkit-user-select:none;user-select:none}
+.task-item:active{transform:scale(.98);background:var(--surface)}
+.task-item.pri-wajib{border-left-color:var(--red)}.task-item.pri-penting{border-left-color:var(--orange)}.task-item.pri-pendukung{border-left-color:var(--blue)}
+.task-item.done{border-color:rgba(22,163,74,.3);border-left-color:var(--green)!important;background:rgba(22,163,74,.06)}
+.task-icon{font-size:24px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:10px;flex-shrink:0}
+.task-item.done .task-icon{background:rgba(22,163,74,.12)}
 .task-check{width:26px;height:26px;min-width:26px;border-radius:50%;border:2px solid var(--hint);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;margin-top:1px}
 .task-item.done .task-check{border-color:var(--green);background:var(--green)}
 .check-icon{display:none;color:#fff;font-size:13px;font-weight:700}
@@ -140,9 +144,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .grid-pct{font-family:var(--mono);font-size:11px;font-weight:600}
 .pct-hi{color:var(--green)}.pct-mid{color:var(--orange)}.pct-lo{color:var(--red)}
 .grid-avg-row td{background:var(--card2);font-family:var(--mono);font-size:11px;font-weight:600}
-.event-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.event-card{padding:14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .2s}
-.event-card.selected{border-color:var(--accent);background:rgba(37,99,235,.06)}
+.event-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.event-card{padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;border-left:4px solid var(--hint);-webkit-user-select:none;user-select:none}
+.event-card:active{transform:scale(.98);background:var(--surface)}
+.event-card.pri-wajib{border-left-color:var(--red)}.event-card.pri-penting{border-left-color:var(--orange)}.event-card.pri-pendukung{border-left-color:var(--blue)}
+.event-card.selected{border-color:var(--accent);border-left-color:var(--accent);background:rgba(37,99,235,.06)}
+.ev-icon{font-size:22px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:10px;flex-shrink:0}
+.ev-body{flex:1;min-width:0}
+.ev-arrow{color:var(--hint);font-size:18px;flex-shrink:0}
 .event-kode{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.1em;margin-bottom:4px}
 .event-nama{font-size:12px;font-weight:500;line-height:1.4}
 .event-meta{font-size:10px;color:var(--muted);margin-top:3px}
@@ -313,7 +322,7 @@ select.it{cursor:pointer}
 </div>
 
 <div class="topbar"><div class="topbar-inner"><div class="brand">
-  <span class="brand-tag">Manager · v4.0</span>
+  <span class="brand-tag">Manager · v4.1</span>
   <span class="brand-name">Kodachi Shop Monjali</span>
   <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
 </div></div></div>
@@ -332,10 +341,10 @@ select.it{cursor:pointer}
 <div id="loc-hidden" style="display:none"><span id="loc-debug"></span><span id="loc-distance"></span><span id="loc-accuracy"></span><span id="loc-sessions-count"></span><span id="loc-total-today"></span><div id="loc-log-list"></div></div>
 
 <div class="tabs-wrap"><div class="tabs">
-  <button class="tab active" onclick="switchTab('harian',this)">Harian<span class="tab-badge" id="badge-harian">!</span></button>
+  <button class="tab active" onclick="switchTab('harian',this)">📋 Harian<span class="tab-badge" id="badge-harian">!</span></button>
+  <button class="tab" onclick="switchTab('event',this)">📌 Non-Harian</button>
   <button class="tab" onclick="switchTab('stok',this)">📦 Stok<span class="tab-badge" id="badge-stok">0</span></button>
   <button class="tab" onclick="switchTab('inputstok',this)">📥 Gudang IN/OUT</button>
-  <button class="tab" onclick="switchTab('event',this)">Non-Harian</button>
   <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
 </div><div class="tabs-line"></div></div>
 
@@ -345,9 +354,10 @@ select.it{cursor:pointer}
   <div class="panel active" id="panel-harian">
     <div class="date-row"><div class="date-display" id="tgl-harian-display">—</div><span class="today-label">📅 Hari ini</span></div>
     <div id="notif-harian" class="notif-list" style="display:none"></div>
+    <div class="alert info" style="margin-bottom:14px">👆 <b>Tap tugas</b> yang sudah selesai untuk mencentang. Setelah semua diisi, klik <b>Simpan ke Google Sheets</b> di bawah.</div>
     <div class="stats-row">
       <div class="stat-card"><div class="stat-val green" id="stat-done">0</div><div class="stat-label">selesai</div></div>
-      <div class="stat-card"><div class="stat-val orange" id="stat-skip">12</div><div class="stat-label">belum</div></div>
+      <div class="stat-card"><div class="stat-val orange" id="stat-skip">14</div><div class="stat-label">belum</div></div>
       <div class="stat-card"><div class="stat-val" id="stat-pct" style="color:var(--muted)">0%</div><div class="stat-label">selesai hari ini</div></div>
     </div>
     <div class="prog-wrap"><div class="prog-header"><span class="prog-label">Progress hari ini</span><span class="prog-pct" id="prog-pct">0%</span></div><div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div></div>
@@ -417,7 +427,8 @@ select.it{cursor:pointer}
   <!-- NON-HARIAN -->
   <div class="panel" id="panel-event">
     <div class="date-row"><div class="date-display" id="tgl-event-display">—</div><span class="today-label">📅 Hari ini</span></div>
-    <div class="section-hdr"><span class="section-hdr-label">Pilih tugas</span><div class="section-hdr-line"></div></div>
+    <div class="alert info" style="margin-bottom:14px">📌 <b>Tugas Non-Harian</b> — tap tugas di bawah → pilih ✓ atau ✗ → tulis catatan → kirim. Cukup <b>1x tap</b> per tugas!</div>
+    <div class="section-hdr"><span class="section-hdr-label">Tap tugas yang dikerjakan ↓</span><div class="section-hdr-line"></div></div>
     <div class="event-grid" id="event-grid"></div>
     <div class="event-detail" id="event-detail" style="display:none">
       <div class="field-label" style="margin-bottom:8px">Status</div>
@@ -467,18 +478,20 @@ select.it{cursor:pointer}
 
 <script>
 const HARIAN=[
-  {kode:'D01',nama:'Kehadiran efektif di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Min. 4 jam/hari',autoTrack:true},
-  {kode:'D02',nama:'Paket terkirim ke ekspedisi non-J&T (SPX dll)',kategori:'Operasional',prioritas:'Wajib',kpi:'0 komplain pengiriman'},
-  {kode:'D03',nama:'Stok sepatu, kaos kaki & tali tersedia di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Tidak ada kehabisan mendadak'},
-  {kode:'D04',nama:'Catatan uang diambil, setor & kembalian terisi',kategori:'Keuangan',prioritas:'Wajib',kpi:'Catatan lengkap tanpa selisih'},
-  {kode:'D05',nama:'Uang kembalian cukup di toko',kategori:'Operasional',prioritas:'Penting',kpi:'0 transaksi gagal karena uang receh'},
-  {kode:'D06',nama:'Partimer datang & pulang tepat waktu',kategori:'SDM',prioritas:'Penting',kpi:'Ketepatan waktu partimer'},
-  {kode:'D07',nama:'Inventaris toko tersedia (plastik, lakban dll)',kategori:'Inventaris',prioritas:'Penting',kpi:'Tidak ada kehabisan bahan'},
-  {kode:'D08',nama:'Toko bersih dan rapi (cek buka & tutup)',kategori:'Visual',prioritas:'Penting',kpi:'Kondisi bersih tiap hari operasional'},
-  {kode:'D09',nama:'Produk terdisplay rapi — tidak ada rak kosong',kategori:'Visual',prioritas:'Penting',kpi:'Tidak ada rak kosong/berantakan'},
-  {kode:'D10',nama:'Chat WA & Instagram dibalas',kategori:'Layanan',prioritas:'Penting',kpi:'Response time ≤ 1 jam'},
-  {kode:'D11',nama:'Partimer melayani customer dengan baik',kategori:'Layanan',prioritas:'Penting',kpi:'0 komplain tidak ditindaklanjuti'},
-  {kode:'D12',nama:'Banner & signage layak tampil',kategori:'Visual',prioritas:'Pendukung',kpi:'Banner dalam kondisi baik'},
+  {kode:'D01',nama:'Kehadiran efektif di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Min. 4 jam/hari',autoTrack:true,icon:'📍'},
+  {kode:'D02',nama:'Paket terkirim ke semua ekspedisi (J&T, SPX, dll)',kategori:'Operasional',prioritas:'Wajib',kpi:'0 komplain pengiriman',icon:'📦'},
+  {kode:'D03',nama:'Stok sepatu, kaos kaki & tali tersedia di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Tidak ada kehabisan mendadak',icon:'👟'},
+  {kode:'D04',nama:'Catatan uang diambil, setor & kembalian terisi',kategori:'Keuangan',prioritas:'Wajib',kpi:'Catatan lengkap tanpa selisih',icon:'💰'},
+  {kode:'D05',nama:'Uang kembalian cukup di toko',kategori:'Operasional',prioritas:'Penting',kpi:'0 transaksi gagal karena uang receh',icon:'🪙'},
+  {kode:'D06',nama:'Partimer datang & pulang tepat waktu',kategori:'SDM',prioritas:'Penting',kpi:'Ketepatan waktu partimer',icon:'⏰'},
+  {kode:'D07',nama:'Inventaris toko tersedia (plastik, lakban dll)',kategori:'Inventaris',prioritas:'Penting',kpi:'Tidak ada kehabisan bahan',icon:'📋'},
+  {kode:'D08',nama:'Toko bersih dan rapi (cek buka & tutup)',kategori:'Visual',prioritas:'Penting',kpi:'Kondisi bersih tiap hari',icon:'🧹'},
+  {kode:'D09',nama:'Produk terdisplay rapi — tidak ada rak kosong',kategori:'Visual',prioritas:'Penting',kpi:'Tidak ada rak kosong',icon:'🏪'},
+  {kode:'D10',nama:'Chat WA & Instagram dibalas',kategori:'Layanan',prioritas:'Penting',kpi:'Response time ≤ 1 jam',icon:'💬'},
+  {kode:'D11',nama:'Partimer melayani customer dengan baik',kategori:'Layanan',prioritas:'Penting',kpi:'0 komplain',icon:'🤝'},
+  {kode:'D12',nama:'Banner & signage layak tampil',kategori:'Visual',prioritas:'Pendukung',kpi:'Banner dalam kondisi baik',icon:'🪧'},
+  {kode:'D13',nama:'Proses bungkus: print resi → packing → input data lancar',kategori:'Operasional',prioritas:'Penting',kpi:'0 kesalahan proses',icon:'🖨️'},
+  {kode:'D14',nama:'Pelayanan offline berjalan lancar',kategori:'Layanan',prioritas:'Penting',kpi:'0 komplain pelayanan offline',icon:'🏬'},
 ];
 const EVENTS=[
   {kode:'E01',nama:'Input stok masuk dari gudang',kategori:'Operasional',frekuensi:'Mingguan',prioritas:'Penting'},
@@ -689,10 +702,12 @@ function renderHarian(){
   var list=document.getElementById('harian-list');list.innerHTML='';
   ['Wajib','Penting','Pendukung'].forEach(pri=>{
     var tasks=HARIAN.filter(t=>t.prioritas===pri);if(!tasks.length)return;
-    var hdr=document.createElement('div');hdr.className='section-hdr';hdr.innerHTML='<span class="section-hdr-label"><span class="pri-dot '+pri.toLowerCase()+'"></span>'+pri+'</span><div class="section-hdr-line"></div>';list.appendChild(hdr);
+    var hdr=document.createElement('div');hdr.className='section-hdr';
+    var priLabel=pri==='Wajib'?'🔴 WAJIB — tidak boleh terlewat':pri==='Penting'?'🟡 PENTING — usahakan setiap hari':'🟢 PENDUKUNG';
+    hdr.innerHTML='<span class="section-hdr-label">'+priLabel+'</span><div class="section-hdr-line"></div>';list.appendChild(hdr);
     tasks.forEach(t=>{
       if(t.autoTrack){var el=document.createElement('div');el.innerHTML='<div class="d01-card" id="d01-card"><div class="d01-header"><div class="d01-check empty" id="d01-check"></div><div class="d01-title">'+t.nama+'</div><div class="d01-badge empty" id="d01-badge">GPS aktif</div></div><div class="d01-dur-row"><div class="d01-dur-box"><div class="d01-dur-val muted" id="d01-dur-val">0j 0m</div><div class="d01-dur-label">Durasi di toko</div></div><div class="d01-dur-box" style="flex:0 0 auto;min-width:80px"><div class="d01-dur-val muted" style="font-size:14px">4j 0m</div><div class="d01-dur-label">Target</div></div></div><div class="d01-prog-track"><div class="d01-prog-fill" id="d01-prog-fill" style="width:0%;background:var(--hint)"></div></div><div class="d01-prog-labels"><span>0</span><span>1j</span><span>2j</span><span>3j</span><span>4j</span></div><div class="d01-caption"><span class="dot grey" id="d01-caption-dot"></span><span id="d01-caption-text">Menunggu sinyal GPS...</span></div><div style="margin-top:8px"><span class="task-auto-tag">📍 Otomatis dari GPS · D01</span></div></div>';list.appendChild(el);setTimeout(updateD01Card,50);}
-      else{var el=document.createElement('div');el.className='task-item'+(checked[t.kode]?' done':'');el.id='task-'+t.kode;el.innerHTML='<div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">'+t.nama+'</div><div class="task-meta">'+t.kode+' · '+t.kategori+' · KPI: '+t.kpi+'</div><span class="task-note-toggle" onclick="toggleNote(event,\''+t.kode+'\')">+ Tambah catatan</span><textarea class="task-note-input" id="note-'+t.kode+'" placeholder="Catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes[\''+t.kode+'\']=this.value"></textarea></div>';el.addEventListener('click',()=>toggleCheck(t.kode));list.appendChild(el);}
+      else{var el=document.createElement('div');var priCls='pri-'+pri.toLowerCase();el.className='task-item '+priCls+(checked[t.kode]?' done':'');el.id='task-'+t.kode;el.innerHTML='<div class="task-icon">'+(t.icon||'📌')+'</div><div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">'+t.nama+'</div><div class="task-meta">'+t.kode+' · '+t.kategori+' · '+t.kpi+'</div><span class="task-note-toggle" onclick="toggleNote(event,\''+t.kode+'\')">📝 catatan</span><textarea class="task-note-input" id="note-'+t.kode+'" placeholder="Tulis catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes[\''+t.kode+'\']=this.value"></textarea></div>';el.addEventListener('click',()=>toggleCheck(t.kode));list.appendChild(el);}
     });
   });updateStats();
 }
@@ -714,7 +729,8 @@ async function saveHarian(){
 }
 
 // ════════ EVENTS ════════
-function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHTML='';EVENTS.forEach(ev=>{var el=document.createElement('div');el.className='event-card';el.id='ev-'+ev.kode;el.innerHTML='<div class="event-kode">'+ev.kode+'</div><div class="event-nama">'+ev.nama+'</div><div class="event-meta">'+ev.frekuensi+' · '+ev.prioritas+'</div>';el.onclick=()=>selectEvent(ev);g.appendChild(el);});}
+var EV_ICONS={E01:'📥',E02:'💵',E03:'📊',E04:'⚠️',E05:'🚚',E06:'⚡',E07:'🔄',E08:'🎓',E09:'📢'};
+function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHTML='';EVENTS.forEach(ev=>{var el=document.createElement('div');var priCls='pri-'+ev.prioritas.toLowerCase();el.className='event-card '+priCls;el.id='ev-'+ev.kode;el.innerHTML='<div class="ev-icon">'+(EV_ICONS[ev.kode]||'📌')+'</div><div class="ev-body"><div class="event-nama">'+ev.nama+'</div><div class="event-meta">'+ev.kode+' · '+ev.frekuensi+' · <b>'+ev.prioritas+'</b></div></div><div class="ev-arrow">›</div>';el.onclick=()=>selectEvent(ev);g.appendChild(el);});}
 function selectEvent(ev){selectedEvent=ev;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));document.getElementById('ev-'+ev.kode).classList.add('selected');document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';document.getElementById('event-note').value='';document.getElementById('event-detail').style.display='block';document.getElementById('event-detail').scrollIntoView({behavior:'smooth',block:'nearest'});}
 function setStatus(s){selectedStatus=s;document.getElementById('sbtn-ok').className='status-btn'+(s==='✓'?' sel-ok':'');document.getElementById('sbtn-no').className='status-btn'+(s==='✗'?' sel-no':'');}
 async function saveEvent(){if(!scriptUrl){openModal();return;}if(!selectedEvent){showToast('Pilih tugas dulu','err');return;}if(!selectedStatus){showToast('Pilih status dulu','err');return;}try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'event',tanggal:todayValue,kode:selectedEvent.kode,nama:selectedEvent.nama,kategori:selectedEvent.kategori,frekuensi:selectedEvent.frekuensi,prioritas:selectedEvent.prioritas,status:selectedStatus,catatan:document.getElementById('event-note').value})});var d=await r.json();if(d.status==='ok'){showToast('✓ Tercatat','ok');document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));}else showToast('Gagal','err');}catch(e){showToast('Gagal terhubung','err');}}
