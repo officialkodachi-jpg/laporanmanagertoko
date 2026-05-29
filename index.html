@@ -1249,6 +1249,31 @@ async function loadStok(silent){
   }
   if(!silent&&btn){btn.disabled=false;btn.textContent='🔄 Perbarui Data';}
 }
+  // ==========================================
+// FUNGSI TARIK DATA PRODUK OTOMATIS
+// ==========================================
+function fetchProduk() {
+  // Pastikan URL script sudah tersimpan
+  if (!scriptUrl) return; 
+  
+  // Memanggil URL Apps Script ditambah parameter ?type=produk
+  fetch(scriptUrl + "?type=produk")
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(data) {
+      // Jika berhasil, masukkan data ke variabel autocomplete
+      if (data.status === "ok") {
+        igProdukList = data.produk;
+        console.log("Berhasil memuat " + igProdukList.length + " produk.");
+      } else {
+        console.log("Gagal memuat produk:", data.message);
+      }
+    })
+    .catch(function(error) {
+      console.log("Error mengambil produk:", error);
+    });
+}
 function renderStokList(){
   const list=document.getElementById('stok-list');
   document.getElementById('stok-c-red').textContent=stokData.red.length;
@@ -1538,7 +1563,7 @@ function saveUrl(){
   if(!val.startsWith('http')){showToast('URL tidak valid','err');return;}
   scriptUrl=val;localStorage.setItem('mtg_url',val);
   closeModal();showToast('URL tersimpan ✓','ok');
-  checkTodayFilled();checkLaporanBadge();loadStok(true);
+  checkTodayFilled();checkLaporanBadge();loadStok(true);fetchProduk();
 }
 document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
@@ -1563,6 +1588,12 @@ function checkPw(){
 }
 if(sessionStorage.getItem('mtg_auth')==='1'){
   document.addEventListener('DOMContentLoaded',()=>{document.getElementById('pw-overlay').style.display='none';});
+}
+  // Jika ada URL yang tersimpan, langsung load
+if (scriptUrl) {
+  loadStok();
+  // TAMBAHKAN BARIS DI BAWAH INI:
+  fetchProduk(); 
 }
 </script>
 </body>
