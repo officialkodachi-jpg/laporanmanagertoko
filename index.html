@@ -59,11 +59,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .d01-card.d01-done{border-color:rgba(22,163,74,.35);background:rgba(22,163,74,.05)}
 .d01-card.d01-warn{border-color:rgba(217,119,6,.35);background:rgba(217,119,6,.04)}
 .d01-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.d01-check{width:26px;height:26px;border-radius:50%;border:2px solid var(--hint);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#fff;transition:all .3s}
+
+/* FIX 1: Samakan ukuran d01-check dengan task-check (26px x 26px) */
+.d01-check{width:26px;height:26px;min-width:26px;min-height:26px;border-radius:50%;border:2px solid var(--hint);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#fff;transition:all .3s}
 .d01-check.done{background:var(--green);border-color:var(--green)}
 .d01-check.warn{background:var(--orange);border-color:var(--orange)}
-.d01-check.empty{background:transparent;color:transparent}
-.d01-title{font-size:13px;font-weight:600;flex:1}
+.d01-check.empty{background:transparent;color:transparent;border-color:var(--hint)}
+
+.d01-title{font-size:13px;font-weight:500;flex:1;line-height:1.4}
 .d01-badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:20px;flex-shrink:0}
 .d01-badge.done{background:rgba(22,163,74,.12);color:var(--green)}
 .d01-badge.warn{background:rgba(217,119,6,.12);color:var(--orange)}
@@ -107,11 +110,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .panel{display:none}
 .panel.active{display:block}
 
-/* DATE ROW */
+/* DATE ROW - FIX 2: Readonly, hanya hari ini */
 .date-row{display:flex;gap:8px;margin-bottom:20px;align-items:center}
+.date-display{flex:1;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:13px;pointer-events:none;user-select:none}
 .date-input{flex:1;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s;color-scheme:light}
 .date-input:focus{border-color:var(--accent)}
 .today-btn{padding:11px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.today-label{padding:11px 16px;background:var(--surface);color:var(--muted);border:1px solid var(--border);border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:500;white-space:nowrap}
 
 /* STATS */
 .stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
@@ -144,7 +149,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 /* TASK ITEM */
 .task-item{display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;cursor:pointer}
 .task-item.done{border-color:rgba(22,163,74,.3);background:rgba(22,163,74,.06)}
-.task-check{width:26px;height:26px;border-radius:50%;border:2px solid var(--hint);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;margin-top:1px}
+.task-check{width:26px;height:26px;min-width:26px;min-height:26px;border-radius:50%;border:2px solid var(--hint);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;margin-top:1px}
 .task-item.done .task-check{border-color:var(--green);background:var(--green)}
 .check-icon{display:none;color:#fff;font-size:13px;font-weight:700}
 .task-item.done .check-icon{display:block}
@@ -291,6 +296,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .pw-btn{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer}
 .pw-err{font-size:12px;color:var(--red);margin-top:8px;min-height:18px}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+
+/* TODAY BADGE - indikator tanggal hari ini (readonly) */
+.today-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(37,99,235,.08);border-radius:20px;font-size:10px;color:var(--accent);font-family:var(--mono);margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -363,9 +371,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
   <!-- TAB HARIAN -->
   <div class="panel active" id="panel-harian">
+    <!-- FIX 2: Tanggal readonly, hanya hari ini, tidak bisa diubah -->
     <div class="date-row">
-      <input type="date" class="date-input" id="tgl-harian" onchange="checkTodayFilled()">
-      <button class="today-btn" onclick="setToday('tgl-harian')">Hari ini</button>
+      <div class="date-display" id="tgl-harian-display">—</div>
+      <span class="today-label">📅 Hari ini</span>
     </div>
     <div id="notif-harian" class="notif-list" style="display:none"></div>
     <div class="stats-row">
@@ -397,9 +406,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
   <!-- TAB NON-HARIAN -->
   <div class="panel" id="panel-event">
+    <!-- FIX 2: Tanggal readonly untuk non-harian juga -->
     <div class="date-row">
-      <input type="date" class="date-input" id="tgl-event">
-      <button class="today-btn" onclick="setToday('tgl-event')">Hari ini</button>
+      <div class="date-display" id="tgl-event-display">—</div>
+      <span class="today-label">📅 Hari ini</span>
     </div>
     <div class="section-hdr"><span class="section-hdr-label">Pilih tugas</span><div class="section-hdr-line"></div></div>
     <div class="event-grid" id="event-grid"></div>
@@ -512,6 +522,7 @@ const EVENTS = [
 
 const BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const DAY_SHORT   = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+const DAY_FULL    = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 
 // ═══════════════════════════════════════════
 // CONFIG
@@ -539,7 +550,14 @@ let _retryTimer   = null;
 let _retryCount   = 0;
 let _gpsStarted   = false;
 
+// FIX 2: Tanggal selalu hari ini, tidak bisa diubah
 const TODAY_KEY = () => new Date().toISOString().split('T')[0];
+const todayValue = TODAY_KEY();
+
+function formatTodayDisplay() {
+  const d = new Date();
+  return `${DAY_FULL[d.getDay()]}, ${d.getDate()} ${BULAN_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+}
 
 // ═══════════════════════════════════════════
 // PERSIST LOC DATA
@@ -597,21 +615,18 @@ function startGps() {
   updateLocBanner('waiting');
   setDebug('GPS: meminta izin dan mencari sinyal...');
 
-  // watchPosition — update otomatis saat bergerak
   geoWatchId = navigator.geolocation.watchPosition(
     onLocationUpdate,
     onLocationError,
     { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
   );
 
-  // getCurrentPosition segera — lebih cepat dari watchPosition di beberapa browser
   navigator.geolocation.getCurrentPosition(
     onLocationUpdate,
     onLocationError,
     { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
   );
 
-  // Polling setiap 15 detik — backup saat watchPosition macet
   setInterval(() => {
     navigator.geolocation.getCurrentPosition(
       onLocationUpdate,
@@ -620,7 +635,6 @@ function startGps() {
     );
   }, 15000);
 
-  // Timer display setiap detik
   _timerInterval = setInterval(updateTimerDisplay, 1000);
 }
 
@@ -660,7 +674,6 @@ function onLocationUpdate(pos) {
   document.getElementById('loc-retry-btn').classList.remove('show');
 
   if (inStore && !isAtStore) {
-    // Masuk toko
     isAtStore    = true;
     sessionStart = Date.now();
     locationLog.push({ type:'masuk', time:Date.now(), lat:latitude, lng:longitude, dist });
@@ -672,7 +685,6 @@ function onLocationUpdate(pos) {
     updateD01Card();
 
   } else if (!inStore && isAtStore) {
-    // Keluar toko
     isAtStore = false;
     if (sessionStart) {
       totalMinutesToday += (Date.now() - sessionStart) / 60000;
@@ -694,24 +706,21 @@ function onLocationUpdate(pos) {
 }
 
 // ═══════════════════════════════════════════
-// LOCATION ERROR — dengan retry otomatis
+// LOCATION ERROR
 // ═══════════════════════════════════════════
 function onLocationError(err) {
   const msgs = {1:'Izin ditolak user',2:'Posisi tidak tersedia',3:'Timeout'};
   const msg  = msgs[err.code] || err.message;
-  console.warn('GPS error:', err.code, msg);
 
   if (err.code === 1) {
-    // PERMISSION_DENIED — tidak bisa retry, tampilkan panduan
     updateLocBanner('denied');
     setDebug('GPS: ✗ Izin lokasi ditolak. Buka Pengaturan browser untuk mengizinkan.');
     document.getElementById('loc-retry-btn').classList.add('show');
     document.getElementById('loc-retry-btn').textContent = '⚙️ Reset Izin & Coba Ulang';
 
   } else {
-    // TIMEOUT / POSITION_UNAVAILABLE — retry otomatis
     _retryCount++;
-    const delay = Math.min(5000 * _retryCount, 30000); // 5s, 10s, 15s... maks 30s
+    const delay = Math.min(5000 * _retryCount, 30000);
     updateLocBanner('waiting');
     setDebug(`GPS: ${msg} · retry ke-${_retryCount} dalam ${delay/1000}s...`);
 
@@ -805,7 +814,7 @@ function updateD01Card() {
     chk.textContent = '✓';
   } else {
     chk.className   = 'd01-check empty';
-    chk.textContent = '—';
+    chk.textContent = '';
   }
 
   if (total === 0) { badge.textContent='GPS aktif'; badge.className='d01-badge empty'; }
@@ -871,8 +880,13 @@ function updateLocTab() {
 // INIT
 // ═══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  setToday('tgl-harian');
-  setToday('tgl-event');
+  // FIX 2: Set tampilan tanggal hari ini (readonly)
+  const todayDisplay = formatTodayDisplay();
+  const hDisplay = document.getElementById('tgl-harian-display');
+  const eDisplay = document.getElementById('tgl-event-display');
+  if (hDisplay) hDisplay.textContent = todayDisplay;
+  if (eDisplay) eDisplay.textContent = todayDisplay;
+
   setCurrentMonth('grid-month');
   setCurrentMonth('laporan-month');
   setCurrentMonth('riwayat-month');
@@ -883,11 +897,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   loadLocData();
   updateTimerDisplay();
-
-  // ── PAKSA GPS langsung, tanpa cek localStorage ──
   startGps();
 
-  // Service worker
   if ('serviceWorker' in navigator) {
     const sw = `
       const C='kodachi-v2';
@@ -901,7 +912,6 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-function setToday(id) { document.getElementById(id).value = new Date().toISOString().split('T')[0]; }
 function setCurrentMonth(id) { const d=new Date(); document.getElementById(id).value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 
 // ═══════════════════════════════════════════
@@ -1022,8 +1032,7 @@ function updateStats() {
 async function checkTodayFilled() {
   if (!scriptUrl) return;
   try {
-    const today = new Date().toISOString().split('T')[0];
-    const r = await fetch(`${scriptUrl}?type=cek&tanggal=${today}`);
+    const r = await fetch(`${scriptUrl}?type=cek&tanggal=${todayValue}`);
     const d = await r.json();
     const badge    = document.getElementById('badge-harian');
     const notifDiv = document.getElementById('notif-harian');
@@ -1054,8 +1063,6 @@ async function checkLaporanBadge() {
 // ═══════════════════════════════════════════
 async function saveHarian() {
   if (!scriptUrl) { openModal(); return; }
-  const tanggal = document.getElementById('tgl-harian').value;
-  if (!tanggal) { showToast('Pilih tanggal dulu','err'); return; }
 
   const btn = document.getElementById('save-harian-btn');
   btn.disabled = true;
@@ -1069,7 +1076,7 @@ async function saveHarian() {
     : 'GPS: tidak ada durasi tercatat';
 
   const entries = HARIAN.map(t => ({
-    tanggal,
+    tanggal: todayValue,
     kode: t.kode,
     nama: t.nama,
     kategori: t.kategori,
@@ -1133,13 +1140,11 @@ async function saveEvent() {
   if (!scriptUrl) { openModal(); return; }
   if (!selectedEvent)  { showToast('Pilih tugas dulu','err'); return; }
   if (!selectedStatus) { showToast('Pilih status dulu','err'); return; }
-  const tanggal = document.getElementById('tgl-event').value;
-  if (!tanggal) { showToast('Pilih tanggal dulu','err'); return; }
   try {
     const r = await fetch(scriptUrl, {
       method:'POST',
       body:JSON.stringify({
-        type:'event', tanggal,
+        type:'event', tanggal: todayValue,
         kode:selectedEvent.kode, nama:selectedEvent.nama,
         kategori:selectedEvent.kategori, frekuensi:selectedEvent.frekuensi,
         prioritas:selectedEvent.prioritas,
