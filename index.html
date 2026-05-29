@@ -101,8 +101,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .tabs::-webkit-scrollbar{display:none}
 .tab{flex:none;padding:10px 14px;text-align:center;font-family:var(--sans);font-size:12px;font-weight:500;color:var(--hint);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.02em;white-space:nowrap;position:relative}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.tab-badge{position:absolute;top:6px;right:4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:none;align-items:center;justify-content:center}
+.tab-badge{position:absolute;top:6px;right:4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;padding:0 4px;border-radius:8px;display:none;align-items:center;justify-content:center}
 .tab-badge.show{display:flex}
+.tab-badge.pulse{animation:badgePulse 1.4s infinite}
+@keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 .tabs-line{height:1px;background:var(--border);margin-bottom:20px}
 
 /* CONTENT */
@@ -259,6 +261,49 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .loc-retry-btn.show{display:block}
 .loc-debug{background:var(--surface);border-radius:var(--r);padding:12px;font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.8;margin-bottom:12px}
 
+/* ═══════════ STOK TAB ═══════════ */
+.stok-controls{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.stok-refresh-btn{flex:1;min-width:120px;padding:11px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
+.stok-sound-btn{padding:11px 14px;background:var(--card);color:var(--muted);border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.stok-sound-btn.on{background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.4);color:var(--green)}
+.stok-updated{font-family:var(--mono);font-size:10px;color:var(--hint);margin-bottom:14px;text-align:center}
+.stok-stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.stok-stat{border-radius:var(--r);padding:14px 8px;text-align:center;border:1px solid var(--border)}
+.stok-stat.red{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.25)}
+.stok-stat.yellow{background:rgba(217,119,6,.07);border-color:rgba(217,119,6,.25)}
+.stok-stat.blue{background:rgba(37,99,235,.07);border-color:rgba(37,99,235,.25)}
+.stok-stat-val{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1}
+.stok-stat.red .stok-stat-val{color:var(--red)}
+.stok-stat.yellow .stok-stat-val{color:var(--orange)}
+.stok-stat.blue .stok-stat-val{color:var(--blue)}
+.stok-stat-label{font-size:9px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.05em;line-height:1.3}
+.stok-filter-row{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+.stok-filter-row::-webkit-scrollbar{display:none}
+.stok-chip{flex:none;padding:7px 14px;border-radius:20px;border:1px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.stok-chip.active{background:var(--text);color:#fff;border-color:var(--text)}
+.stok-legend{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:11px;color:var(--muted);line-height:1.9}
+.stok-legend b{color:var(--text)}
+.stok-legend .lg-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.stok-group-hdr{display:flex;align-items:center;gap:8px;margin:18px 0 10px}
+.stok-group-hdr .gh-label{font-size:11px;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:7px}
+.stok-group-hdr .gh-line{flex:1;height:1px;background:var(--border)}
+.stok-group-hdr .gh-count{font-family:var(--mono);font-size:11px;padding:2px 9px;border-radius:20px}
+.stok-item{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;border-left-width:4px}
+.stok-item.red{border-left-color:var(--red)}
+.stok-item.yellow{border-left-color:var(--orange)}
+.stok-item.blue{border-left-color:var(--blue)}
+.stok-item-body{flex:1;min-width:0}
+.stok-item-name{font-size:13px;font-weight:600;line-height:1.35}
+.stok-item-sub{font-size:11px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
+.stok-size-pill{flex-shrink:0;min-width:46px;text-align:center;font-family:var(--mono);font-size:15px;font-weight:600;padding:8px 6px;border-radius:10px;background:var(--surface)}
+.stok-item.red .stok-size-pill{background:rgba(220,38,38,.12);color:var(--red)}
+.stok-item.yellow .stok-size-pill{background:rgba(217,119,6,.12);color:var(--orange)}
+.stok-item.blue .stok-size-pill{background:rgba(37,99,235,.12);color:var(--blue)}
+.stok-qty{flex-shrink:0;text-align:right;font-family:var(--mono);font-size:11px;line-height:1.5}
+.stok-qty .q-toko{color:var(--red);font-weight:600}
+.stok-qty .q-gud{color:var(--green);font-weight:600}
+.stok-sheet-link{display:block;text-align:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;margin-top:16px}
+
 /* MODAL */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;padding:20px}
 .modal-bg.open{display:flex}
@@ -319,7 +364,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <div class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      <span class="brand-tag">Manager · v3.2</span>
+      <span class="brand-tag">Manager · v3.3</span>
       <span class="brand-name">Kodachi Shop Monjali</span>
       <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
     </div>
@@ -353,6 +398,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <button class="tab active" onclick="switchTab('harian',this)">
       Harian
       <span class="tab-badge" id="badge-harian">!</span>
+    </button>
+    <button class="tab" onclick="switchTab('stok',this)">
+      📦 Stok
+      <span class="tab-badge" id="badge-stok">0</span>
     </button>
     <button class="tab" onclick="switchTab('grid',this)">Grid</button>
     <button class="tab" onclick="switchTab('event',this)">Non-Harian</button>
@@ -391,6 +440,44 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div id="harian-list"></div>
     <button class="save-btn" id="save-harian-btn" onclick="saveHarian()">Simpan ke Google Sheets</button>
+  </div>
+
+  <!-- TAB STOK -->
+  <div class="panel" id="panel-stok">
+    <div class="alert info" style="margin-bottom:14px">
+      📦 <b>Monitoring Stok Toko vs Gudang</b> — peringatan otomatis kalau ada ukuran yang <b>kosong di toko</b> padahal masih <b>ada di gudang</b>. Segera pindahkan stok dari gudang ke toko.
+    </div>
+
+    <div class="stok-controls">
+      <button class="stok-refresh-btn" id="stok-refresh-btn" onclick="loadStok()">🔄 Perbarui Data</button>
+      <button class="stok-sound-btn" id="stok-sound-btn" onclick="toggleStokSound()">🔕 Alarm Off</button>
+    </div>
+    <div class="stok-updated" id="stok-updated">Belum dimuat</div>
+
+    <div class="stok-stats-row">
+      <div class="stok-stat red"><div class="stok-stat-val" id="stok-c-red">0</div><div class="stok-stat-label">Merah<br>(toko kosong)</div></div>
+      <div class="stok-stat yellow"><div class="stok-stat-val" id="stok-c-yellow">0</div><div class="stok-stat-label">Kuning<br>(sisa 1)</div></div>
+      <div class="stok-stat blue"><div class="stok-stat-val" id="stok-c-blue">0</div><div class="stok-stat-label">Biru<br>(menipis)</div></div>
+    </div>
+
+    <div class="stok-legend">
+      <div><span class="lg-dot" style="background:var(--red)"></span><b>Merah</b> — stok toko 0, gudang &gt; 0</div>
+      <div><span class="lg-dot" style="background:var(--orange)"></span><b>Kuning</b> — stok toko 1, gudang &gt; 1</div>
+      <div><span class="lg-dot" style="background:var(--blue)"></span><b>Biru</b> — stok toko &lt; 3, gudang &gt; 3</div>
+    </div>
+
+    <div class="stok-filter-row" id="stok-filter-row">
+      <button class="stok-chip active" onclick="setStokFilter('all',this)">Semua</button>
+      <button class="stok-chip" onclick="setStokFilter('red',this)">🔴 Merah</button>
+      <button class="stok-chip" onclick="setStokFilter('yellow',this)">🟡 Kuning</button>
+      <button class="stok-chip" onclick="setStokFilter('blue',this)">🔵 Biru</button>
+    </div>
+
+    <div id="stok-list">
+      <div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Tekan "Perbarui Data" untuk<br>memeriksa stok toko &amp; gudang</div></div>
+    </div>
+
+    <a class="stok-sheet-link" id="stok-sheet-link" href="#" target="_blank" rel="noopener">📊 Buka Google Sheet Stok →</a>
   </div>
 
   <!-- TAB GRID -->
@@ -530,6 +617,8 @@ const DAY_FULL    = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const TOKO = { lat:-7.7448, lng:110.3716, radius:200 };
 const TARGET_MENIT = 240;
 const DEFAULT_URL  = 'https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBEBZjQgFE_/exec';
+const SHEET_URL    = 'https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=0#gid=0';
+const STOK_AUTO_REFRESH_MS = 5 * 60 * 1000; // auto refresh tiap 5 menit
 
 // ═══════════════════════════════════════════
 // STATE
@@ -537,6 +626,15 @@ const DEFAULT_URL  = 'https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0c
 let checked = {}, notes = {};
 let scriptUrl = localStorage.getItem('mtg_url') || DEFAULT_URL;
 let selectedEvent = null, selectedStatus = null;
+
+// Stok state
+let stokData      = { red:[], yellow:[], blue:[] };
+let stokFilter    = 'all';
+let stokSoundOn   = localStorage.getItem('stok_sound') === '1';
+let stokLoadedOnce= false;
+let _stokAudioCtx = null;
+let _stokRefreshTimer = null;
+let _stokLastRedCount = 0;
 
 // GPS state
 let geoWatchId    = null;
@@ -877,6 +975,167 @@ function updateLocTab() {
 }
 
 // ═══════════════════════════════════════════
+// STOK — MONITORING TOKO vs GUDANG
+// ═══════════════════════════════════════════
+function initStokUI() {
+  const link = document.getElementById('stok-sheet-link');
+  if (link) link.href = SHEET_URL;
+  refreshStokSoundBtn();
+}
+
+function refreshStokSoundBtn() {
+  const btn = document.getElementById('stok-sound-btn');
+  if (!btn) return;
+  if (stokSoundOn) { btn.className = 'stok-sound-btn on'; btn.textContent = '🔔 Alarm On'; }
+  else             { btn.className = 'stok-sound-btn';    btn.textContent = '🔕 Alarm Off'; }
+}
+
+function toggleStokSound() {
+  stokSoundOn = !stokSoundOn;
+  localStorage.setItem('stok_sound', stokSoundOn ? '1' : '0');
+  refreshStokSoundBtn();
+  if (stokSoundOn) {
+    // Unlock audio + putar 1 beep konfirmasi (butuh gesture user)
+    playAlarm(1);
+    showToast('🔔 Alarm suara diaktifkan', 'ok');
+  } else {
+    showToast('🔕 Alarm suara dimatikan', '');
+  }
+}
+
+// Beep alarm via Web Audio API (tidak butuh file audio)
+function playAlarm(times) {
+  try {
+    if (!_stokAudioCtx) _stokAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = _stokAudioCtx;
+    if (ctx.state === 'suspended') ctx.resume();
+    let t = ctx.currentTime;
+    for (let i = 0; i < times; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.3);
+      t += 0.38;
+    }
+  } catch(e) {}
+}
+
+function setStokFilter(f, btn) {
+  stokFilter = f;
+  document.querySelectorAll('#stok-filter-row .stok-chip').forEach(c=>c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderStokList();
+}
+
+async function loadStok(silent) {
+  if (!scriptUrl) { if (!silent) openModal(); return; }
+  const btn  = document.getElementById('stok-refresh-btn');
+  const list = document.getElementById('stok-list');
+  if (!silent) {
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Memuat...'; }
+    list.innerHTML = '<div class="empty"><span class="spinner"></span> Memeriksa stok...</div>';
+  }
+  try {
+    const r = await fetch(`${scriptUrl}?type=stok`);
+    const d = await r.json();
+    if (d && (d.red || d.yellow || d.blue)) {
+      stokData = { red: d.red||[], yellow: d.yellow||[], blue: d.blue||[] };
+      stokLoadedOnce = true;
+      renderStokList();
+      updateStokBadge();
+      const u = document.getElementById('stok-updated');
+      if (u) u.textContent = 'Diperbarui: ' + new Date().toLocaleString('id-ID', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'});
+      // Bunyikan alarm bila ada stok merah baru
+      const redCount = stokData.red.length;
+      if (stokSoundOn && redCount > 0 && redCount !== _stokLastRedCount) playAlarm(3);
+      _stokLastRedCount = redCount;
+    } else {
+      throw new Error(d && d.message ? d.message : 'Endpoint type=stok belum tersedia');
+    }
+  } catch(e) {
+    if (!silent) {
+      list.innerHTML = `<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">
+        Belum bisa memuat stok.<br><br>
+        Pastikan kode <b>type=stok</b> sudah ditambahkan<br>ke Google Apps Script kamu,<br>lalu <b>Deploy ulang</b>.<br><br>
+        <span style="font-family:var(--mono);font-size:10px;opacity:.7">${(e.message||'').slice(0,80)}</span>
+      </div></div>`;
+    }
+  }
+  if (!silent && btn) { btn.disabled = false; btn.textContent = '🔄 Perbarui Data'; }
+}
+
+function renderStokList() {
+  const list = document.getElementById('stok-list');
+  document.getElementById('stok-c-red').textContent    = stokData.red.length;
+  document.getElementById('stok-c-yellow').textContent = stokData.yellow.length;
+  document.getElementById('stok-c-blue').textContent   = stokData.blue.length;
+
+  const total = stokData.red.length + stokData.yellow.length + stokData.blue.length;
+  if (total === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><div class="empty-text"><b>Semua stok aman</b><br>Tidak ada ukuran kosong di toko<br>yang masih tersedia di gudang.</div></div>`;
+    return;
+  }
+
+  const groups = [
+    {key:'red',    label:'🔴 MERAH — Kosong di toko, ada di gudang', color:'var(--red)',    bg:'rgba(220,38,38,.12)'},
+    {key:'yellow', label:'🟡 KUNING — Sisa 1 di toko',               color:'var(--orange)', bg:'rgba(217,119,6,.12)'},
+    {key:'blue',   label:'🔵 BIRU — Stok menipis',                   color:'var(--blue)',   bg:'rgba(37,99,235,.12)'},
+  ];
+
+  let html = '';
+  groups.forEach(g => {
+    if (stokFilter !== 'all' && stokFilter !== g.key) return;
+    const items = stokData[g.key] || [];
+    if (!items.length) return;
+    html += `<div class="stok-group-hdr">
+      <span class="gh-label" style="color:${g.color}">${g.label}</span>
+      <span class="gh-line"></span>
+      <span class="gh-count" style="background:${g.bg};color:${g.color}">${items.length}</span>
+    </div>`;
+    items.forEach(it => {
+      const nama = (it.nama||'').toString();
+      const size = (it.size!=null?it.size:'-');
+      const toko = (it.toko!=null?it.toko:0);
+      const gud  = (it.gudang!=null?it.gudang:0);
+      html += `<div class="stok-item ${g.key}">
+        <div class="stok-size-pill">${size}</div>
+        <div class="stok-item-body">
+          <div class="stok-item-name">${nama}</div>
+          <div class="stok-item-sub">Ukuran ${size}</div>
+        </div>
+        <div class="stok-qty">
+          <div>Toko: <span class="q-toko">${toko}</span></div>
+          <div>Gudang: <span class="q-gud">${gud}</span></div>
+        </div>
+      </div>`;
+    });
+  });
+
+  if (!html) {
+    html = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Tidak ada item pada filter ini.</div></div>`;
+  }
+  list.innerHTML = html;
+}
+
+function updateStokBadge() {
+  const badge = document.getElementById('badge-stok');
+  if (!badge) return;
+  const n = stokData.red.length;
+  if (n > 0) {
+    badge.textContent = n > 99 ? '99+' : n;
+    badge.classList.add('show', 'pulse');
+  } else {
+    badge.classList.remove('show', 'pulse');
+  }
+}
+
+// ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
@@ -894,6 +1153,11 @@ window.addEventListener('DOMContentLoaded', () => {
   renderEventGrid();
   checkTodayFilled();
   checkLaporanBadge();
+
+  // Stok: siapkan UI + cek stok di latar belakang (untuk badge)
+  initStokUI();
+  loadStok(true);
+  _stokRefreshTimer = setInterval(() => loadStok(true), STOK_AUTO_REFRESH_MS);
 
   loadLocData();
   updateTimerDisplay();
@@ -923,6 +1187,10 @@ function switchTab(name, btn) {
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if (name==='lokasi') updateLocTab();
+  if (name==='stok') {
+    if (!stokLoadedOnce) loadStok();
+    else renderStokList();
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -1356,7 +1624,7 @@ function saveUrl()    {
   if (!val.startsWith('http')) { showToast('URL tidak valid','err'); return; }
   scriptUrl=val; localStorage.setItem('mtg_url',val);
   closeModal(); showToast('URL tersimpan ✓','ok');
-  checkTodayFilled(); checkLaporanBadge();
+  checkTodayFilled(); checkLaporanBadge(); loadStok(true);
 }
 document.getElementById('modal').addEventListener('click', function(e){ if(e.target===this)closeModal(); });
 
