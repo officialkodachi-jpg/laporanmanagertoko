@@ -23,16 +23,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--hint);border-radius:2px}
-
-/* TOPBAR */
 .topbar{padding:20px 20px 0;max-width:680px;margin:0 auto}
 .topbar-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:20px;border-bottom:1px solid var(--border)}
 .brand{display:flex;flex-direction:column;gap:3px}
 .brand-tag{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase}
 .brand-name{font-size:20px;font-weight:700;letter-spacing:-.5px;line-height:1.2}
 .brand-sub{font-size:11px;color:var(--muted);font-weight:300;margin-top:2px}
-
-/* LOCATION BANNER */
 .loc-banner{max-width:680px;margin:12px auto 0;padding:0 20px}
 .loc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px}
 .loc-icon{width:36px;height:36px;border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
@@ -55,8 +51,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .time-bar-label{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);font-family:var(--mono)}
 .loc-retry-inline{margin-top:10px;width:100%;padding:8px;background:rgba(217,119,6,.1);color:var(--orange);border:1px solid rgba(217,119,6,.3);border-radius:var(--r);font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer;display:none}
 .loc-retry-inline.show{display:block}
-
-/* SUB-TAB */
 .subtab-row{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
 .subtab-row::-webkit-scrollbar{display:none}
 .subtab{flex:1;min-width:fit-content;padding:9px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
@@ -64,8 +58,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .subview{display:none}
 .subview.active{display:block}
 .subview-cap{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5}
-
-/* D01 GPS CARD */
 .d01-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:6px;transition:border-color .2s}
 .d01-card.d01-done{border-color:rgba(22,163,74,.35);background:rgba(22,163,74,.05)}
 .d01-card.d01-warn{border-color:rgba(217,119,6,.35);background:rgba(217,119,6,.04)}
@@ -96,8 +88,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .d01-caption .dot.grey{background:var(--hint)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .task-auto-tag{font-size:10px;color:var(--accent);background:rgba(37,99,235,.08);padding:2px 8px;border-radius:20px;display:inline-block;margin-top:4px}
-
-/* TABS */
 .tabs-wrap{max-width:680px;margin:0 auto;padding:0 20px;position:sticky;top:0;z-index:50;background:var(--bg)}
 .tabs{display:flex;gap:2px;padding:14px 0 0;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
@@ -108,21 +98,15 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .tab-badge.pulse{animation:badgePulse 1.4s infinite}
 @keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 .tabs-line{height:1px;background:var(--border);margin-bottom:20px}
-
-/* CONTENT */
 .content{max-width:680px;margin:0 auto;padding:0 20px 60px}
 .panel{display:none}
 .panel.active{display:block}
-
-/* DATE */
 .date-row{display:flex;gap:8px;margin-bottom:20px;align-items:center}
 .date-display{flex:1;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:13px;pointer-events:none;user-select:none}
 .date-input{flex:1;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s;color-scheme:light}
 .date-input:focus{border-color:var(--accent)}
 .today-btn{padding:11px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
 .today-label{padding:11px 16px;background:var(--surface);color:var(--muted);border:1px solid var(--border);border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:500;white-space:nowrap}
-
-/* STATS */
 .stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 12px;text-align:center}
 .stat-val{font-family:var(--mono);font-size:24px;font-weight:500;line-height:1}
@@ -130,8 +114,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .stat-val.orange{color:var(--orange)}
 .stat-val.red{color:var(--red)}
 .stat-label{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:.05em}
-
-/* PROGRESS */
 .prog-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px}
 .prog-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .prog-label{font-size:12px;color:var(--muted)}
@@ -140,8 +122,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .prog-fill{height:100%;border-radius:3px;background:var(--green);transition:width .4s ease}
 .prog-fill.mid{background:var(--orange)}
 .prog-fill.low{background:var(--red)}
-
-/* SECTION HEADER */
 .section-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;margin-top:4px}
 .section-hdr-line{flex:1;height:1px;background:var(--border)}
 .section-hdr-label{font-size:10px;color:var(--hint);letter-spacing:.12em;text-transform:uppercase;font-family:var(--mono);display:flex;align-items:center;gap:6px}
@@ -149,8 +129,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .pri-dot.wajib{background:var(--red)}
 .pri-dot.penting{background:var(--orange)}
 .pri-dot.pendukung{background:var(--blue)}
-
-/* TASK ITEM */
 .task-item{display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;cursor:pointer}
 .task-item.done{border-color:rgba(22,163,74,.3);background:rgba(22,163,74,.06)}
 .task-check{width:26px;height:26px;min-width:26px;min-height:26px;border-radius:50%;border:2px solid var(--hint);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;margin-top:1px}
@@ -163,22 +141,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .task-note-toggle{font-size:11px;color:var(--hint);margin-top:6px;cursor:pointer;display:inline-block}
 .task-note-input{width:100%;margin-top:8px;padding:8px 10px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:12px;outline:none;resize:none;line-height:1.5}
 .task-note-input:focus{border-color:var(--accent)}
-
-/* SAVE BTN */
 .save-btn{width:100%;padding:16px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer;margin-top:16px;letter-spacing:.02em}
 .save-btn:disabled{opacity:.5;cursor:not-allowed}
-
-/* ALERT */
 .alert{padding:12px 16px;border-radius:var(--r);margin-bottom:16px;font-size:12px;line-height:1.6}
 .alert.info{background:rgba(106,159,240,.1);border:1px solid rgba(106,159,240,.2);color:var(--blue)}
 .alert.warn{background:rgba(240,160,90,.1);border:1px solid rgba(240,160,90,.2);color:var(--orange)}
-
-/* NOTIF */
 .notif-list{margin-bottom:16px;display:flex;flex-direction:column;gap:6px}
 .notif-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(240,106,106,.08);border:1px solid rgba(240,106,106,.18);border-radius:var(--r);font-size:12px;color:var(--red)}
 .notif-item.warn{background:rgba(240,160,90,.08);border-color:rgba(240,160,90,.18);color:var(--orange)}
-
-/* GRID */
 .grid-controls{display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
 .month-select{flex:1;min-width:120px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:13px;outline:none;color-scheme:light}
 .month-select:focus{border-color:var(--accent)}
@@ -201,8 +171,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .pct-mid{color:var(--orange)}
 .pct-lo{color:var(--red)}
 .grid-avg-row td{background:var(--card2);font-family:var(--mono);font-size:11px;font-weight:600}
-
-/* EVENT */
 .event-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
 .event-card{padding:14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .2s}
 .event-card.selected{border-color:var(--accent);background:rgba(37,99,235,.06)}
@@ -218,8 +186,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .note-input{width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;resize:vertical;line-height:1.5;min-height:70px}
 .note-input:focus{border-color:var(--accent)}
 .send-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;margin-top:10px}
-
-/* LAPORAN */
 .laporan-week{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
 .week-title{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:12px;font-family:var(--mono)}
 .week-avg{font-family:var(--mono);font-size:20px;font-weight:500;margin-bottom:4px}
@@ -230,8 +196,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .lt-bar-wrap{width:80px;height:6px;background:var(--surface);border-radius:3px;overflow:hidden;flex-shrink:0}
 .lt-bar-fill{height:100%;border-radius:3px}
 .lt-pct{font-family:var(--mono);font-size:11px;width:36px;text-align:right;flex-shrink:0}
-
-/* CHART */
 .chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px}
 .chart-title{font-size:12px;color:var(--muted);margin-bottom:14px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em}
 .bar-chart{display:flex;align-items:flex-end;gap:6px;height:100px}
@@ -239,8 +203,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .bar-rect{width:100%;border-radius:4px 4px 0 0;min-height:4px}
 .bar-label{font-family:var(--mono);font-size:9px;color:var(--muted);white-space:nowrap}
 .bar-val{font-family:var(--mono);font-size:9px;color:var(--text)}
-
-/* HISTORY */
 .history-item{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px}
 .history-date{font-family:var(--mono);font-size:11px;color:var(--accent);margin-bottom:6px}
 .history-tasks{display:flex;flex-wrap:wrap;gap:4px}
@@ -248,8 +210,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .history-tag.done{background:rgba(62,207,142,.15);color:var(--green)}
 .history-tag.skip{background:rgba(240,106,106,.1);color:var(--red)}
 .history-summary{font-size:11px;color:var(--muted);margin-top:8px}
-
-/* STOK MONITORING */
 .stok-controls{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
 .stok-refresh-btn{flex:1;min-width:120px;padding:11px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
 .stok-sound-btn{padding:11px 14px;background:var(--card);color:var(--muted);border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
@@ -356,6 +316,12 @@ select.it{cursor:pointer}
 .ig-subview{display:none}
 .ig-subview.active{display:block}
 
+/* ═══ PRODUK STATUS BAR ═══ */
+.produk-status{font-family:var(--mono);font-size:10px;padding:6px 12px;border-radius:var(--r);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.produk-status.loading{background:rgba(37,99,235,.07);color:var(--blue);border:1px solid rgba(37,99,235,.15)}
+.produk-status.ok{background:rgba(22,163,74,.07);color:var(--green);border:1px solid rgba(22,163,74,.15)}
+.produk-status.err{background:rgba(220,38,38,.07);color:var(--red);border:1px solid rgba(220,38,38,.15)}
+
 /* ═══ CUSTOM AUTOCOMPLETE NAMA PRODUK ═══ */
 .ac-wrap{position:relative;min-width:150px}
 .ac-input{width:100%;padding:5px 7px;border:1px solid var(--border2);border-radius:6px;font-size:12px;background:var(--card);color:var(--text);font-family:var(--sans);outline:none}
@@ -379,22 +345,16 @@ select.it{cursor:pointer}
 .modal-btns{display:flex;gap:8px}
 .modal-cancel{flex:1;padding:12px;background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--muted);font-family:var(--sans);font-size:13px;cursor:pointer}
 .modal-save{flex:2;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer}
-
-/* TOAST */
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);border:1px solid var(--border2);border-radius:50px;padding:10px 20px;font-size:13px;color:#fff;z-index:200;transition:transform .3s,opacity .3s;opacity:0;white-space:nowrap;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .toast.ok{border-color:rgba(62,207,142,.3)}
 .toast.err{border-color:rgba(240,106,106,.3)}
-
-/* EMPTY */
 .empty{text-align:center;padding:40px 20px;color:var(--hint)}
 .empty-icon{font-size:32px;margin-bottom:10px}
 .empty-text{font-size:13px;line-height:1.6}
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--hint);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes igSpin{to{transform:rotate(360deg)}}
-
-/* PASSWORD */
 .pw-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
 .pw-box{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-lg);padding:36px 28px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.12);text-align:center}
 .pw-logo{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px}
@@ -426,7 +386,7 @@ select.it{cursor:pointer}
 <div class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      <span class="brand-tag">Manager · v3.5</span>
+      <span class="brand-tag">Manager · v3.6</span>
       <span class="brand-name">Kodachi Shop Monjali</span>
       <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
     </div>
@@ -456,11 +416,8 @@ select.it{cursor:pointer}
 </div>
 
 <div id="loc-hidden" style="display:none" aria-hidden="true">
-  <span id="loc-debug"></span>
-  <span id="loc-distance"></span>
-  <span id="loc-accuracy"></span>
-  <span id="loc-sessions-count"></span>
-  <span id="loc-total-today"></span>
+  <span id="loc-debug"></span><span id="loc-distance"></span><span id="loc-accuracy"></span>
+  <span id="loc-sessions-count"></span><span id="loc-total-today"></span>
   <div id="loc-log-list"></div>
 </div>
 
@@ -475,7 +432,8 @@ select.it{cursor:pointer}
       📦 Stok
       <span class="tab-badge" id="badge-stok">0</span>
     </button>
-    <button class="tab" onclick="switchTab('inputstok',this)">📥 Input Stok</button>
+    <!-- ✅ FIX 1: Tab renamed to "Gudang IN/OUT" -->
+    <button class="tab" onclick="switchTab('inputstok',this)">📥 Gudang IN/OUT</button>
     <button class="tab" onclick="switchTab('event',this)">Non-Harian</button>
     <button class="tab" onclick="switchTab('laporan',this)">
       📈 Laporan
@@ -514,7 +472,7 @@ select.it{cursor:pointer}
   <!-- TAB STOK MONITORING -->
   <div class="panel" id="panel-stok">
     <div class="alert info" style="margin-bottom:14px">
-      📦 <b>Monitoring Stok Toko vs Gudang</b> — peringatan otomatis kalau ada ukuran yang <b>kosong di toko</b> padahal masih <b>ada di gudang</b>. Segera pindahkan stok dari gudang ke toko.
+      📦 <b>Monitoring Stok Toko vs Gudang</b> — peringatan otomatis kalau ada ukuran yang <b>kosong di toko</b> padahal masih <b>ada di gudang</b>.
     </div>
     <div class="stok-controls">
       <button class="stok-refresh-btn" id="stok-refresh-btn" onclick="loadStok()">🔄 Perbarui Data</button>
@@ -543,17 +501,22 @@ select.it{cursor:pointer}
     <a class="stok-sheet-link" id="stok-sheet-link" href="#" target="_blank" rel="noopener">📊 Buka Google Sheet Stok →</a>
   </div>
 
-  <!-- TAB INPUT STOK GUDANG -->
+  <!-- TAB GUDANG IN/OUT (sebelumnya: Input Stok) -->
   <div class="panel" id="panel-inputstok">
     <div class="ig-subtab-row">
       <button class="ig-stab active" onclick="switchIgTab('input',this)">📥 Input Stok</button>
       <button class="ig-stab" onclick="switchIgTab('config',this)">⚙️ Pengaturan API</button>
     </div>
 
-    <!-- Sub-view: Input Form -->
     <div class="ig-subview active" id="ig-subview-input">
       <div class="alert info" style="margin-bottom:14px">
-        📥 <b>Input Stok Gudang Mranggen</b> — catat mutasi stok masuk/keluar. Data otomatis terkirim ke Google Sheets setelah klik <b>Simpan ke Sheets</b>.
+        📥 <b>Gudang IN/OUT — Stok Gudang Mranggen</b> — catat mutasi stok masuk/keluar. Data terkirim ke Google Sheets setelah klik <b>Simpan ke Sheets</b>.
+      </div>
+
+      <!-- ✅ FIX 2: Produk status indicator -->
+      <div class="produk-status loading" id="produk-status">
+        <span class="spinner" style="width:12px;height:12px;border-width:2px"></span>
+        <span id="produk-status-text">Memuat daftar produk...</span>
       </div>
 
       <div class="ig-header">STOK GUDANG MRANGGEN</div>
@@ -596,40 +559,81 @@ select.it{cursor:pointer}
     <!-- Sub-view: Config -->
     <div class="ig-subview" id="ig-subview-config">
       <div class="ig-api-box">
-        <label class="ig-api-label">URL Google Apps Script Web App (Stok Gudang)</label>
+        <label class="ig-api-label">URL Apps Script — Spreadsheet Kasir (untuk fetch produk &amp; simpan stok)</label>
         <input class="ig-api-input" id="ig-api-url" placeholder="https://script.google.com/macros/s/..." value="">
         <div class="ig-api-note">
-          URL ini berbeda dari URL Apps Script utama. Paste URL dari deployment untuk sheet <b>Stok Gudang V4 · Mranggen</b>.
+          Gunakan URL Apps Script dari <b>spreadsheet Kasir</b> (ID: <code style="background:var(--surface);padding:1px 4px;border-radius:3px">1gJtL8Qr...</code>). Script ini menangani fetch produk (sheet "Data" B2:B500) <b>dan</b> simpan data ke spreadsheet Gudang (ID: <code style="background:var(--surface);padding:1px 4px;border-radius:3px">13yNmH5j...</code>).
         </div>
         <button class="ig-save-url-btn" onclick="igSaveApiUrl()">Simpan URL</button>
       </div>
       <div class="ig-api-box" style="margin-top:8px">
-        <label class="ig-api-label">Cara Setup (4 langkah)</label>
+        <label class="ig-api-label">Cara Setup (3 langkah)</label>
         <div style="font-size:11px;line-height:2;color:var(--muted)">
-          <b>1.</b> Buka spreadsheet Stok Gudang → <b>Extensions → Apps Script</b><br>
-          <b>2.</b> Tambahkan fungsi <code style="background:var(--surface);padding:2px 5px;border-radius:3px">doPost(e)</code> di bawah ini<br>
-          <b>3.</b> Deploy → <b>New Deployment → Web App → Execute as: Me → Anyone</b><br>
-          <b>4.</b> Copy URL → paste di atas → Simpan
+          <b>1.</b> Buka spreadsheet <b>Kasir</b> → <b>Extensions → Apps Script</b><br>
+          <b>2.</b> Ganti/tambah fungsi <code style="background:var(--surface);padding:2px 5px;border-radius:3px">doGet</code> dan <code style="background:var(--surface);padding:2px 5px;border-radius:3px">doPost</code> dengan kode di bawah<br>
+          <b>3.</b> Deploy ulang → <b>Manage Deployments → Edit → versi baru → Update</b>
         </div>
       </div>
       <div class="ig-api-box" style="background:rgba(22,163,74,.04);border-color:rgba(22,163,74,.3)">
-        <label class="ig-api-label" style="color:var(--green)">Kode Apps Script</label>
-        <div class="ig-code-block">function doPost(e) {
-  var ss = SpreadsheetApp.openById("13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk");
-  var sheet = ss.getSheetByName("Mranggen");
+        <label class="ig-api-label" style="color:var(--green)">Kode Apps Script (tambahkan ke spreadsheet Kasir)</label>
+        <div class="ig-code-block">// ── doGet: handle type=produk (JSONP) ──────────────────
+function doGet(e) {
+  var p = e.parameter;
+  var cb = p.callback || "callback";
+
+  if (p.type === "produk") {
+    // Ambil nama produk dari spreadsheet Kasir sheet "Data" B2:B500
+    var ss = SpreadsheetApp.openById("1gJtL8Qr65ZXy5aNW4WWz1umKdSkFjGTZdPq7xfnJbfI");
+    var sh = ss.getSheetByName("Data");
+    var vals = sh.getRange("B2:B500").getValues();
+    var produk = vals.map(function(r){return r[0];})
+                     .filter(function(v){return v && v.toString().trim();})
+                     .filter(function(v,i,a){return a.indexOf(v)===i;}); // dedupe
+    var json = JSON.stringify({status:"ok", produk: produk});
+    return ContentService.createTextOutput(cb + "(" + json + ")")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
+  // Teruskan ke handler lain yang sudah ada (stok, cek, dll)
+  return doGetExisting(e);
+}
+
+// ── doPost: simpan ke spreadsheet Gudang sheet "Data" ──
+function doPost(e) {
   var data = JSON.parse(e.postData.contents);
-  if (data.rows && Array.isArray(data.rows)) {
-    data.rows.forEach(function(row) {
-      sheet.appendRow([
+
+  // Handler stok_gudang: tulis ke spreadsheet Gudang
+  if (data.type === "stok_gudang" || (data.rows && Array.isArray(data.rows))) {
+    var ssGudang = SpreadsheetApp.openById("13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk");
+    var shGudang = ssGudang.getSheetByName("Data");
+    if (!shGudang) shGudang = ssGudang.getSheets()[0]; // fallback sheet pertama
+    (data.rows || []).forEach(function(row) {
+      shGudang.appendRow([
         row.tanggal, row.nama, row.size, row.tipe,
         row.jumlah, row.inout, row.ket, row.total
       ]);
     });
+    return ContentService
+      .createTextOutput(JSON.stringify({status:"ok", saved: (data.rows||[]).length}))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-  return ContentService
-    .createTextOutput(JSON.stringify({status:"ok"}))
-    .setMimeType(ContentService.MimeType.JSON);
-}</div>
+
+  // Teruskan ke handler doPost lain yang sudah ada (harian, event, dll)
+  return doPostExisting(e);
+}
+
+// ── Rename fungsi doGet & doPost lama kamu menjadi: ────
+// doGetExisting(e)  → fungsi doGet yang sudah ada sebelumnya
+// doPostExisting(e) → fungsi doPost yang sudah ada sebelumnya</div>
+      </div>
+      <div class="ig-api-box" style="background:rgba(217,119,6,.04);border-color:rgba(217,119,6,.3);margin-top:8px">
+        <label class="ig-api-label" style="color:var(--orange)">⚠ Catatan Penting</label>
+        <div style="font-size:11px;line-height:1.9;color:var(--muted)">
+          Kode di atas <b>menggabungkan</b> doGet/doPost baru dengan yang sudah ada.<br>
+          Ganti nama fungsi <code style="background:var(--surface);padding:1px 4px">doGet</code> lama → <code style="background:var(--surface);padding:1px 4px">doGetExisting</code><br>
+          Ganti nama fungsi <code style="background:var(--surface);padding:1px 4px">doPost</code> lama → <code style="background:var(--surface);padding:1px 4px">doPostExisting</code><br>
+          Lalu tambahkan fungsi baru di atas. Setelah edit → <b>Deploy ulang versi baru</b>.
+        </div>
       </div>
     </div>
   </div>
@@ -657,7 +661,7 @@ select.it{cursor:pointer}
   <!-- TAB LAPORAN -->
   <div class="panel" id="panel-laporan">
     <div class="alert info" style="margin-bottom:14px">
-      📈 <b>Laporan &amp; Rekap</b> — semua data tugas ada di sini. Pilih jenis tampilan di bawah, lalu pilih bulan.
+      📈 <b>Laporan &amp; Rekap</b> — semua data tugas ada di sini.
     </div>
     <div class="subtab-row">
       <button class="subtab active" id="subtab-lap" onclick="switchLaporanView('lap',this)">📈 Mingguan</button>
@@ -681,7 +685,7 @@ select.it{cursor:pointer}
         <button class="load-btn" onclick="loadGrid()">Tampilkan</button>
       </div>
       <div id="grid-container">
-        <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Pilih bulan dan klik Tampilkan<br>untuk melihat grid tugas</div></div>
+        <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Pilih bulan dan klik Tampilkan</div></div>
       </div>
     </div>
     <div class="subview" id="subview-riw">
@@ -691,7 +695,7 @@ select.it{cursor:pointer}
         <button class="load-btn" onclick="loadRiwayat()">Tampilkan</button>
       </div>
       <div id="riwayat-container">
-        <div class="empty"><div class="empty-icon">🗂</div><div class="empty-text">Pilih bulan untuk melihat riwayat pengisian</div></div>
+        <div class="empty"><div class="empty-icon">🗂</div><div class="empty-text">Pilih bulan untuk melihat riwayat</div></div>
       </div>
     </div>
   </div>
@@ -711,9 +715,8 @@ select.it{cursor:pointer}
   </div>
 </div>
 
-<!-- AUTOCOMPLETE DROPDOWN (shared, repositioned via JS) -->
+<!-- AUTOCOMPLETE DROPDOWN (shared) -->
 <div class="ac-dropdown" id="ac-dropdown"></div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -734,7 +737,6 @@ const HARIAN = [
   {kode:'D11',nama:'Partimer melayani customer dengan baik',kategori:'Layanan',prioritas:'Penting',kpi:'0 komplain tidak ditindaklanjuti'},
   {kode:'D12',nama:'Banner & signage layak tampil',kategori:'Visual',prioritas:'Pendukung',kpi:'Banner dalam kondisi baik'},
 ];
-
 const EVENTS = [
   {kode:'E01',nama:'Input stok masuk dari gudang',kategori:'Operasional',frekuensi:'Mingguan',prioritas:'Penting'},
   {kode:'E02',nama:'Setor uang ke owner & laporan keuangan',kategori:'Keuangan',frekuensi:'Mingguan',prioritas:'Wajib'},
@@ -746,346 +748,209 @@ const EVENTS = [
   {kode:'E08',nama:'Training partimer baru',kategori:'SDM',frekuensi:'Insidental',prioritas:'Pendukung'},
   {kode:'E09',nama:'Sampaikan keluhan partimer ke owner',kategori:'SDM',frekuensi:'Insidental',prioritas:'Penting'},
 ];
+const BULAN_NAMES=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const DAY_SHORT=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+const DAY_FULL=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const TOKO={lat:-7.7448,lng:110.3716,radius:200};
+const TARGET_MENIT=240;
+const DEFAULT_URL='https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBEBZjQgFE_/exec';
+const SHEET_URL='https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=0#gid=0';
+const STOK_AUTO_REFRESH_MS=5*60*1000;
 
-const BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-const DAY_SHORT   = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
-const DAY_FULL    = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+let checked={},notes={};
+let scriptUrl=localStorage.getItem('mtg_url')||DEFAULT_URL;
+let selectedEvent=null,selectedStatus=null;
+let stokData={red:[],yellow:[],blue:[]};
+let stokFilter='all',stokSoundOn=localStorage.getItem('stok_sound')==='1';
+let stokLoadedOnce=false,_stokAudioCtx=null,_stokRefreshTimer=null,_stokLastRedCount=0;
+let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locationLog=[],lastPos=null;
+let _timerInterval=null,_retryTimer=null,_retryCount=0,_gpsStarted=false;
 
-const TOKO = { lat:-7.7448, lng:110.3716, radius:200 };
-const TARGET_MENIT = 240;
-const DEFAULT_URL  = 'https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBEBZjQgFE_/exec';
-const SHEET_URL    = 'https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=0#gid=0';
-const STOK_AUTO_REFRESH_MS = 5 * 60 * 1000;
-
-let checked = {}, notes = {};
-let scriptUrl = localStorage.getItem('mtg_url') || DEFAULT_URL;
-let selectedEvent = null, selectedStatus = null;
-
-let stokData      = { red:[], yellow:[], blue:[] };
-let stokFilter    = 'all';
-let stokSoundOn   = localStorage.getItem('stok_sound') === '1';
-let stokLoadedOnce= false;
-let _stokAudioCtx = null;
-let _stokRefreshTimer = null;
-let _stokLastRedCount = 0;
-
-let geoWatchId    = null;
-let isAtStore     = false;
-let sessionStart  = null;
-let totalMinutesToday = 0;
-let locationLog   = [];
-let lastPos       = null;
-let _timerInterval = null;
-let _retryTimer   = null;
-let _retryCount   = 0;
-let _gpsStarted   = false;
+// ═══ INPUT STOK GUDANG STATE ═══
+var igRows=[];
+var igApiUrl=localStorage.getItem('ig_api_url')||'';
+var igToday=new Date().toISOString().split('T')[0];
+var IG_KET_OPTIONS=['Bawa Ke Toko','Hilang','Minus Stock','Ketemu','Retur','Penyesuaian'];
+var IG_TIPE_OPTIONS=['','Pendek','Panjang','Sport','Invisible','Ankle'];
+// ✅ FIX 3: igProdukList diisi via JSONP dari Apps Script kasir
+var igProdukList=[];
+var _produkLoaded=false;
 
 // ═══════════════════════════════════════════
-// INPUT STOK GUDANG STATE
+// ✅ FIX 3: LOAD PRODUK VIA JSONP (dari spreadsheet Kasir)
+// Menggunakan scriptUrl utama (Apps Script kasir) dengan type=produk
 // ═══════════════════════════════════════════
-var igRows = [];
-var igApiUrl = localStorage.getItem('ig_api_url') || '';
-var igToday = new Date().toISOString().split('T')[0];
-var IG_KET_OPTIONS = ['Bawa Ke Toko','Hilang','Minus Stock','Ketemu','Retur','Penyesuaian'];
-var IG_TIPE_OPTIONS = ['','Pendek','Panjang','Sport','Invisible','Ankle'];
-var igProdukList = [];
+function igLoadProduk(silent) {
+  var url = igApiUrl || localStorage.getItem('ig_api_url') || scriptUrl;
+  if (!url || !url.startsWith('http')) {
+    setProdukStatus('err', '⚠ URL belum dikonfigurasi — buka tab ⚙️ Pengaturan API');
+    return;
+  }
+  if (!silent) setProdukStatus('loading', 'Memuat daftar produk...');
+
+  // Bersihkan script JSONP lama
+  var old = document.getElementById('jsonp-produk');
+  if (old) old.remove();
+
+  // Timeout fallback
+  var tid = setTimeout(function() {
+    if (!_produkLoaded) setProdukStatus('err', '⚠ Timeout — pastikan Apps Script sudah support type=produk');
+  }, 10000);
+
+  window.__igProdukCb = function(data) {
+    clearTimeout(tid);
+    if (data && data.status === 'ok' && Array.isArray(data.produk) && data.produk.length) {
+      igProdukList = data.produk;
+      _produkLoaded = true;
+      setProdukStatus('ok', '✓ ' + data.produk.length + ' produk dimuat');
+    } else {
+      setProdukStatus('err', '⚠ Gagal: ' + (data && data.message ? data.message : 'Response tidak valid'));
+    }
+  };
+
+  var s = document.createElement('script');
+  s.id = 'jsonp-produk';
+  s.src = url + '?type=produk&callback=__igProdukCb&_=' + Date.now();
+  s.onerror = function() {
+    clearTimeout(tid);
+    setProdukStatus('err', '⚠ Script error — cek URL Apps Script');
+  };
+  document.body.appendChild(s);
+}
+
+function setProdukStatus(type, msg) {
+  var el = document.getElementById('produk-status');
+  var txt = document.getElementById('produk-status-text');
+  if (!el || !txt) return;
+  el.className = 'produk-status ' + type;
+  var spin = type === 'loading' ? '<span class="spinner" style="width:12px;height:12px;border-width:2px"></span>' : '';
+  el.innerHTML = spin + '<span>' + msg + '</span>';
+  if (type !== 'loading') {
+    // Tambah tombol retry kalau error
+    if (type === 'err') {
+      el.innerHTML += ' <button onclick="igLoadProduk()" style="margin-left:8px;padding:2px 8px;font-size:10px;border:1px solid currentColor;border-radius:4px;background:none;color:inherit;cursor:pointer;font-family:var(--sans)">Coba Lagi</button>';
+    }
+  }
+}
 
 // ═══════════════════════════════════════════
 // CUSTOM AUTOCOMPLETE ENGINE
 // ═══════════════════════════════════════════
-var _acActiveId   = null; // row id yang sedang aktif
-var _acFocusIdx   = -1;
-var _acDropEl     = null;
+var _acActiveId=null,_acFocusIdx=-1,_acDropEl=null;
 
-function acInit() {
-  _acDropEl = document.getElementById('ac-dropdown');
-  // Tutup dropdown kalau klik di luar
-  document.addEventListener('mousedown', function(e) {
-    if (!_acDropEl.contains(e.target) && !e.target.classList.contains('ac-input')) {
-      acHide();
-    }
+function acInit(){
+  _acDropEl=document.getElementById('ac-dropdown');
+  document.addEventListener('mousedown',function(e){
+    if(!_acDropEl.contains(e.target)&&!e.target.classList.contains('ac-input'))acHide();
   });
-  // Tutup saat scroll tabel
-  var tblWrap = document.querySelector('.ig-tbl-wrap');
-  if (tblWrap) tblWrap.addEventListener('scroll', acHide, {passive:true});
+  var tblWrap=document.querySelector('.ig-tbl-wrap');
+  if(tblWrap)tblWrap.addEventListener('scroll',acHide,{passive:true});
 }
-
-function acShow(inputEl, rowId) {
-  _acActiveId = rowId;
-  _acFocusIdx = -1;
-  var query = inputEl.value.trim().toLowerCase();
-  var list = igProdukList.length ? igProdukList : [];
-  var filtered = query
-    ? list.filter(function(p){ return p.toLowerCase().includes(query); })
-    : list;
-
-  if (!filtered.length) { acHide(); return; }
-
-  var rect = inputEl.getBoundingClientRect();
-  var dropW = Math.max(rect.width, 220);
-  _acDropEl.style.left   = rect.left + window.scrollX + 'px';
-  _acDropEl.style.top    = rect.bottom + window.scrollY + 4 + 'px';
-  _acDropEl.style.width  = dropW + 'px';
-
-  _acDropEl.innerHTML = filtered.slice(0, 30).map(function(p, i) {
-    var hl = query ? p.replace(new RegExp('('+escRe(query)+')', 'gi'), '<mark>$1</mark>') : p;
+function acShow(inputEl,rowId){
+  _acActiveId=rowId;_acFocusIdx=-1;
+  var query=inputEl.value.trim().toLowerCase();
+  var list=igProdukList.length?igProdukList:[];
+  var filtered=query?list.filter(function(p){return p.toLowerCase().includes(query);}):list;
+  if(!filtered.length){acHide();return;}
+  var rect=inputEl.getBoundingClientRect();
+  var dropW=Math.max(rect.width,220);
+  _acDropEl.style.left=rect.left+window.scrollX+'px';
+  _acDropEl.style.top=rect.bottom+window.scrollY+4+'px';
+  _acDropEl.style.width=dropW+'px';
+  _acDropEl.innerHTML=filtered.slice(0,40).map(function(p,i){
+    var hl=query?p.replace(new RegExp('('+escRe(query)+')','gi'),'<mark>$1</mark>'):p;
     return '<div class="ac-item" data-idx="'+i+'" data-val="'+escH(p)+'" onmousedown="acSelect(event,\''+escH(p)+'\')">'+hl+'</div>';
   }).join('');
-
   _acDropEl.classList.add('open');
 }
-
-function acHide() {
-  if (_acDropEl) _acDropEl.classList.remove('open');
-  _acActiveId = null;
-  _acFocusIdx = -1;
-}
-
-function acSelect(e, val) {
+function acHide(){if(_acDropEl)_acDropEl.classList.remove('open');_acActiveId=null;_acFocusIdx=-1;}
+function acSelect(e,val){
   e.preventDefault();
-  if (_acActiveId !== null) {
-    var r = igRows.find(function(x){ return x.id === _acActiveId; });
-    if (r) r.nama = val;
-    // Update input value langsung tanpa re-render full
-    var inp = document.querySelector('tr[data-id="'+_acActiveId+'"] .ac-input');
-    if (inp) inp.value = val;
+  if(_acActiveId!==null){
+    var r=igRows.find(function(x){return x.id===_acActiveId;});
+    if(r)r.nama=val;
+    var inp=document.querySelector('tr[data-id="'+_acActiveId+'"] .ac-input');
+    if(inp)inp.value=val;
   }
   acHide();
 }
-
-function acKeydown(e, rowId) {
-  if (!_acDropEl.classList.contains('open')) {
-    if (e.key === 'ArrowDown') { acShow(e.target, rowId); }
-    return;
-  }
-  var items = _acDropEl.querySelectorAll('.ac-item');
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    _acFocusIdx = Math.min(_acFocusIdx + 1, items.length - 1);
-    acHighlight(items);
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    _acFocusIdx = Math.max(_acFocusIdx - 1, -1);
-    acHighlight(items);
-  } else if (e.key === 'Enter' || e.key === 'Tab') {
-    if (_acFocusIdx >= 0 && items[_acFocusIdx]) {
-      e.preventDefault();
-      acSelect({preventDefault:function(){}}, items[_acFocusIdx].dataset.val);
-    } else {
-      acHide();
-    }
-  } else if (e.key === 'Escape') {
-    acHide();
-  }
+function acKeydown(e,rowId){
+  if(!_acDropEl.classList.contains('open')){if(e.key==='ArrowDown'){acShow(e.target,rowId);}return;}
+  var items=_acDropEl.querySelectorAll('.ac-item');
+  if(e.key==='ArrowDown'){e.preventDefault();_acFocusIdx=Math.min(_acFocusIdx+1,items.length-1);acHighlight(items);}
+  else if(e.key==='ArrowUp'){e.preventDefault();_acFocusIdx=Math.max(_acFocusIdx-1,-1);acHighlight(items);}
+  else if(e.key==='Enter'||e.key==='Tab'){if(_acFocusIdx>=0&&items[_acFocusIdx]){e.preventDefault();acSelect({preventDefault:function(){}},items[_acFocusIdx].dataset.val);}else acHide();}
+  else if(e.key==='Escape')acHide();
 }
-
-function acHighlight(items) {
-  items.forEach(function(el, i){ el.classList.toggle('focused', i === _acFocusIdx); });
-  if (_acFocusIdx >= 0 && items[_acFocusIdx]) {
-    items[_acFocusIdx].scrollIntoView({block:'nearest'});
-  }
+function acHighlight(items){
+  items.forEach(function(el,i){el.classList.toggle('focused',i===_acFocusIdx);});
+  if(_acFocusIdx>=0&&items[_acFocusIdx])items[_acFocusIdx].scrollIntoView({block:'nearest'});
 }
-
-function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
-function escH(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function escH(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
 
 // ═══════════════════════════════════════════
 // UTILS
 // ═══════════════════════════════════════════
-const TODAY_KEY = () => new Date().toISOString().split('T')[0];
-const todayValue = TODAY_KEY();
-
-function formatTodayDisplay() {
-  const d = new Date();
-  return `${DAY_FULL[d.getDay()]}, ${d.getDate()} ${BULAN_NAMES[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function saveLocData() {
-  localStorage.setItem('loc_' + TODAY_KEY(), JSON.stringify({
-    totalMinutes: totalMinutesToday, sessionStart, log: locationLog
-  }));
-}
-function loadLocData() {
-  try {
-    const d = JSON.parse(localStorage.getItem('loc_' + TODAY_KEY()) || 'null');
-    if (!d) return;
-    totalMinutesToday = d.totalMinutes || 0;
-    sessionStart      = d.sessionStart || null;
-    locationLog       = d.log || [];
-  } catch(e) {}
-}
-function haversine(lat1,lng1,lat2,lng2) {
-  const R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
+const TODAY_KEY=()=>new Date().toISOString().split('T')[0];
+const todayValue=TODAY_KEY();
+function formatTodayDisplay(){const d=new Date();return`${DAY_FULL[d.getDay()]}, ${d.getDate()} ${BULAN_NAMES[d.getMonth()]} ${d.getFullYear()}`;}
+function saveLocData(){localStorage.setItem('loc_'+TODAY_KEY(),JSON.stringify({totalMinutes:totalMinutesToday,sessionStart,log:locationLog}));}
+function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_KEY())||'null');if(!d)return;totalMinutesToday=d.totalMinutes||0;sessionStart=d.sessionStart||null;locationLog=d.log||[];}catch(e){}}
+function haversine(lat1,lng1,lat2,lng2){const R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
 function setDebug(msg){const el=document.getElementById('loc-debug');if(el)el.textContent=msg;}
 
-function startGps() {
-  if(!('geolocation' in navigator)){updateLocBanner('unsupported');return;}
-  if(_gpsStarted)return;
-  _gpsStarted=true;
-  updateLocBanner('waiting');
-  geoWatchId=navigator.geolocation.watchPosition(onLocationUpdate,onLocationError,{enableHighAccuracy:true,maximumAge:0,timeout:30000});
-  navigator.geolocation.getCurrentPosition(onLocationUpdate,onLocationError,{enableHighAccuracy:true,maximumAge:0,timeout:30000});
-  setInterval(()=>navigator.geolocation.getCurrentPosition(onLocationUpdate,(err)=>{if(err.code!==1)setDebug('GPS: polling gagal - '+err.message);},{enableHighAccuracy:true,maximumAge:0,timeout:20000}),15000);
-  _timerInterval=setInterval(updateTimerDisplay,1000);
-}
-function retryGps(){
-  _gpsStarted=false;_retryCount=0;
-  if(geoWatchId!==null){navigator.geolocation.clearWatch(geoWatchId);geoWatchId=null;}
-  document.getElementById('loc-retry-btn').classList.remove('show');
-  startGps();showToast('Mencoba ulang GPS...','');
-}
-function onLocationUpdate(pos){
-  clearTimeout(_retryTimer);_retryCount=0;
-  const{latitude,longitude,accuracy}=pos.coords;
-  lastPos={lat:latitude,lng:longitude,accuracy};
-  const dist=Math.round(haversine(latitude,longitude,TOKO.lat,TOKO.lng));
-  const inStore=dist<=TOKO.radius;
-  document.getElementById('loc-distance').textContent=dist+'m';
-  document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';
-  document.getElementById('loc-retry-btn').classList.remove('show');
-  if(inStore&&!isAtStore){
-    isAtStore=true;sessionStart=Date.now();
-    locationLog.push({type:'masuk',time:Date.now(),lat:latitude,lng:longitude,dist});
-    saveLocData();updateLocBanner('in');addLocLog('masuk',dist);
-    showToast('✓ Kamu tiba di Kodachi Shop!','ok');updateD01Card();
-  }else if(!inStore&&isAtStore){
-    isAtStore=false;
-    if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}
-    locationLog.push({type:'keluar',time:Date.now(),lat:latitude,lng:longitude,dist});
-    saveLocData();updateLocBanner('out');addLocLog('keluar',dist);updateD01Card();
-  }else{updateLocBanner(isAtStore?'in':'out');}
-  updateD01Card();
-}
-function onLocationError(err){
-  const msgs={1:'Izin ditolak',2:'Posisi tidak tersedia',3:'Timeout'};
-  if(err.code===1){updateLocBanner('denied');document.getElementById('loc-retry-btn').classList.add('show');}
-  else{_retryCount++;const delay=Math.min(5000*_retryCount,30000);updateLocBanner('waiting');
-    if(_retryCount<=10){_retryTimer=setTimeout(()=>navigator.geolocation.getCurrentPosition(onLocationUpdate,onLocationError,{enableHighAccuracy:true,maximumAge:0,timeout:25000}),delay);}
-    else{document.getElementById('loc-retry-btn').classList.add('show');}
-  }
-}
-function updateLocBanner(state){
-  const icon=document.getElementById('loc-icon'),status=document.getElementById('loc-status'),detail=document.getElementById('loc-detail');
-  if(state==='in'){icon.textContent='🟢';icon.className='loc-icon active';status.textContent='✓ Di dalam toko';status.className='loc-status in';detail.textContent='Kodachi Shop Monjali · GPS aktif';}
-  else if(state==='out'){icon.textContent='📍';icon.className='loc-icon inactive';status.textContent='✗ Di luar toko';status.className='loc-status out';const d=document.getElementById('loc-distance').textContent;detail.textContent='Jarak: '+d+' dari toko';}
-  else if(state==='waiting'){icon.textContent='🔄';icon.className='loc-icon';status.textContent='Mencari sinyal GPS...';status.className='loc-status waiting';detail.textContent='Mohon tunggu...';}
-  else if(state==='denied'){icon.textContent='🔒';icon.className='loc-icon inactive';status.textContent='Izin lokasi ditolak';status.className='loc-status out';detail.textContent='Buka pengaturan browser → izinkan lokasi';}
-  else if(state==='unsupported'){icon.textContent='❌';icon.className='loc-icon inactive';status.textContent='GPS tidak didukung';status.className='loc-status out';detail.textContent='Browser tidak mendukung geolocation';}
-}
+// ═══════════════════════════════════════════
+// GPS
+// ═══════════════════════════════════════════
+function startGps(){if(!('geolocation' in navigator)){updateLocBanner('unsupported');return;}if(_gpsStarted)return;_gpsStarted=true;updateLocBanner('waiting');geoWatchId=navigator.geolocation.watchPosition(onLocationUpdate,onLocationError,{enableHighAccuracy:true,maximumAge:0,timeout:30000});navigator.geolocation.getCurrentPosition(onLocationUpdate,onLocationError,{enableHighAccuracy:true,maximumAge:0,timeout:30000});setInterval(()=>navigator.geolocation.getCurrentPosition(onLocationUpdate,(err)=>{if(err.code!==1)setDebug('GPS: polling gagal - '+err.message);},{enableHighAccuracy:true,maximumAge:0,timeout:20000}),15000);_timerInterval=setInterval(updateTimerDisplay,1000);}
+function retryGps(){_gpsStarted=false;_retryCount=0;if(geoWatchId!==null){navigator.geolocation.clearWatch(geoWatchId);geoWatchId=null;}document.getElementById('loc-retry-btn').classList.remove('show');startGps();showToast('Mencoba ulang GPS...','');}
+function onLocationUpdate(pos){clearTimeout(_retryTimer);_retryCount=0;const{latitude,longitude,accuracy}=pos.coords;lastPos={lat:latitude,lng:longitude,accuracy};const dist=Math.round(haversine(latitude,longitude,TOKO.lat,TOKO.lng));const inStore=dist<=TOKO.radius;document.getElementById('loc-distance').textContent=dist+'m';document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';document.getElementById('loc-retry-btn').classList.remove('show');if(inStore&&!isAtStore){isAtStore=true;sessionStart=Date.now();locationLog.push({type:'masuk',time:Date.now(),lat:latitude,lng:longitude,dist});saveLocData();updateLocBanner('in');addLocLog('masuk',dist);showToast('✓ Kamu tiba di Kodachi Shop!','ok');updateD01Card();}else if(!inStore&&isAtStore){isAtStore=false;if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}locationLog.push({type:'keluar',time:Date.now(),lat:latitude,lng:longitude,dist});saveLocData();updateLocBanner('out');addLocLog('keluar',dist);updateD01Card();}else{updateLocBanner(isAtStore?'in':'out');}updateD01Card();}
+function onLocationError(err){if(err.code===1){updateLocBanner('denied');document.getElementById('loc-retry-btn').classList.add('show');}else{_retryCount++;const delay=Math.min(5000*_retryCount,30000);updateLocBanner('waiting');if(_retryCount<=10){_retryTimer=setTimeout(()=>navigator.geolocation.getCurrentPosition(onLocationUpdate,onLocationError,{enableHighAccuracy:true,maximumAge:0,timeout:25000}),delay);}else{document.getElementById('loc-retry-btn').classList.add('show');}}}
+function updateLocBanner(state){const icon=document.getElementById('loc-icon'),status=document.getElementById('loc-status'),detail=document.getElementById('loc-detail');if(state==='in'){icon.textContent='🟢';icon.className='loc-icon active';status.textContent='✓ Di dalam toko';status.className='loc-status in';detail.textContent='Kodachi Shop Monjali · GPS aktif';}else if(state==='out'){icon.textContent='📍';icon.className='loc-icon inactive';status.textContent='✗ Di luar toko';status.className='loc-status out';const d=document.getElementById('loc-distance').textContent;detail.textContent='Jarak: '+d+' dari toko';}else if(state==='waiting'){icon.textContent='🔄';icon.className='loc-icon';status.textContent='Mencari sinyal GPS...';status.className='loc-status waiting';detail.textContent='Mohon tunggu...';}else if(state==='denied'){icon.textContent='🔒';icon.className='loc-icon inactive';status.textContent='Izin lokasi ditolak';status.className='loc-status out';detail.textContent='Buka pengaturan browser → izinkan lokasi';}else if(state==='unsupported'){icon.textContent='❌';icon.className='loc-icon inactive';status.textContent='GPS tidak didukung';status.className='loc-status out';detail.textContent='Browser tidak mendukung geolocation';}}
 function getCurrentTotalMinutes(){let t=totalMinutesToday;if(isAtStore&&sessionStart)t+=(Date.now()-sessionStart)/60000;return t;}
 function fmtDur(m){const h=Math.floor(m/60),mn=Math.floor(m%60);return h>0?`${h}j ${mn}m`:`${mn}m`;}
-function updateTimerDisplay(){
-  const total=getCurrentTotalMinutes(),jam=Math.floor(total/60),menit=Math.floor(total%60),pct=Math.min(100,(total/TARGET_MENIT)*100);
-  document.getElementById('loc-timer').textContent=`${jam}:${String(menit).padStart(2,'0')}`;
-  document.getElementById('loc-timer').className='loc-timer'+(pct>=100?' done':pct>=50?' warn':'');
-  const fill=document.getElementById('time-bar-fill');
-  fill.style.width=pct+'%';fill.className='time-bar-fill'+(pct>=100?' done':'');
-  document.getElementById('time-bar-left').textContent=total>=60?`${jam} jam ${menit} menit di toko`:`${Math.floor(total)} menit di toko`;
-  document.getElementById('loc-total-today').textContent=jam+'j '+menit+'m';
-  updateD01Card();
-}
-function updateD01Card(){
-  const total=getCurrentTotalMinutes(),pct=Math.min(100,(total/TARGET_MENIT)*100),done=total>=TARGET_MENIT,h=Math.floor(total/60),m=Math.floor(total%60);
-  const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),durVal=document.getElementById('d01-dur-val'),prog=document.getElementById('d01-prog-fill'),cap=document.getElementById('d01-caption-text'),dot=document.getElementById('d01-caption-dot');
-  if(!card)return;
-  card.className='d01-card '+(done?'d01-done':total>0?'d01-warn':'');
-  if(total>0){chk.className='d01-check '+(done?'done':'warn');chk.textContent='✓';}else{chk.className='d01-check empty';chk.textContent='';}
-  if(total===0){badge.textContent='GPS aktif';badge.className='d01-badge empty';}else if(done){badge.textContent='≥ 4 jam ✓';badge.className='d01-badge done';}else{badge.textContent='< 4 jam';badge.className='d01-badge warn';}
-  if(total===0){durVal.textContent='0j 0m';durVal.className='d01-dur-val muted';}else{durVal.textContent=`${h}j ${m}m`;durVal.className='d01-dur-val '+(done?'green':'orange');}
-  prog.style.width=pct+'%';prog.style.background=done?'var(--green)':total>0?'var(--orange)':'var(--hint)';
-  if(isAtStore){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}
-  else if(total>0){dot.className='dot orange';cap.textContent=done?'Target tercapai — akan tersimpan saat klik Simpan':`Durasi ${fmtDur(total)} akan tersimpan sebagai catatan D01`;}
-  else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}
-  notes['D01']=total>0?`GPS: ${h}j ${m}m di toko${done?'':' (< target 4j)'} · ${isAtStore?'Sedang di toko':'Sudah keluar toko'}`:'';
-  if(total>0&&!checked['D01']){checked['D01']=true;updateStats();}
-}
-function addLocLog(type,dist){
-  const list=document.getElementById('loc-log-list'),now=new Date(),ts=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0'),div=document.createElement('div');
-  div.className='loc-log-item';
-  div.innerHTML=`<div class="loc-log-icon">${type==='masuk'?'🟢':'🔴'}</div><div class="loc-log-body"><div class="loc-log-title">${type==='masuk'?'Tiba di toko':'Meninggalkan toko'}</div><div class="loc-log-meta">${ts} · Jarak: ${dist}m dari toko</div></div>`;
-  const empty=list.querySelector('.empty');if(empty)empty.remove();
-  list.insertBefore(div,list.firstChild);
-}
+function updateTimerDisplay(){const total=getCurrentTotalMinutes(),jam=Math.floor(total/60),menit=Math.floor(total%60),pct=Math.min(100,(total/TARGET_MENIT)*100);document.getElementById('loc-timer').textContent=`${jam}:${String(menit).padStart(2,'0')}`;document.getElementById('loc-timer').className='loc-timer'+(pct>=100?' done':pct>=50?' warn':'');const fill=document.getElementById('time-bar-fill');fill.style.width=pct+'%';fill.className='time-bar-fill'+(pct>=100?' done':'');document.getElementById('time-bar-left').textContent=total>=60?`${jam} jam ${menit} menit di toko`:`${Math.floor(total)} menit di toko`;document.getElementById('loc-total-today').textContent=jam+'j '+menit+'m';updateD01Card();}
+function updateD01Card(){const total=getCurrentTotalMinutes(),pct=Math.min(100,(total/TARGET_MENIT)*100),done=total>=TARGET_MENIT,h=Math.floor(total/60),m=Math.floor(total%60);const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),durVal=document.getElementById('d01-dur-val'),prog=document.getElementById('d01-prog-fill'),dot=document.getElementById('d01-caption-dot'),cap=document.getElementById('d01-caption-text');if(!card)return;card.className='d01-card '+(done?'d01-done':total>0?'d01-warn':'');if(total>0){chk.className='d01-check '+(done?'done':'warn');chk.textContent='✓';}else{chk.className='d01-check empty';chk.textContent='';}if(total===0){badge.textContent='GPS aktif';badge.className='d01-badge empty';}else if(done){badge.textContent='≥ 4 jam ✓';badge.className='d01-badge done';}else{badge.textContent='< 4 jam';badge.className='d01-badge warn';}if(total===0){durVal.textContent='0j 0m';durVal.className='d01-dur-val muted';}else{durVal.textContent=`${h}j ${m}m`;durVal.className='d01-dur-val '+(done?'green':'orange');}prog.style.width=pct+'%';prog.style.background=done?'var(--green)':total>0?'var(--orange)':'var(--hint)';if(isAtStore){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}else if(total>0){dot.className='dot orange';cap.textContent=done?'Target tercapai':`Durasi ${fmtDur(total)} akan tersimpan sebagai catatan D01`;}else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}notes['D01']=total>0?`GPS: ${h}j ${m}m di toko${done?'':' (< target 4j)'} · ${isAtStore?'Sedang di toko':'Sudah keluar toko'}`:'';if(total>0&&!checked['D01']){checked['D01']=true;updateStats();}}
+function addLocLog(type,dist){const list=document.getElementById('loc-log-list'),now=new Date(),ts=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0'),div=document.createElement('div');div.innerHTML=`<div>${type==='masuk'?'🟢':'🔴'} ${type==='masuk'?'Tiba':'Keluar'} · ${ts} · ${dist}m dari toko</div>`;const empty=list.querySelector('.empty');if(empty)empty.remove();list.insertBefore(div,list.firstChild);}
 
 // ═══════════════════════════════════════════
 // INPUT STOK GUDANG FUNCTIONS
 // ═══════════════════════════════════════════
-function switchIgTab(name, btn) {
+function switchIgTab(name,btn){
   document.querySelectorAll('.ig-subview').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.ig-stab').forEach(b=>b.classList.remove('active'));
   document.getElementById('ig-subview-'+name).classList.add('active');
   if(btn)btn.classList.add('active');
-  if(name === 'input') igLoadProduk();
+  if(name==='input'&&!_produkLoaded)igLoadProduk();
 }
-
-function igAddRow() {
-  var id = Date.now();
-  igRows.push({id:id, tanggal:igToday, nama:'', size:'', tipe:'', jumlah:1, inout:'OUT', ket:'Bawa Ke Toko', total:-1});
+function igAddRow(){
+  var id=Date.now();
+  igRows.push({id:id,tanggal:igToday,nama:'',size:'',tipe:'',jumlah:1,inout:'OUT',ket:'Bawa Ke Toko',total:-1});
   igRenderTable();
-  setTimeout(function(){
-    var tbody = document.getElementById('ig-tbody');
-    var lastRow = tbody.querySelector('tr[data-id="'+id+'"]');
-    if(lastRow){var inp=lastRow.querySelector('.ac-input');if(inp)inp.focus();}
-  }, 50);
+  setTimeout(function(){var inp=document.querySelector('tr[data-id="'+id+'"] .ac-input');if(inp)inp.focus();},50);
 }
-
-function igDelRow(id) {
-  igRows = igRows.filter(r=>r.id!==id);
-  igRenderTable();
-  igUpdateSummary();
-}
-
-function igSetVal(id, field, val) {
-  var r = igRows.find(x=>x.id===id);
-  if(!r)return;
+function igDelRow(id){igRows=igRows.filter(r=>r.id!==id);igRenderTable();igUpdateSummary();}
+function igSetVal(id,field,val){
+  var r=igRows.find(x=>x.id===id);if(!r)return;
   if(field==='jumlah')val=parseInt(val)||0;
   r[field]=val;
   if(field==='jumlah'||field==='inout')igUpdateRowTotal(id);
   if(field==='ket')igRenderTable();
   igUpdateSummary();
 }
-
-function igSetInOut(id, val) {
-  var r = igRows.find(x=>x.id===id);if(!r)return;
-  r.inout=val;
-  igUpdateRowTotal(id);
-  igUpdateSummary();
-  var tr=document.querySelector('tr[data-id="'+id+'"]');
-  if(tr){
-    tr.querySelectorAll('.io-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===val));
-    var tot=document.getElementById('igt-'+id);
-    if(tot)igRenderTotCell(tot,r);
-  }
-}
-
-function igUpdateRowTotal(id) {
+function igSetInOut(id,val){
   var r=igRows.find(x=>x.id===id);if(!r)return;
-  r.total=(r.inout==='IN'?1:-1)*(r.jumlah||0);
-  var el=document.getElementById('igt-'+id);
-  if(el)igRenderTotCell(el,r);
+  r.inout=val;igUpdateRowTotal(id);igUpdateSummary();
+  var tr=document.querySelector('tr[data-id="'+id+'"]');
+  if(tr){tr.querySelectorAll('.io-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===val));var tot=document.getElementById('igt-'+id);if(tot)igRenderTotCell(tot,r);}
 }
-
-function igRenderTotCell(el,r){
-  var v=r.total||0;
-  el.textContent=v>0?'+'+v:v;
-  el.className='tot-cell '+(v>0?'tot-pos':'tot-neg');
-}
-
-function igGetKetCls(ket){
-  if(ket==='Hilang')return'ket-hilang';
-  if(ket==='Minus Stock')return'ket-minus';
-  return'ket-bawa';
-}
-
+function igUpdateRowTotal(id){var r=igRows.find(x=>x.id===id);if(!r)return;r.total=(r.inout==='IN'?1:-1)*(r.jumlah||0);var el=document.getElementById('igt-'+id);if(el)igRenderTotCell(el,r);}
+function igRenderTotCell(el,r){var v=r.total||0;el.textContent=v>0?'+'+v:v;el.className='tot-cell '+(v>0?'tot-pos':'tot-neg');}
+function igGetKetCls(ket){if(ket==='Hilang')return'ket-hilang';if(ket==='Minus Stock')return'ket-minus';return'ket-bawa';}
 function igRenderTable(){
   var tbody=document.getElementById('ig-tbody');
-  if(!igRows.length){
-    tbody.innerHTML='<tr class="ig-empty-row"><td colspan="10">Belum ada data. Klik "+ Tambah Baris" untuk mulai input.</td></tr>';
-    return;
-  }
+  if(!igRows.length){tbody.innerHTML='<tr class="ig-empty-row"><td colspan="10">Belum ada data. Klik "+ Tambah Baris" untuk mulai input.</td></tr>';return;}
   var html='';
   igRows.forEach(function(r,i){
     var ketCls=igGetKetCls(r.ket);
@@ -1094,7 +959,6 @@ function igRenderTable(){
     html+='<tr class="'+rowCls+'" data-id="'+r.id+'">'
       +'<td>'+(i+1)+'</td>'
       +'<td><input class="it it-date" type="date" value="'+r.tanggal+'" onchange="igSetVal('+r.id+',\'tanggal\',this.value)"></td>'
-      // ← NAMA PRODUK: custom autocomplete, bukan datalist
       +'<td><div class="ac-wrap"><input class="ac-input it-nama" type="text" value="'+escH(r.nama)+'" placeholder="Ketik nama produk..." autocomplete="off" spellcheck="false"'
       +' oninput="igSetVal('+r.id+',\'nama\',this.value);acShow(this,'+r.id+')"'
       +' onfocus="acShow(this,'+r.id+')"'
@@ -1120,74 +984,59 @@ function igRenderTable(){
   tbody.innerHTML=html;
   igUpdateSummary();
 }
-
 function igUpdateSummary(){
-  var hilang=igRows.filter(r=>r.ket==='Hilang').length;
-  var ketemu=igRows.filter(r=>r.ket==='Ketemu').length;
-  var minus =igRows.filter(r=>r.ket==='Minus Stock').length;
-  document.getElementById('ig-cnt-hilang').textContent=hilang;
-  document.getElementById('ig-cnt-ketemu').textContent=ketemu;
-  document.getElementById('ig-cnt-minus').textContent=minus;
+  document.getElementById('ig-cnt-hilang').textContent=igRows.filter(r=>r.ket==='Hilang').length;
+  document.getElementById('ig-cnt-ketemu').textContent=igRows.filter(r=>r.ket==='Ketemu').length;
+  document.getElementById('ig-cnt-minus').textContent=igRows.filter(r=>r.ket==='Minus Stock').length;
 }
-
-function igLoadProduk() {
-  var url = localStorage.getItem('ig_api_url') || scriptUrl;
-  if (!url) return;
-  var old = document.getElementById('jsonp-produk');
-  if (old) old.remove();
-  window.__igProdukCb = function(data) {
-    if (data.status === 'ok' && data.produk && data.produk.length) {
-      igProdukList = data.produk;
-    }
-  };
-  var s = document.createElement('script');
-  s.id = 'jsonp-produk';
-  s.src = url + '?type=produk&callback=__igProdukCb';
-  s.onerror = function() { console.log('JSONP produk gagal'); };
-  document.body.appendChild(s);
-}
-
-function igClearAll(){
-  if(!igRows.length)return;
-  if(!confirm('Hapus semua '+igRows.length+' baris? Tindakan ini tidak bisa dibatalkan.'))return;
-  igRows=[];igRenderTable();igUpdateSummary();
-  showToast('Semua baris dihapus','');
-}
-
+function igClearAll(){if(!igRows.length)return;if(!confirm('Hapus semua '+igRows.length+' baris?'))return;igRows=[];igRenderTable();igUpdateSummary();showToast('Semua baris dihapus','');}
 function igSaveApiUrl(){
   igApiUrl=document.getElementById('ig-api-url').value.trim();
   if(!igApiUrl.startsWith('http')){showToast('URL tidak valid','err');return;}
   localStorage.setItem('ig_api_url',igApiUrl);
-  showToast('URL stok gudang tersimpan ✓','ok');
+  showToast('URL tersimpan ✓','ok');
+  // Reload produk dengan URL baru
+  _produkLoaded=false;
+  igLoadProduk();
 }
 
+// ✅ FIX 4: igSyncToSheets — kirim ke Apps Script dengan type=stok_gudang
 async function igSyncToSheets(){
   if(!igRows.length){showToast('Tidak ada data untuk disimpan','err');return;}
-  var url=igApiUrl||localStorage.getItem('ig_api_url')||'';
-  if(!url||!url.startsWith('http')){
-    showToast('Setup URL Apps Script dulu di tab ⚙️ Pengaturan API','err');
-    switchIgTab('config', document.querySelector('.ig-stab:last-child'));
-    return;
-  }
+  var url=igApiUrl||localStorage.getItem('ig_api_url')||scriptUrl||'';
+  if(!url||!url.startsWith('http')){showToast('Setup URL Apps Script dulu di tab ⚙️ Pengaturan API','err');return;}
   var emptyNama=igRows.filter(r=>!r.nama.trim());
   if(emptyNama.length){showToast('Nama produk tidak boleh kosong ('+emptyNama.length+' baris)','err');return;}
   var btn=document.getElementById('ig-sync-btn'),st=document.getElementById('ig-sync-status');
   btn.disabled=true;
   btn.innerHTML='<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:igSpin .6s linear infinite;vertical-align:middle;margin-right:6px"></span>Menyimpan...';
   st.textContent='Mengirim ke Sheets...';st.className='ig-sync-status';
-  var payload={type:'stok_gudang',rows:igRows.map(r=>({tanggal:r.tanggal,nama:r.nama,size:r.size,tipe:r.tipe,jumlah:r.jumlah,inout:r.inout,ket:r.ket,total:r.total||0}))};
+  // Kirim dengan type=stok_gudang agar Apps Script tahu harus nulis ke spreadsheet Gudang
+  var payload={
+    type:'stok_gudang',
+    rows:igRows.map(r=>({tanggal:r.tanggal,nama:r.nama,size:r.size,tipe:r.tipe,jumlah:r.jumlah,inout:r.inout,ket:r.ket,total:r.total||0}))
+  };
   try{
-    var resp=await fetch(url,{method:'POST',body:JSON.stringify(payload)});
-    var data=await resp.json();
-    if(data.status==='ok'){
-      st.textContent='Tersimpan '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-      st.className='ig-sync-status ok';
-      showToast('✓ '+igRows.length+' baris berhasil disimpan ke Sheets','ok');
-    }else{throw new Error(data.message||'Unknown error');}
+    var resp=await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+    // no-cors → response opaque, anggap sukses kalau tidak throw
+    st.textContent='Terkirim '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    st.className='ig-sync-status ok';
+    showToast('✓ '+igRows.length+' baris dikirim ke Sheets (cek spreadsheet)','ok');
   }catch(err){
-    st.textContent='Gagal: '+err.message.slice(0,40);
-    st.className='ig-sync-status err';
-    showToast('Gagal: '+err.message.slice(0,50),'err');
+    // Coba dengan mode cors biasa sebagai fallback
+    try{
+      var resp2=await fetch(url,{method:'POST',body:JSON.stringify(payload)});
+      var d=await resp2.json();
+      if(d.status==='ok'){
+        st.textContent='Tersimpan '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+        st.className='ig-sync-status ok';
+        showToast('✓ '+igRows.length+' baris berhasil tersimpan','ok');
+      }else throw new Error(d.message||'Unknown');
+    }catch(err2){
+      st.textContent='Gagal: '+err2.message.slice(0,40);
+      st.className='ig-sync-status err';
+      showToast('Gagal: '+err2.message.slice(0,50),'err');
+    }
   }
   btn.disabled=false;btn.innerHTML='↑ Simpan ke Sheets';
 }
@@ -1195,89 +1044,21 @@ async function igSyncToSheets(){
 // ═══════════════════════════════════════════
 // STOK MONITORING
 // ═══════════════════════════════════════════
-function initStokUI(){
-  const link=document.getElementById('stok-sheet-link');
-  if(link)link.href=SHEET_URL;
-  refreshStokSoundBtn();
-}
-function refreshStokSoundBtn(){
-  const btn=document.getElementById('stok-sound-btn');if(!btn)return;
-  if(stokSoundOn){btn.className='stok-sound-btn on';btn.textContent='🔔 Alarm On';}
-  else{btn.className='stok-sound-btn';btn.textContent='🔕 Alarm Off';}
-}
-function toggleStokSound(){
-  stokSoundOn=!stokSoundOn;localStorage.setItem('stok_sound',stokSoundOn?'1':'0');
-  refreshStokSoundBtn();
-  if(stokSoundOn){playAlarm(1);showToast('🔔 Alarm suara diaktifkan','ok');}
-  else{showToast('🔕 Alarm suara dimatikan','');}
-}
-function playAlarm(times){
-  try{
-    if(!_stokAudioCtx)_stokAudioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    const ctx=_stokAudioCtx;if(ctx.state==='suspended')ctx.resume();
-    let t=ctx.currentTime;
-    for(let i=0;i<times;i++){
-      const osc=ctx.createOscillator(),gain=ctx.createGain();
-      osc.type='square';osc.frequency.setValueAtTime(880,t);
-      gain.gain.setValueAtTime(0.0001,t);gain.gain.exponentialRampToValueAtTime(0.25,t+0.02);gain.gain.exponentialRampToValueAtTime(0.0001,t+0.28);
-      osc.connect(gain).connect(ctx.destination);osc.start(t);osc.stop(t+0.3);t+=0.38;
-    }
-  }catch(e){}
-}
-function setStokFilter(f,btn){
-  stokFilter=f;document.querySelectorAll('#stok-filter-row .stok-chip').forEach(c=>c.classList.remove('active'));
-  if(btn)btn.classList.add('active');renderStokList();
-}
+function initStokUI(){const link=document.getElementById('stok-sheet-link');if(link)link.href=SHEET_URL;refreshStokSoundBtn();}
+function refreshStokSoundBtn(){const btn=document.getElementById('stok-sound-btn');if(!btn)return;if(stokSoundOn){btn.className='stok-sound-btn on';btn.textContent='🔔 Alarm On';}else{btn.className='stok-sound-btn';btn.textContent='🔕 Alarm Off';}}
+function toggleStokSound(){stokSoundOn=!stokSoundOn;localStorage.setItem('stok_sound',stokSoundOn?'1':'0');refreshStokSoundBtn();if(stokSoundOn){playAlarm(1);showToast('🔔 Alarm suara diaktifkan','ok');}else showToast('🔕 Alarm suara dimatikan','');}
+function playAlarm(times){try{if(!_stokAudioCtx)_stokAudioCtx=new(window.AudioContext||window.webkitAudioContext)();const ctx=_stokAudioCtx;if(ctx.state==='suspended')ctx.resume();let t=ctx.currentTime;for(let i=0;i<times;i++){const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='square';osc.frequency.setValueAtTime(880,t);gain.gain.setValueAtTime(0.0001,t);gain.gain.exponentialRampToValueAtTime(0.25,t+0.02);gain.gain.exponentialRampToValueAtTime(0.0001,t+0.28);osc.connect(gain).connect(ctx.destination);osc.start(t);osc.stop(t+0.3);t+=0.38;}}catch(e){}}
+function setStokFilter(f,btn){stokFilter=f;document.querySelectorAll('#stok-filter-row .stok-chip').forEach(c=>c.classList.remove('active'));if(btn)btn.classList.add('active');renderStokList();}
 async function loadStok(silent){
   if(!scriptUrl){if(!silent)openModal();return;}
   const btn=document.getElementById('stok-refresh-btn'),list=document.getElementById('stok-list');
-  if(!silent){if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Memuat...';}
-    list.innerHTML='<div class="empty"><span class="spinner"></span> Memeriksa stok...</div>';}
+  if(!silent){if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Memuat...';}list.innerHTML='<div class="empty"><span class="spinner"></span> Memeriksa stok...</div>';}
   try{
     const r=await fetch(`${scriptUrl}?type=stok`),d=await r.json();
-    if(d&&(d.red||d.yellow||d.blue)){
-      stokData={red:d.red||[],yellow:d.yellow||[],blue:d.blue||[]};
-      stokLoadedOnce=true;renderStokList();updateStokBadge();
-      const u=document.getElementById('stok-updated');
-      if(u)u.textContent='Diperbarui: '+new Date().toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'});
-      const redCount=stokData.red.length;
-      if(stokSoundOn&&redCount>0&&redCount!==_stokLastRedCount)playAlarm(3);
-      _stokLastRedCount=redCount;
-    }else{throw new Error(d&&d.message?d.message:'Endpoint type=stok belum tersedia');}
-  }catch(e){
-    if(!silent)list.innerHTML=`<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Belum bisa memuat stok.<br><br>Pastikan kode <b>type=stok</b> sudah ditambahkan ke Apps Script kamu, lalu <b>Deploy ulang</b>.<br><br><span style="font-family:var(--mono);font-size:10px;opacity:.7">${(e.message||'').slice(0,80)}</span></div></div>`;
-  }
+    if(d&&(d.red||d.yellow||d.blue)){stokData={red:d.red||[],yellow:d.yellow||[],blue:d.blue||[]};stokLoadedOnce=true;renderStokList();updateStokBadge();const u=document.getElementById('stok-updated');if(u)u.textContent='Diperbarui: '+new Date().toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'});const redCount=stokData.red.length;if(stokSoundOn&&redCount>0&&redCount!==_stokLastRedCount)playAlarm(3);_stokLastRedCount=redCount;}
+    else throw new Error(d&&d.message?d.message:'Endpoint type=stok belum tersedia');
+  }catch(e){if(!silent)list.innerHTML=`<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Belum bisa memuat stok.<br><br><span style="font-size:10px;opacity:.7">${(e.message||'').slice(0,80)}</span></div></div>`;}
   if(!silent&&btn){btn.disabled=false;btn.textContent='🔄 Perbarui Data';}
-}
-  // ==========================================
-// FUNGSI TARIK DATA PRODUK OTOMATIS
-// ==========================================
-// ==========================================
-// FUNGSI TARIK DATA PRODUK (ANTI-CORS / JSONP)
-// ==========================================
-function fetchProduk() {
-  if (!scriptUrl) return; 
-  
-  // Kita buat elemen <script> sementara untuk mengambil data
-  var script = document.createElement('script');
-  
-  // Panggil URL dengan parameter type=produk DAN callback=simpanProduk
-  script.src = scriptUrl + "?type=produk&callback=simpanProduk";
-  
-  // Masukkan ke dalam HTML agar berjalan
-  document.body.appendChild(script);
-}
-
-// Fungsi ini akan dipanggil otomatis oleh Google Apps Script setelah data dikirim
-function simpanProduk(data) {
-  if (data.status === "ok") {
-    igProdukList = data.produk;
-    console.log("Mantap! Berhasil memuat " + igProdukList.length + " produk.");
-    showToast("Data produk berhasil dimuat", "ok"); // Opsional: memunculkan notifikasi
-  } else {
-    console.log("Gagal memuat produk:", data.message);
-    showToast("Gagal memuat daftar produk", "err");
-  }
 }
 function renderStokList(){
   const list=document.getElementById('stok-list');
@@ -1285,31 +1066,14 @@ function renderStokList(){
   document.getElementById('stok-c-yellow').textContent=stokData.yellow.length;
   document.getElementById('stok-c-blue').textContent=stokData.blue.length;
   const total=stokData.red.length+stokData.yellow.length+stokData.blue.length;
-  if(total===0){list.innerHTML=`<div class="empty"><div class="empty-icon">✅</div><div class="empty-text"><b>Semua stok aman</b><br>Tidak ada ukuran kosong di toko<br>yang masih tersedia di gudang.</div></div>`;return;}
-  const groups=[
-    {key:'red',label:'🔴 MERAH — Kosong di toko, ada di gudang',color:'var(--red)',bg:'rgba(220,38,38,.12)'},
-    {key:'yellow',label:'🟡 KUNING — Sisa 1 di toko',color:'var(--orange)',bg:'rgba(217,119,6,.12)'},
-    {key:'blue',label:'🔵 BIRU — Stok menipis',color:'var(--blue)',bg:'rgba(37,99,235,.12)'},
-  ];
+  if(total===0){list.innerHTML=`<div class="empty"><div class="empty-icon">✅</div><div class="empty-text"><b>Semua stok aman</b></div></div>`;return;}
+  const groups=[{key:'red',label:'🔴 MERAH — Kosong di toko, ada di gudang',color:'var(--red)',bg:'rgba(220,38,38,.12)'},{key:'yellow',label:'🟡 KUNING — Sisa 1 di toko',color:'var(--orange)',bg:'rgba(217,119,6,.12)'},{key:'blue',label:'🔵 BIRU — Stok menipis',color:'var(--blue)',bg:'rgba(37,99,235,.12)'}];
   let html='';
-  groups.forEach(g=>{
-    if(stokFilter!=='all'&&stokFilter!==g.key)return;
-    const items=stokData[g.key]||[];if(!items.length)return;
-    html+=`<div class="stok-group-hdr"><span class="gh-label" style="color:${g.color}">${g.label}</span><span class="gh-line"></span><span class="gh-count" style="background:${g.bg};color:${g.color}">${items.length}</span></div>`;
-    items.forEach(it=>{
-      const nama=(it.nama||'').toString(),size=(it.size!=null?it.size:'-'),toko=(it.toko!=null?it.toko:0),gud=(it.gudang!=null?it.gudang:0);
-      html+=`<div class="stok-item ${g.key}"><div class="stok-size-pill">${size}</div><div class="stok-item-body"><div class="stok-item-name">${nama}</div><div class="stok-item-sub">Ukuran ${size}</div></div><div class="stok-qty"><div>Toko: <span class="q-toko">${toko}</span></div><div>Gudang: <span class="q-gud">${gud}</span></div></div></div>`;
-    });
-  });
+  groups.forEach(g=>{if(stokFilter!=='all'&&stokFilter!==g.key)return;const items=stokData[g.key]||[];if(!items.length)return;html+=`<div class="stok-group-hdr"><span class="gh-label" style="color:${g.color}">${g.label}</span><span class="gh-line"></span><span class="gh-count" style="background:${g.bg};color:${g.color}">${items.length}</span></div>`;items.forEach(it=>{const nama=(it.nama||'').toString(),size=(it.size!=null?it.size:'-'),toko=(it.toko!=null?it.toko:0),gud=(it.gudang!=null?it.gudang:0);html+=`<div class="stok-item ${g.key}"><div class="stok-size-pill">${size}</div><div class="stok-item-body"><div class="stok-item-name">${nama}</div><div class="stok-item-sub">Ukuran ${size}</div></div><div class="stok-qty"><div>Toko: <span class="q-toko">${toko}</span></div><div>Gudang: <span class="q-gud">${gud}</span></div></div></div>`;});});
   if(!html)html=`<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Tidak ada item pada filter ini.</div></div>`;
   list.innerHTML=html;
 }
-function updateStokBadge(){
-  const badge=document.getElementById('badge-stok');if(!badge)return;
-  const n=stokData.red.length;
-  if(n>0){badge.textContent=n>99?'99+':n;badge.classList.add('show','pulse');}
-  else{badge.classList.remove('show','pulse');}
-}
+function updateStokBadge(){const badge=document.getElementById('badge-stok');if(!badge)return;const n=stokData.red.length;if(n>0){badge.textContent=n>99?'99+':n;badge.classList.add('show','pulse');}else{badge.classList.remove('show','pulse');}}
 
 // ═══════════════════════════════════════════
 // INIT
@@ -1319,26 +1083,19 @@ window.addEventListener('DOMContentLoaded',()=>{
   const hDisplay=document.getElementById('tgl-harian-display'),eDisplay=document.getElementById('tgl-event-display');
   if(hDisplay)hDisplay.textContent=todayDisplay;
   if(eDisplay)eDisplay.textContent=todayDisplay;
-
   setCurrentMonth('grid-month');setCurrentMonth('laporan-month');setCurrentMonth('riwayat-month');
   renderHarian();renderEventGrid();checkTodayFilled();checkLaporanBadge();
-
   var igApiEl=document.getElementById('ig-api-url');
   if(igApiEl)igApiEl.value=localStorage.getItem('ig_api_url')||'';
   igAddRow();igAddRow();igAddRow();
-
-  acInit(); // ← init custom autocomplete
-
+  acInit();
   initStokUI();loadStok(true);
   _stokRefreshTimer=setInterval(()=>loadStok(true),STOK_AUTO_REFRESH_MS);
   loadLocData();updateTimerDisplay();startGps();
-
-  if('serviceWorker' in navigator){
-    const sw=`const C='kodachi-v2';self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.url.includes('fonts.googleapis')||e.request.url.includes('script.google.com'))return;e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(f=>{c.put(e.request,f.clone());return f;}))));});`;
-    navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
-  }
+  // Load produk saat startup
+  igLoadProduk(true);
+  if('serviceWorker' in navigator){const sw=`const C='kodachi-v3';self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.url.includes('fonts.googleapis')||e.request.url.includes('script.google.com'))return;e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(f=>{c.put(e.request,f.clone());return f;}))));});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});}
 });
-
 function setCurrentMonth(id){const d=new Date();document.getElementById(id).value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
 
 // ═══════════════════════════════════════════
@@ -1350,8 +1107,8 @@ function switchTab(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='stok'){if(!stokLoadedOnce)loadStok();else renderStokList();}
+  if(name==='inputstok'&&!_produkLoaded)igLoadProduk();
 }
-
 function switchLaporanView(view,btn){
   document.querySelectorAll('.subview').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.subtab').forEach(t=>t.classList.remove('active'));
@@ -1361,7 +1118,7 @@ function switchLaporanView(view,btn){
 }
 
 // ═══════════════════════════════════════════
-// RENDER HARIAN
+// HARIAN
 // ═══════════════════════════════════════════
 function renderHarian(){
   const list=document.getElementById('harian-list');list.innerHTML='';
@@ -1386,220 +1143,60 @@ function renderHarian(){
   });
   updateStats();
 }
-
 function toggleCheck(kode){checked[kode]=!checked[kode];const el=document.getElementById('task-'+kode);if(el)el.classList.toggle('done',checked[kode]);updateStats();}
 function toggleNote(e,kode){e.stopPropagation();const ta=document.getElementById('note-'+kode);ta.style.display=ta.style.display==='none'?'block':'none';}
-function updateStats(){
-  const done=Object.values(checked).filter(Boolean).length,total=HARIAN.length,skip=total-done,pct=Math.round(done/total*100);
-  document.getElementById('stat-done').textContent=done;document.getElementById('stat-skip').textContent=skip;
-  document.getElementById('stat-pct').textContent=pct+'%';document.getElementById('stat-pct').style.color=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';
-  document.getElementById('prog-pct').textContent=pct+'%';
-  const fill=document.getElementById('prog-fill');fill.style.width=pct+'%';fill.className='prog-fill'+(pct>=90?'':pct>=70?' mid':' low');
-}
+function updateStats(){const done=Object.values(checked).filter(Boolean).length,total=HARIAN.length,skip=total-done,pct=Math.round(done/total*100);document.getElementById('stat-done').textContent=done;document.getElementById('stat-skip').textContent=skip;document.getElementById('stat-pct').textContent=pct+'%';document.getElementById('stat-pct').style.color=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';document.getElementById('prog-pct').textContent=pct+'%';const fill=document.getElementById('prog-fill');fill.style.width=pct+'%';fill.className='prog-fill'+(pct>=90?'':pct>=70?' mid':' low');}
 
 // ═══════════════════════════════════════════
-// NOTIF & SAVE HARIAN
+// SAVE HARIAN
 // ═══════════════════════════════════════════
-async function checkTodayFilled(){
-  if(!scriptUrl)return;
-  try{
-    const r=await fetch(`${scriptUrl}?type=cek&tanggal=${todayValue}`),d=await r.json();
-    const badge=document.getElementById('badge-harian'),notifDiv=document.getElementById('notif-harian');
-    if(d.filled){badge.classList.remove('show');notifDiv.style.display='none';}
-    else{badge.classList.add('show');notifDiv.style.display='flex';notifDiv.innerHTML=`<div class="notif-item">⚠ Hari ini belum ada data yang disimpan ke Google Sheets</div>`;}
-  }catch(e){}
-}
-async function checkLaporanBadge(){
-  if(!scriptUrl)return;
-  try{
-    const bulan=document.getElementById('laporan-month').value,r=await fetch(`${scriptUrl}?type=rekap&bulan=${bulan}`),d=await r.json();
-    if(!d.tasks)return;document.getElementById('badge-laporan').classList.toggle('show',d.tasks.some(t=>t.pct<70&&t.pct>0));
-  }catch(e){}
-}
+async function checkTodayFilled(){if(!scriptUrl)return;try{const r=await fetch(`${scriptUrl}?type=cek&tanggal=${todayValue}`),d=await r.json();const badge=document.getElementById('badge-harian'),notifDiv=document.getElementById('notif-harian');if(d.filled){badge.classList.remove('show');notifDiv.style.display='none';}else{badge.classList.add('show');notifDiv.style.display='flex';notifDiv.innerHTML=`<div class="notif-item">⚠ Hari ini belum ada data yang disimpan ke Google Sheets</div>`;}}catch(e){}}
+async function checkLaporanBadge(){if(!scriptUrl)return;try{const bulan=document.getElementById('laporan-month').value,r=await fetch(`${scriptUrl}?type=rekap&bulan=${bulan}`),d=await r.json();if(!d.tasks)return;document.getElementById('badge-laporan').classList.toggle('show',d.tasks.some(t=>t.pct<70&&t.pct>0));}catch(e){}}
 async function saveHarian(){
   if(!scriptUrl){openModal();return;}
   const btn=document.getElementById('save-harian-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Menyimpan...';
   const totalMenit=getCurrentTotalMinutes(),h=Math.floor(totalMenit/60),m=Math.floor(totalMenit%60);
   const gpsNote=totalMenit>0?`GPS: ${h}j ${m}m di toko${totalMenit>=TARGET_MENIT?'':' (< target 4j)'} · ${isAtStore?'Masih di toko':'Sudah keluar toko'}`:'GPS: tidak ada durasi tercatat';
   const entries=HARIAN.map(t=>({tanggal:todayValue,kode:t.kode,nama:t.nama,kategori:t.kategori,prioritas:t.prioritas,status:t.autoTrack?(totalMenit>=TARGET_MENIT?'✓':'✗'):(checked[t.kode]?'✓':'✗'),catatan:t.autoTrack?gpsNote:(notes[t.kode]||'')}));
-  try{
-    const r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'harian',entries})}),d=await r.json();
-    if(d.status==='ok'){showToast('✓ Tersimpan ke Google Sheets','ok');checkTodayFilled();checkLaporanBadge();}
-    else{showToast('Gagal: '+(d.message||'unknown'),'err');}
-  }catch(e){showToast('Gagal terhubung ke Sheets','err');}
+  try{const r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'harian',entries})}),d=await r.json();if(d.status==='ok'){showToast('✓ Tersimpan ke Google Sheets','ok');checkTodayFilled();checkLaporanBadge();}else showToast('Gagal: '+(d.message||'unknown'),'err');}
+  catch(e){showToast('Gagal terhubung ke Sheets','err');}
   btn.disabled=false;btn.textContent='Simpan ke Google Sheets';
 }
 
 // ═══════════════════════════════════════════
 // EVENTS
 // ═══════════════════════════════════════════
-function renderEventGrid(){
-  const grid=document.getElementById('event-grid');grid.innerHTML='';
-  EVENTS.forEach(ev=>{
-    const el=document.createElement('div');el.className='event-card';el.id='ev-'+ev.kode;
-    el.innerHTML=`<div class="event-kode">${ev.kode}</div><div class="event-nama">${ev.nama}</div><div class="event-meta">${ev.frekuensi} · ${ev.prioritas}</div>`;
-    el.onclick=()=>selectEvent(ev);grid.appendChild(el);
-  });
-}
-function selectEvent(ev){
-  selectedEvent=ev;selectedStatus=null;
-  document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));
-  document.getElementById('ev-'+ev.kode).classList.add('selected');
-  document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';
-  document.getElementById('event-note').value='';document.getElementById('event-detail').style.display='block';
-  document.getElementById('event-detail').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function setStatus(s){
-  selectedStatus=s;
-  document.getElementById('sbtn-ok').className='status-btn'+(s==='✓'?' sel-ok':'');
-  document.getElementById('sbtn-no').className='status-btn'+(s==='✗'?' sel-no':'');
-}
-async function saveEvent(){
-  if(!scriptUrl){openModal();return;}
-  if(!selectedEvent){showToast('Pilih tugas dulu','err');return;}
-  if(!selectedStatus){showToast('Pilih status dulu','err');return;}
-  try{
-    const r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'event',tanggal:todayValue,kode:selectedEvent.kode,nama:selectedEvent.nama,kategori:selectedEvent.kategori,frekuensi:selectedEvent.frekuensi,prioritas:selectedEvent.prioritas,status:selectedStatus,catatan:document.getElementById('event-note').value})});
-    const d=await r.json();
-    if(d.status==='ok'){showToast('✓ Tercatat','ok');document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));}
-    else{showToast('Gagal: '+(d.message||'unknown'),'err');}
-  }catch(e){showToast('Gagal terhubung ke Sheets','err');}
-}
+function renderEventGrid(){const grid=document.getElementById('event-grid');grid.innerHTML='';EVENTS.forEach(ev=>{const el=document.createElement('div');el.className='event-card';el.id='ev-'+ev.kode;el.innerHTML=`<div class="event-kode">${ev.kode}</div><div class="event-nama">${ev.nama}</div><div class="event-meta">${ev.frekuensi} · ${ev.prioritas}</div>`;el.onclick=()=>selectEvent(ev);grid.appendChild(el);});}
+function selectEvent(ev){selectedEvent=ev;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));document.getElementById('ev-'+ev.kode).classList.add('selected');document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';document.getElementById('event-note').value='';document.getElementById('event-detail').style.display='block';document.getElementById('event-detail').scrollIntoView({behavior:'smooth',block:'nearest'});}
+function setStatus(s){selectedStatus=s;document.getElementById('sbtn-ok').className='status-btn'+(s==='✓'?' sel-ok':'');document.getElementById('sbtn-no').className='status-btn'+(s==='✗'?' sel-no':'');}
+async function saveEvent(){if(!scriptUrl){openModal();return;}if(!selectedEvent){showToast('Pilih tugas dulu','err');return;}if(!selectedStatus){showToast('Pilih status dulu','err');return;}try{const r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'event',tanggal:todayValue,kode:selectedEvent.kode,nama:selectedEvent.nama,kategori:selectedEvent.kategori,frekuensi:selectedEvent.frekuensi,prioritas:selectedEvent.prioritas,status:selectedStatus,catatan:document.getElementById('event-note').value})});const d=await r.json();if(d.status==='ok'){showToast('✓ Tercatat','ok');document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));}else showToast('Gagal: '+(d.message||'unknown'),'err');}catch(e){showToast('Gagal terhubung ke Sheets','err');}}
 
 // ═══════════════════════════════════════════
-// GRID
+// GRID & LAPORAN & RIWAYAT
 // ═══════════════════════════════════════════
-async function loadGrid(){
-  if(!scriptUrl){openModal();return;}
-  const bulan=document.getElementById('grid-month').value;if(!bulan)return;
-  const cont=document.getElementById('grid-container');cont.innerHTML='<div class="empty"><span class="spinner"></span> Memuat data...</div>';
-  try{const r=await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);renderGrid(await r.json(),bulan);}
-  catch(e){cont.innerHTML='<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat data</div></div>';}
-}
-function renderGrid(data,bulan){
-  const cont=document.getElementById('grid-container');
-  if(!data?.rows?.length){cont.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>';return;}
-  const[yr,mo]=bulan.split('-').map(Number),dim=new Date(yr,mo,0).getDate();
-  let hdr='';for(let d=1;d<=dim;d++){const dow=new Date(yr,mo-1,d).getDay();hdr+=`<th class="${dow===0?'sunday':''}">${d}<br><span style="font-weight:400;opacity:.6">${DAY_SHORT[dow]}</span></th>`;}
-  const dm={};data.rows.forEach(row=>{const k=row[1];if(!dm[k])dm[k]={};const day=parseInt((row[0]||'').split('-')[2])||0;if(day)dm[k][day]=row[5];});
-  let rows='';const tp={};
-  HARIAN.forEach(t=>{
-    const td=dm[t.kode]||{};let dc=0,cells='';
-    for(let d=1;d<=dim;d++){const dow=new Date(yr,mo-1,d).getDay();if(dow===0){cells+=`<td class="sunday"><div class="grid-cell sunday">—</div></td>`;continue;}
-    const isDone=td[d]==='✓';if(isDone)dc++;const isPast=new Date(yr,mo-1,d)<new Date();
-    cells+=`<td><div class="grid-cell ${isDone?'done':isPast?'empty':''}" style="${!isDone&&isPast?'color:var(--red);opacity:.4':''}">${isDone?'✓':isPast?'✗':''}</div></td>`;}
-    const pw=Array.from({length:dim},(_,i)=>i+1).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date()).length;
-    const pct=pw>0?Math.round(dc/pw*100):0;tp[t.kode]=pct;const pc=pct>=90?'pct-hi':pct>=70?'pct-mid':'pct-lo';
-    const pc2=t.prioritas==='Wajib'?'var(--red)':t.prioritas==='Penting'?'var(--orange)':'var(--blue)';
-    rows+=`<tr><td class="task-info"><div class="task-code" style="color:${pc2}">${t.kode}${t.autoTrack?' 📍':''}</div><div class="task-name-cell">${t.nama}</div></td>${cells}<td><div class="grid-pct ${pc}">${pct}%</div></td></tr>`;
-  });
-  const avg=v=>{const c=v>=90?'pct-hi':v>=70?'pct-mid':'pct-lo';return`<td colspan="${dim}" style="text-align:left;padding-left:12px"><span class="grid-pct ${c}">${v}%</span></td><td></td>`;};
-  const aAll=Math.round(Object.values(tp).reduce((a,b)=>a+b,0)/HARIAN.length);
-  const aW=Math.round(HARIAN.filter(t=>t.prioritas==='Wajib').reduce((s,t)=>s+(tp[t.kode]||0),0)/HARIAN.filter(t=>t.prioritas==='Wajib').length);
-  const aP=Math.round(HARIAN.filter(t=>t.prioritas==='Penting').reduce((s,t)=>s+(tp[t.kode]||0),0)/HARIAN.filter(t=>t.prioritas==='Penting').length);
-  cont.innerHTML=`<div class="grid-wrap"><table class="grid-table"><thead><tr><th class="task-col">Tugas</th>${hdr}<th>%</th></tr></thead><tbody>${rows}<tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">RATA-RATA SEMUA</td>${avg(aAll)}</tr><tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata WAJIB 🔴</td>${avg(aW)}</tr><tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata PENTING 🟡</td>${avg(aP)}</tr></tbody></table></div>`;
-}
+async function loadGrid(){if(!scriptUrl){openModal();return;}const bulan=document.getElementById('grid-month').value;if(!bulan)return;const cont=document.getElementById('grid-container');cont.innerHTML='<div class="empty"><span class="spinner"></span> Memuat data...</div>';try{const r=await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);renderGrid(await r.json(),bulan);}catch(e){cont.innerHTML='<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat data</div></div>';}}
+function renderGrid(data,bulan){const cont=document.getElementById('grid-container');if(!data?.rows?.length){cont.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>';return;}const[yr,mo]=bulan.split('-').map(Number),dim=new Date(yr,mo,0).getDate();let hdr='';for(let d=1;d<=dim;d++){const dow=new Date(yr,mo-1,d).getDay();hdr+=`<th class="${dow===0?'sunday':''}">${d}<br><span style="font-weight:400;opacity:.6">${DAY_SHORT[dow]}</span></th>`;}const dm={};data.rows.forEach(row=>{const k=row[1];if(!dm[k])dm[k]={};const day=parseInt((row[0]||'').split('-')[2])||0;if(day)dm[k][day]=row[5];});let rows='';const tp={};HARIAN.forEach(t=>{const td=dm[t.kode]||{};let dc=0,cells='';for(let d=1;d<=dim;d++){const dow=new Date(yr,mo-1,d).getDay();if(dow===0){cells+=`<td class="sunday"><div class="grid-cell sunday">—</div></td>`;continue;}const isDone=td[d]==='✓';if(isDone)dc++;const isPast=new Date(yr,mo-1,d)<new Date();cells+=`<td><div class="grid-cell ${isDone?'done':isPast?'empty':''}" style="${!isDone&&isPast?'color:var(--red);opacity:.4':''}">${isDone?'✓':isPast?'✗':''}</div></td>`;}const pw=Array.from({length:dim},(_,i)=>i+1).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date()).length;const pct=pw>0?Math.round(dc/pw*100):0;tp[t.kode]=pct;const pc=pct>=90?'pct-hi':pct>=70?'pct-mid':'pct-lo';const pc2=t.prioritas==='Wajib'?'var(--red)':t.prioritas==='Penting'?'var(--orange)':'var(--blue)';rows+=`<tr><td class="task-info"><div class="task-code" style="color:${pc2}">${t.kode}${t.autoTrack?' 📍':''}</div><div class="task-name-cell">${t.nama}</div></td>${cells}<td><div class="grid-pct ${pc}">${pct}%</div></td></tr>`;});const avg=v=>{const c=v>=90?'pct-hi':v>=70?'pct-mid':'pct-lo';return`<td colspan="${dim}" style="text-align:left;padding-left:12px"><span class="grid-pct ${c}">${v}%</span></td><td></td>`;};const aAll=Math.round(Object.values(tp).reduce((a,b)=>a+b,0)/HARIAN.length);const aW=Math.round(HARIAN.filter(t=>t.prioritas==='Wajib').reduce((s,t)=>s+(tp[t.kode]||0),0)/HARIAN.filter(t=>t.prioritas==='Wajib').length);const aP=Math.round(HARIAN.filter(t=>t.prioritas==='Penting').reduce((s,t)=>s+(tp[t.kode]||0),0)/HARIAN.filter(t=>t.prioritas==='Penting').length);cont.innerHTML=`<div class="grid-wrap"><table class="grid-table"><thead><tr><th class="task-col">Tugas</th>${hdr}<th>%</th></tr></thead><tbody>${rows}<tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">RATA-RATA SEMUA</td>${avg(aAll)}</tr><tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata WAJIB 🔴</td>${avg(aW)}</tr><tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata PENTING 🟡</td>${avg(aP)}</tr></tbody></table></div>`;}
+async function loadLaporan(){if(!scriptUrl){openModal();return;}const bulan=document.getElementById('laporan-month').value;if(!bulan)return;const cont=document.getElementById('laporan-container');cont.innerHTML='<div class="empty"><span class="spinner"></span> Memuat laporan...</div>';try{const r=await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);renderLaporan(await r.json(),bulan);}catch(e){cont.innerHTML='<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat laporan</div></div>';}}
+function renderLaporan(data,bulan){const cont=document.getElementById('laporan-container');const[yr,mo]=bulan.split('-').map(Number),bn=BULAN_NAMES[mo-1]+' '+yr,dim=new Date(yr,mo,0).getDate();const dm={};(data.rows||[]).forEach(row=>{const k=row[1];if(!dm[k])dm[k]={};const day=parseInt((row[0]||'').split('-')[2])||0;if(day)dm[k][day]=row[5];});const weeks=[],pd=Array.from({length:dim},(_,i)=>i+1).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());let ws=1;while(ws<=dim){let we=ws;while(we<dim&&new Date(yr,mo-1,we+1).getDay()!==1)we++;weeks.push({start:ws,end:we});ws=we+1;}const tp={};let notifHTML='';HARIAN.forEach(t=>{const done=pd.filter(d=>(dm[t.kode]||{})[d]==='✓').length;const pct=pd.length>0?Math.round(done/pd.length*100):null;tp[t.kode]=pct;if(pct!==null&&pct<70)notifHTML+=`<div class="notif-item warn">⚠ ${t.kode} · ${t.nama}: hanya <b>${pct}%</b></div>`;});const wp=weeks.map(w=>{const wd=Array.from({length:w.end-w.start+1},(_,i)=>w.start+i).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());if(!wd.length)return null;const ad=HARIAN.reduce((s,t)=>s+wd.filter(d=>(dm[t.kode]||{})[d]==='✓').length,0),tot=HARIAN.length*wd.length;return tot>0?Math.round(ad/tot*100):0;});const barsHTML=wp.map((p,i)=>{if(p===null)return`<div class="bar-col"><div class="bar-label">Mg ${i+1}</div></div>`;const h=Math.round((p/100)*80),col=p>=90?'var(--green)':p>=70?'var(--orange)':'var(--red)';return`<div class="bar-col"><div class="bar-val">${p}%</div><div class="bar-rect" style="height:${h}px;background:${col}"></div><div class="bar-label">Mg ${i+1}</div></div>`;}).join('');const weeksHTML=weeks.map((w,wi)=>{const wd=Array.from({length:w.end-w.start+1},(_,i)=>w.start+i).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());const p=wp[wi];if(p===null)return'';const pc=p>=90?'var(--green)':p>=70?'var(--orange)':'var(--red)';const wlabel=`Minggu ${wi+1}: ${w.start}–${w.end}/${String(mo).padStart(2,'0')}`;const tr=HARIAN.map(t=>{const done=wd.filter(d=>(dm[t.kode]||{})[d]==='✓').length;const pct=wd.length>0?Math.round(done/wd.length*100):0;const bc=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';return`<div class="laporan-task-row"><div class="lt-kode">${t.kode}</div><div class="lt-name">${t.nama}${t.autoTrack?' 📍':''}</div><div class="lt-bar-wrap"><div class="lt-bar-fill" style="width:${pct}%;background:${bc}"></div></div><div class="lt-pct" style="color:${bc}">${wd.length>0?pct+'%':'—'}</div></div>`;}).join('');return`<div class="laporan-week"><div class="week-title">${wlabel}</div><div class="week-avg" style="color:${pc}">${p}%</div><div style="font-size:11px;color:var(--muted);margin-bottom:10px">rata-rata semua tugas</div>${tr}</div>`;}).join('');cont.innerHTML=`${notifHTML?`<div class="notif-list">${notifHTML}</div>`:''}${weeksHTML?`<div class="chart-wrap"><div class="chart-title">% Penyelesaian per Minggu — ${bn}</div><div class="bar-chart">${barsHTML}</div></div>${weeksHTML}`:'<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>'}`;}
+async function loadRiwayat(){if(!scriptUrl){openModal();return;}const bulan=document.getElementById('riwayat-month').value;if(!bulan)return;const cont=document.getElementById('riwayat-container');cont.innerHTML='<div class="empty"><span class="spinner"></span> Memuat...</div>';try{const[rH,rE]=await Promise.all([fetch(`${scriptUrl}?type=harian&bulan=${bulan}`).then(r=>r.json()).catch(()=>null),fetch(`${scriptUrl}?type=event&bulan=${bulan}`).then(r=>r.json()).catch(()=>null)]);renderRiwayat(rH,rE,bulan);}catch(e){cont.innerHTML='<div class="empty">Gagal memuat riwayat</div>';}}
+function renderRiwayat(rH,rE,bulan){const cont=document.getElementById('riwayat-container');const[yr,mo]=bulan.split('-').map(Number),bd={};(rH?.rows||[]).forEach(row=>{const tgl=row[0];if(!tgl)return;if(!bd[tgl])bd[tgl]=[];bd[tgl].push({kode:row[1],nama:row[2],status:row[5],catatan:row[6]});});const dates=Object.keys(bd).sort().reverse();if(!dates.length&&!rE?.rows?.length){cont.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>';return;}let html='';if(dates.length){html+=`<div class="section-hdr"><span class="section-hdr-label">Tugas Harian</span><div class="section-hdr-line"></div></div>`;dates.forEach(tgl=>{const tasks=bd[tgl],done=tasks.filter(t=>t.status==='✓').length,pct=Math.round(done/tasks.length*100);const tags=tasks.map(t=>`<span class="history-tag ${t.status==='✓'?'done':'skip'}">${t.kode}</span>`).join('');const d=new Date(tgl);html+=`<div class="history-item"><div class="history-date">${d.getDate()} ${BULAN_NAMES[d.getMonth()]} — ${DAY_SHORT[d.getDay()]}</div><div class="history-tasks">${tags}</div><div class="history-summary">${done}/${tasks.length} selesai (${pct}%)</div></div>`;});}if(rE?.rows?.length){html+=`<div class="section-hdr" style="margin-top:16px"><span class="section-hdr-label">Tugas Non-Harian</span><div class="section-hdr-line"></div></div>`;[...rE.rows].reverse().forEach(row=>{const[tgl,,kode,nama,,,,status,catatan]=row;if(!tgl)return;const d=new Date(tgl);html+=`<div class="history-item"><div class="history-date">${d.getDate()} ${BULAN_NAMES[d.getMonth()]} · ${kode}</div><div style="font-size:12px;font-weight:500">${nama}</div><div class="history-summary" style="margin-top:4px">Status: <span style="color:${status==='✓'?'var(--green)':'var(--red)'}">${status}</span>${catatan?' · '+catatan:''}</div></div>`;});}cont.innerHTML=html;}
 
 // ═══════════════════════════════════════════
-// LAPORAN
-// ═══════════════════════════════════════════
-async function loadLaporan(){
-  if(!scriptUrl){openModal();return;}
-  const bulan=document.getElementById('laporan-month').value;if(!bulan)return;
-  const cont=document.getElementById('laporan-container');cont.innerHTML='<div class="empty"><span class="spinner"></span> Memuat laporan...</div>';
-  try{const r=await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);renderLaporan(await r.json(),bulan);}
-  catch(e){cont.innerHTML='<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat laporan</div></div>';}
-}
-function renderLaporan(data,bulan){
-  const cont=document.getElementById('laporan-container');
-  const[yr,mo]=bulan.split('-').map(Number),dim=new Date(yr,mo,0).getDate(),bn=BULAN_NAMES[mo-1]+' '+yr;
-  const dm={};(data.rows||[]).forEach(row=>{const k=row[1];if(!dm[k])dm[k]={};const day=parseInt((row[0]||'').split('-')[2])||0;if(day)dm[k][day]=row[5];});
-  const weeks=[],pd=Array.from({length:dim},(_,i)=>i+1).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());
-  let ws=1;while(ws<=dim){let we=ws;while(we<dim&&new Date(yr,mo-1,we+1).getDay()!==1)we++;weeks.push({start:ws,end:we});ws=we+1;}
-  const tp={};let notifHTML='';
-  HARIAN.forEach(t=>{const done=pd.filter(d=>(dm[t.kode]||{})[d]==='✓').length;const pct=pd.length>0?Math.round(done/pd.length*100):null;tp[t.kode]=pct;if(pct!==null&&pct<70)notifHTML+=`<div class="notif-item warn">⚠ ${t.kode} · ${t.nama}: hanya <b>${pct}%</b></div>`;});
-  const wp=weeks.map(w=>{const wd=Array.from({length:w.end-w.start+1},(_,i)=>w.start+i).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());if(!wd.length)return null;const ad=HARIAN.reduce((s,t)=>s+wd.filter(d=>(dm[t.kode]||{})[d]==='✓').length,0),tot=HARIAN.length*wd.length;return tot>0?Math.round(ad/tot*100):0;});
-  const barsHTML=wp.map((p,i)=>{if(p===null)return`<div class="bar-col"><div class="bar-label">Mg ${i+1}</div></div>`;const h=Math.round((p/100)*80),col=p>=90?'var(--green)':p>=70?'var(--orange)':'var(--red)';return`<div class="bar-col"><div class="bar-val">${p}%</div><div class="bar-rect" style="height:${h}px;background:${col}"></div><div class="bar-label">Mg ${i+1}</div></div>`;}).join('');
-  const weeksHTML=weeks.map((w,wi)=>{const wlabel=`Minggu ${wi+1}: ${w.start}–${w.end}/${String(mo).padStart(2,'0')}`;const wd=Array.from({length:w.end-w.start+1},(_,i)=>w.start+i).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());const p=wp[wi];if(p===null)return'';const pc=p>=90?'var(--green)':p>=70?'var(--orange)':'var(--red)';const tr=HARIAN.map(t=>{const done=wd.filter(d=>(dm[t.kode]||{})[d]==='✓').length;const pct=wd.length>0?Math.round(done/wd.length*100):0;const bc=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';return`<div class="laporan-task-row"><div class="lt-kode">${t.kode}</div><div class="lt-name">${t.nama}${t.autoTrack?' 📍':''}</div><div class="lt-bar-wrap"><div class="lt-bar-fill" style="width:${pct}%;background:${bc}"></div></div><div class="lt-pct" style="color:${bc}">${wd.length>0?pct+'%':'—'}</div></div>`;}).join('');return`<div class="laporan-week"><div class="week-title">${wlabel}</div><div class="week-avg" style="color:${pc}">${p}%</div><div style="font-size:11px;color:var(--muted);margin-bottom:10px">rata-rata semua tugas</div>${tr}</div>`;}).join('');
-  cont.innerHTML=`${notifHTML?`<div class="notif-list">${notifHTML}</div>`:''}
-    <div class="chart-wrap"><div class="chart-title">% Penyelesaian per Minggu — ${bn}</div><div class="bar-chart">${barsHTML}</div></div>
-    ${weeksHTML||'<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>'}`;
-}
-
-// ═══════════════════════════════════════════
-// RIWAYAT
-// ═══════════════════════════════════════════
-async function loadRiwayat(){
-  if(!scriptUrl){openModal();return;}
-  const bulan=document.getElementById('riwayat-month').value;if(!bulan)return;
-  const cont=document.getElementById('riwayat-container');cont.innerHTML='<div class="empty"><span class="spinner"></span> Memuat riwayat...</div>';
-  try{
-    const[rH,rE]=await Promise.all([
-      fetch(`${scriptUrl}?type=harian&bulan=${bulan}`).then(r=>r.json()).catch(()=>null),
-      fetch(`${scriptUrl}?type=event&bulan=${bulan}`).then(r=>r.json()).catch(()=>null),
-    ]);renderRiwayat(rH,rE,bulan);
-  }catch(e){cont.innerHTML='<div class="empty">Gagal memuat riwayat</div>';}
-}
-function renderRiwayat(rH,rE,bulan){
-  const cont=document.getElementById('riwayat-container');
-  const[yr,mo]=bulan.split('-').map(Number),bd={};
-  (rH?.rows||[]).forEach(row=>{const tgl=row[0];if(!tgl)return;if(!bd[tgl])bd[tgl]=[];bd[tgl].push({kode:row[1],nama:row[2],status:row[5],catatan:row[6]});});
-  const dates=Object.keys(bd).sort().reverse();
-  if(!dates.length&&!rE?.rows?.length){cont.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>';return;}
-  let html='';
-  if(dates.length){
-    html+=`<div class="section-hdr"><span class="section-hdr-label">Tugas Harian</span><div class="section-hdr-line"></div></div>`;
-    dates.forEach(tgl=>{const tasks=bd[tgl],done=tasks.filter(t=>t.status==='✓').length,pct=Math.round(done/tasks.length*100);const tags=tasks.map(t=>`<span class="history-tag ${t.status==='✓'?'done':'skip'}">${t.kode}</span>`).join('');const d=new Date(tgl);html+=`<div class="history-item"><div class="history-date">${d.getDate()} ${BULAN_NAMES[d.getMonth()]} — ${DAY_SHORT[d.getDay()]}</div><div class="history-tasks">${tags}</div><div class="history-summary">${done}/${tasks.length} selesai (${pct}%)</div></div>`;});
-  }
-  if(rE?.rows?.length){
-    html+=`<div class="section-hdr" style="margin-top:16px"><span class="section-hdr-label">Tugas Non-Harian</span><div class="section-hdr-line"></div></div>`;
-    [...rE.rows].reverse().forEach(row=>{const[tgl,,kode,nama,,,,status,catatan]=row;if(!tgl)return;const d=new Date(tgl);html+=`<div class="history-item"><div class="history-date">${d.getDate()} ${BULAN_NAMES[d.getMonth()]} · ${kode}</div><div style="font-size:12px;font-weight:500">${nama}</div><div class="history-summary" style="margin-top:4px">Status: <span style="color:${status==='✓'?'var(--green)':'var(--red)'}">${status}</span>${catatan?' · '+catatan:''}</div></div>`;});
-  }
-  cont.innerHTML=html;
-}
-
-// ═══════════════════════════════════════════
-// MODAL & URL
+// MODAL & URL & TOAST
 // ═══════════════════════════════════════════
 function openModal(){document.getElementById('url-input').value=scriptUrl;document.getElementById('modal').classList.add('open');}
 function closeModal(){document.getElementById('modal').classList.remove('open');}
-function saveUrl(){
-  const val=document.getElementById('url-input').value.trim();
-  if(!val.startsWith('http')){showToast('URL tidak valid','err');return;}
-  scriptUrl=val;localStorage.setItem('mtg_url',val);
-  closeModal();showToast('URL tersimpan ✓','ok');
-  checkTodayFilled();checkLaporanBadge();loadStok(true);fetchProduk();
-}
+function saveUrl(){const val=document.getElementById('url-input').value.trim();if(!val.startsWith('http')){showToast('URL tidak valid','err');return;}scriptUrl=val;localStorage.setItem('mtg_url',val);closeModal();showToast('URL tersimpan ✓','ok');checkTodayFilled();checkLaporanBadge();loadStok(true);}
 document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-
-// ═══════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════
 let _toastTimer;
-function showToast(msg,type=''){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.className='toast show'+(type?' '+type:'');
-  clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
-}
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
 
 // ═══════════════════════════════════════════
 // PASSWORD
 // ═══════════════════════════════════════════
 const PW='kodachi123';
-function checkPw(){
-  const val=document.getElementById('pw-input').value;
-  if(val===PW){sessionStorage.setItem('mtg_auth','1');document.getElementById('pw-overlay').style.display='none';}
-  else{const inp=document.getElementById('pw-input');inp.classList.remove('shake');void inp.offsetWidth;inp.classList.add('shake');document.getElementById('pw-err').textContent='Password salah, coba lagi';inp.value='';}
-}
-if(sessionStorage.getItem('mtg_auth')==='1'){
-  document.addEventListener('DOMContentLoaded',()=>{document.getElementById('pw-overlay').style.display='none';});
-}
-  // Jika ada URL yang tersimpan, langsung load
-if (scriptUrl) {
-  loadStok();
-  // TAMBAHKAN BARIS DI BAWAH INI:
-  fetchProduk(); 
-}
+function checkPw(){const val=document.getElementById('pw-input').value;if(val===PW){sessionStorage.setItem('mtg_auth','1');document.getElementById('pw-overlay').style.display='none';}else{const inp=document.getElementById('pw-input');inp.classList.remove('shake');void inp.offsetWidth;inp.classList.add('shake');document.getElementById('pw-err').textContent='Password salah, coba lagi';inp.value='';}}
+if(sessionStorage.getItem('mtg_auth')==='1'){document.addEventListener('DOMContentLoaded',()=>{document.getElementById('pw-overlay').style.display='none';});}
 </script>
 </body>
 </html>
