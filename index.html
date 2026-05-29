@@ -55,7 +55,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .time-bar-label{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);font-family:var(--mono)}
 .loc-retry-inline{margin-top:10px;width:100%;padding:8px;background:rgba(217,119,6,.1);color:var(--orange);border:1px solid rgba(217,119,6,.3);border-radius:var(--r);font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer;display:none}
 .loc-retry-inline.show{display:block}
-/* SUB-TAB di dalam Laporan */
+
+/* SUB-TAB */
 .subtab-row{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
 .subtab-row::-webkit-scrollbar{display:none}
 .subtab{flex:1;min-width:fit-content;padding:9px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
@@ -69,13 +70,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .d01-card.d01-done{border-color:rgba(22,163,74,.35);background:rgba(22,163,74,.05)}
 .d01-card.d01-warn{border-color:rgba(217,119,6,.35);background:rgba(217,119,6,.04)}
 .d01-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-
-/* FIX 1: Samakan ukuran d01-check dengan task-check (26px x 26px) */
 .d01-check{width:26px;height:26px;min-width:26px;min-height:26px;border-radius:50%;border:2px solid var(--hint);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#fff;transition:all .3s}
 .d01-check.done{background:var(--green);border-color:var(--green)}
 .d01-check.warn{background:var(--orange);border-color:var(--orange)}
 .d01-check.empty{background:transparent;color:transparent;border-color:var(--hint)}
-
 .d01-title{font-size:13px;font-weight:500;flex:1;line-height:1.4}
 .d01-badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:20px;flex-shrink:0}
 .d01-badge.done{background:rgba(22,163,74,.12);color:var(--green)}
@@ -99,12 +97,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .task-auto-tag{font-size:10px;color:var(--accent);background:rgba(37,99,235,.08);padding:2px 8px;border-radius:20px;display:inline-block;margin-top:4px}
 
-/* GPS PERMISSION BANNER */
-.gps-request-banner{background:#fff8ed;border:1.5px solid rgba(217,119,6,.4);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
-.gps-request-banner.hidden{display:none}
-.gps-req-text{flex:1;font-size:12px;color:var(--orange);line-height:1.5}
-.gps-req-btn{padding:8px 14px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
-
 /* TABS */
 .tabs-wrap{max-width:680px;margin:0 auto;padding:0 20px;position:sticky;top:0;z-index:50;background:var(--bg)}
 .tabs{display:flex;gap:2px;padding:14px 0 0;overflow-x:auto;scrollbar-width:none}
@@ -122,7 +114,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .panel{display:none}
 .panel.active{display:block}
 
-/* DATE ROW - FIX 2: Readonly, hanya hari ini */
+/* DATE */
 .date-row{display:flex;gap:8px;margin-bottom:20px;align-items:center}
 .date-display{flex:1;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:13px;pointer-events:none;user-select:none}
 .date-input{flex:1;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s;color-scheme:light}
@@ -257,21 +249,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .history-tag.skip{background:rgba(240,106,106,.1);color:var(--red)}
 .history-summary{font-size:11px;color:var(--muted);margin-top:8px}
 
-/* LOKASI TAB */
-.loc-log-item{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
-.loc-log-icon{font-size:18px;flex-shrink:0}
-.loc-log-body{flex:1}
-.loc-log-title{font-size:12px;font-weight:600}
-.loc-log-meta{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
-.loc-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.loc-stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 12px;text-align:center}
-.loc-stat-val{font-family:var(--mono);font-size:20px;font-weight:500;line-height:1;color:var(--accent)}
-.loc-stat-label{font-size:10px;color:var(--muted);margin-top:4px}
-.loc-retry-btn{width:100%;padding:12px;background:var(--orange);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;display:none}
-.loc-retry-btn.show{display:block}
-.loc-debug{background:var(--surface);border-radius:var(--r);padding:12px;font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.8;margin-bottom:12px}
-
-/* ═══════════ STOK TAB ═══════════ */
+/* STOK MONITORING */
 .stok-controls{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
 .stok-refresh-btn{flex:1;min-width:120px;padding:11px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
 .stok-sound-btn{padding:11px 14px;background:var(--card);color:var(--muted);border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
@@ -314,6 +292,70 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .stok-qty .q-gud{color:var(--green);font-weight:600}
 .stok-sheet-link{display:block;text-align:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;margin-top:16px}
 
+/* ═══ INPUT STOK GUDANG STYLES ═══ */
+.ig-header{background:var(--red);color:#fff;text-align:center;font-size:14px;font-weight:700;padding:10px 14px;border-radius:var(--r) var(--r) 0 0;letter-spacing:.05em;margin-bottom:0}
+.ig-summary{display:flex;gap:0;background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);margin-bottom:14px}
+.ig-sum-cell{flex:1;padding:8px 6px;font-size:11px;font-weight:600;text-align:center;border-right:1px solid var(--border)}
+.ig-sum-cell:last-child{border-right:none}
+.ig-sum-cell.hilang{color:var(--red)}
+.ig-sum-cell.ketemu{color:#0891b2}
+.ig-sum-cell.minus{color:var(--orange)}
+.ig-sum-val{font-size:20px;font-weight:700;display:block;font-family:var(--mono)}
+.ig-toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.ig-add-btn{padding:10px 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--r);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;gap:6px}
+.ig-sync-btn{padding:10px 16px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;gap:6px}
+.ig-sync-btn:disabled{opacity:.55;cursor:not-allowed}
+.ig-clear-btn{padding:10px 14px;background:var(--card);color:var(--muted);border:1px solid var(--border2);border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.ig-clear-btn:hover{border-color:var(--red);color:var(--red)}
+.ig-sync-status{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:auto}
+.ig-sync-status.ok{color:var(--green)}
+.ig-sync-status.err{color:var(--red)}
+.ig-tbl-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border);margin-bottom:14px}
+.ig-table{border-collapse:collapse;width:100%;min-width:760px;font-size:12px}
+.ig-table thead tr{background:var(--card2)}
+.ig-table th{padding:8px 7px;text-align:center;border-bottom:1.5px solid var(--border2);border-right:1px solid var(--border);font-weight:700;font-size:10px;color:var(--accent);white-space:nowrap;font-family:var(--mono);letter-spacing:.04em}
+.ig-table th:first-child{text-align:left;padding-left:10px}
+.ig-table td{padding:5px 6px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:middle}
+.ig-table td:first-child{padding-left:8px;color:var(--hint);font-size:11px;font-family:var(--mono);text-align:center}
+.ig-table tr:hover td{background:rgba(219,234,254,.15)}
+.ig-table tr.hl-hilang td{background:rgba(220,38,38,.05)}
+.ig-table tr.hl-minus td{background:rgba(217,119,6,.05)}
+.it{width:100%;padding:5px 7px;border:1px solid var(--border2);border-radius:6px;font-size:12px;background:var(--card);color:var(--text);font-family:var(--sans);outline:none}
+.it:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(37,99,235,.12)}
+select.it{cursor:pointer}
+.it-date{min-width:108px}
+.it-nama{min-width:150px}
+.it-size{width:52px;text-align:center}
+.it-jml{width:54px;text-align:center;font-family:var(--mono)}
+.inout-wrap{display:flex;gap:4px;justify-content:center}
+.io-btn{padding:4px 10px;border-radius:20px;border:1.5px solid transparent;font-size:11px;font-weight:700;cursor:pointer;background:transparent;font-family:var(--sans)}
+.io-btn.IN{border-color:var(--green);color:var(--green)}
+.io-btn.IN.active{background:var(--green);color:#fff}
+.io-btn.OUT{border-color:var(--red);color:var(--red)}
+.io-btn.OUT.active{background:var(--red);color:#fff}
+.ket-wrap{min-width:118px}
+.ket-bawa{color:var(--green);font-weight:600}
+.ket-hilang{background:rgba(220,38,38,.08);color:var(--red);font-weight:600}
+.ket-minus{background:rgba(217,119,6,.08);color:var(--orange);font-weight:600}
+.tot-cell{font-family:var(--mono);font-weight:700;text-align:center;font-size:13px}
+.tot-pos{color:var(--green)}
+.tot-neg{color:var(--red)}
+.ig-del-btn{padding:4px 8px;background:none;border:1px solid rgba(220,38,38,.3);border-radius:6px;color:var(--red);font-size:11px;cursor:pointer}
+.ig-del-btn:hover{background:rgba(220,38,38,.08)}
+.ig-empty-row td{text-align:center;color:var(--hint);padding:28px;font-size:12px}
+.ig-api-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px}
+.ig-api-label{font-size:11px;color:var(--muted);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.06em}
+.ig-api-input{width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-size:12px;background:var(--surface);color:var(--text);font-family:var(--mono);outline:none}
+.ig-api-input:focus{border-color:var(--accent)}
+.ig-api-note{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.7}
+.ig-save-url-btn{margin-top:10px;padding:9px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans)}
+.ig-code-block{font-size:10px;font-family:var(--mono);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;line-height:1.8;overflow-x:auto;color:var(--text);white-space:pre;margin-top:8px}
+.ig-subtab-row{display:flex;gap:6px;margin-bottom:16px}
+.ig-stab{flex:1;padding:9px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;text-align:center}
+.ig-stab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ig-subview{display:none}
+.ig-subview.active{display:block}
+
 /* MODAL */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;padding:20px}
 .modal-bg.open{display:flex}
@@ -338,6 +380,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .empty-text{font-size:13px;line-height:1.6}
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--hint);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes igSpin{to{transform:rotate(360deg)}}
 
 /* PASSWORD */
 .pw-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -351,9 +394,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .pw-btn{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer}
 .pw-err{font-size:12px;color:var(--red);margin-top:8px;min-height:18px}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
-
-/* TODAY BADGE - indikator tanggal hari ini (readonly) */
-.today-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(37,99,235,.08);border-radius:20px;font-size:10px;color:var(--accent);font-family:var(--mono);margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -374,7 +414,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <div class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      <span class="brand-tag">Manager · v3.4</span>
+      <span class="brand-tag">Manager · v3.5</span>
       <span class="brand-name">Kodachi Shop Monjali</span>
       <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
     </div>
@@ -403,7 +443,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<!-- elemen lokasi tersembunyi (dipakai tracker GPS, tidak ditampilkan) -->
 <div id="loc-hidden" style="display:none" aria-hidden="true">
   <span id="loc-debug"></span>
   <span id="loc-distance"></span>
@@ -424,6 +463,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
       📦 Stok
       <span class="tab-badge" id="badge-stok">0</span>
     </button>
+    <button class="tab" onclick="switchTab('inputstok',this)">📥 Input Stok</button>
     <button class="tab" onclick="switchTab('event',this)">Non-Harian</button>
     <button class="tab" onclick="switchTab('laporan',this)">
       📈 Laporan
@@ -438,7 +478,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
   <!-- TAB HARIAN -->
   <div class="panel active" id="panel-harian">
-    <!-- FIX 2: Tanggal readonly, hanya hari ini, tidak bisa diubah -->
     <div class="date-row">
       <div class="date-display" id="tgl-harian-display">—</div>
       <span class="today-label">📅 Hari ini</span>
@@ -460,48 +499,135 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <button class="save-btn" id="save-harian-btn" onclick="saveHarian()">Simpan ke Google Sheets</button>
   </div>
 
-  <!-- TAB STOK -->
+  <!-- TAB STOK MONITORING -->
   <div class="panel" id="panel-stok">
     <div class="alert info" style="margin-bottom:14px">
       📦 <b>Monitoring Stok Toko vs Gudang</b> — peringatan otomatis kalau ada ukuran yang <b>kosong di toko</b> padahal masih <b>ada di gudang</b>. Segera pindahkan stok dari gudang ke toko.
     </div>
-
     <div class="stok-controls">
       <button class="stok-refresh-btn" id="stok-refresh-btn" onclick="loadStok()">🔄 Perbarui Data</button>
       <button class="stok-sound-btn" id="stok-sound-btn" onclick="toggleStokSound()">🔕 Alarm Off</button>
     </div>
     <div class="stok-updated" id="stok-updated">Belum dimuat</div>
-
     <div class="stok-stats-row">
       <div class="stok-stat red"><div class="stok-stat-val" id="stok-c-red">0</div><div class="stok-stat-label">Merah<br>(toko kosong)</div></div>
       <div class="stok-stat yellow"><div class="stok-stat-val" id="stok-c-yellow">0</div><div class="stok-stat-label">Kuning<br>(sisa 1)</div></div>
       <div class="stok-stat blue"><div class="stok-stat-val" id="stok-c-blue">0</div><div class="stok-stat-label">Biru<br>(menipis)</div></div>
     </div>
-
     <div class="stok-legend">
       <div><span class="lg-dot" style="background:var(--red)"></span><b>Merah</b> — stok toko 0, gudang &gt; 0</div>
       <div><span class="lg-dot" style="background:var(--orange)"></span><b>Kuning</b> — stok toko 1, gudang &gt; 1</div>
       <div><span class="lg-dot" style="background:var(--blue)"></span><b>Biru</b> — stok toko &lt; 3, gudang &gt; 3</div>
     </div>
-
     <div class="stok-filter-row" id="stok-filter-row">
       <button class="stok-chip active" onclick="setStokFilter('all',this)">Semua</button>
       <button class="stok-chip" onclick="setStokFilter('red',this)">🔴 Merah</button>
       <button class="stok-chip" onclick="setStokFilter('yellow',this)">🟡 Kuning</button>
       <button class="stok-chip" onclick="setStokFilter('blue',this)">🔵 Biru</button>
     </div>
-
     <div id="stok-list">
       <div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Tekan "Perbarui Data" untuk<br>memeriksa stok toko &amp; gudang</div></div>
     </div>
-
     <a class="stok-sheet-link" id="stok-sheet-link" href="#" target="_blank" rel="noopener">📊 Buka Google Sheet Stok →</a>
   </div>
 
-  <!-- TAB GRID -->
+  <!-- TAB INPUT STOK GUDANG -->
+  <div class="panel" id="panel-inputstok">
+
+    <!-- Sub-tab navigasi -->
+    <div class="ig-subtab-row">
+      <button class="ig-stab active" onclick="switchIgTab('input',this)">📥 Input Stok</button>
+      <button class="ig-stab" onclick="switchIgTab('config',this)">⚙️ Pengaturan API</button>
+    </div>
+
+    <!-- Sub-view: Input Form -->
+    <div class="ig-subview active" id="ig-subview-input">
+      <div class="alert info" style="margin-bottom:14px">
+        📥 <b>Input Stok Gudang Mranggen</b> — catat mutasi stok masuk/keluar. Data otomatis terkirim ke Google Sheets setelah klik <b>Simpan ke Sheets</b>.
+      </div>
+
+      <div class="ig-header">STOK GUDANG MRANGGEN</div>
+      <div class="ig-summary">
+        <div class="ig-sum-cell hilang">Hilang <span class="ig-sum-val" id="ig-cnt-hilang">0</span></div>
+        <div class="ig-sum-cell ketemu">Ketemu <span class="ig-sum-val" id="ig-cnt-ketemu">0</span></div>
+        <div class="ig-sum-cell minus">Minus <span class="ig-sum-val" id="ig-cnt-minus">0</span></div>
+      </div>
+
+      <div class="ig-toolbar">
+        <button class="ig-add-btn" onclick="igAddRow()">＋ Tambah Baris</button>
+        <button class="ig-sync-btn" id="ig-sync-btn" onclick="igSyncToSheets()">↑ Simpan ke Sheets</button>
+        <button class="ig-clear-btn" onclick="igClearAll()">🗑 Hapus Semua</button>
+        <span class="ig-sync-status" id="ig-sync-status">Belum disinkronisasi</span>
+      </div>
+
+      <div class="ig-tbl-wrap">
+        <table class="ig-table" id="ig-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Tanggal</th>
+              <th>Nama Produk</th>
+              <th>SIZE</th>
+              <th>Tipe Kaos Kaki</th>
+              <th>Jumlah</th>
+              <th>IN / OUT</th>
+              <th>KET (HARUS DIISI)</th>
+              <th>TOTAL</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="ig-tbody">
+            <tr class="ig-empty-row"><td colspan="10">Belum ada data. Klik "+ Tambah Baris" untuk mulai input.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- Sub-view: Config -->
+    <div class="ig-subview" id="ig-subview-config">
+      <div class="ig-api-box">
+        <label class="ig-api-label">URL Google Apps Script Web App (Stok Gudang)</label>
+        <input class="ig-api-input" id="ig-api-url" placeholder="https://script.google.com/macros/s/..." value="">
+        <div class="ig-api-note">
+          URL ini berbeda dari URL Apps Script utama. Paste URL dari deployment untuk sheet <b>Stok Gudang V4 · Mranggen</b>.
+        </div>
+        <button class="ig-save-url-btn" onclick="igSaveApiUrl()">Simpan URL</button>
+      </div>
+      <div class="ig-api-box" style="margin-top:8px">
+        <label class="ig-api-label">Cara Setup (4 langkah)</label>
+        <div style="font-size:11px;line-height:2;color:var(--muted)">
+          <b>1.</b> Buka spreadsheet Stok Gudang → <b>Extensions → Apps Script</b><br>
+          <b>2.</b> Tambahkan fungsi <code style="background:var(--surface);padding:2px 5px;border-radius:3px">doPost(e)</code> di bawah ini<br>
+          <b>3.</b> Deploy → <b>New Deployment → Web App → Execute as: Me → Anyone</b><br>
+          <b>4.</b> Copy URL → paste di atas → Simpan
+        </div>
+      </div>
+      <div class="ig-api-box" style="background:rgba(22,163,74,.04);border-color:rgba(22,163,74,.3)">
+        <label class="ig-api-label" style="color:var(--green)">Kode Apps Script</label>
+        <div class="ig-code-block">function doPost(e) {
+  var ss = SpreadsheetApp.openById("13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk");
+  var sheet = ss.getSheetByName("Mranggen");
+  var data = JSON.parse(e.postData.contents);
+  if (data.rows && Array.isArray(data.rows)) {
+    data.rows.forEach(function(row) {
+      sheet.appendRow([
+        row.tanggal, row.nama, row.size, row.tipe,
+        row.jumlah, row.inout, row.ket, row.total
+      ]);
+    });
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify({status:"ok"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+      </div>
+    </div>
+
+  </div>
+
   <!-- TAB NON-HARIAN -->
   <div class="panel" id="panel-event">
-    <!-- FIX 2: Tanggal readonly untuk non-harian juga -->
     <div class="date-row">
       <div class="date-display" id="tgl-event-display">—</div>
       <span class="today-label">📅 Hari ini</span>
@@ -520,19 +646,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 
-  <!-- TAB LAPORAN (berisi: Laporan Mingguan, Grid Bulanan, Riwayat) -->
+  <!-- TAB LAPORAN -->
   <div class="panel" id="panel-laporan">
     <div class="alert info" style="margin-bottom:14px">
       📈 <b>Laporan & Rekap</b> — semua data tugas ada di sini. Pilih jenis tampilan di bawah, lalu pilih bulan.
     </div>
-
     <div class="subtab-row">
       <button class="subtab active" id="subtab-lap" onclick="switchLaporanView('lap',this)">📈 Mingguan</button>
       <button class="subtab" id="subtab-grid" onclick="switchLaporanView('grid',this)">📊 Grid Bulanan</button>
       <button class="subtab" id="subtab-riw" onclick="switchLaporanView('riw',this)">🗂 Riwayat</button>
     </div>
-
-    <!-- Sub-view: Laporan Mingguan -->
     <div class="subview active" id="subview-lap">
       <div class="subview-cap">Rekap persentase tugas per minggu dalam sebulan.</div>
       <div class="grid-controls">
@@ -543,8 +666,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
         <div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Pilih bulan untuk melihat laporan mingguan</div></div>
       </div>
     </div>
-
-    <!-- Sub-view: Grid Bulanan -->
     <div class="subview" id="subview-grid">
       <div class="subview-cap">Tabel centang harian: baris = tugas, kolom = tanggal.</div>
       <div class="grid-controls">
@@ -555,8 +676,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
         <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Pilih bulan dan klik Tampilkan<br>untuk melihat grid tugas</div></div>
       </div>
     </div>
-
-    <!-- Sub-view: Riwayat -->
     <div class="subview" id="subview-riw">
       <div class="subview-cap">Daftar tugas yang sudah diisi, urut per tanggal.</div>
       <div class="grid-controls">
@@ -621,23 +740,16 @@ const BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','A
 const DAY_SHORT   = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 const DAY_FULL    = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 
-// ═══════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════
 const TOKO = { lat:-7.7448, lng:110.3716, radius:200 };
 const TARGET_MENIT = 240;
 const DEFAULT_URL  = 'https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBEBZjQgFE_/exec';
 const SHEET_URL    = 'https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=0#gid=0';
-const STOK_AUTO_REFRESH_MS = 5 * 60 * 1000; // auto refresh tiap 5 menit
+const STOK_AUTO_REFRESH_MS = 5 * 60 * 1000;
 
-// ═══════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════
 let checked = {}, notes = {};
 let scriptUrl = localStorage.getItem('mtg_url') || DEFAULT_URL;
 let selectedEvent = null, selectedStatus = null;
 
-// Stok state
 let stokData      = { red:[], yellow:[], blue:[] };
 let stokFilter    = 'all';
 let stokSoundOn   = localStorage.getItem('stok_sound') === '1';
@@ -646,7 +758,6 @@ let _stokAudioCtx = null;
 let _stokRefreshTimer = null;
 let _stokLastRedCount = 0;
 
-// GPS state
 let geoWatchId    = null;
 let isAtStore     = false;
 let sessionStart  = null;
@@ -658,7 +769,15 @@ let _retryTimer   = null;
 let _retryCount   = 0;
 let _gpsStarted   = false;
 
-// FIX 2: Tanggal selalu hari ini, tidak bisa diubah
+// ═══════════════════════════════════════════
+// INPUT STOK GUDANG STATE
+// ═══════════════════════════════════════════
+var igRows = [];
+var igApiUrl = localStorage.getItem('ig_api_url') || '';
+var igToday = new Date().toISOString().split('T')[0];
+var IG_KET_OPTIONS = ['Bawa Ke Toko','Hilang','Minus Stock','Ketemu','Retur','Penyesuaian'];
+var IG_TIPE_OPTIONS = ['','Pendek','Panjang','Sport','Invisible','Ankle'];
+
 const TODAY_KEY = () => new Date().toISOString().split('T')[0];
 const todayValue = TODAY_KEY();
 
@@ -667,914 +786,577 @@ function formatTodayDisplay() {
   return `${DAY_FULL[d.getDay()]}, ${d.getDate()} ${BULAN_NAMES[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-// ═══════════════════════════════════════════
-// PERSIST LOC DATA
-// ═══════════════════════════════════════════
 function saveLocData() {
   localStorage.setItem('loc_' + TODAY_KEY(), JSON.stringify({
-    totalMinutes: totalMinutesToday,
-    sessionStart: sessionStart,
-    log: locationLog
+    totalMinutes: totalMinutesToday, sessionStart, log: locationLog
   }));
 }
-
 function loadLocData() {
   try {
     const d = JSON.parse(localStorage.getItem('loc_' + TODAY_KEY()) || 'null');
     if (!d) return;
     totalMinutesToday = d.totalMinutes || 0;
-    sessionStart      = d.sessionStart  || null;
-    locationLog       = d.log           || [];
+    sessionStart      = d.sessionStart || null;
+    locationLog       = d.log || [];
   } catch(e) {}
 }
-
-// ═══════════════════════════════════════════
-// HAVERSINE
-// ═══════════════════════════════════════════
-function haversine(lat1, lng1, lat2, lng2) {
-  const R = 6371000;
-  const dLat = (lat2-lat1)*Math.PI/180;
-  const dLng = (lng2-lng1)*Math.PI/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function haversine(lat1,lng1,lat2,lng2) {
+  const R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
+function setDebug(msg){const el=document.getElementById('loc-debug');if(el)el.textContent=msg;}
 
-// ═══════════════════════════════════════════
-// DEBUG LOG
-// ═══════════════════════════════════════════
-function setDebug(msg) {
-  const el = document.getElementById('loc-debug');
-  if (el) el.textContent = msg;
-}
-
-// ═══════════════════════════════════════════
-// GPS — PAKSA AKTIF
-// ═══════════════════════════════════════════
 function startGps() {
-  if (!('geolocation' in navigator)) {
-    updateLocBanner('unsupported');
-    setDebug('GPS: browser tidak mendukung geolocation');
-    return;
-  }
-
-  if (_gpsStarted) return;
-  _gpsStarted = true;
-
+  if(!('geolocation' in navigator)){updateLocBanner('unsupported');return;}
+  if(_gpsStarted)return;
+  _gpsStarted=true;
   updateLocBanner('waiting');
-  setDebug('GPS: meminta izin dan mencari sinyal...');
-
-  geoWatchId = navigator.geolocation.watchPosition(
-    onLocationUpdate,
-    onLocationError,
-    { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
-  );
-
-  navigator.geolocation.getCurrentPosition(
-    onLocationUpdate,
-    onLocationError,
-    { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
-  );
-
-  setInterval(() => {
-    navigator.geolocation.getCurrentPosition(
-      onLocationUpdate,
-      (err) => { if (err.code !== 1) setDebug('GPS: polling gagal - ' + err.message); },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
-    );
-  }, 15000);
-
-  _timerInterval = setInterval(updateTimerDisplay, 1000);
+  geoWatchId=navigator.geolocation.watchPosition(onLocationUpdate,onLocationError,{enableHighAccuracy:true,maximumAge:0,timeout:30000});
+  navigator.geolocation.getCurrentPosition(onLocationUpdate,onLocationError,{enableHighAccuracy:true,maximumAge:0,timeout:30000});
+  setInterval(()=>navigator.geolocation.getCurrentPosition(onLocationUpdate,(err)=>{if(err.code!==1)setDebug('GPS: polling gagal - '+err.message);},{enableHighAccuracy:true,maximumAge:0,timeout:20000}),15000);
+  _timerInterval=setInterval(updateTimerDisplay,1000);
 }
-
-// ═══════════════════════════════════════════
-// RETRY MANUAL
-// ═══════════════════════════════════════════
-function retryGps() {
-  _gpsStarted = false;
-  _retryCount = 0;
-  if (geoWatchId !== null) {
-    navigator.geolocation.clearWatch(geoWatchId);
-    geoWatchId = null;
-  }
+function retryGps(){
+  _gpsStarted=false;_retryCount=0;
+  if(geoWatchId!==null){navigator.geolocation.clearWatch(geoWatchId);geoWatchId=null;}
   document.getElementById('loc-retry-btn').classList.remove('show');
-  startGps();
-  showToast('Mencoba ulang GPS...', '');
+  startGps();showToast('Mencoba ulang GPS...','');
 }
-
-// ═══════════════════════════════════════════
-// LOCATION UPDATE
-// ═══════════════════════════════════════════
-function onLocationUpdate(pos) {
-  clearTimeout(_retryTimer);
-  _retryCount = 0;
-
-  const { latitude, longitude, accuracy } = pos.coords;
-  lastPos = { lat: latitude, lng: longitude, accuracy };
-
-  const dist     = Math.round(haversine(latitude, longitude, TOKO.lat, TOKO.lng));
-  const inStore  = dist <= TOKO.radius;
-  const nowStr   = new Date().toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-
-  document.getElementById('loc-distance').textContent = dist + ' m';
-  document.getElementById('loc-accuracy').textContent = Math.round(accuracy) + ' m';
-  setDebug(`GPS: ${nowStr} · ${latitude.toFixed(5)}, ${longitude.toFixed(5)} · akurasi ${Math.round(accuracy)}m · jarak ${dist}m · ${inStore ? '✓ DI TOKO' : '✗ DI LUAR'}`);
-
+function onLocationUpdate(pos){
+  clearTimeout(_retryTimer);_retryCount=0;
+  const{latitude,longitude,accuracy}=pos.coords;
+  lastPos={lat:latitude,lng:longitude,accuracy};
+  const dist=Math.round(haversine(latitude,longitude,TOKO.lat,TOKO.lng));
+  const inStore=dist<=TOKO.radius;
+  document.getElementById('loc-distance').textContent=dist+'m';
+  document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';
   document.getElementById('loc-retry-btn').classList.remove('show');
-
-  if (inStore && !isAtStore) {
-    isAtStore    = true;
-    sessionStart = Date.now();
-    locationLog.push({ type:'masuk', time:Date.now(), lat:latitude, lng:longitude, dist });
-    saveLocData();
-    updateLocBanner('in');
-    addLocLog('masuk', dist);
-    showToast('✓ Kamu tiba di Kodachi Shop!', 'ok');
-    updateLocTab();
-    updateD01Card();
-
-  } else if (!inStore && isAtStore) {
-    isAtStore = false;
-    if (sessionStart) {
-      totalMinutesToday += (Date.now() - sessionStart) / 60000;
-      sessionStart = null;
-    }
-    locationLog.push({ type:'keluar', time:Date.now(), lat:latitude, lng:longitude, dist });
-    saveLocData();
-    updateLocBanner('out');
-    addLocLog('keluar', dist);
-    updateLocTab();
-    updateD01Card();
-
-  } else {
-    updateLocBanner(isAtStore ? 'in' : 'out');
-  }
-
-  updateLocTab();
+  if(inStore&&!isAtStore){
+    isAtStore=true;sessionStart=Date.now();
+    locationLog.push({type:'masuk',time:Date.now(),lat:latitude,lng:longitude,dist});
+    saveLocData();updateLocBanner('in');addLocLog('masuk',dist);
+    showToast('✓ Kamu tiba di Kodachi Shop!','ok');updateD01Card();
+  }else if(!inStore&&isAtStore){
+    isAtStore=false;
+    if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}
+    locationLog.push({type:'keluar',time:Date.now(),lat:latitude,lng:longitude,dist});
+    saveLocData();updateLocBanner('out');addLocLog('keluar',dist);updateD01Card();
+  }else{updateLocBanner(isAtStore?'in':'out');}
   updateD01Card();
 }
-
-// ═══════════════════════════════════════════
-// LOCATION ERROR
-// ═══════════════════════════════════════════
-function onLocationError(err) {
-  const msgs = {1:'Izin ditolak user',2:'Posisi tidak tersedia',3:'Timeout'};
-  const msg  = msgs[err.code] || err.message;
-
-  if (err.code === 1) {
-    updateLocBanner('denied');
-    setDebug('GPS: ✗ Izin lokasi ditolak. Buka Pengaturan browser untuk mengizinkan.');
-    document.getElementById('loc-retry-btn').classList.add('show');
-    document.getElementById('loc-retry-btn').textContent = '⚙️ Reset Izin & Coba Ulang';
-
-  } else {
-    _retryCount++;
-    const delay = Math.min(5000 * _retryCount, 30000);
-    updateLocBanner('waiting');
-    setDebug(`GPS: ${msg} · retry ke-${_retryCount} dalam ${delay/1000}s...`);
-
-    if (_retryCount <= 10) {
-      _retryTimer = setTimeout(() => {
-        navigator.geolocation.getCurrentPosition(
-          onLocationUpdate,
-          onLocationError,
-          { enableHighAccuracy: true, maximumAge: 0, timeout: 25000 }
-        );
-      }, delay);
-    } else {
-      setDebug('GPS: gagal setelah 10x retry. Tekan tombol di bawah untuk coba lagi.');
-      document.getElementById('loc-retry-btn').classList.add('show');
-      document.getElementById('loc-retry-btn').textContent = '🔄 Coba Ulang GPS';
-    }
+function onLocationError(err){
+  const msgs={1:'Izin ditolak',2:'Posisi tidak tersedia',3:'Timeout'};
+  if(err.code===1){updateLocBanner('denied');document.getElementById('loc-retry-btn').classList.add('show');}
+  else{_retryCount++;const delay=Math.min(5000*_retryCount,30000);updateLocBanner('waiting');
+    if(_retryCount<=10){_retryTimer=setTimeout(()=>navigator.geolocation.getCurrentPosition(onLocationUpdate,onLocationError,{enableHighAccuracy:true,maximumAge:0,timeout:25000}),delay);}
+    else{document.getElementById('loc-retry-btn').classList.add('show');}
   }
 }
-
-// ═══════════════════════════════════════════
-// BANNER STATE
-// ═══════════════════════════════════════════
-function updateLocBanner(state) {
-  const icon   = document.getElementById('loc-icon');
-  const status = document.getElementById('loc-status');
-  const detail = document.getElementById('loc-detail');
-  if      (state === 'in')          { icon.textContent='🟢'; icon.className='loc-icon active'; status.textContent='✓ Di dalam toko'; status.className='loc-status in'; detail.textContent='Kodachi Shop Monjali · GPS aktif'; }
-  else if (state === 'out')         { icon.textContent='📍'; icon.className='loc-icon inactive'; status.textContent='✗ Di luar toko'; status.className='loc-status out'; const d=document.getElementById('loc-distance').textContent; detail.textContent='Jarak: '+d+' dari toko'; }
-  else if (state === 'waiting')     { icon.textContent='🔄'; icon.className='loc-icon'; status.textContent='Mencari sinyal GPS...'; status.className='loc-status waiting'; detail.textContent='Mohon tunggu...'; }
-  else if (state === 'denied')      { icon.textContent='🔒'; icon.className='loc-icon inactive'; status.textContent='Izin lokasi ditolak'; status.className='loc-status out'; detail.textContent='Buka pengaturan browser → izinkan lokasi'; }
-  else if (state === 'unsupported') { icon.textContent='❌'; icon.className='loc-icon inactive'; status.textContent='GPS tidak didukung'; status.className='loc-status out'; detail.textContent='Browser tidak mendukung geolocation'; }
+function updateLocBanner(state){
+  const icon=document.getElementById('loc-icon'),status=document.getElementById('loc-status'),detail=document.getElementById('loc-detail');
+  if(state==='in'){icon.textContent='🟢';icon.className='loc-icon active';status.textContent='✓ Di dalam toko';status.className='loc-status in';detail.textContent='Kodachi Shop Monjali · GPS aktif';}
+  else if(state==='out'){icon.textContent='📍';icon.className='loc-icon inactive';status.textContent='✗ Di luar toko';status.className='loc-status out';const d=document.getElementById('loc-distance').textContent;detail.textContent='Jarak: '+d+' dari toko';}
+  else if(state==='waiting'){icon.textContent='🔄';icon.className='loc-icon';status.textContent='Mencari sinyal GPS...';status.className='loc-status waiting';detail.textContent='Mohon tunggu...';}
+  else if(state==='denied'){icon.textContent='🔒';icon.className='loc-icon inactive';status.textContent='Izin lokasi ditolak';status.className='loc-status out';detail.textContent='Buka pengaturan browser → izinkan lokasi';}
+  else if(state==='unsupported'){icon.textContent='❌';icon.className='loc-icon inactive';status.textContent='GPS tidak didukung';status.className='loc-status out';detail.textContent='Browser tidak mendukung geolocation';}
 }
-
-// ═══════════════════════════════════════════
-// TIMER DISPLAY (tiap detik)
-// ═══════════════════════════════════════════
-function getCurrentTotalMinutes() {
-  let total = totalMinutesToday;
-  if (isAtStore && sessionStart) total += (Date.now() - sessionStart) / 60000;
-  return total;
-}
-
-function fmtDur(menit) {
-  const h = Math.floor(menit/60), m = Math.floor(menit%60);
-  return h > 0 ? `${h}j ${m}m` : `${m}m`;
-}
-
-function updateTimerDisplay() {
-  const total = getCurrentTotalMinutes();
-  const jam   = Math.floor(total/60);
-  const menit = Math.floor(total%60);
-  const pct   = Math.min(100, (total/TARGET_MENIT)*100);
-
-  document.getElementById('loc-timer').textContent = `${jam}:${String(menit).padStart(2,'0')}`;
-  document.getElementById('loc-timer').className   = 'loc-timer' + (pct>=100?' done':pct>=50?' warn':'');
-
-  const fill = document.getElementById('time-bar-fill');
-  fill.style.width     = pct + '%';
-  fill.className       = 'time-bar-fill' + (pct>=100?' done':'');
-
-  document.getElementById('time-bar-left').textContent =
-    total >= 60 ? `${jam} jam ${menit} menit di toko` : `${Math.floor(total)} menit di toko`;
-
-  document.getElementById('loc-total-today').textContent = jam + 'j ' + menit + 'm';
+function getCurrentTotalMinutes(){let t=totalMinutesToday;if(isAtStore&&sessionStart)t+=(Date.now()-sessionStart)/60000;return t;}
+function fmtDur(m){const h=Math.floor(m/60),mn=Math.floor(m%60);return h>0?`${h}j ${mn}m`:`${mn}m`;}
+function updateTimerDisplay(){
+  const total=getCurrentTotalMinutes(),jam=Math.floor(total/60),menit=Math.floor(total%60),pct=Math.min(100,(total/TARGET_MENIT)*100);
+  document.getElementById('loc-timer').textContent=`${jam}:${String(menit).padStart(2,'0')}`;
+  document.getElementById('loc-timer').className='loc-timer'+(pct>=100?' done':pct>=50?' warn':'');
+  const fill=document.getElementById('time-bar-fill');
+  fill.style.width=pct+'%';fill.className='time-bar-fill'+(pct>=100?' done':'');
+  document.getElementById('time-bar-left').textContent=total>=60?`${jam} jam ${menit} menit di toko`:`${Math.floor(total)} menit di toko`;
+  document.getElementById('loc-total-today').textContent=jam+'j '+menit+'m';
   updateD01Card();
 }
-
-// ═══════════════════════════════════════════
-// D01 CARD
-// ═══════════════════════════════════════════
-function updateD01Card() {
-  const total = getCurrentTotalMinutes();
-  const pct   = Math.min(100, (total/TARGET_MENIT)*100);
-  const done  = total >= TARGET_MENIT;
-  const h     = Math.floor(total/60);
-  const m     = Math.floor(total%60);
-
-  const card  = document.getElementById('d01-card');
-  const chk   = document.getElementById('d01-check');
-  const badge = document.getElementById('d01-badge');
-  const durVal= document.getElementById('d01-dur-val');
-  const prog  = document.getElementById('d01-prog-fill');
-  const cap   = document.getElementById('d01-caption-text');
-  const dot   = document.getElementById('d01-caption-dot');
-  if (!card) return;
-
-  card.className = 'd01-card ' + (done ? 'd01-done' : total > 0 ? 'd01-warn' : '');
-
-  if (total > 0) {
-    chk.className   = 'd01-check ' + (done ? 'done' : 'warn');
-    chk.textContent = '✓';
-  } else {
-    chk.className   = 'd01-check empty';
-    chk.textContent = '';
-  }
-
-  if (total === 0) { badge.textContent='GPS aktif'; badge.className='d01-badge empty'; }
-  else if (done)   { badge.textContent='≥ 4 jam ✓'; badge.className='d01-badge done'; }
-  else             { badge.textContent='< 4 jam';   badge.className='d01-badge warn'; }
-
-  if (total === 0) { durVal.textContent='0j 0m'; durVal.className='d01-dur-val muted'; }
-  else             { durVal.textContent=`${h}j ${m}m`; durVal.className='d01-dur-val '+(done?'green':'orange'); }
-
-  prog.style.width      = pct + '%';
-  prog.style.background = done ? 'var(--green)' : total > 0 ? 'var(--orange)' : 'var(--hint)';
-
-  if (isAtStore) {
-    dot.className   = 'dot green';
-    cap.textContent = 'Sedang di dalam toko — timer berjalan';
-  } else if (total > 0) {
-    dot.className   = 'dot orange';
-    cap.textContent = done ? 'Target tercapai — akan tersimpan saat klik Simpan' : `Durasi ${fmtDur(total)} akan tersimpan sebagai catatan D01`;
-  } else {
-    dot.className   = 'dot grey';
-    cap.textContent = 'Menunggu sinyal GPS...';
-  }
-
-  notes['D01'] = total > 0
-    ? `GPS: ${h}j ${m}m di toko${done?'':' (< target 4j)'} · ${isAtStore?'Sedang di toko':'Sudah keluar toko'}`
-    : '';
-
-  if (total > 0 && !checked['D01']) {
-    checked['D01'] = true;
-    updateStats();
-  }
+function updateD01Card(){
+  const total=getCurrentTotalMinutes(),pct=Math.min(100,(total/TARGET_MENIT)*100),done=total>=TARGET_MENIT,h=Math.floor(total/60),m=Math.floor(total%60);
+  const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),durVal=document.getElementById('d01-dur-val'),prog=document.getElementById('d01-prog-fill'),cap=document.getElementById('d01-caption-text'),dot=document.getElementById('d01-caption-dot');
+  if(!card)return;
+  card.className='d01-card '+(done?'d01-done':total>0?'d01-warn':'');
+  if(total>0){chk.className='d01-check '+(done?'done':'warn');chk.textContent='✓';}else{chk.className='d01-check empty';chk.textContent='';}
+  if(total===0){badge.textContent='GPS aktif';badge.className='d01-badge empty';}else if(done){badge.textContent='≥ 4 jam ✓';badge.className='d01-badge done';}else{badge.textContent='< 4 jam';badge.className='d01-badge warn';}
+  if(total===0){durVal.textContent='0j 0m';durVal.className='d01-dur-val muted';}else{durVal.textContent=`${h}j ${m}m`;durVal.className='d01-dur-val '+(done?'green':'orange');}
+  prog.style.width=pct+'%';prog.style.background=done?'var(--green)':total>0?'var(--orange)':'var(--hint)';
+  if(isAtStore){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}
+  else if(total>0){dot.className='dot orange';cap.textContent=done?'Target tercapai — akan tersimpan saat klik Simpan':`Durasi ${fmtDur(total)} akan tersimpan sebagai catatan D01`;}
+  else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}
+  notes['D01']=total>0?`GPS: ${h}j ${m}m di toko${done?'':' (< target 4j)'} · ${isAtStore?'Sedang di toko':'Sudah keluar toko'}`:'';
+  if(total>0&&!checked['D01']){checked['D01']=true;updateStats();}
+}
+function addLocLog(type,dist){
+  const list=document.getElementById('loc-log-list'),now=new Date(),ts=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0'),div=document.createElement('div');
+  div.className='loc-log-item';
+  div.innerHTML=`<div class="loc-log-icon">${type==='masuk'?'🟢':'🔴'}</div><div class="loc-log-body"><div class="loc-log-title">${type==='masuk'?'Tiba di toko':'Meninggalkan toko'}</div><div class="loc-log-meta">${ts} · Jarak: ${dist}m dari toko</div></div>`;
+  const empty=list.querySelector('.empty');if(empty)empty.remove();
+  list.insertBefore(div,list.firstChild);
 }
 
 // ═══════════════════════════════════════════
-// LOC LOG & TAB
+// INPUT STOK GUDANG FUNCTIONS
 // ═══════════════════════════════════════════
-function addLocLog(type, dist) {
-  const list   = document.getElementById('loc-log-list');
-  const now    = new Date();
-  const ts     = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  const div    = document.createElement('div');
-  div.className = 'loc-log-item';
-  div.innerHTML = `
-    <div class="loc-log-icon">${type==='masuk'?'🟢':'🔴'}</div>
-    <div class="loc-log-body">
-      <div class="loc-log-title">${type==='masuk'?'Tiba di toko':'Meninggalkan toko'}</div>
-      <div class="loc-log-meta">${ts} · Jarak: ${dist}m dari toko</div>
-    </div>`;
-  const empty = list.querySelector('.empty');
-  if (empty) empty.remove();
-  list.insertBefore(div, list.firstChild);
+function switchIgTab(name, btn) {
+  document.querySelectorAll('.ig-subview').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.ig-stab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('ig-subview-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
 }
 
-function updateLocTab() {
-  const total = getCurrentTotalMinutes();
-  const jam   = Math.floor(total/60);
-  const menit = Math.floor(total%60);
-  document.getElementById('loc-total-today').textContent = jam + 'j ' + menit + 'm';
-  document.getElementById('loc-sessions-count').textContent = locationLog.filter(l=>l.type==='masuk').length;
+function igAddRow() {
+  var id = Date.now();
+  igRows.push({id:id, tanggal:igToday, nama:'', size:'', tipe:'', jumlah:1, inout:'OUT', ket:'Bawa Ke Toko', total:-1});
+  igRenderTable();
+  setTimeout(function(){
+    var tbody = document.getElementById('ig-tbody');
+    var lastRow = tbody.querySelector('tr[data-id="'+id+'"]');
+    if(lastRow){var inp=lastRow.querySelector('.it-nama');if(inp)inp.focus();}
+  }, 50);
 }
 
-// ═══════════════════════════════════════════
-// STOK — MONITORING TOKO vs GUDANG
-// ═══════════════════════════════════════════
-function initStokUI() {
-  const link = document.getElementById('stok-sheet-link');
-  if (link) link.href = SHEET_URL;
-  refreshStokSoundBtn();
+function igDelRow(id) {
+  igRows = igRows.filter(r=>r.id!==id);
+  igRenderTable();
+  igUpdateSummary();
 }
 
-function refreshStokSoundBtn() {
-  const btn = document.getElementById('stok-sound-btn');
-  if (!btn) return;
-  if (stokSoundOn) { btn.className = 'stok-sound-btn on'; btn.textContent = '🔔 Alarm On'; }
-  else             { btn.className = 'stok-sound-btn';    btn.textContent = '🔕 Alarm Off'; }
+function igSetVal(id, field, val) {
+  var r = igRows.find(x=>x.id===id);
+  if(!r)return;
+  if(field==='jumlah')val=parseInt(val)||0;
+  r[field]=val;
+  if(field==='jumlah'||field==='inout')igUpdateRowTotal(id);
+  if(field==='ket')igRenderTable();
+  igUpdateSummary();
 }
 
-function toggleStokSound() {
-  stokSoundOn = !stokSoundOn;
-  localStorage.setItem('stok_sound', stokSoundOn ? '1' : '0');
-  refreshStokSoundBtn();
-  if (stokSoundOn) {
-    // Unlock audio + putar 1 beep konfirmasi (butuh gesture user)
-    playAlarm(1);
-    showToast('🔔 Alarm suara diaktifkan', 'ok');
-  } else {
-    showToast('🔕 Alarm suara dimatikan', '');
+function igSetInOut(id, val) {
+  var r = igRows.find(x=>x.id===id);if(!r)return;
+  r.inout=val;
+  igUpdateRowTotal(id);
+  igUpdateSummary();
+  var tr=document.querySelector('tr[data-id="'+id+'"]');
+  if(tr){
+    tr.querySelectorAll('.io-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===val));
+    var tot=document.getElementById('igt-'+id);
+    if(tot)igRenderTotCell(tot,r);
   }
 }
 
-// Beep alarm via Web Audio API (tidak butuh file audio)
-function playAlarm(times) {
-  try {
-    if (!_stokAudioCtx) _stokAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const ctx = _stokAudioCtx;
-    if (ctx.state === 'suspended') ctx.resume();
-    let t = ctx.currentTime;
-    for (let i = 0; i < times; i++) {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(880, t);
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.3);
-      t += 0.38;
-    }
-  } catch(e) {}
+function igUpdateRowTotal(id) {
+  var r=igRows.find(x=>x.id===id);if(!r)return;
+  r.total=(r.inout==='IN'?1:-1)*(r.jumlah||0);
+  var el=document.getElementById('igt-'+id);
+  if(el)igRenderTotCell(el,r);
 }
 
-function setStokFilter(f, btn) {
-  stokFilter = f;
-  document.querySelectorAll('#stok-filter-row .stok-chip').forEach(c=>c.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderStokList();
+function igRenderTotCell(el,r){
+  var v=r.total||0;
+  el.textContent=v>0?'+'+v:v;
+  el.className='tot-cell '+(v>0?'tot-pos':'tot-neg');
 }
 
-async function loadStok(silent) {
-  if (!scriptUrl) { if (!silent) openModal(); return; }
-  const btn  = document.getElementById('stok-refresh-btn');
-  const list = document.getElementById('stok-list');
-  if (!silent) {
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Memuat...'; }
-    list.innerHTML = '<div class="empty"><span class="spinner"></span> Memeriksa stok...</div>';
-  }
-  try {
-    const r = await fetch(`${scriptUrl}?type=stok`);
-    const d = await r.json();
-    if (d && (d.red || d.yellow || d.blue)) {
-      stokData = { red: d.red||[], yellow: d.yellow||[], blue: d.blue||[] };
-      stokLoadedOnce = true;
-      renderStokList();
-      updateStokBadge();
-      const u = document.getElementById('stok-updated');
-      if (u) u.textContent = 'Diperbarui: ' + new Date().toLocaleString('id-ID', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'});
-      // Bunyikan alarm bila ada stok merah baru
-      const redCount = stokData.red.length;
-      if (stokSoundOn && redCount > 0 && redCount !== _stokLastRedCount) playAlarm(3);
-      _stokLastRedCount = redCount;
-    } else {
-      throw new Error(d && d.message ? d.message : 'Endpoint type=stok belum tersedia');
-    }
-  } catch(e) {
-    if (!silent) {
-      list.innerHTML = `<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">
-        Belum bisa memuat stok.<br><br>
-        Pastikan kode <b>type=stok</b> sudah ditambahkan<br>ke Google Apps Script kamu,<br>lalu <b>Deploy ulang</b>.<br><br>
-        <span style="font-family:var(--mono);font-size:10px;opacity:.7">${(e.message||'').slice(0,80)}</span>
-      </div></div>`;
-    }
-  }
-  if (!silent && btn) { btn.disabled = false; btn.textContent = '🔄 Perbarui Data'; }
+function igGetKetCls(ket){
+  if(ket==='Hilang')return'ket-hilang';
+  if(ket==='Minus Stock')return'ket-minus';
+  return'ket-bawa';
 }
 
-function renderStokList() {
-  const list = document.getElementById('stok-list');
-  document.getElementById('stok-c-red').textContent    = stokData.red.length;
-  document.getElementById('stok-c-yellow').textContent = stokData.yellow.length;
-  document.getElementById('stok-c-blue').textContent   = stokData.blue.length;
+function igEscH(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
 
-  const total = stokData.red.length + stokData.yellow.length + stokData.blue.length;
-  if (total === 0) {
-    list.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><div class="empty-text"><b>Semua stok aman</b><br>Tidak ada ukuran kosong di toko<br>yang masih tersedia di gudang.</div></div>`;
+function igRenderTable(){
+  var tbody=document.getElementById('ig-tbody');
+  if(!igRows.length){
+    tbody.innerHTML='<tr class="ig-empty-row"><td colspan="10">Belum ada data. Klik "+ Tambah Baris" untuk mulai input.</td></tr>';
     return;
   }
+  var html='';
+  igRows.forEach(function(r,i){
+    var ketCls=igGetKetCls(r.ket);
+    var rowCls=r.ket==='Hilang'?'hl-hilang':r.ket==='Minus Stock'?'hl-minus':'';
+    var totVal=r.total||0,totStr=totVal>0?'+'+totVal:totVal,totCls='tot-cell '+(totVal>0?'tot-pos':'tot-neg');
+    html+='<tr class="'+rowCls+'" data-id="'+r.id+'">'
+      +'<td>'+(i+1)+'</td>'
+      +'<td><input class="it it-date" type="date" value="'+r.tanggal+'" onchange="igSetVal('+r.id+',\'tanggal\',this.value)"></td>'
+      +'<td><input class="it it-nama" type="text" value="'+igEscH(r.nama)+'" placeholder="Nama produk..." oninput="igSetVal('+r.id+',\'nama\',this.value)"></td>'
+      +'<td><input class="it it-size" type="text" value="'+igEscH(r.size)+'" placeholder="42" oninput="igSetVal('+r.id+',\'size\',this.value)"></td>'
+      +'<td><select class="it" style="min-width:110px" onchange="igSetVal('+r.id+',\'tipe\',this.value)">'
+      +IG_TIPE_OPTIONS.map(t=>'<option value="'+t+'"'+(r.tipe===t?' selected':'')+'>'+t+'</option>').join('')
+      +'</select></td>'
+      +'<td><input class="it it-jml" type="number" min="0" value="'+r.jumlah+'" oninput="igSetVal('+r.id+',\'jumlah\',this.value)"></td>'
+      +'<td><div class="inout-wrap">'
+      +'<button class="io-btn IN'+(r.inout==='IN'?' active':'')+'" data-val="IN" onclick="igSetInOut('+r.id+',\'IN\')">IN</button>'
+      +'<button class="io-btn OUT'+(r.inout==='OUT'?' active':'')+'" data-val="OUT" onclick="igSetInOut('+r.id+',\'OUT\')">OUT</button>'
+      +'</div></td>'
+      +'<td class="ket-wrap"><select class="it ket-sel '+ketCls+'" onchange="igSetVal('+r.id+',\'ket\',this.value)">'
+      +IG_KET_OPTIONS.map(k=>'<option value="'+k+'"'+(r.ket===k?' selected':'')+'>'+k+'</option>').join('')
+      +'</select></td>'
+      +'<td id="igt-'+r.id+'" class="'+totCls+'">'+totStr+'</td>'
+      +'<td><button class="ig-del-btn" onclick="igDelRow('+r.id+')">✕</button></td>'
+    +'</tr>';
+  });
+  tbody.innerHTML=html;
+  igUpdateSummary();
+}
 
-  const groups = [
-    {key:'red',    label:'🔴 MERAH — Kosong di toko, ada di gudang', color:'var(--red)',    bg:'rgba(220,38,38,.12)'},
-    {key:'yellow', label:'🟡 KUNING — Sisa 1 di toko',               color:'var(--orange)', bg:'rgba(217,119,6,.12)'},
-    {key:'blue',   label:'🔵 BIRU — Stok menipis',                   color:'var(--blue)',   bg:'rgba(37,99,235,.12)'},
+function igUpdateSummary(){
+  var hilang=igRows.filter(r=>r.ket==='Hilang').length;
+  var ketemu=igRows.filter(r=>r.ket==='Ketemu').length;
+  var minus =igRows.filter(r=>r.ket==='Minus Stock').length;
+  document.getElementById('ig-cnt-hilang').textContent=hilang;
+  document.getElementById('ig-cnt-ketemu').textContent=ketemu;
+  document.getElementById('ig-cnt-minus').textContent=minus;
+}
+
+function igClearAll(){
+  if(!igRows.length)return;
+  if(!confirm('Hapus semua '+igRows.length+' baris? Tindakan ini tidak bisa dibatalkan.'))return;
+  igRows=[];igRenderTable();igUpdateSummary();
+  showToast('Semua baris dihapus','');
+}
+
+function igSaveApiUrl(){
+  igApiUrl=document.getElementById('ig-api-url').value.trim();
+  if(!igApiUrl.startsWith('http')){showToast('URL tidak valid','err');return;}
+  localStorage.setItem('ig_api_url',igApiUrl);
+  showToast('URL stok gudang tersimpan ✓','ok');
+}
+
+async function igSyncToSheets(){
+  if(!igRows.length){showToast('Tidak ada data untuk disimpan','err');return;}
+  var url=igApiUrl||localStorage.getItem('ig_api_url')||'';
+  if(!url||!url.startsWith('http')){
+    showToast('Setup URL Apps Script dulu di tab ⚙️ Pengaturan API','err');
+    switchIgTab('config', document.querySelector('.ig-stab:last-child'));
+    return;
+  }
+  var emptyNama=igRows.filter(r=>!r.nama.trim());
+  if(emptyNama.length){showToast('Nama produk tidak boleh kosong ('+emptyNama.length+' baris)','err');return;}
+
+  var btn=document.getElementById('ig-sync-btn'),st=document.getElementById('ig-sync-status');
+  btn.disabled=true;
+  btn.innerHTML='<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:igSpin .6s linear infinite;vertical-align:middle;margin-right:6px"></span>Menyimpan...';
+  st.textContent='Mengirim ke Sheets...';st.className='ig-sync-status';
+
+  var payload={type:'stok_gudang',rows:igRows.map(r=>({tanggal:r.tanggal,nama:r.nama,size:r.size,tipe:r.tipe,jumlah:r.jumlah,inout:r.inout,ket:r.ket,total:r.total||0}))};
+  try{
+    var resp=await fetch(url,{method:'POST',body:JSON.stringify(payload)});
+    var data=await resp.json();
+    if(data.status==='ok'){
+      st.textContent='Tersimpan '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      st.className='ig-sync-status ok';
+      showToast('✓ '+igRows.length+' baris berhasil disimpan ke Sheets','ok');
+    }else{throw new Error(data.message||'Unknown error');}
+  }catch(err){
+    st.textContent='Gagal: '+err.message.slice(0,40);
+    st.className='ig-sync-status err';
+    showToast('Gagal: '+err.message.slice(0,50),'err');
+  }
+  btn.disabled=false;btn.innerHTML='↑ Simpan ke Sheets';
+}
+
+// ═══════════════════════════════════════════
+// STOK MONITORING
+// ═══════════════════════════════════════════
+function initStokUI(){
+  const link=document.getElementById('stok-sheet-link');
+  if(link)link.href=SHEET_URL;
+  refreshStokSoundBtn();
+}
+function refreshStokSoundBtn(){
+  const btn=document.getElementById('stok-sound-btn');if(!btn)return;
+  if(stokSoundOn){btn.className='stok-sound-btn on';btn.textContent='🔔 Alarm On';}
+  else{btn.className='stok-sound-btn';btn.textContent='🔕 Alarm Off';}
+}
+function toggleStokSound(){
+  stokSoundOn=!stokSoundOn;localStorage.setItem('stok_sound',stokSoundOn?'1':'0');
+  refreshStokSoundBtn();
+  if(stokSoundOn){playAlarm(1);showToast('🔔 Alarm suara diaktifkan','ok');}
+  else{showToast('🔕 Alarm suara dimatikan','');}
+}
+function playAlarm(times){
+  try{
+    if(!_stokAudioCtx)_stokAudioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const ctx=_stokAudioCtx;if(ctx.state==='suspended')ctx.resume();
+    let t=ctx.currentTime;
+    for(let i=0;i<times;i++){
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.type='square';osc.frequency.setValueAtTime(880,t);
+      gain.gain.setValueAtTime(0.0001,t);gain.gain.exponentialRampToValueAtTime(0.25,t+0.02);gain.gain.exponentialRampToValueAtTime(0.0001,t+0.28);
+      osc.connect(gain).connect(ctx.destination);osc.start(t);osc.stop(t+0.3);t+=0.38;
+    }
+  }catch(e){}
+}
+function setStokFilter(f,btn){
+  stokFilter=f;document.querySelectorAll('#stok-filter-row .stok-chip').forEach(c=>c.classList.remove('active'));
+  if(btn)btn.classList.add('active');renderStokList();
+}
+async function loadStok(silent){
+  if(!scriptUrl){if(!silent)openModal();return;}
+  const btn=document.getElementById('stok-refresh-btn'),list=document.getElementById('stok-list');
+  if(!silent){if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Memuat...';}
+    list.innerHTML='<div class="empty"><span class="spinner"></span> Memeriksa stok...</div>';}
+  try{
+    const r=await fetch(`${scriptUrl}?type=stok`),d=await r.json();
+    if(d&&(d.red||d.yellow||d.blue)){
+      stokData={red:d.red||[],yellow:d.yellow||[],blue:d.blue||[]};
+      stokLoadedOnce=true;renderStokList();updateStokBadge();
+      const u=document.getElementById('stok-updated');
+      if(u)u.textContent='Diperbarui: '+new Date().toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'});
+      const redCount=stokData.red.length;
+      if(stokSoundOn&&redCount>0&&redCount!==_stokLastRedCount)playAlarm(3);
+      _stokLastRedCount=redCount;
+    }else{throw new Error(d&&d.message?d.message:'Endpoint type=stok belum tersedia');}
+  }catch(e){
+    if(!silent)list.innerHTML=`<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Belum bisa memuat stok.<br><br>Pastikan kode <b>type=stok</b> sudah ditambahkan ke Apps Script kamu, lalu <b>Deploy ulang</b>.<br><br><span style="font-family:var(--mono);font-size:10px;opacity:.7">${(e.message||'').slice(0,80)}</span></div></div>`;
+  }
+  if(!silent&&btn){btn.disabled=false;btn.textContent='🔄 Perbarui Data';}
+}
+function renderStokList(){
+  const list=document.getElementById('stok-list');
+  document.getElementById('stok-c-red').textContent=stokData.red.length;
+  document.getElementById('stok-c-yellow').textContent=stokData.yellow.length;
+  document.getElementById('stok-c-blue').textContent=stokData.blue.length;
+  const total=stokData.red.length+stokData.yellow.length+stokData.blue.length;
+  if(total===0){list.innerHTML=`<div class="empty"><div class="empty-icon">✅</div><div class="empty-text"><b>Semua stok aman</b><br>Tidak ada ukuran kosong di toko<br>yang masih tersedia di gudang.</div></div>`;return;}
+  const groups=[
+    {key:'red',label:'🔴 MERAH — Kosong di toko, ada di gudang',color:'var(--red)',bg:'rgba(220,38,38,.12)'},
+    {key:'yellow',label:'🟡 KUNING — Sisa 1 di toko',color:'var(--orange)',bg:'rgba(217,119,6,.12)'},
+    {key:'blue',label:'🔵 BIRU — Stok menipis',color:'var(--blue)',bg:'rgba(37,99,235,.12)'},
   ];
-
-  let html = '';
-  groups.forEach(g => {
-    if (stokFilter !== 'all' && stokFilter !== g.key) return;
-    const items = stokData[g.key] || [];
-    if (!items.length) return;
-    html += `<div class="stok-group-hdr">
-      <span class="gh-label" style="color:${g.color}">${g.label}</span>
-      <span class="gh-line"></span>
-      <span class="gh-count" style="background:${g.bg};color:${g.color}">${items.length}</span>
-    </div>`;
-    items.forEach(it => {
-      const nama = (it.nama||'').toString();
-      const size = (it.size!=null?it.size:'-');
-      const toko = (it.toko!=null?it.toko:0);
-      const gud  = (it.gudang!=null?it.gudang:0);
-      html += `<div class="stok-item ${g.key}">
-        <div class="stok-size-pill">${size}</div>
-        <div class="stok-item-body">
-          <div class="stok-item-name">${nama}</div>
-          <div class="stok-item-sub">Ukuran ${size}</div>
-        </div>
-        <div class="stok-qty">
-          <div>Toko: <span class="q-toko">${toko}</span></div>
-          <div>Gudang: <span class="q-gud">${gud}</span></div>
-        </div>
-      </div>`;
+  let html='';
+  groups.forEach(g=>{
+    if(stokFilter!=='all'&&stokFilter!==g.key)return;
+    const items=stokData[g.key]||[];if(!items.length)return;
+    html+=`<div class="stok-group-hdr"><span class="gh-label" style="color:${g.color}">${g.label}</span><span class="gh-line"></span><span class="gh-count" style="background:${g.bg};color:${g.color}">${items.length}</span></div>`;
+    items.forEach(it=>{
+      const nama=(it.nama||'').toString(),size=(it.size!=null?it.size:'-'),toko=(it.toko!=null?it.toko:0),gud=(it.gudang!=null?it.gudang:0);
+      html+=`<div class="stok-item ${g.key}"><div class="stok-size-pill">${size}</div><div class="stok-item-body"><div class="stok-item-name">${nama}</div><div class="stok-item-sub">Ukuran ${size}</div></div><div class="stok-qty"><div>Toko: <span class="q-toko">${toko}</span></div><div>Gudang: <span class="q-gud">${gud}</span></div></div></div>`;
     });
   });
-
-  if (!html) {
-    html = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Tidak ada item pada filter ini.</div></div>`;
-  }
-  list.innerHTML = html;
+  if(!html)html=`<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Tidak ada item pada filter ini.</div></div>`;
+  list.innerHTML=html;
 }
-
-function updateStokBadge() {
-  const badge = document.getElementById('badge-stok');
-  if (!badge) return;
-  const n = stokData.red.length;
-  if (n > 0) {
-    badge.textContent = n > 99 ? '99+' : n;
-    badge.classList.add('show', 'pulse');
-  } else {
-    badge.classList.remove('show', 'pulse');
-  }
+function updateStokBadge(){
+  const badge=document.getElementById('badge-stok');if(!badge)return;
+  const n=stokData.red.length;
+  if(n>0){badge.textContent=n>99?'99+':n;badge.classList.add('show','pulse');}
+  else{badge.classList.remove('show','pulse');}
 }
-
 
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
-  // FIX 2: Set tampilan tanggal hari ini (readonly)
-  const todayDisplay = formatTodayDisplay();
-  const hDisplay = document.getElementById('tgl-harian-display');
-  const eDisplay = document.getElementById('tgl-event-display');
-  if (hDisplay) hDisplay.textContent = todayDisplay;
-  if (eDisplay) eDisplay.textContent = todayDisplay;
+window.addEventListener('DOMContentLoaded',()=>{
+  const todayDisplay=formatTodayDisplay();
+  const hDisplay=document.getElementById('tgl-harian-display'),eDisplay=document.getElementById('tgl-event-display');
+  if(hDisplay)hDisplay.textContent=todayDisplay;
+  if(eDisplay)eDisplay.textContent=todayDisplay;
 
-  setCurrentMonth('grid-month');
-  setCurrentMonth('laporan-month');
-  setCurrentMonth('riwayat-month');
-  renderHarian();
-  renderEventGrid();
-  checkTodayFilled();
-  checkLaporanBadge();
+  setCurrentMonth('grid-month');setCurrentMonth('laporan-month');setCurrentMonth('riwayat-month');
+  renderHarian();renderEventGrid();checkTodayFilled();checkLaporanBadge();
 
-  // Stok: siapkan UI + cek stok di latar belakang (untuk badge)
-  initStokUI();
-  loadStok(true);
-  _stokRefreshTimer = setInterval(() => loadStok(true), STOK_AUTO_REFRESH_MS);
+  // Init stok input API URL
+  var igApiEl=document.getElementById('ig-api-url');
+  if(igApiEl)igApiEl.value=localStorage.getItem('ig_api_url')||'';
+  // Tambah 3 baris kosong default
+  igAddRow();igAddRow();igAddRow();
 
-  loadLocData();
-  updateTimerDisplay();
-  startGps();
+  initStokUI();loadStok(true);
+  _stokRefreshTimer=setInterval(()=>loadStok(true),STOK_AUTO_REFRESH_MS);
+  loadLocData();updateTimerDisplay();startGps();
 
-  if ('serviceWorker' in navigator) {
-    const sw = `
-      const C='kodachi-v2';
-      self.addEventListener('install',()=>self.skipWaiting());
-      self.addEventListener('activate',e=>e.waitUntil(clients.claim()));
-      self.addEventListener('fetch',e=>{
-        if(e.request.url.includes('fonts.googleapis')||e.request.url.includes('script.google.com'))return;
-        e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(f=>{c.put(e.request,f.clone());return f;}))));
-      });`;
+  if('serviceWorker' in navigator){
+    const sw=`const C='kodachi-v2';self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{if(e.request.url.includes('fonts.googleapis')||e.request.url.includes('script.google.com'))return;e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(f=>{c.put(e.request,f.clone());return f;}))));});`;
     navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
   }
 });
 
-function setCurrentMonth(id) { const d=new Date(); document.getElementById(id).value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function setCurrentMonth(id){const d=new Date();document.getElementById(id).value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
 
 // ═══════════════════════════════════════════
 // TABS
 // ═══════════════════════════════════════════
-function switchTab(name, btn) {
+function switchTab(name,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
-  if (name==='lokasi') updateLocTab();
-  if (name==='stok') {
-    if (!stokLoadedOnce) loadStok();
-    else renderStokList();
-  }
+  if(name==='stok'){if(!stokLoadedOnce)loadStok();else renderStokList();}
 }
 
-// Sub-menu di dalam tab Laporan (Mingguan / Grid / Riwayat)
-function switchLaporanView(view, btn) {
+function switchLaporanView(view,btn){
   document.querySelectorAll('.subview').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.subtab').forEach(t=>t.classList.remove('active'));
-  const map = { lap:'subview-lap', grid:'subview-grid', riw:'subview-riw' };
-  const el = document.getElementById(map[view]);
-  if (el) el.classList.add('active');
-  if (btn) btn.classList.add('active');
+  const map={lap:'subview-lap',grid:'subview-grid',riw:'subview-riw'};
+  const el=document.getElementById(map[view]);if(el)el.classList.add('active');
+  if(btn)btn.classList.add('active');
 }
 
 // ═══════════════════════════════════════════
 // RENDER HARIAN
 // ═══════════════════════════════════════════
-function renderHarian() {
-  const list   = document.getElementById('harian-list');
-  list.innerHTML = '';
-  const groups  = ['Wajib','Penting','Pendukung'];
-  const dotCls  = {Wajib:'wajib',Penting:'penting',Pendukung:'pendukung'};
-
-  groups.forEach(pri => {
-    const tasks = HARIAN.filter(t=>t.prioritas===pri);
-    if (!tasks.length) return;
-    const hdr = document.createElement('div');
-    hdr.className = 'section-hdr';
-    hdr.innerHTML = `<span class="section-hdr-label"><span class="pri-dot ${dotCls[pri]}"></span>${pri}</span><div class="section-hdr-line"></div>`;
+function renderHarian(){
+  const list=document.getElementById('harian-list');list.innerHTML='';
+  const groups=['Wajib','Penting','Pendukung'],dotCls={Wajib:'wajib',Penting:'penting',Pendukung:'pendukung'};
+  groups.forEach(pri=>{
+    const tasks=HARIAN.filter(t=>t.prioritas===pri);if(!tasks.length)return;
+    const hdr=document.createElement('div');hdr.className='section-hdr';
+    hdr.innerHTML=`<span class="section-hdr-label"><span class="pri-dot ${dotCls[pri]}"></span>${pri}</span><div class="section-hdr-line"></div>`;
     list.appendChild(hdr);
-
-    tasks.forEach(t => {
-      if (t.autoTrack) {
-        const el = document.createElement('div');
-        el.innerHTML = `
-          <div class="d01-card" id="d01-card">
-            <div class="d01-header">
-              <div class="d01-check empty" id="d01-check"></div>
-              <div class="d01-title">${t.nama}</div>
-              <div class="d01-badge empty" id="d01-badge">GPS aktif</div>
-            </div>
-            <div class="d01-dur-row">
-              <div class="d01-dur-box">
-                <div class="d01-dur-val muted" id="d01-dur-val">0j 0m</div>
-                <div class="d01-dur-label">Durasi di toko hari ini</div>
-              </div>
-              <div class="d01-dur-box" style="flex:0 0 auto;min-width:80px">
-                <div class="d01-dur-val muted" style="font-size:14px">4j 0m</div>
-                <div class="d01-dur-label">Target</div>
-              </div>
-            </div>
-            <div class="d01-prog-track">
-              <div class="d01-prog-fill" id="d01-prog-fill" style="width:0%;background:var(--hint)"></div>
-            </div>
-            <div class="d01-prog-labels"><span>0</span><span>1j</span><span>2j</span><span>3j</span><span>4j</span></div>
-            <div class="d01-caption">
-              <span class="dot grey" id="d01-caption-dot"></span>
-              <span id="d01-caption-text">Menunggu sinyal GPS...</span>
-            </div>
-            <div style="margin-top:8px">
-              <span class="task-auto-tag">📍 Otomatis dari GPS · D01 · ${t.kategori}</span>
-            </div>
-          </div>`;
-        list.appendChild(el);
-        setTimeout(updateD01Card, 50);
-      } else {
-        const el  = document.createElement('div');
-        const isDone = checked[t.kode];
-        el.className = 'task-item' + (isDone?' done':'');
-        el.id = 'task-' + t.kode;
-        el.innerHTML = `
-          <div class="task-check"><span class="check-icon">✓</span></div>
-          <div class="task-body">
-            <div class="task-name">${t.nama}</div>
-            <div class="task-meta">${t.kode} · ${t.kategori} · KPI: ${t.kpi}</div>
-            <span class="task-note-toggle" onclick="toggleNote(event,'${t.kode}')">+ Tambah catatan</span>
-            <textarea class="task-note-input" id="note-${t.kode}" placeholder="Catatan..." rows="2" style="display:none"
-              onclick="event.stopPropagation()" oninput="notes['${t.kode}']=this.value"></textarea>
-          </div>`;
-        el.addEventListener('click', () => toggleCheck(t.kode));
-        list.appendChild(el);
+    tasks.forEach(t=>{
+      if(t.autoTrack){
+        const el=document.createElement('div');
+        el.innerHTML=`<div class="d01-card" id="d01-card"><div class="d01-header"><div class="d01-check empty" id="d01-check"></div><div class="d01-title">${t.nama}</div><div class="d01-badge empty" id="d01-badge">GPS aktif</div></div><div class="d01-dur-row"><div class="d01-dur-box"><div class="d01-dur-val muted" id="d01-dur-val">0j 0m</div><div class="d01-dur-label">Durasi di toko hari ini</div></div><div class="d01-dur-box" style="flex:0 0 auto;min-width:80px"><div class="d01-dur-val muted" style="font-size:14px">4j 0m</div><div class="d01-dur-label">Target</div></div></div><div class="d01-prog-track"><div class="d01-prog-fill" id="d01-prog-fill" style="width:0%;background:var(--hint)"></div></div><div class="d01-prog-labels"><span>0</span><span>1j</span><span>2j</span><span>3j</span><span>4j</span></div><div class="d01-caption"><span class="dot grey" id="d01-caption-dot"></span><span id="d01-caption-text">Menunggu sinyal GPS...</span></div><div style="margin-top:8px"><span class="task-auto-tag">📍 Otomatis dari GPS · D01 · ${t.kategori}</span></div></div>`;
+        list.appendChild(el);setTimeout(updateD01Card,50);
+      }else{
+        const el=document.createElement('div'),isDone=checked[t.kode];
+        el.className='task-item'+(isDone?' done':'');el.id='task-'+t.kode;
+        el.innerHTML=`<div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">${t.nama}</div><div class="task-meta">${t.kode} · ${t.kategori} · KPI: ${t.kpi}</div><span class="task-note-toggle" onclick="toggleNote(event,'${t.kode}')">+ Tambah catatan</span><textarea class="task-note-input" id="note-${t.kode}" placeholder="Catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes['${t.kode}']=this.value"></textarea></div>`;
+        el.addEventListener('click',()=>toggleCheck(t.kode));list.appendChild(el);
       }
     });
   });
   updateStats();
 }
 
-function toggleCheck(kode) {
-  checked[kode] = !checked[kode];
-  const el = document.getElementById('task-' + kode);
-  if (el) el.classList.toggle('done', checked[kode]);
-  updateStats();
-}
-
-function toggleNote(e, kode) {
-  e.stopPropagation();
-  const ta = document.getElementById('note-' + kode);
-  ta.style.display = ta.style.display==='none' ? 'block' : 'none';
-}
-
-function updateStats() {
-  const done  = Object.values(checked).filter(Boolean).length;
-  const total = HARIAN.length;
-  const skip  = total - done;
-  const pct   = Math.round(done/total*100);
-  document.getElementById('stat-done').textContent = done;
-  document.getElementById('stat-skip').textContent = skip;
-  document.getElementById('stat-pct').textContent  = pct + '%';
-  document.getElementById('stat-pct').style.color  = pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';
-  document.getElementById('prog-pct').textContent  = pct + '%';
-  const fill = document.getElementById('prog-fill');
-  fill.style.width = pct + '%';
-  fill.className   = 'prog-fill' + (pct>=90?'':pct>=70?' mid':' low');
+function toggleCheck(kode){checked[kode]=!checked[kode];const el=document.getElementById('task-'+kode);if(el)el.classList.toggle('done',checked[kode]);updateStats();}
+function toggleNote(e,kode){e.stopPropagation();const ta=document.getElementById('note-'+kode);ta.style.display=ta.style.display==='none'?'block':'none';}
+function updateStats(){
+  const done=Object.values(checked).filter(Boolean).length,total=HARIAN.length,skip=total-done,pct=Math.round(done/total*100);
+  document.getElementById('stat-done').textContent=done;document.getElementById('stat-skip').textContent=skip;
+  document.getElementById('stat-pct').textContent=pct+'%';document.getElementById('stat-pct').style.color=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  const fill=document.getElementById('prog-fill');fill.style.width=pct+'%';fill.className='prog-fill'+(pct>=90?'':pct>=70?' mid':' low');
 }
 
 // ═══════════════════════════════════════════
-// NOTIF
+// NOTIF & SAVE HARIAN
 // ═══════════════════════════════════════════
-async function checkTodayFilled() {
-  if (!scriptUrl) return;
-  try {
-    const r = await fetch(`${scriptUrl}?type=cek&tanggal=${todayValue}`);
-    const d = await r.json();
-    const badge    = document.getElementById('badge-harian');
-    const notifDiv = document.getElementById('notif-harian');
-    if (d.filled) {
-      badge.classList.remove('show');
-      notifDiv.style.display = 'none';
-    } else {
-      badge.classList.add('show');
-      notifDiv.style.display = 'flex';
-      notifDiv.innerHTML = `<div class="notif-item">⚠ Hari ini belum ada data yang disimpan ke Google Sheets</div>`;
-    }
-  } catch(e) {}
+async function checkTodayFilled(){
+  if(!scriptUrl)return;
+  try{
+    const r=await fetch(`${scriptUrl}?type=cek&tanggal=${todayValue}`),d=await r.json();
+    const badge=document.getElementById('badge-harian'),notifDiv=document.getElementById('notif-harian');
+    if(d.filled){badge.classList.remove('show');notifDiv.style.display='none';}
+    else{badge.classList.add('show');notifDiv.style.display='flex';notifDiv.innerHTML=`<div class="notif-item">⚠ Hari ini belum ada data yang disimpan ke Google Sheets</div>`;}
+  }catch(e){}
 }
-
-async function checkLaporanBadge() {
-  if (!scriptUrl) return;
-  try {
-    const bulan = document.getElementById('laporan-month').value;
-    const r = await fetch(`${scriptUrl}?type=rekap&bulan=${bulan}`);
-    const d = await r.json();
-    if (!d.tasks) return;
-    document.getElementById('badge-laporan').classList.toggle('show', d.tasks.some(t=>t.pct<70&&t.pct>0));
-  } catch(e) {}
+async function checkLaporanBadge(){
+  if(!scriptUrl)return;
+  try{
+    const bulan=document.getElementById('laporan-month').value,r=await fetch(`${scriptUrl}?type=rekap&bulan=${bulan}`),d=await r.json();
+    if(!d.tasks)return;document.getElementById('badge-laporan').classList.toggle('show',d.tasks.some(t=>t.pct<70&&t.pct>0));
+  }catch(e){}
 }
-
-// ═══════════════════════════════════════════
-// SAVE HARIAN
-// ═══════════════════════════════════════════
-async function saveHarian() {
-  if (!scriptUrl) { openModal(); return; }
-
-  const btn = document.getElementById('save-harian-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Menyimpan...';
-
-  const totalMenit = getCurrentTotalMinutes();
-  const h  = Math.floor(totalMenit/60);
-  const m  = Math.floor(totalMenit%60);
-  const gpsNote = totalMenit > 0
-    ? `GPS: ${h}j ${m}m di toko${totalMenit>=TARGET_MENIT?'':' (< target 4j)'} · ${isAtStore?'Masih di toko':'Sudah keluar toko'}`
-    : 'GPS: tidak ada durasi tercatat';
-
-  const entries = HARIAN.map(t => ({
-    tanggal: todayValue,
-    kode: t.kode,
-    nama: t.nama,
-    kategori: t.kategori,
-    prioritas: t.prioritas,
-    status: t.autoTrack ? (totalMenit>=TARGET_MENIT?'✓':'✗') : (checked[t.kode]?'✓':'✗'),
-    catatan: t.autoTrack ? gpsNote : (notes[t.kode] || '')
-  }));
-
-  try {
-    const r = await fetch(scriptUrl, { method:'POST', body:JSON.stringify({type:'harian', entries}) });
-    const d = await r.json();
-    if (d.status === 'ok') {
-      showToast('✓ Tersimpan ke Google Sheets','ok');
-      checkTodayFilled();
-      checkLaporanBadge();
-    } else {
-      showToast('Gagal: '+(d.message||'unknown'),'err');
-    }
-  } catch(e) {
-    showToast('Gagal terhubung ke Sheets','err');
-  }
-
-  btn.disabled = false;
-  btn.textContent = 'Simpan ke Google Sheets';
+async function saveHarian(){
+  if(!scriptUrl){openModal();return;}
+  const btn=document.getElementById('save-harian-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Menyimpan...';
+  const totalMenit=getCurrentTotalMinutes(),h=Math.floor(totalMenit/60),m=Math.floor(totalMenit%60);
+  const gpsNote=totalMenit>0?`GPS: ${h}j ${m}m di toko${totalMenit>=TARGET_MENIT?'':' (< target 4j)'} · ${isAtStore?'Masih di toko':'Sudah keluar toko'}`:'GPS: tidak ada durasi tercatat';
+  const entries=HARIAN.map(t=>({tanggal:todayValue,kode:t.kode,nama:t.nama,kategori:t.kategori,prioritas:t.prioritas,status:t.autoTrack?(totalMenit>=TARGET_MENIT?'✓':'✗'):(checked[t.kode]?'✓':'✗'),catatan:t.autoTrack?gpsNote:(notes[t.kode]||'')}));
+  try{
+    const r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'harian',entries})}),d=await r.json();
+    if(d.status==='ok'){showToast('✓ Tersimpan ke Google Sheets','ok');checkTodayFilled();checkLaporanBadge();}
+    else{showToast('Gagal: '+(d.message||'unknown'),'err');}
+  }catch(e){showToast('Gagal terhubung ke Sheets','err');}
+  btn.disabled=false;btn.textContent='Simpan ke Google Sheets';
 }
 
 // ═══════════════════════════════════════════
 // EVENTS
 // ═══════════════════════════════════════════
-function renderEventGrid() {
-  const grid = document.getElementById('event-grid');
-  grid.innerHTML = '';
-  EVENTS.forEach(ev => {
-    const el = document.createElement('div');
-    el.className = 'event-card';
-    el.id = 'ev-' + ev.kode;
-    el.innerHTML = `<div class="event-kode">${ev.kode}</div><div class="event-nama">${ev.nama}</div><div class="event-meta">${ev.frekuensi} · ${ev.prioritas}</div>`;
-    el.onclick = () => selectEvent(ev);
-    grid.appendChild(el);
+function renderEventGrid(){
+  const grid=document.getElementById('event-grid');grid.innerHTML='';
+  EVENTS.forEach(ev=>{
+    const el=document.createElement('div');el.className='event-card';el.id='ev-'+ev.kode;
+    el.innerHTML=`<div class="event-kode">${ev.kode}</div><div class="event-nama">${ev.nama}</div><div class="event-meta">${ev.frekuensi} · ${ev.prioritas}</div>`;
+    el.onclick=()=>selectEvent(ev);grid.appendChild(el);
   });
 }
-
-function selectEvent(ev) {
-  selectedEvent = ev; selectedStatus = null;
+function selectEvent(ev){
+  selectedEvent=ev;selectedStatus=null;
   document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));
   document.getElementById('ev-'+ev.kode).classList.add('selected');
-  document.getElementById('sbtn-ok').className = 'status-btn';
-  document.getElementById('sbtn-no').className = 'status-btn';
-  document.getElementById('event-note').value = '';
-  document.getElementById('event-detail').style.display = 'block';
+  document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';
+  document.getElementById('event-note').value='';document.getElementById('event-detail').style.display='block';
   document.getElementById('event-detail').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-
-function setStatus(s) {
-  selectedStatus = s;
-  document.getElementById('sbtn-ok').className = 'status-btn' + (s==='✓'?' sel-ok':'');
-  document.getElementById('sbtn-no').className = 'status-btn' + (s==='✗'?' sel-no':'');
+function setStatus(s){
+  selectedStatus=s;
+  document.getElementById('sbtn-ok').className='status-btn'+(s==='✓'?' sel-ok':'');
+  document.getElementById('sbtn-no').className='status-btn'+(s==='✗'?' sel-no':'');
 }
-
-async function saveEvent() {
-  if (!scriptUrl) { openModal(); return; }
-  if (!selectedEvent)  { showToast('Pilih tugas dulu','err'); return; }
-  if (!selectedStatus) { showToast('Pilih status dulu','err'); return; }
-  try {
-    const r = await fetch(scriptUrl, {
-      method:'POST',
-      body:JSON.stringify({
-        type:'event', tanggal: todayValue,
-        kode:selectedEvent.kode, nama:selectedEvent.nama,
-        kategori:selectedEvent.kategori, frekuensi:selectedEvent.frekuensi,
-        prioritas:selectedEvent.prioritas,
-        status:selectedStatus,
-        catatan:document.getElementById('event-note').value
-      })
-    });
-    const d = await r.json();
-    if (d.status==='ok') {
-      showToast('✓ Tercatat','ok');
-      document.getElementById('event-detail').style.display = 'none';
-      selectedEvent = null; selectedStatus = null;
-      document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));
-    } else { showToast('Gagal: '+(d.message||'unknown'),'err'); }
-  } catch(e) { showToast('Gagal terhubung ke Sheets','err'); }
+async function saveEvent(){
+  if(!scriptUrl){openModal();return;}
+  if(!selectedEvent){showToast('Pilih tugas dulu','err');return;}
+  if(!selectedStatus){showToast('Pilih status dulu','err');return;}
+  try{
+    const r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'event',tanggal:todayValue,kode:selectedEvent.kode,nama:selectedEvent.nama,kategori:selectedEvent.kategori,frekuensi:selectedEvent.frekuensi,prioritas:selectedEvent.prioritas,status:selectedStatus,catatan:document.getElementById('event-note').value})});
+    const d=await r.json();
+    if(d.status==='ok'){showToast('✓ Tercatat','ok');document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));}
+    else{showToast('Gagal: '+(d.message||'unknown'),'err');}
+  }catch(e){showToast('Gagal terhubung ke Sheets','err');}
 }
 
 // ═══════════════════════════════════════════
 // GRID
 // ═══════════════════════════════════════════
-async function loadGrid() {
-  if (!scriptUrl) { openModal(); return; }
-  const bulan = document.getElementById('grid-month').value;
-  if (!bulan) return;
-  const cont = document.getElementById('grid-container');
-  cont.innerHTML = '<div class="empty"><span class="spinner"></span> Memuat data...</div>';
-  try {
-    const r = await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);
-    renderGrid(await r.json(), bulan);
-  } catch(e) { cont.innerHTML = '<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat data</div></div>'; }
+async function loadGrid(){
+  if(!scriptUrl){openModal();return;}
+  const bulan=document.getElementById('grid-month').value;if(!bulan)return;
+  const cont=document.getElementById('grid-container');cont.innerHTML='<div class="empty"><span class="spinner"></span> Memuat data...</div>';
+  try{const r=await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);renderGrid(await r.json(),bulan);}
+  catch(e){cont.innerHTML='<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat data</div></div>';}
 }
-
-function renderGrid(data, bulan) {
-  const cont = document.getElementById('grid-container');
-  if (!data?.rows?.length) { cont.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>'; return; }
-  const [yr, mo] = bulan.split('-').map(Number);
-  const dim = new Date(yr, mo, 0).getDate();
-  let hdr = '';
-  for (let d=1; d<=dim; d++) {
-    const dow = new Date(yr,mo-1,d).getDay();
-    hdr += `<th class="${dow===0?'sunday':''}">${d}<br><span style="font-weight:400;opacity:.6">${DAY_SHORT[dow]}</span></th>`;
-  }
-  const dm = {};
-  data.rows.forEach(row => {
-    const k = row[1]; if (!dm[k]) dm[k]={};
-    const day = parseInt((row[0]||'').split('-')[2]) || 0;
-    if (day) dm[k][day] = row[5];
+function renderGrid(data,bulan){
+  const cont=document.getElementById('grid-container');
+  if(!data?.rows?.length){cont.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>';return;}
+  const[yr,mo]=bulan.split('-').map(Number),dim=new Date(yr,mo,0).getDate();
+  let hdr='';for(let d=1;d<=dim;d++){const dow=new Date(yr,mo-1,d).getDay();hdr+=`<th class="${dow===0?'sunday':''}">${d}<br><span style="font-weight:400;opacity:.6">${DAY_SHORT[dow]}</span></th>`;}
+  const dm={};data.rows.forEach(row=>{const k=row[1];if(!dm[k])dm[k]={};const day=parseInt((row[0]||'').split('-')[2])||0;if(day)dm[k][day]=row[5];});
+  let rows='';const tp={};
+  HARIAN.forEach(t=>{
+    const td=dm[t.kode]||{};let dc=0,cells='';
+    for(let d=1;d<=dim;d++){const dow=new Date(yr,mo-1,d).getDay();if(dow===0){cells+=`<td class="sunday"><div class="grid-cell sunday">—</div></td>`;continue;}
+    const isDone=td[d]==='✓';if(isDone)dc++;const isPast=new Date(yr,mo-1,d)<new Date();
+    cells+=`<td><div class="grid-cell ${isDone?'done':isPast?'empty':''}" style="${!isDone&&isPast?'color:var(--red);opacity:.4':''}">${isDone?'✓':isPast?'✗':''}</div></td>`;}
+    const pw=Array.from({length:dim},(_,i)=>i+1).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date()).length;
+    const pct=pw>0?Math.round(dc/pw*100):0;tp[t.kode]=pct;const pc=pct>=90?'pct-hi':pct>=70?'pct-mid':'pct-lo';
+    const pc2=t.prioritas==='Wajib'?'var(--red)':t.prioritas==='Penting'?'var(--orange)':'var(--blue)';
+    rows+=`<tr><td class="task-info"><div class="task-code" style="color:${pc2}">${t.kode}${t.autoTrack?' 📍':''}</div><div class="task-name-cell">${t.nama}</div></td>${cells}<td><div class="grid-pct ${pc}">${pct}%</div></td></tr>`;
   });
-  let rows = '';
-  const tp = {};
-  HARIAN.forEach(t => {
-    const td = dm[t.kode]||{};
-    let dc=0, cells='';
-    for (let d=1; d<=dim; d++) {
-      const dow = new Date(yr,mo-1,d).getDay();
-      if (dow===0) { cells+=`<td class="sunday"><div class="grid-cell sunday">—</div></td>`; continue; }
-      const isDone = td[d]==='✓';
-      if (isDone) dc++;
-      const isPast = new Date(yr,mo-1,d) < new Date();
-      cells += `<td><div class="grid-cell ${isDone?'done':isPast?'empty':''}" style="${!isDone&&isPast?'color:var(--red);opacity:.4':''}">${isDone?'✓':isPast?'✗':''}</div></td>`;
-    }
-    const pw = Array.from({length:dim},(_,i)=>i+1).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date()).length;
-    const pct = pw>0 ? Math.round(dc/pw*100) : 0;
-    tp[t.kode] = pct;
-    const pc  = pct>=90?'pct-hi':pct>=70?'pct-mid':'pct-lo';
-    const pc2 = t.prioritas==='Wajib'?'var(--red)':t.prioritas==='Penting'?'var(--orange)':'var(--blue)';
-    rows += `<tr><td class="task-info"><div class="task-code" style="color:${pc2}">${t.kode}${t.autoTrack?' 📍':''}</div><div class="task-name-cell">${t.nama}</div></td>${cells}<td><div class="grid-pct ${pc}">${pct}%</div></td></tr>`;
-  });
-  const avg  = v => { const c=v>=90?'pct-hi':v>=70?'pct-mid':'pct-lo'; return `<td colspan="${dim}" style="text-align:left;padding-left:12px"><span class="grid-pct ${c}">${v}%</span></td><td></td>`; };
-  const aAll = Math.round(Object.values(tp).reduce((a,b)=>a+b,0)/HARIAN.length);
-  const aW   = Math.round(HARIAN.filter(t=>t.prioritas==='Wajib').reduce((s,t)=>s+(tp[t.kode]||0),0)/HARIAN.filter(t=>t.prioritas==='Wajib').length);
-  const aP   = Math.round(HARIAN.filter(t=>t.prioritas==='Penting').reduce((s,t)=>s+(tp[t.kode]||0),0)/HARIAN.filter(t=>t.prioritas==='Penting').length);
-  cont.innerHTML = `<div class="grid-wrap"><table class="grid-table"><thead><tr><th class="task-col">Tugas</th>${hdr}<th>%</th></tr></thead><tbody>${rows}
-    <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">RATA-RATA SEMUA</td>${avg(aAll)}</tr>
-    <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata WAJIB 🔴</td>${avg(aW)}</tr>
-    <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata PENTING 🟡</td>${avg(aP)}</tr>
-  </tbody></table></div>`;
+  const avg=v=>{const c=v>=90?'pct-hi':v>=70?'pct-mid':'pct-lo';return`<td colspan="${dim}" style="text-align:left;padding-left:12px"><span class="grid-pct ${c}">${v}%</span></td><td></td>`;};
+  const aAll=Math.round(Object.values(tp).reduce((a,b)=>a+b,0)/HARIAN.length);
+  const aW=Math.round(HARIAN.filter(t=>t.prioritas==='Wajib').reduce((s,t)=>s+(tp[t.kode]||0),0)/HARIAN.filter(t=>t.prioritas==='Wajib').length);
+  const aP=Math.round(HARIAN.filter(t=>t.prioritas==='Penting').reduce((s,t)=>s+(tp[t.kode]||0),0)/HARIAN.filter(t=>t.prioritas==='Penting').length);
+  cont.innerHTML=`<div class="grid-wrap"><table class="grid-table"><thead><tr><th class="task-col">Tugas</th>${hdr}<th>%</th></tr></thead><tbody>${rows}<tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">RATA-RATA SEMUA</td>${avg(aAll)}</tr><tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata WAJIB 🔴</td>${avg(aW)}</tr><tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata PENTING 🟡</td>${avg(aP)}</tr></tbody></table></div>`;
 }
 
 // ═══════════════════════════════════════════
 // LAPORAN
 // ═══════════════════════════════════════════
-async function loadLaporan() {
-  if (!scriptUrl) { openModal(); return; }
-  const bulan = document.getElementById('laporan-month').value;
-  if (!bulan) return;
-  const cont = document.getElementById('laporan-container');
-  cont.innerHTML = '<div class="empty"><span class="spinner"></span> Memuat laporan...</div>';
-  try {
-    const r = await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);
-    renderLaporan(await r.json(), bulan);
-  } catch(e) { cont.innerHTML = '<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat laporan</div></div>'; }
+async function loadLaporan(){
+  if(!scriptUrl){openModal();return;}
+  const bulan=document.getElementById('laporan-month').value;if(!bulan)return;
+  const cont=document.getElementById('laporan-container');cont.innerHTML='<div class="empty"><span class="spinner"></span> Memuat laporan...</div>';
+  try{const r=await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);renderLaporan(await r.json(),bulan);}
+  catch(e){cont.innerHTML='<div class="empty"><div class="empty-icon">⚠</div><div class="empty-text">Gagal memuat laporan</div></div>';}
 }
-
-function renderLaporan(data, bulan) {
-  const cont = document.getElementById('laporan-container');
-  const [yr, mo] = bulan.split('-').map(Number);
-  const dim = new Date(yr, mo, 0).getDate();
-  const bn  = BULAN_NAMES[mo-1] + ' ' + yr;
-  const dm  = {};
-  (data.rows||[]).forEach(row => {
-    const k=row[1]; if(!dm[k])dm[k]={};
-    const day=parseInt((row[0]||'').split('-')[2])||0;
-    if(day)dm[k][day]=row[5];
-  });
-  const weeks=[], pd=Array.from({length:dim},(_,i)=>i+1).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());
-  let ws=1;
-  while(ws<=dim){let we=ws;while(we<dim&&new Date(yr,mo-1,we+1).getDay()!==1)we++;weeks.push({start:ws,end:we});ws=we+1;}
+function renderLaporan(data,bulan){
+  const cont=document.getElementById('laporan-container');
+  const[yr,mo]=bulan.split('-').map(Number),dim=new Date(yr,mo,0).getDate(),bn=BULAN_NAMES[mo-1]+' '+yr;
+  const dm={};(data.rows||[]).forEach(row=>{const k=row[1];if(!dm[k])dm[k]={};const day=parseInt((row[0]||'').split('-')[2])||0;if(day)dm[k][day]=row[5];});
+  const weeks=[],pd=Array.from({length:dim},(_,i)=>i+1).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());
+  let ws=1;while(ws<=dim){let we=ws;while(we<dim&&new Date(yr,mo-1,we+1).getDay()!==1)we++;weeks.push({start:ws,end:we});ws=we+1;}
   const tp={};let notifHTML='';
-  HARIAN.forEach(t=>{
-    const done=pd.filter(d=>(dm[t.kode]||{})[d]==='✓').length;
-    const pct=pd.length>0?Math.round(done/pd.length*100):null;
-    tp[t.kode]=pct;
-    if(pct!==null&&pct<70)notifHTML+=`<div class="notif-item warn">⚠ ${t.kode} · ${t.nama}: hanya <b>${pct}%</b></div>`;
-  });
-  const wp=weeks.map(w=>{
-    const wd=Array.from({length:w.end-w.start+1},(_,i)=>w.start+i).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());
-    if(!wd.length)return null;
-    const ad=HARIAN.reduce((s,t)=>s+wd.filter(d=>(dm[t.kode]||{})[d]==='✓').length,0);
-    const tot=HARIAN.length*wd.length;
-    return tot>0?Math.round(ad/tot*100):0;
-  });
-  const barsHTML=wp.map((p,i)=>{
-    if(p===null)return`<div class="bar-col"><div class="bar-label">Mg ${i+1}</div></div>`;
-    const h=Math.round((p/100)*80);
-    const col=p>=90?'var(--green)':p>=70?'var(--orange)':'var(--red)';
-    return`<div class="bar-col"><div class="bar-val">${p}%</div><div class="bar-rect" style="height:${h}px;background:${col}"></div><div class="bar-label">Mg ${i+1}</div></div>`;
-  }).join('');
-  const weeksHTML=weeks.map((w,wi)=>{
-    const wlabel=`Minggu ${wi+1}: ${w.start}–${w.end}/${String(mo).padStart(2,'0')}`;
-    const wd=Array.from({length:w.end-w.start+1},(_,i)=>w.start+i).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());
-    const p=wp[wi];if(p===null)return'';
-    const pc=p>=90?'var(--green)':p>=70?'var(--orange)':'var(--red)';
-    const tr=HARIAN.map(t=>{
-      const done=wd.filter(d=>(dm[t.kode]||{})[d]==='✓').length;
-      const pct=wd.length>0?Math.round(done/wd.length*100):0;
-      const bc=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';
-      return`<div class="laporan-task-row"><div class="lt-kode">${t.kode}</div><div class="lt-name">${t.nama}${t.autoTrack?' 📍':''}</div><div class="lt-bar-wrap"><div class="lt-bar-fill" style="width:${pct}%;background:${bc}"></div></div><div class="lt-pct" style="color:${bc}">${wd.length>0?pct+'%':'—'}</div></div>`;
-    }).join('');
-    return`<div class="laporan-week"><div class="week-title">${wlabel}</div><div class="week-avg" style="color:${pc}">${p}%</div><div style="font-size:11px;color:var(--muted);margin-bottom:10px">rata-rata semua tugas</div>${tr}</div>`;
-  }).join('');
+  HARIAN.forEach(t=>{const done=pd.filter(d=>(dm[t.kode]||{})[d]==='✓').length;const pct=pd.length>0?Math.round(done/pd.length*100):null;tp[t.kode]=pct;if(pct!==null&&pct<70)notifHTML+=`<div class="notif-item warn">⚠ ${t.kode} · ${t.nama}: hanya <b>${pct}%</b></div>`;});
+  const wp=weeks.map(w=>{const wd=Array.from({length:w.end-w.start+1},(_,i)=>w.start+i).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());if(!wd.length)return null;const ad=HARIAN.reduce((s,t)=>s+wd.filter(d=>(dm[t.kode]||{})[d]==='✓').length,0),tot=HARIAN.length*wd.length;return tot>0?Math.round(ad/tot*100):0;});
+  const barsHTML=wp.map((p,i)=>{if(p===null)return`<div class="bar-col"><div class="bar-label">Mg ${i+1}</div></div>`;const h=Math.round((p/100)*80),col=p>=90?'var(--green)':p>=70?'var(--orange)':'var(--red)';return`<div class="bar-col"><div class="bar-val">${p}%</div><div class="bar-rect" style="height:${h}px;background:${col}"></div><div class="bar-label">Mg ${i+1}</div></div>`;}).join('');
+  const weeksHTML=weeks.map((w,wi)=>{const wlabel=`Minggu ${wi+1}: ${w.start}–${w.end}/${String(mo).padStart(2,'0')}`;const wd=Array.from({length:w.end-w.start+1},(_,i)=>w.start+i).filter(d=>new Date(yr,mo-1,d).getDay()!==0&&new Date(yr,mo-1,d)<new Date());const p=wp[wi];if(p===null)return'';const pc=p>=90?'var(--green)':p>=70?'var(--orange)':'var(--red)';const tr=HARIAN.map(t=>{const done=wd.filter(d=>(dm[t.kode]||{})[d]==='✓').length;const pct=wd.length>0?Math.round(done/wd.length*100):0;const bc=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';return`<div class="laporan-task-row"><div class="lt-kode">${t.kode}</div><div class="lt-name">${t.nama}${t.autoTrack?' 📍':''}</div><div class="lt-bar-wrap"><div class="lt-bar-fill" style="width:${pct}%;background:${bc}"></div></div><div class="lt-pct" style="color:${bc}">${wd.length>0?pct+'%':'—'}</div></div>`;}).join('');return`<div class="laporan-week"><div class="week-title">${wlabel}</div><div class="week-avg" style="color:${pc}">${p}%</div><div style="font-size:11px;color:var(--muted);margin-bottom:10px">rata-rata semua tugas</div>${tr}</div>`;}).join('');
   cont.innerHTML=`${notifHTML?`<div class="notif-list">${notifHTML}</div>`:''}
     <div class="chart-wrap"><div class="chart-title">% Penyelesaian per Minggu — ${bn}</div><div class="bar-chart">${barsHTML}</div></div>
     ${weeksHTML||'<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>'}`;
@@ -1583,101 +1365,70 @@ function renderLaporan(data, bulan) {
 // ═══════════════════════════════════════════
 // RIWAYAT
 // ═══════════════════════════════════════════
-async function loadRiwayat() {
-  if (!scriptUrl) { openModal(); return; }
-  const bulan = document.getElementById('riwayat-month').value;
-  if (!bulan) return;
-  const cont = document.getElementById('riwayat-container');
-  cont.innerHTML = '<div class="empty"><span class="spinner"></span> Memuat riwayat...</div>';
-  try {
-    const [rH,rE] = await Promise.all([
+async function loadRiwayat(){
+  if(!scriptUrl){openModal();return;}
+  const bulan=document.getElementById('riwayat-month').value;if(!bulan)return;
+  const cont=document.getElementById('riwayat-container');cont.innerHTML='<div class="empty"><span class="spinner"></span> Memuat riwayat...</div>';
+  try{
+    const[rH,rE]=await Promise.all([
       fetch(`${scriptUrl}?type=harian&bulan=${bulan}`).then(r=>r.json()).catch(()=>null),
       fetch(`${scriptUrl}?type=event&bulan=${bulan}`).then(r=>r.json()).catch(()=>null),
-    ]);
-    renderRiwayat(rH, rE, bulan);
-  } catch(e) { cont.innerHTML = '<div class="empty">Gagal memuat riwayat</div>'; }
+    ]);renderRiwayat(rH,rE,bulan);
+  }catch(e){cont.innerHTML='<div class="empty">Gagal memuat riwayat</div>';}
 }
-
-function renderRiwayat(rH, rE, bulan) {
-  const cont = document.getElementById('riwayat-container');
-  const [yr, mo] = bulan.split('-').map(Number);
-  const bd = {};
-  (rH?.rows||[]).forEach(row=>{
-    const tgl=row[0]; if(!tgl)return;
-    if(!bd[tgl])bd[tgl]=[];
-    bd[tgl].push({kode:row[1],nama:row[2],status:row[5],catatan:row[6]});
-  });
-  const dates = Object.keys(bd).sort().reverse();
-  if (!dates.length && !rE?.rows?.length) {
-    cont.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>';
-    return;
-  }
+function renderRiwayat(rH,rE,bulan){
+  const cont=document.getElementById('riwayat-container');
+  const[yr,mo]=bulan.split('-').map(Number),bd={};
+  (rH?.rows||[]).forEach(row=>{const tgl=row[0];if(!tgl)return;if(!bd[tgl])bd[tgl]=[];bd[tgl].push({kode:row[1],nama:row[2],status:row[5],catatan:row[6]});});
+  const dates=Object.keys(bd).sort().reverse();
+  if(!dates.length&&!rE?.rows?.length){cont.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>';return;}
   let html='';
-  if (dates.length) {
+  if(dates.length){
     html+=`<div class="section-hdr"><span class="section-hdr-label">Tugas Harian</span><div class="section-hdr-line"></div></div>`;
-    dates.forEach(tgl=>{
-      const tasks=bd[tgl];
-      const done=tasks.filter(t=>t.status==='✓').length;
-      const pct=Math.round(done/tasks.length*100);
-      const tags=tasks.map(t=>`<span class="history-tag ${t.status==='✓'?'done':'skip'}">${t.kode}</span>`).join('');
-      const d=new Date(tgl);
-      html+=`<div class="history-item"><div class="history-date">${d.getDate()} ${BULAN_NAMES[d.getMonth()]} — ${DAY_SHORT[d.getDay()]}</div><div class="history-tasks">${tags}</div><div class="history-summary">${done}/${tasks.length} selesai (${pct}%)</div></div>`;
-    });
+    dates.forEach(tgl=>{const tasks=bd[tgl],done=tasks.filter(t=>t.status==='✓').length,pct=Math.round(done/tasks.length*100);const tags=tasks.map(t=>`<span class="history-tag ${t.status==='✓'?'done':'skip'}">${t.kode}</span>`).join('');const d=new Date(tgl);html+=`<div class="history-item"><div class="history-date">${d.getDate()} ${BULAN_NAMES[d.getMonth()]} — ${DAY_SHORT[d.getDay()]}</div><div class="history-tasks">${tags}</div><div class="history-summary">${done}/${tasks.length} selesai (${pct}%)</div></div>`;});
   }
-  if (rE?.rows?.length) {
+  if(rE?.rows?.length){
     html+=`<div class="section-hdr" style="margin-top:16px"><span class="section-hdr-label">Tugas Non-Harian</span><div class="section-hdr-line"></div></div>`;
-    [...rE.rows].reverse().forEach(row=>{
-      const [tgl,,kode,nama,,,,status,catatan]=row; if(!tgl)return;
-      const d=new Date(tgl);
-      html+=`<div class="history-item"><div class="history-date">${d.getDate()} ${BULAN_NAMES[d.getMonth()]} · ${kode}</div><div style="font-size:12px;font-weight:500">${nama}</div><div class="history-summary" style="margin-top:4px">Status: <span style="color:${status==='✓'?'var(--green)':'var(--red)'}">${status}</span>${catatan?' · '+catatan:''}</div></div>`;
-    });
+    [...rE.rows].reverse().forEach(row=>{const[tgl,,kode,nama,,,,status,catatan]=row;if(!tgl)return;const d=new Date(tgl);html+=`<div class="history-item"><div class="history-date">${d.getDate()} ${BULAN_NAMES[d.getMonth()]} · ${kode}</div><div style="font-size:12px;font-weight:500">${nama}</div><div class="history-summary" style="margin-top:4px">Status: <span style="color:${status==='✓'?'var(--green)':'var(--red)'}">${status}</span>${catatan?' · '+catatan:''}</div></div>`;});
   }
-  cont.innerHTML = html;
+  cont.innerHTML=html;
 }
 
 // ═══════════════════════════════════════════
 // MODAL & URL
 // ═══════════════════════════════════════════
-function openModal()  { document.getElementById('url-input').value=scriptUrl; document.getElementById('modal').classList.add('open'); }
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
-function saveUrl()    {
+function openModal(){document.getElementById('url-input').value=scriptUrl;document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function saveUrl(){
   const val=document.getElementById('url-input').value.trim();
-  if (!val.startsWith('http')) { showToast('URL tidak valid','err'); return; }
-  scriptUrl=val; localStorage.setItem('mtg_url',val);
-  closeModal(); showToast('URL tersimpan ✓','ok');
-  checkTodayFilled(); checkLaporanBadge(); loadStok(true);
+  if(!val.startsWith('http')){showToast('URL tidak valid','err');return;}
+  scriptUrl=val;localStorage.setItem('mtg_url',val);
+  closeModal();showToast('URL tersimpan ✓','ok');
+  checkTodayFilled();checkLaporanBadge();loadStok(true);
 }
-document.getElementById('modal').addEventListener('click', function(e){ if(e.target===this)closeModal(); });
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
 // ═══════════════════════════════════════════
 // TOAST
 // ═══════════════════════════════════════════
 let _toastTimer;
-function showToast(msg, type='') {
+function showToast(msg,type=''){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
-  clearTimeout(_toastTimer);
-  _toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+  t.textContent=msg;t.className='toast show'+(type?' '+type:'');
+  clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
 }
 
 // ═══════════════════════════════════════════
 // PASSWORD
 // ═══════════════════════════════════════════
-const PW = 'kodachi123';
-function checkPw() {
+const PW='kodachi123';
+function checkPw(){
   const val=document.getElementById('pw-input').value;
-  if (val===PW) {
-    sessionStorage.setItem('mtg_auth','1');
-    document.getElementById('pw-overlay').style.display='none';
-  } else {
-    const inp=document.getElementById('pw-input');
-    inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
-    document.getElementById('pw-err').textContent='Password salah, coba lagi';
-    inp.value='';
-  }
+  if(val===PW){sessionStorage.setItem('mtg_auth','1');document.getElementById('pw-overlay').style.display='none';}
+  else{const inp=document.getElementById('pw-input');inp.classList.remove('shake');void inp.offsetWidth;inp.classList.add('shake');document.getElementById('pw-err').textContent='Password salah, coba lagi';inp.value='';}
 }
-if (sessionStorage.getItem('mtg_auth')==='1') {
-  document.addEventListener('DOMContentLoaded',()=>{ document.getElementById('pw-overlay').style.display='none'; });
+if(sessionStorage.getItem('mtg_auth')==='1'){
+  document.addEventListener('DOMContentLoaded',()=>{document.getElementById('pw-overlay').style.display='none';});
 }
 </script>
 </body>
