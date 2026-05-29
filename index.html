@@ -789,12 +789,14 @@ function updateD01Card() {
   // Check circle
   chk.textContent = '✓';
   // D01 selalu ✓ saat disimpan — tampilkan centang setelah ada durasi
-  if (total > 0) {
+// SESUDAH:
+if (total > 0) {
     chk.className = 'd01-check ' + (done ? 'done' : 'warn');
-  } else {
+    chk.textContent = '✓';
+} else {
     chk.className = 'd01-check empty';
-    chk.textContent = '';
-  }
+    chk.textContent = '—';  // atau bisa juga '?' atau '·'
+}
 
   // Badge
   if (total === 0) {
@@ -1572,5 +1574,6 @@ if (sessionStorage.getItem('mtg_auth') === '1') {
   });
 }
 </script>
+  
 </body>
 </html>
