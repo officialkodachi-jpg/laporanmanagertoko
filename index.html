@@ -3,7 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MTG · Sepatu Kodachi</title>
+<title>Manager Kodachi Shop Monjali</title>
+<meta name="description" content="Laporan Harian Manager Kodachi Shop Monjali">
+<meta name="theme-color" content="#2563eb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kodachi Manager">
+
+<!-- PWA Manifest inline -->
+<link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22Laporan%20Manager%20Kodachi%20Shop%20Monjali%22%2C%22short_name%22%3A%22Kodachi%20Mgr%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f5f6f8%22%2C%22theme_color%22%3A%22%232563eb%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%2520viewBox%3D'0%25200%252096%252096'%253E%253Crect%2520width%3D'96'%2520height%3D'96'%2520rx%3D'22'%2520fill%3D'%25232563eb'%2F%253E%253Ctext%2520x%3D'48'%2520y%3D'62'%2520font-size%3D'48'%2520text-anchor%3D'middle'%2520fill%3D'white'%253E%25F0%259F%2591%259F%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -39,12 +49,39 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .topbar-inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
 .brand { display: flex; flex-direction: column; gap: 3px; }
 .brand-tag { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; }
-.brand-name { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
-.brand-sub { font-size: 12px; color: var(--muted); font-weight: 300; margin-top: 2px; }
-.setup-btn { display: none; align-items: center; gap: 6px; padding: 8px 14px; background: var(--card); border: 1px solid var(--border2); border-radius: 50px; color: var(--muted); font-family: var(--sans); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.brand-name { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2; }
+.brand-sub { font-size: 11px; color: var(--muted); font-weight: 300; margin-top: 2px; }
+.setup-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--card); border: 1px solid var(--border2); border-radius: 50px; color: var(--muted); font-family: var(--sans); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
 .setup-btn:hover { border-color: var(--accent); color: var(--accent); }
 .setup-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--hint); transition: background 0.3s; }
 .setup-dot.connected { background: var(--green); box-shadow: 0 0 5px rgba(22,163,74,0.5); }
+
+/* ── LOCATION TRACKER BANNER ── */
+.loc-banner { max-width: 680px; margin: 12px auto 0; padding: 0 20px; }
+.loc-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+.loc-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.loc-icon.active { background: rgba(22,163,74,0.12); animation: pulse-loc 2s infinite; }
+.loc-icon.inactive { background: rgba(220,38,38,0.08); }
+@keyframes pulse-loc {
+  0%,100% { box-shadow: 0 0 0 0 rgba(22,163,74,0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(22,163,74,0); }
+}
+.loc-info { flex: 1; min-width: 0; }
+.loc-status { font-size: 12px; font-weight: 600; }
+.loc-status.in { color: var(--green); }
+.loc-status.out { color: var(--red); }
+.loc-status.waiting { color: var(--orange); }
+.loc-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.loc-timer { font-family: var(--mono); font-size: 22px; font-weight: 500; color: var(--text); flex-shrink: 0; }
+.loc-timer.done { color: var(--green); }
+.loc-timer.warn { color: var(--orange); }
+
+/* TIME BAR */
+.time-bar-wrap { margin-top: 10px; }
+.time-bar-track { height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; }
+.time-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.5s ease; }
+.time-bar-fill.done { background: var(--green); }
+.time-bar-label { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: var(--muted); font-family: var(--mono); }
 
 /* TABS */
 .tabs-wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; position: sticky; top: 0; z-index: 50; background: var(--bg); }
@@ -52,7 +89,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .tabs::-webkit-scrollbar { display: none; }
 .tab { flex: none; padding: 10px 14px; text-align: center; font-family: var(--sans); font-size: 12px; font-weight: 500; color: var(--hint); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; letter-spacing: 0.02em; white-space: nowrap; position: relative; }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-.tab-badge { position: absolute; top: 6px; right: 4px; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; display: none; }
+.tab-badge { position: absolute; top: 6px; right: 4px; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: none; align-items: center; justify-content: center; }
 .tab-badge.show { display: flex; }
 .tabs-line { height: 1px; background: var(--border); margin-bottom: 20px; }
 
@@ -65,7 +102,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .date-row { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
 .date-input { flex: 1; padding: 11px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-family: var(--mono); font-size: 13px; outline: none; transition: border-color 0.2s; color-scheme: light; }
 .date-input:focus { border-color: var(--accent); }
-.today-btn { padding: 11px 16px; background: var(--accent); color: #ffffff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
+.today-btn { padding: 11px 16px; background: var(--accent); color: #fff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
 .today-btn:active { opacity: 0.8; }
 
 /* STATS ROW */
@@ -99,20 +136,23 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 /* TASK ITEM */
 .task-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 6px; transition: border-color 0.15s; cursor: pointer; }
 .task-item.done { border-color: rgba(22,163,74,0.3); background: rgba(22,163,74,0.06); }
+.task-item.auto-done { border-color: rgba(37,99,235,0.3); background: rgba(37,99,235,0.04); cursor: default; }
 .task-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--hint); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; margin-top: 1px; }
 .task-item.done .task-check { border-color: var(--green); background: var(--green); }
-.check-icon { display: none; color: #ffffff; font-size: 13px; font-weight: 700; }
-.task-item.done .check-icon { display: block; }
+.task-item.auto-done .task-check { border-color: var(--accent); background: var(--accent); }
+.check-icon { display: none; color: #fff; font-size: 13px; font-weight: 700; }
+.task-item.done .check-icon, .task-item.auto-done .check-icon { display: block; }
 .task-body { flex: 1; min-width: 0; }
 .task-name { font-size: 13px; font-weight: 500; line-height: 1.4; }
 .task-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.task-auto-tag { font-size: 10px; color: var(--accent); background: rgba(37,99,235,0.08); padding: 2px 8px; border-radius: 20px; display: inline-block; margin-top: 4px; }
 .task-note-toggle { font-size: 11px; color: var(--hint); margin-top: 6px; cursor: pointer; display: inline-block; transition: color 0.15s; }
 .task-note-toggle:hover { color: var(--accent); }
 .task-note-input { width: 100%; margin-top: 8px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 12px; outline: none; resize: none; line-height: 1.5; }
 .task-note-input:focus { border-color: var(--accent); }
 
 /* SAVE BTN */
-.save-btn { width: 100%; padding: 16px; background: var(--accent); color: #ffffff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 16px; transition: opacity 0.15s; letter-spacing: 0.02em; }
+.save-btn { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 16px; transition: opacity 0.15s; letter-spacing: 0.02em; }
 .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .save-btn:not(:disabled):active { opacity: 0.8; }
 
@@ -132,7 +172,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .grid-controls { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
 .month-select { flex: 1; min-width: 120px; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-family: var(--mono); font-size: 13px; outline: none; color-scheme: light; }
 .month-select:focus { border-color: var(--accent); }
-.load-btn { padding: 10px 18px; background: var(--accent); color: #ffffff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 12px; font-weight: 700; cursor: pointer; }
+.load-btn { padding: 10px 18px; background: var(--accent); color: #fff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 12px; font-weight: 700; cursor: pointer; }
 .grid-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--border); }
 .grid-table { border-collapse: collapse; width: 100%; min-width: 700px; font-size: 11px; }
 .grid-table th { padding: 8px 6px; background: var(--card2); color: var(--muted); font-weight: 600; text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); white-space: nowrap; font-family: var(--mono); }
@@ -169,7 +209,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .status-btn.sel-no { border-color: var(--red); background: rgba(240,106,106,0.1); color: var(--red); }
 .note-input { width: 100%; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); font-family: var(--sans); font-size: 13px; outline: none; resize: vertical; line-height: 1.5; min-height: 70px; }
 .note-input:focus { border-color: var(--accent); }
-.send-btn { width: 100%; padding: 14px; background: var(--accent); color: #ffffff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+.send-btn { width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
 
 /* LAPORAN */
 .laporan-week { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 12px; }
@@ -201,6 +241,18 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .history-tag.skip { background: rgba(240,106,106,0.1); color: var(--red); }
 .history-summary { font-size: 11px; color: var(--muted); margin-top: 8px; }
 
+/* LOKASI TAB */
+.loc-log-item { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 8px; display: flex; gap: 12px; align-items: flex-start; }
+.loc-log-icon { font-size: 18px; flex-shrink: 0; }
+.loc-log-body { flex: 1; }
+.loc-log-title { font-size: 12px; font-weight: 600; }
+.loc-log-meta { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+.loc-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.loc-stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 12px; text-align: center; }
+.loc-stat-val { font-family: var(--mono); font-size: 20px; font-weight: 500; line-height: 1; color: var(--accent); }
+.loc-stat-label { font-size: 10px; color: var(--muted); margin-top: 4px; }
+.loc-perm-btn { width: 100%; padding: 14px; background: var(--green); color: #fff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
+
 /* MODAL */
 .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
 .modal-bg.open { display: flex; }
@@ -211,13 +263,13 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .modal-input:focus { border-color: var(--accent); }
 .modal-btns { display: flex; gap: 8px; }
 .modal-cancel { flex: 1; padding: 12px; background: transparent; border: 1px solid var(--border); border-radius: var(--r); color: var(--muted); font-family: var(--sans); font-size: 13px; cursor: pointer; }
-.modal-save { flex: 2; padding: 12px; background: var(--accent); color: #ffffff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; }
+.modal-save { flex: 2; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; }
 
 /* TOAST */
-.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); border: 1px solid var(--border2); border-radius: 50px; padding: 10px 20px; font-size: 13px; color: var(--text); z-index: 200; transition: transform 0.3s, opacity 0.3s; opacity: 0; white-space: nowrap; pointer-events: none; color: var(--card) !important; }
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); border: 1px solid var(--border2); border-radius: 50px; padding: 10px 20px; font-size: 13px; color: #fff; z-index: 200; transition: transform 0.3s, opacity 0.3s; opacity: 0; white-space: nowrap; pointer-events: none; }
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-.toast.ok { border-color: rgba(62,207,142,0.3); color: var(--green); }
-.toast.err { border-color: rgba(240,106,106,0.3); color: var(--red); }
+.toast.ok { border-color: rgba(62,207,142,0.3); }
+.toast.err { border-color: rgba(240,106,106,0.3); }
 
 /* EMPTY STATE */
 .empty { text-align: center; padding: 40px 20px; color: var(--hint); }
@@ -235,7 +287,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .pw-input { width: 100%; padding: 13px 16px; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--r); color: var(--text); font-family: var(--mono); font-size: 15px; outline: none; text-align: center; letter-spacing: 0.1em; margin-bottom: 10px; transition: border-color 0.2s; }
 .pw-input:focus { border-color: var(--accent); }
 .pw-input.shake { animation: shake 0.4s ease; border-color: var(--red) !important; }
-.pw-btn { width: 100%; padding: 13px; background: var(--accent); color: #ffffff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+.pw-btn { width: 100%; padding: 13px; background: var(--accent); color: #fff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
 .pw-btn:active { opacity: 0.8; }
 .pw-err { font-size: 12px; color: var(--red); margin-top: 8px; min-height: 18px; }
 @keyframes shake {
@@ -252,8 +304,8 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 <!-- PASSWORD OVERLAY -->
 <div class="pw-overlay" id="pw-overlay">
   <div class="pw-box">
-    <div class="pw-logo">MTG · Sepatu Kodachi</div>
-    <div class="pw-title">Masuk ke Tracker</div>
+    <div class="pw-logo">Kodachi Shop · Monjali</div>
+    <div class="pw-title">Laporan Manager</div>
     <div class="pw-sub">Masukkan password untuk melanjutkan</div>
     <input class="pw-input" id="pw-input" type="password" placeholder="••••••••••" maxlength="30"
       onkeydown="if(event.key==='Enter')checkPw()">
@@ -266,14 +318,35 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 <div class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      <span class="brand-tag">MTG · v2.0</span>
-      <span class="brand-name">Sepatu Kodachi</span>
-      <span class="brand-sub">Tracker Harian & Laporan</span>
+      <span class="brand-tag">Manager · v3.0</span>
+      <span class="brand-name">Kodachi Shop Monjali</span>
+      <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
     </div>
     <button class="setup-btn" onclick="openModal()">
       <span class="setup-dot" id="setup-dot"></span>
-      <span>⚙ Setup URL</span>
+      <span>⚙ Setup</span>
     </button>
+  </div>
+</div>
+
+<!-- LOCATION BANNER -->
+<div class="loc-banner">
+  <div class="loc-card" id="loc-card">
+    <div class="loc-icon" id="loc-icon">📍</div>
+    <div class="loc-info">
+      <div class="loc-status waiting" id="loc-status">Meminta izin lokasi...</div>
+      <div class="loc-detail" id="loc-detail">GPS tracker aktif otomatis</div>
+      <div class="time-bar-wrap">
+        <div class="time-bar-track">
+          <div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div>
+        </div>
+        <div class="time-bar-label">
+          <span id="time-bar-left">0 menit di toko</span>
+          <span>Target: 4 jam</span>
+        </div>
+      </div>
+    </div>
+    <div class="loc-timer" id="loc-timer">0:00</div>
   </div>
 </div>
 
@@ -291,6 +364,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
       <span class="tab-badge" id="badge-laporan">!</span>
     </button>
     <button class="tab" onclick="switchTab('riwayat',this)">Riwayat</button>
+    <button class="tab" onclick="switchTab('lokasi',this)">📍 Lokasi</button>
   </div>
   <div class="tabs-line"></div>
 </div>
@@ -359,14 +433,11 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
       <input type="date" class="date-input" id="tgl-event">
       <button class="today-btn" onclick="setToday('tgl-event')">Hari ini</button>
     </div>
-
     <div class="section-hdr">
       <span class="section-hdr-label">Pilih tugas</span>
       <div class="section-hdr-line"></div>
     </div>
-
     <div class="event-grid" id="event-grid"></div>
-
     <div class="event-detail" id="event-detail" style="display:none">
       <div class="field-label" style="margin-bottom:8px">Status</div>
       <div class="status-row">
@@ -407,6 +478,47 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
     </div>
   </div>
 
+  <!-- ── TAB LOKASI ── -->
+  <div class="panel" id="panel-lokasi">
+    <div class="alert info" style="margin-bottom:16px">
+      📍 <b>Tracker Otomatis</b> — Aplikasi menghitung jam kehadiran saat kamu berada dalam radius <b>200 meter</b> dari Kodachi Shop Monjali (Jl. Monjali No. 107). D01 akan otomatis ✓ jika sudah ≥ 4 jam.
+    </div>
+
+    <button class="loc-perm-btn" onclick="requestLocationPermission()" id="loc-perm-btn" style="display:none">
+      🔓 Izinkan Akses Lokasi
+    </button>
+
+    <div class="loc-stats-grid">
+      <div class="loc-stat-card">
+        <div class="loc-stat-val" id="loc-total-today" style="color:var(--green)">0j 0m</div>
+        <div class="loc-stat-label">Durasi di toko hari ini</div>
+      </div>
+      <div class="loc-stat-card">
+        <div class="loc-stat-val" id="loc-distance">— m</div>
+        <div class="loc-stat-label">Jarak dari toko</div>
+      </div>
+      <div class="loc-stat-card">
+        <div class="loc-stat-val" id="loc-sessions-count" style="color:var(--blue)">0</div>
+        <div class="loc-stat-label">Sesi masuk toko hari ini</div>
+      </div>
+      <div class="loc-stat-card">
+        <div class="loc-stat-val" id="loc-accuracy">— m</div>
+        <div class="loc-stat-label">Akurasi GPS</div>
+      </div>
+    </div>
+
+    <div class="section-hdr">
+      <span class="section-hdr-label">Log Aktivitas Hari Ini</span>
+      <div class="section-hdr-line"></div>
+    </div>
+    <div id="loc-log-list">
+      <div class="empty">
+        <div class="empty-icon">🗺</div>
+        <div class="empty-text">Belum ada aktivitas hari ini.<br>Izinkan GPS untuk memulai tracking.</div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /content -->
 
 <!-- MODAL -->
@@ -427,10 +539,10 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 
 <script>
 // ─────────────────────────────────────────────
-// DATA
+// DATA TUGAS
 // ─────────────────────────────────────────────
 const HARIAN = [
-  {kode:'D01',nama:'Kehadiran efektif di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Min. 4 jam/hari',target:'Min. 4 jam/hari'},
+  {kode:'D01',nama:'Kehadiran efektif di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Min. 4 jam/hari',target:'Min. 4 jam/hari', autoTrack: true},
   {kode:'D02',nama:'Paket terkirim ke ekspedisi non-J&T (SPX dll)',kategori:'Operasional',prioritas:'Wajib',kpi:'0 komplain pengiriman',target:'100% terkirim'},
   {kode:'D03',nama:'Stok sepatu, kaos kaki & tali tersedia di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Tidak ada kehabisan mendadak',target:'Selalu ada'},
   {kode:'D04',nama:'Catatan uang diambil, setor & kembalian terisi',kategori:'Keuangan',prioritas:'Wajib',kpi:'Catatan lengkap tanpa selisih',target:'Selisih = 0'},
@@ -460,6 +572,13 @@ const BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','A
 const DAY_SHORT = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 
 // ─────────────────────────────────────────────
+// LOKASI TOKO — Jl. Monjali No. 107, Yogyakarta
+// ─────────────────────────────────────────────
+const TOKO = { lat: -7.7448, lng: 110.3716, radius: 200, nama: 'Kodachi Shop Monjali' };
+// Radius 200m — mencakup area parkir + toko
+const TARGET_MENIT = 240; // 4 jam
+
+// ─────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────
 let checked = {};
@@ -468,6 +587,301 @@ const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG
 let scriptUrl = localStorage.getItem('mtg_url') || DEFAULT_URL;
 let selectedEvent = null;
 let selectedStatus = null;
+
+// Location state
+let geoWatchId = null;
+let isAtStore = false;
+let sessionStart = null;         // timestamp saat masuk toko sesi ini
+let totalMinutesToday = 0;       // akumulasi menit hari ini
+let locationLog = [];            // [{type:'masuk'|'keluar'|'update', time, lat, lng, dist}]
+let lastKnownPos = null;
+let geoInterval = null;
+let timerInterval = null;
+
+const TODAY_KEY = () => new Date().toISOString().split('T')[0];
+
+// ─────────────────────────────────────────────
+// LOAD / SAVE LOKASI DATA (localStorage per hari)
+// ─────────────────────────────────────────────
+function saveLocData() {
+  const key = 'loc_' + TODAY_KEY();
+  localStorage.setItem(key, JSON.stringify({
+    totalMinutes: totalMinutesToday,
+    sessionStart: sessionStart,
+    log: locationLog
+  }));
+}
+
+function loadLocData() {
+  const key = 'loc_' + TODAY_KEY();
+  const raw = localStorage.getItem(key);
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    totalMinutesToday = d.totalMinutes || 0;
+    sessionStart = d.sessionStart || null;
+    locationLog = d.log || [];
+    // Jika ada sesi aktif yang tersimpan (app di-reload), hitung tambahan menit
+    if (sessionStart) {
+      const extra = (Date.now() - sessionStart) / 60000;
+      // Jangan tambahkan dulu — akan dihitung real-time
+    }
+  } catch(e) {}
+}
+
+// ─────────────────────────────────────────────
+// HAVERSINE — jarak dalam meter
+// ─────────────────────────────────────────────
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ─────────────────────────────────────────────
+// REQUEST GPS PERMISSION & START WATCHING
+// ─────────────────────────────────────────────
+function requestLocationPermission() {
+  if (!('geolocation' in navigator)) {
+    updateLocBanner('unsupported');
+    return;
+  }
+  document.getElementById('loc-perm-btn').style.display = 'none';
+  updateLocBanner('waiting');
+
+  // High-accuracy continuous watch
+  geoWatchId = navigator.geolocation.watchPosition(
+    onLocationUpdate,
+    onLocationError,
+    { enableHighAccuracy: true, maximumAge: 30000, timeout: 20000 }
+  );
+
+  // Backup interval setiap 60 detik — paksa update
+  geoInterval = setInterval(() => {
+    navigator.geolocation.getCurrentPosition(
+      onLocationUpdate,
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 60000, timeout: 15000 }
+    );
+  }, 60000);
+
+  // Timer display setiap detik
+  timerInterval = setInterval(updateTimerDisplay, 1000);
+
+  localStorage.setItem('loc_perm', '1');
+}
+
+// ─────────────────────────────────────────────
+// LOCATION UPDATE CALLBACK
+// ─────────────────────────────────────────────
+function onLocationUpdate(pos) {
+  const { latitude, longitude, accuracy } = pos.coords;
+  lastKnownPos = { lat: latitude, lng: longitude, accuracy };
+
+  const dist = Math.round(haversine(latitude, longitude, TOKO.lat, TOKO.lng));
+  const nowInStore = dist <= TOKO.radius;
+
+  // Update UI distance & accuracy
+  document.getElementById('loc-distance').textContent = dist + ' m';
+  document.getElementById('loc-accuracy').textContent = Math.round(accuracy) + ' m';
+
+  if (nowInStore && !isAtStore) {
+    // ── MASUK TOKO ──
+    isAtStore = true;
+    sessionStart = Date.now();
+    locationLog.push({ type: 'masuk', time: Date.now(), lat: latitude, lng: longitude, dist });
+    saveLocData();
+    updateLocBanner('in');
+    addLocLog('masuk', dist);
+    showToast('✓ Kamu tiba di Kodachi Shop!', 'ok');
+    updateLocTab();
+
+  } else if (!nowInStore && isAtStore) {
+    // ── KELUAR TOKO ──
+    isAtStore = false;
+    if (sessionStart) {
+      const menit = (Date.now() - sessionStart) / 60000;
+      totalMinutesToday += menit;
+      saveLocData();
+      sessionStart = null;
+    }
+    locationLog.push({ type: 'keluar', time: Date.now(), lat: latitude, lng: longitude, dist });
+    saveLocData();
+    updateLocBanner('out');
+    addLocLog('keluar', dist);
+    updateLocTab();
+    checkD01AutoComplete();
+
+  } else {
+    // Update banner tanpa perubahan status
+    updateLocBanner(isAtStore ? 'in' : 'out');
+  }
+
+  updateLocTab();
+  checkD01AutoComplete();
+}
+
+function onLocationError(err) {
+  console.warn('GPS error:', err.message);
+  updateLocBanner('error');
+}
+
+// ─────────────────────────────────────────────
+// HITUNG TOTAL MENIT REAL-TIME
+// ─────────────────────────────────────────────
+function getCurrentTotalMinutes() {
+  let total = totalMinutesToday;
+  if (isAtStore && sessionStart) {
+    total += (Date.now() - sessionStart) / 60000;
+  }
+  return total;
+}
+
+// ─────────────────────────────────────────────
+// UPDATE BANNER ATAS
+// ─────────────────────────────────────────────
+function updateLocBanner(state) {
+  const icon = document.getElementById('loc-icon');
+  const status = document.getElementById('loc-status');
+  const detail = document.getElementById('loc-detail');
+  const timer = document.getElementById('loc-timer');
+
+  if (state === 'in') {
+    icon.textContent = '🟢'; icon.className = 'loc-icon active';
+    status.textContent = '✓ Di dalam toko'; status.className = 'loc-status in';
+    detail.textContent = TOKO.nama + ' · GPS aktif';
+  } else if (state === 'out') {
+    icon.textContent = '📍'; icon.className = 'loc-icon inactive';
+    status.textContent = '✗ Di luar toko'; status.className = 'loc-status out';
+    const dist = document.getElementById('loc-distance').textContent;
+    detail.textContent = 'Jarak: ' + dist + ' dari toko';
+  } else if (state === 'waiting') {
+    icon.textContent = '🔄'; icon.className = 'loc-icon';
+    status.textContent = 'Mencari sinyal GPS...'; status.className = 'loc-status waiting';
+    detail.textContent = 'Mohon tunggu sebentar';
+  } else if (state === 'error') {
+    icon.textContent = '⚠️'; icon.className = 'loc-icon inactive';
+    status.textContent = 'GPS tidak tersedia'; status.className = 'loc-status out';
+    detail.textContent = 'Periksa izin lokasi di pengaturan';
+  } else if (state === 'unsupported') {
+    icon.textContent = '❌'; icon.className = 'loc-icon inactive';
+    status.textContent = 'GPS tidak didukung'; status.className = 'loc-status out';
+    detail.textContent = 'Browser ini tidak mendukung geolocation';
+  }
+}
+
+// ─────────────────────────────────────────────
+// UPDATE TIMER (dipanggil tiap detik)
+// ─────────────────────────────────────────────
+function updateTimerDisplay() {
+  const total = getCurrentTotalMinutes();
+  const jam = Math.floor(total / 60);
+  const menit = Math.floor(total % 60);
+  const detik = Math.floor((total * 60) % 60);
+  const timerEl = document.getElementById('loc-timer');
+  timerEl.textContent = `${jam}:${String(menit).padStart(2,'0')}`;
+
+  const pct = Math.min(100, (total / TARGET_MENIT) * 100);
+  const barFill = document.getElementById('time-bar-fill');
+  barFill.style.width = pct + '%';
+  barFill.className = 'time-bar-fill' + (pct >= 100 ? ' done' : '');
+
+  const totalMenitDisplay = total >= 60
+    ? `${jam} jam ${menit} menit di toko`
+    : `${Math.floor(total)} menit di toko`;
+  document.getElementById('time-bar-left').textContent = totalMenitDisplay;
+
+  if (pct >= 100) {
+    timerEl.className = 'loc-timer done';
+  } else if (pct >= 50) {
+    timerEl.className = 'loc-timer warn';
+  } else {
+    timerEl.className = 'loc-timer';
+  }
+
+  // Update stat card
+  document.getElementById('loc-total-today').textContent =
+    jam + 'j ' + menit + 'm';
+}
+
+// ─────────────────────────────────────────────
+// AUTO-COMPLETE D01 JIKA ≥ 4 JAM
+// ─────────────────────────────────────────────
+function checkD01AutoComplete() {
+  const total = getCurrentTotalMinutes();
+  const isTarget = total >= TARGET_MENIT;
+  if (isTarget && !checked['D01']) {
+    checked['D01'] = true;
+    notes['D01'] = `Auto: ${Math.floor(total/60)}j ${Math.floor(total%60)}m di toko · GPS Tracker`;
+    rerenderTask('D01');
+    updateStats();
+    showToast('🎉 D01 otomatis ✓ — sudah 4 jam di toko!', 'ok');
+  }
+  // Update display catatan
+  const noteEl = document.getElementById('note-D01');
+  if (noteEl && isAtStore) {
+    const m = Math.floor(total % 60);
+    const h = Math.floor(total / 60);
+    if (!checked['D01']) {
+      noteEl.value = `Sedang di toko: ${h}j ${m}m (target 4j)`;
+      notes['D01'] = noteEl.value;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
+// RERENDER SATU TASK
+// ─────────────────────────────────────────────
+function rerenderTask(kode) {
+  const el = document.getElementById('task-' + kode);
+  if (!el) return;
+  const isDone = checked[kode];
+  const task = HARIAN.find(t => t.kode === kode);
+  const isAuto = task && task.autoTrack;
+  el.className = 'task-item' + (isDone ? (isAuto ? ' auto-done' : ' done') : '');
+}
+
+// ─────────────────────────────────────────────
+// ADD TO LOCATION LOG
+// ─────────────────────────────────────────────
+function addLocLog(type, dist) {
+  const list = document.getElementById('loc-log-list');
+  const now = new Date();
+  const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  const div = document.createElement('div');
+  div.className = 'loc-log-item';
+  const icon = type === 'masuk' ? '🟢' : '🔴';
+  const title = type === 'masuk' ? 'Tiba di toko' : 'Meninggalkan toko';
+  div.innerHTML = `
+    <div class="loc-log-icon">${icon}</div>
+    <div class="loc-log-body">
+      <div class="loc-log-title">${title}</div>
+      <div class="loc-log-meta">${timeStr} · Jarak: ${dist}m dari toko</div>
+    </div>
+  `;
+
+  // Remove empty state
+  const empty = list.querySelector('.empty');
+  if (empty) empty.remove();
+
+  list.insertBefore(div, list.firstChild);
+}
+
+// ─────────────────────────────────────────────
+// UPDATE TAB LOKASI
+// ─────────────────────────────────────────────
+function updateLocTab() {
+  const total = getCurrentTotalMinutes();
+  const jam = Math.floor(total / 60);
+  const menit = Math.floor(total % 60);
+  document.getElementById('loc-total-today').textContent = jam + 'j ' + menit + 'm';
+  document.getElementById('loc-sessions-count').textContent =
+    locationLog.filter(l => l.type === 'masuk').length;
+}
 
 // ─────────────────────────────────────────────
 // INIT
@@ -483,6 +897,48 @@ window.addEventListener('DOMContentLoaded', () => {
   updateConnected();
   checkTodayFilled();
   checkLaporanBadge();
+
+  // Load data lokasi hari ini
+  loadLocData();
+  updateTimerDisplay();
+
+  // Auto-start GPS jika sudah pernah izin
+  if (localStorage.getItem('loc_perm') === '1') {
+    requestLocationPermission();
+  } else {
+    document.getElementById('loc-perm-btn').style.display = 'block';
+    updateLocBanner('waiting');
+    // Tetap coba minta otomatis (browser mungkin sudah remember)
+    setTimeout(() => requestLocationPermission(), 500);
+  }
+
+  // Service Worker
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE = 'kodachi-v1';
+      self.addEventListener('install', e => {
+        self.skipWaiting();
+      });
+      self.addEventListener('activate', e => {
+        e.waitUntil(clients.claim());
+      });
+      self.addEventListener('fetch', e => {
+        if (e.request.url.includes('fonts.googleapis') || e.request.url.includes('script.google.com')) {
+          return;
+        }
+        e.respondWith(
+          caches.open(CACHE).then(cache =>
+            cache.match(e.request).then(resp => resp || fetch(e.request).then(r => {
+              cache.put(e.request, r.clone()); return r;
+            }).catch(() => resp))
+          )
+        );
+      });
+    `;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl).catch(() => {});
+  }
 });
 
 function setToday(id) {
@@ -504,6 +960,7 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
+  if (name === 'lokasi') updateLocTab();
 }
 
 // ─────────────────────────────────────────────
@@ -524,18 +981,23 @@ function renderHarian() {
     list.appendChild(hdr);
     tasks.forEach(t => {
       const el = document.createElement('div');
-      el.className = 'task-item' + (checked[t.kode] ? ' done' : '');
+      const isDone = checked[t.kode];
+      const isAuto = t.autoTrack;
+      el.className = 'task-item' + (isDone ? (isAuto ? ' auto-done' : ' done') : '');
       el.id = 'task-' + t.kode;
       el.innerHTML = `
         <div class="task-check"><span class="check-icon">✓</span></div>
         <div class="task-body">
           <div class="task-name">${t.nama}</div>
           <div class="task-meta">${t.kode} · ${t.kategori} · KPI: ${t.kpi}</div>
+          ${isAuto ? '<span class="task-auto-tag">📍 Otomatis dari GPS Tracker</span>' : ''}
           <span class="task-note-toggle" onclick="toggleNote(event,'${t.kode}')">+ Tambah catatan</span>
-          <textarea class="task-note-input" id="note-${t.kode}" placeholder="Catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes['${t.kode}']=this.value"></textarea>
+          <textarea class="task-note-input" id="note-${t.kode}" placeholder="${isAuto ? 'Auto-diisi oleh tracker...' : 'Catatan...'}" rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes['${t.kode}']=this.value"></textarea>
         </div>
       `;
-      el.addEventListener('click', () => toggleCheck(t.kode));
+      if (!isAuto) {
+        el.addEventListener('click', () => toggleCheck(t.kode));
+      }
       list.appendChild(el);
     });
   });
@@ -571,12 +1033,11 @@ function updateStats() {
 }
 
 // ─────────────────────────────────────────────
-// NOTIF — cek apakah hari ini sudah diisi
+// NOTIF
 // ─────────────────────────────────────────────
 async function checkTodayFilled() {
   if (!scriptUrl) return;
   const today = new Date().toISOString().split('T')[0];
-  const bulan = today.substring(0,7);
   try {
     const r = await fetch(`${scriptUrl}?type=cek&tanggal=${today}`);
     const d = await r.json();
@@ -594,7 +1055,6 @@ async function checkTodayFilled() {
 }
 
 async function checkLaporanBadge() {
-  // cek apakah ada tugas < 70% di bulan ini
   if (!scriptUrl) return;
   try {
     const bulan = document.getElementById('laporan-month').value;
@@ -602,8 +1062,7 @@ async function checkLaporanBadge() {
     const d = await r.json();
     if (!d.tasks) return;
     const hasLow = d.tasks.some(t => t.pct < 70 && t.pct > 0);
-    const badge = document.getElementById('badge-laporan');
-    badge.classList.toggle('show', hasLow);
+    document.getElementById('badge-laporan').classList.toggle('show', hasLow);
   } catch(e) {}
 }
 
@@ -619,11 +1078,17 @@ async function saveHarian() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Menyimpan...';
 
+  // Sertakan data durasi GPS untuk D01
+  const totalMenit = getCurrentTotalMinutes();
+  const gpsNote = totalMenit > 0
+    ? `GPS: ${Math.floor(totalMenit/60)}j ${Math.floor(totalMenit%60)}m di toko · ${isAtStore ? 'Sedang di toko' : 'Di luar toko'}`
+    : '';
+
   const entries = HARIAN.map(t => ({
     tanggal, kode: t.kode, nama: t.nama,
     kategori: t.kategori, prioritas: t.prioritas,
     status: checked[t.kode] ? '✓' : '✗',
-    catatan: notes[t.kode] || ''
+    catatan: t.autoTrack ? (gpsNote || notes[t.kode] || '') : (notes[t.kode] || '')
   }));
 
   try {
@@ -687,7 +1152,6 @@ async function saveEvent() {
   if (!selectedStatus) { showToast('Pilih status dulu', 'err'); return; }
   const tanggal = document.getElementById('tgl-event').value;
   if (!tanggal) { showToast('Pilih tanggal dulu', 'err'); return; }
-
   try {
     const r = await fetch(scriptUrl, {
       method: 'POST',
@@ -716,10 +1180,8 @@ async function loadGrid() {
   if (!scriptUrl) { openModal(); return; }
   const bulan = document.getElementById('grid-month').value;
   if (!bulan) return;
-
   const cont = document.getElementById('grid-container');
   cont.innerHTML = '<div class="empty"><span class="spinner"></span> Memuat data...</div>';
-
   try {
     const r = await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);
     const d = await r.json();
@@ -735,34 +1197,26 @@ function renderGrid(data, bulan) {
     cont.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>';
     return;
   }
-
   const [yr, mo] = bulan.split('-').map(Number);
   const daysInMonth = new Date(yr, mo, 0).getDate();
-
-  // Build header: day numbers + day names
   let headerDays = '';
   for (let d = 1; d <= daysInMonth; d++) {
     const dayOfWeek = new Date(yr, mo-1, d).getDay();
     const isSun = dayOfWeek === 0;
     headerDays += `<th class="${isSun?'sunday':''}">${d}<br><span style="font-weight:400;opacity:0.6">${DAY_SHORT[dayOfWeek]}</span></th>`;
   }
-
-  // Map data: kode → {day → status}
   const dataMap = {};
   data.rows.forEach(row => {
-    const kode = row[1]; // kode tugas
+    const kode = row[1];
     if (!dataMap[kode]) dataMap[kode] = {};
-    // row[0] = tanggal YYYY-MM-DD
     const day = parseInt((row[0]||'').split('-')[2]) || 0;
-    if (day) dataMap[kode][day] = row[5]; // status
+    if (day) dataMap[kode][day] = row[5];
   });
-
-  // Build rows
   let rows = '';
   const taskPcts = {};
   HARIAN.forEach(t => {
     const taskData = dataMap[t.kode] || {};
-    let doneCount = 0; let workDays = 0;
+    let doneCount = 0;
     let cells = '';
     for (let d = 1; d <= daysInMonth; d++) {
       const dayOfWeek = new Date(yr, mo-1, d).getDay();
@@ -771,7 +1225,6 @@ function renderGrid(data, bulan) {
       if (isSun) {
         cells += `<td class="sunday"><div class="grid-cell sunday">—</div></td>`;
       } else {
-        workDays++;
         const isDone = val === '✓';
         if (isDone) doneCount++;
         const isPast = new Date(yr, mo-1, d) < new Date();
@@ -792,55 +1245,34 @@ function renderGrid(data, bulan) {
     const priColor = t.prioritas === 'Wajib' ? 'var(--red)' : t.prioritas === 'Penting' ? 'var(--orange)' : 'var(--blue)';
     rows += `<tr>
       <td class="task-info">
-        <div class="task-code" style="color:${priColor}">${t.kode}</div>
+        <div class="task-code" style="color:${priColor}">${t.kode}${t.autoTrack?' 📍':''}</div>
         <div class="task-name-cell">${t.nama}</div>
       </td>
       ${cells}
       <td><div class="grid-pct ${pctClass}">${pct}%</div></td>
     </tr>`;
   });
-
-  // Avg row
   const allPcts = Object.values(taskPcts);
   const avgAll = allPcts.length ? Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length) : 0;
   const wajibPcts = HARIAN.filter(t=>t.prioritas==='Wajib').map(t=>taskPcts[t.kode]||0);
   const avgWajib = wajibPcts.length ? Math.round(wajibPcts.reduce((a,b)=>a+b,0)/wajibPcts.length) : 0;
   const pentingPcts = HARIAN.filter(t=>t.prioritas==='Penting').map(t=>taskPcts[t.kode]||0);
   const avgPenting = pentingPcts.length ? Math.round(pentingPcts.reduce((a,b)=>a+b,0)/pentingPcts.length) : 0;
-
   function avgCell(v) {
     const cls = v>=90?'pct-hi':v>=70?'pct-mid':'pct-lo';
     return `<td colspan="${daysInMonth}" style="text-align:left;padding-left:12px"><span class="grid-pct ${cls}">${v}%</span></td><td></td>`;
   }
-
   cont.innerHTML = `
     <div class="grid-wrap">
       <table class="grid-table">
-        <thead>
-          <tr>
-            <th class="task-col">Tugas</th>
-            ${headerDays}
-            <th>%</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-          <tr class="grid-avg-row">
-            <td class="task-info" style="background:var(--card2)">RATA-RATA SEMUA</td>
-            ${avgCell(avgAll)}
-          </tr>
-          <tr class="grid-avg-row">
-            <td class="task-info" style="background:var(--card2)">Rata-rata WAJIB 🔴</td>
-            ${avgCell(avgWajib)}
-          </tr>
-          <tr class="grid-avg-row">
-            <td class="task-info" style="background:var(--card2)">Rata-rata PENTING 🟡</td>
-            ${avgCell(avgPenting)}
-          </tr>
+        <thead><tr><th class="task-col">Tugas</th>${headerDays}<th>%</th></tr></thead>
+        <tbody>${rows}
+          <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">RATA-RATA SEMUA</td>${avgCell(avgAll)}</tr>
+          <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata WAJIB 🔴</td>${avgCell(avgWajib)}</tr>
+          <tr class="grid-avg-row"><td class="task-info" style="background:var(--card2)">Rata-rata PENTING 🟡</td>${avgCell(avgPenting)}</tr>
         </tbody>
       </table>
-    </div>
-  `;
+    </div>`;
 }
 
 // ─────────────────────────────────────────────
@@ -850,10 +1282,8 @@ async function loadLaporan() {
   if (!scriptUrl) { openModal(); return; }
   const bulan = document.getElementById('laporan-month').value;
   if (!bulan) return;
-
   const cont = document.getElementById('laporan-container');
   cont.innerHTML = '<div class="empty"><span class="spinner"></span> Memuat laporan...</div>';
-
   try {
     const r = await fetch(`${scriptUrl}?type=grid&bulan=${bulan}`);
     const d = await r.json();
@@ -868,8 +1298,6 @@ function renderLaporan(data, bulan) {
   const [yr, mo] = bulan.split('-').map(Number);
   const daysInMonth = new Date(yr, mo, 0).getDate();
   const bulanName = BULAN_NAMES[mo-1] + ' ' + yr;
-
-  // Map data
   const dataMap = {};
   (data.rows || []).forEach(row => {
     const kode = row[1];
@@ -877,8 +1305,6 @@ function renderLaporan(data, bulan) {
     const day = parseInt((row[0]||'').split('-')[2]) || 0;
     if (day) dataMap[kode][day] = row[5];
   });
-
-  // Build weeks
   const weeks = [];
   let weekStart = 1;
   while (weekStart <= daysInMonth) {
@@ -887,13 +1313,10 @@ function renderLaporan(data, bulan) {
     weeks.push({start: weekStart, end: weekEnd});
     weekStart = weekEnd + 1;
   }
-
-  // Notif: tugas < 70% keseluruhan bulan
   const taskPcts = {};
   let notifHTML = '';
   const pastDays = Array.from({length:daysInMonth},(_,i)=>i+1)
     .filter(d => new Date(yr,mo-1,d).getDay()!==0 && new Date(yr,mo-1,d)<new Date());
-
   HARIAN.forEach(t => {
     const td = dataMap[t.kode] || {};
     const done = pastDays.filter(d => td[d]==='✓').length;
@@ -903,8 +1326,6 @@ function renderLaporan(data, bulan) {
       notifHTML += `<div class="notif-item warn">⚠ ${t.kode} · ${t.nama}: hanya <b>${pct}%</b> (target ≥ 70%)</div>`;
     }
   });
-
-  // Bar chart: % per minggu (rata-rata semua tugas)
   const weekPcts = weeks.map(w => {
     const wDays = Array.from({length:w.end-w.start+1},(_,i)=>w.start+i)
       .filter(d => new Date(yr,mo-1,d).getDay()!==0 && new Date(yr,mo-1,d)<new Date());
@@ -916,7 +1337,6 @@ function renderLaporan(data, bulan) {
     const total = HARIAN.length * wDays.length;
     return total > 0 ? Math.round(allDone/total*100) : 0;
   });
-
   const maxPct = Math.max(...weekPcts.filter(p=>p!==null), 1);
   let barsHTML = weekPcts.map((p, i) => {
     if (p === null) return `<div class="bar-col"><div class="bar-label">Mg ${i+1}</div></div>`;
@@ -928,18 +1348,13 @@ function renderLaporan(data, bulan) {
       <div class="bar-label">Mg ${i+1}</div>
     </div>`;
   }).join('');
-
-  // Week detail tables
   let weeksHTML = weeks.map((w, wi) => {
     const wLabel = `Minggu ${wi+1}: ${w.start}–${w.end}/${mo.toString().padStart(2,'0')}`;
     const wDays = Array.from({length:w.end-w.start+1},(_,i)=>w.start+i)
       .filter(d => new Date(yr,mo-1,d).getDay()!==0 && new Date(yr,mo-1,d)<new Date());
-
     const wPct = weekPcts[wi];
     if (wPct === null) return '';
-
     const pctColor = wPct>=90?'var(--green)':wPct>=70?'var(--orange)':'var(--red)';
-
     const taskRows = HARIAN.map(t => {
       const td = dataMap[t.kode] || {};
       const done = wDays.filter(d => td[d]==='✓').length;
@@ -948,12 +1363,11 @@ function renderLaporan(data, bulan) {
       const pctTxt = wDays.length > 0 ? pct+'%' : '—';
       return `<div class="laporan-task-row">
         <div class="lt-kode">${t.kode}</div>
-        <div class="lt-name">${t.nama}</div>
+        <div class="lt-name">${t.nama}${t.autoTrack?' 📍':''}</div>
         <div class="lt-bar-wrap"><div class="lt-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
         <div class="lt-pct" style="color:${barColor}">${pctTxt}</div>
       </div>`;
     }).join('');
-
     return `<div class="laporan-week">
       <div class="week-title">${wLabel}</div>
       <div class="week-avg" style="color:${pctColor}">${wPct}%</div>
@@ -961,15 +1375,13 @@ function renderLaporan(data, bulan) {
       ${taskRows}
     </div>`;
   }).join('');
-
   cont.innerHTML = `
     ${notifHTML ? `<div class="notif-list">${notifHTML}</div>` : ''}
     <div class="chart-wrap">
       <div class="chart-title">% Penyelesaian per Minggu — ${bulanName}</div>
       <div class="bar-chart">${barsHTML}</div>
     </div>
-    ${weeksHTML || '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>'}
-  `;
+    ${weeksHTML || '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>'}`;
 }
 
 // ─────────────────────────────────────────────
@@ -979,10 +1391,8 @@ async function loadRiwayat() {
   if (!scriptUrl) { openModal(); return; }
   const bulan = document.getElementById('riwayat-month').value;
   if (!bulan) return;
-
   const cont = document.getElementById('riwayat-container');
   cont.innerHTML = '<div class="empty"><span class="spinner"></span> Memuat riwayat...</div>';
-
   try {
     const [rH, rE] = await Promise.all([
       fetch(`${scriptUrl}?type=harian&bulan=${bulan}`).then(r=>r.json()).catch(()=>null),
@@ -997,33 +1407,25 @@ async function loadRiwayat() {
 function renderRiwayat(rH, rE, bulan) {
   const cont = document.getElementById('riwayat-container');
   const [yr, mo] = bulan.split('-').map(Number);
-
-  // Group harian by date
   const byDate = {};
   (rH?.rows || []).forEach(row => {
     const tgl = row[0]; if (!tgl) return;
     if (!byDate[tgl]) byDate[tgl] = [];
     byDate[tgl].push({kode:row[1], nama:row[2], status:row[5], catatan:row[6]});
   });
-
   const dates = Object.keys(byDate).sort().reverse();
   if (!dates.length && !(rE?.rows?.length)) {
     cont.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Belum ada data untuk bulan ini</div></div>';
     return;
   }
-
   let html = '';
-
-  // Harian history
   if (dates.length) {
     html += `<div class="section-hdr"><span class="section-hdr-label">Tugas Harian</span><div class="section-hdr-line"></div></div>`;
     dates.forEach(tgl => {
       const tasks = byDate[tgl];
       const done = tasks.filter(t=>t.status==='✓').length;
       const pct = Math.round(done/tasks.length*100);
-      const tags = tasks.map(t =>
-        `<span class="history-tag ${t.status==='✓'?'done':'skip'}">${t.kode}</span>`
-      ).join('');
+      const tags = tasks.map(t => `<span class="history-tag ${t.status==='✓'?'done':'skip'}">${t.kode}</span>`).join('');
       const d = new Date(tgl);
       const label = `${d.getDate()} ${BULAN_NAMES[d.getMonth()]} — ${DAY_SHORT[d.getDay()]}`;
       html += `<div class="history-item">
@@ -1033,8 +1435,6 @@ function renderRiwayat(rH, rE, bulan) {
       </div>`;
     });
   }
-
-  // Event history
   if (rE?.rows?.length) {
     html += `<div class="section-hdr" style="margin-top:16px"><span class="section-hdr-label">Tugas Non-Harian</span><div class="section-hdr-line"></div></div>`;
     [...rE.rows].reverse().forEach(row => {
@@ -1049,7 +1449,6 @@ function renderRiwayat(rH, rE, bulan) {
       </div>`;
     });
   }
-
   cont.innerHTML = html;
 }
 
@@ -1060,9 +1459,7 @@ function openModal() {
   document.getElementById('url-input').value = scriptUrl;
   document.getElementById('modal').classList.add('open');
 }
-function closeModal() {
-  document.getElementById('modal').classList.remove('open');
-}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
 function saveUrl() {
   const val = document.getElementById('url-input').value.trim();
   if (!val.startsWith('http')) { showToast('URL tidak valid', 'err'); return; }
@@ -1090,7 +1487,6 @@ function showToast(msg, type='') {
   _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-// Close modal on bg click
 document.getElementById('modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
@@ -1114,13 +1510,11 @@ function checkPw() {
     setTimeout(() => inp.classList.remove('shake'), 400);
   }
 }
-// Check on load
 if (sessionStorage.getItem('mtg_auth') === '1') {
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('pw-overlay').style.display = 'none';
   });
 }
-
 </script>
 </body>
 </html>
