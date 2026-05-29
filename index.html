@@ -1252,27 +1252,32 @@ async function loadStok(silent){
   // ==========================================
 // FUNGSI TARIK DATA PRODUK OTOMATIS
 // ==========================================
+// ==========================================
+// FUNGSI TARIK DATA PRODUK (ANTI-CORS / JSONP)
+// ==========================================
 function fetchProduk() {
-  // Pastikan URL script sudah tersimpan
   if (!scriptUrl) return; 
   
-  // Memanggil URL Apps Script ditambah parameter ?type=produk
-  fetch(scriptUrl + "?type=produk")
-    .then(function(response) {
-      return response.json();
-    })
-    .then(function(data) {
-      // Jika berhasil, masukkan data ke variabel autocomplete
-      if (data.status === "ok") {
-        igProdukList = data.produk;
-        console.log("Berhasil memuat " + igProdukList.length + " produk.");
-      } else {
-        console.log("Gagal memuat produk:", data.message);
-      }
-    })
-    .catch(function(error) {
-      console.log("Error mengambil produk:", error);
-    });
+  // Kita buat elemen <script> sementara untuk mengambil data
+  var script = document.createElement('script');
+  
+  // Panggil URL dengan parameter type=produk DAN callback=simpanProduk
+  script.src = scriptUrl + "?type=produk&callback=simpanProduk";
+  
+  // Masukkan ke dalam HTML agar berjalan
+  document.body.appendChild(script);
+}
+
+// Fungsi ini akan dipanggil otomatis oleh Google Apps Script setelah data dikirim
+function simpanProduk(data) {
+  if (data.status === "ok") {
+    igProdukList = data.produk;
+    console.log("Mantap! Berhasil memuat " + igProdukList.length + " produk.");
+    showToast("Data produk berhasil dimuat", "ok"); // Opsional: memunculkan notifikasi
+  } else {
+    console.log("Gagal memuat produk:", data.message);
+    showToast("Gagal memuat daftar produk", "err");
+  }
 }
 function renderStokList(){
   const list=document.getElementById('stok-list');
