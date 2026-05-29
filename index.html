@@ -53,6 +53,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .time-bar-fill{height:100%;border-radius:4px;background:var(--accent);transition:width .5s ease}
 .time-bar-fill.done{background:var(--green)}
 .time-bar-label{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);font-family:var(--mono)}
+.loc-retry-inline{margin-top:10px;width:100%;padding:8px;background:rgba(217,119,6,.1);color:var(--orange);border:1px solid rgba(217,119,6,.3);border-radius:var(--r);font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer;display:none}
+.loc-retry-inline.show{display:block}
+/* SUB-TAB di dalam Laporan */
+.subtab-row{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
+.subtab-row::-webkit-scrollbar{display:none}
+.subtab{flex:1;min-width:fit-content;padding:9px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.subtab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.subview{display:none}
+.subview.active{display:block}
+.subview-cap{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5}
 
 /* D01 GPS CARD */
 .d01-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:6px;transition:border-color .2s}
@@ -303,20 +313,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .stok-qty .q-toko{color:var(--red);font-weight:600}
 .stok-qty .q-gud{color:var(--green);font-weight:600}
 .stok-sheet-link{display:block;text-align:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;margin-top:16px}
-/* replika tampilan sheet */
-.stok-raw-divider{margin:26px 0 12px;font-size:12px;font-weight:700;color:var(--text);letter-spacing:.03em;border-top:1px solid var(--border);padding-top:18px}
-.stok-raw-controls{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
-.stok-raw-select{flex:1;min-width:140px;padding:10px 12px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;outline:none}
-.stok-raw-btn{padding:10px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
-.stok-raw-btn.ghost{background:var(--card);color:var(--accent);border:1px solid var(--border2)}
-.stok-raw-btn.ghost.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.stok-raw-scaler{transform-origin:top left;display:inline-block}
-.stok-raw-updated{font-family:var(--mono);font-size:10px;color:var(--hint);margin-bottom:10px;text-align:center;min-height:13px}
-.stok-raw-wrap{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:var(--r);max-height:70vh}
-.stok-raw-table{border-collapse:collapse;font-family:var(--mono);font-size:11px;white-space:nowrap}
-.stok-raw-table td{border:1px solid var(--border);padding:4px 7px;text-align:center;color:#1a1a1a;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}
-.stok-raw-table tr:first-child td{position:sticky;top:0;z-index:1}
-.stok-raw-hint{font-size:10px;color:var(--hint);text-align:center;margin-top:8px}
 
 /* MODAL */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;padding:20px}
@@ -401,9 +397,20 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
           <span>Target: 4 jam</span>
         </div>
       </div>
+      <button class="loc-retry-inline" id="loc-retry-btn" onclick="retryGps()">🔄 Coba ulang deteksi lokasi</button>
     </div>
     <div class="loc-timer" id="loc-timer">0:00</div>
   </div>
+</div>
+
+<!-- elemen lokasi tersembunyi (dipakai tracker GPS, tidak ditampilkan) -->
+<div id="loc-hidden" style="display:none" aria-hidden="true">
+  <span id="loc-debug"></span>
+  <span id="loc-distance"></span>
+  <span id="loc-accuracy"></span>
+  <span id="loc-sessions-count"></span>
+  <span id="loc-total-today"></span>
+  <div id="loc-log-list"></div>
 </div>
 
 <!-- TABS -->
@@ -417,14 +424,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
       📦 Stok
       <span class="tab-badge" id="badge-stok">0</span>
     </button>
-    <button class="tab" onclick="switchTab('grid',this)">Grid</button>
     <button class="tab" onclick="switchTab('event',this)">Non-Harian</button>
     <button class="tab" onclick="switchTab('laporan',this)">
-      Laporan
+      📈 Laporan
       <span class="tab-badge" id="badge-laporan">!</span>
     </button>
-    <button class="tab" onclick="switchTab('riwayat',this)">Riwayat</button>
-    <button class="tab" onclick="switchTab('lokasi',this)">📍 Lokasi</button>
   </div>
   <div class="tabs-line"></div>
 </div>
@@ -492,31 +496,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
 
     <a class="stok-sheet-link" id="stok-sheet-link" href="#" target="_blank" rel="noopener">📊 Buka Google Sheet Stok →</a>
-
-    <!-- ───────── REPLIKA TAMPILAN SHEET ASLI (privat) ───────── -->
-    <div class="stok-raw-divider">📋 Tampilan Sheet Stok</div>
-    <div class="stok-raw-controls">
-      <select id="stok-raw-sheet" class="stok-raw-select" onchange="loadStokRaw(this.value)"></select>
-      <button class="stok-raw-btn" id="stok-raw-btn" onclick="loadStokRaw()">🔄 Muat</button>
-      <button class="stok-raw-btn ghost" id="stok-raw-fit-btn" onclick="toggleStokRawFit()">↔️ Pas layar</button>
-    </div>
-    <div class="stok-raw-updated" id="stok-raw-updated"></div>
-    <div class="stok-raw-wrap" id="stok-raw-wrap">
-      <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Tekan "Muat" untuk menampilkan<br>isi sheet persis seperti aslinya</div></div>
-    </div>
   </div>
 
   <!-- TAB GRID -->
-  <div class="panel" id="panel-grid">
-    <div class="grid-controls">
-      <input type="month" class="month-select" id="grid-month" style="flex:1">
-      <button class="load-btn" onclick="loadGrid()">Tampilkan</button>
-    </div>
-    <div id="grid-container">
-      <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Pilih bulan dan klik Tampilkan<br>untuk melihat grid tugas</div></div>
-    </div>
-  </div>
-
   <!-- TAB NON-HARIAN -->
   <div class="panel" id="panel-event">
     <!-- FIX 2: Tanggal readonly untuk non-harian juga -->
@@ -538,50 +520,52 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 
-  <!-- TAB LAPORAN -->
+  <!-- TAB LAPORAN (berisi: Laporan Mingguan, Grid Bulanan, Riwayat) -->
   <div class="panel" id="panel-laporan">
-    <div class="grid-controls">
-      <input type="month" class="month-select" id="laporan-month">
-      <button class="load-btn" onclick="loadLaporan()">Tampilkan</button>
-    </div>
-    <div id="laporan-container">
-      <div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Pilih bulan untuk melihat laporan mingguan</div></div>
-    </div>
-  </div>
-
-  <!-- TAB RIWAYAT -->
-  <div class="panel" id="panel-riwayat">
-    <div class="grid-controls">
-      <input type="month" class="month-select" id="riwayat-month">
-      <button class="load-btn" onclick="loadRiwayat()">Tampilkan</button>
-    </div>
-    <div id="riwayat-container">
-      <div class="empty"><div class="empty-icon">🗂</div><div class="empty-text">Pilih bulan untuk melihat riwayat pengisian</div></div>
-    </div>
-  </div>
-
-  <!-- TAB LOKASI -->
-  <div class="panel" id="panel-lokasi">
-    <div class="alert info" style="margin-bottom:16px">
-      📍 <b>Tracker Otomatis</b> — GPS aktif langsung saat halaman dibuka. Radius <b>200 meter</b> dari Kodachi Shop Monjali. D01 tercatat otomatis berdasarkan durasi GPS.
+    <div class="alert info" style="margin-bottom:14px">
+      📈 <b>Laporan & Rekap</b> — semua data tugas ada di sini. Pilih jenis tampilan di bawah, lalu pilih bulan.
     </div>
 
-    <button class="loc-retry-btn" id="loc-retry-btn" onclick="retryGps()">
-      🔄 Coba Ulang Deteksi Lokasi
-    </button>
-
-    <div class="loc-debug" id="loc-debug">GPS: menginisialisasi...</div>
-
-    <div class="loc-stats-grid">
-      <div class="loc-stat-card"><div class="loc-stat-val" id="loc-total-today" style="color:var(--green)">0j 0m</div><div class="loc-stat-label">Durasi di toko hari ini</div></div>
-      <div class="loc-stat-card"><div class="loc-stat-val" id="loc-distance">— m</div><div class="loc-stat-label">Jarak dari toko</div></div>
-      <div class="loc-stat-card"><div class="loc-stat-val" id="loc-sessions-count" style="color:var(--blue)">0</div><div class="loc-stat-label">Sesi masuk toko</div></div>
-      <div class="loc-stat-card"><div class="loc-stat-val" id="loc-accuracy">— m</div><div class="loc-stat-label">Akurasi GPS</div></div>
+    <div class="subtab-row">
+      <button class="subtab active" id="subtab-lap" onclick="switchLaporanView('lap',this)">📈 Mingguan</button>
+      <button class="subtab" id="subtab-grid" onclick="switchLaporanView('grid',this)">📊 Grid Bulanan</button>
+      <button class="subtab" id="subtab-riw" onclick="switchLaporanView('riw',this)">🗂 Riwayat</button>
     </div>
 
-    <div class="section-hdr"><span class="section-hdr-label">Log Aktivitas Hari Ini</span><div class="section-hdr-line"></div></div>
-    <div id="loc-log-list">
-      <div class="empty"><div class="empty-icon">🗺</div><div class="empty-text">Belum ada aktivitas hari ini.</div></div>
+    <!-- Sub-view: Laporan Mingguan -->
+    <div class="subview active" id="subview-lap">
+      <div class="subview-cap">Rekap persentase tugas per minggu dalam sebulan.</div>
+      <div class="grid-controls">
+        <input type="month" class="month-select" id="laporan-month">
+        <button class="load-btn" onclick="loadLaporan()">Tampilkan</button>
+      </div>
+      <div id="laporan-container">
+        <div class="empty"><div class="empty-icon">📈</div><div class="empty-text">Pilih bulan untuk melihat laporan mingguan</div></div>
+      </div>
+    </div>
+
+    <!-- Sub-view: Grid Bulanan -->
+    <div class="subview" id="subview-grid">
+      <div class="subview-cap">Tabel centang harian: baris = tugas, kolom = tanggal.</div>
+      <div class="grid-controls">
+        <input type="month" class="month-select" id="grid-month" style="flex:1">
+        <button class="load-btn" onclick="loadGrid()">Tampilkan</button>
+      </div>
+      <div id="grid-container">
+        <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Pilih bulan dan klik Tampilkan<br>untuk melihat grid tugas</div></div>
+      </div>
+    </div>
+
+    <!-- Sub-view: Riwayat -->
+    <div class="subview" id="subview-riw">
+      <div class="subview-cap">Daftar tugas yang sudah diisi, urut per tanggal.</div>
+      <div class="grid-controls">
+        <input type="month" class="month-select" id="riwayat-month">
+        <button class="load-btn" onclick="loadRiwayat()">Tampilkan</button>
+      </div>
+      <div id="riwayat-container">
+        <div class="empty"><div class="empty-icon">🗂</div><div class="empty-text">Pilih bulan untuk melihat riwayat pengisian</div></div>
+      </div>
     </div>
   </div>
 
@@ -1161,133 +1145,6 @@ function updateStokBadge() {
   }
 }
 
-// ═══════════════════════════════════════════
-// REPLIKA TAMPILAN SHEET ASLI (privat, via ?type=stokraw)
-// ═══════════════════════════════════════════
-let _stokRawLoaded = false;
-let stokRawFit = true; // default: muat pas layar
-
-async function loadStokRaw(sheetName) {
-  if (!scriptUrl) { showToast('Atur URL dulu di ⚙️', 'err'); return; }
-  const wrap = document.getElementById('stok-raw-wrap');
-  const btn  = document.getElementById('stok-raw-btn');
-  const upd  = document.getElementById('stok-raw-updated');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Memuat…'; }
-  wrap.innerHTML = `<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Memuat isi sheet…</div></div>`;
-  try {
-    let url = `${scriptUrl}?type=stokraw`;
-    if (sheetName) url += `&sheet=${encodeURIComponent(sheetName)}`;
-    const r = await fetch(url);
-    const d = await r.json();
-    if (!d || !d.values) throw new Error(d && d.message ? d.message : 'Endpoint type=stokraw belum tersedia');
-
-    // isi dropdown sheet (sekali)
-    const sel = document.getElementById('stok-raw-sheet');
-    if (sel && d.sheets && (!_stokRawLoaded || sel.options.length === 0)) {
-      sel.innerHTML = d.sheets.map(s => `<option value="${escAttr(s)}"${s===d.sheet?' selected':''}>${escHtml(s)}</option>`).join('');
-    } else if (sel && d.sheet) {
-      sel.value = d.sheet;
-    }
-
-    renderStokRaw(d);
-    if (upd) upd.textContent = 'Diperbarui ' + fmtTime(d.updated);
-    _stokRawLoaded = true;
-  } catch (err) {
-    wrap.innerHTML = `<div class="alert err" style="margin:0">
-      ⚠️ <b>Belum bisa memuat tampilan sheet.</b><br><br>
-      Pastikan kode <b>type=stokraw</b> sudah ditambahkan ke Google Apps Script,<br>lalu <b>Deploy ulang</b>.<br><br>
-      <span style="font-family:var(--mono);font-size:10px;color:var(--hint)">${escHtml(err.message||'')}</span></div>`;
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '🔄 Muat'; }
-  }
-}
-
-function renderStokRaw(d) {
-  const wrap = document.getElementById('stok-raw-wrap');
-  const vals = d.values || [];
-  const bg   = d.bg || [];
-  const fc   = d.fc || [];
-  const fw   = d.fw || [];
-  const colW = d.colW || [];
-
-  if (!vals.length) {
-    wrap.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sheet kosong.</div></div>`;
-    return;
-  }
-
-  let html = '<div class="stok-raw-scaler"><table class="stok-raw-table"><tbody>';
-  for (let r = 0; r < vals.length; r++) {
-    html += '<tr>';
-    for (let c = 0; c < vals[r].length; c++) {
-      const v = vals[r][c];
-      let style = '';
-      const cellBg = bg[r] && bg[r][c];
-      if (cellBg && cellBg !== '#ffffff' && cellBg !== '#FFFFFF') style += `background:${cellBg};`;
-      const cellFc = fc[r] && fc[r][c];
-      if (cellFc) style += `color:${cellFc};`;
-      const cellFw = fw[r] && fw[r][c];
-      if (cellFw === 'bold') style += 'font-weight:700;';
-      const w = colW[c];
-      if (w) style += `max-width:${Math.min(w, 220)}px;`;
-      html += `<td style="${style}">${escHtml(v)}</td>`;
-    }
-    html += '</tr>';
-  }
-  html += '</tbody></table></div><div class="stok-raw-hint" id="stok-raw-hint"></div>';
-  wrap.innerHTML = html;
-  requestAnimationFrame(applyStokRawFit);
-}
-
-function applyStokRawFit() {
-  const wrap   = document.getElementById('stok-raw-wrap');
-  if (!wrap) return;
-  const scaler = wrap.querySelector('.stok-raw-scaler');
-  const table  = scaler && scaler.querySelector('table');
-  const hint   = document.getElementById('stok-raw-hint');
-  const fitBtn = document.getElementById('stok-raw-fit-btn');
-  if (!scaler || !table) return;
-
-  // reset dulu untuk ukur asli
-  scaler.style.transform = 'none';
-  scaler.style.width = '';
-  scaler.style.height = '';
-  const tw = table.offsetWidth;
-  const th = table.offsetHeight;
-
-  if (stokRawFit) {
-    const avail = wrap.clientWidth || tw;
-    const scale = tw > avail ? avail / tw : 1;
-    scaler.style.transform = `scale(${scale})`;
-    scaler.style.width  = (tw * scale) + 'px';
-    scaler.style.height = (th * scale) + 'px';
-    wrap.style.overflowX = 'hidden';
-    if (fitBtn) { fitBtn.classList.add('active'); fitBtn.textContent = '↔️ Pas layar'; }
-    if (hint) hint.textContent = 'Pas layar — tekan "Pas layar" lagi untuk ukuran penuh. Edit tetap di Google Sheet.';
-  } else {
-    wrap.style.overflowX = 'auto';
-    if (fitBtn) { fitBtn.classList.remove('active'); fitBtn.textContent = '🔍 Ukuran penuh'; }
-    if (hint) hint.textContent = 'Geser ke samping / bawah untuk melihat semua. Edit tetap di Google Sheet.';
-  }
-}
-
-function toggleStokRawFit() {
-  stokRawFit = !stokRawFit;
-  applyStokRawFit();
-}
-
-function escHtml(s) {
-  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function escAttr(s) {
-  return String(s == null ? '' : s).replace(/"/g,'&quot;');
-}
-function fmtTime(iso) {
-  if (!iso) return '-';
-  try {
-    const dt = new Date(iso);
-    return dt.toLocaleString('id-ID', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
-  } catch(e){ return iso; }
-}
 
 // ═══════════════════════════════════════════
 // INIT
@@ -1345,6 +1202,16 @@ function switchTab(name, btn) {
     if (!stokLoadedOnce) loadStok();
     else renderStokList();
   }
+}
+
+// Sub-menu di dalam tab Laporan (Mingguan / Grid / Riwayat)
+function switchLaporanView(view, btn) {
+  document.querySelectorAll('.subview').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.subtab').forEach(t=>t.classList.remove('active'));
+  const map = { lap:'subview-lap', grid:'subview-grid', riw:'subview-riw' };
+  const el = document.getElementById(map[view]);
+  if (el) el.classList.add('active');
+  if (btn) btn.classList.add('active');
 }
 
 // ═══════════════════════════════════════════
