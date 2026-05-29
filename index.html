@@ -905,6 +905,8 @@ function switchIgTab(name, btn) {
   document.querySelectorAll('.ig-stab').forEach(b=>b.classList.remove('active'));
   document.getElementById('ig-subview-'+name).classList.add('active');
   if(btn)btn.classList.add('active');
+    if(name === 'input') igLoadProduk(); // ← tambah ini
+
 }
 
 function igAddRow() {
