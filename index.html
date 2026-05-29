@@ -984,10 +984,7 @@ function igRenderTable(){
     html+='<tr class="'+rowCls+'" data-id="'+r.id+'">'
       +'<td>'+(i+1)+'</td>'
       +'<td><input class="it it-date" type="date" value="'+r.tanggal+'" onchange="igSetVal('+r.id+',\'tanggal\',this.value)"></td>'
-+'<td><select class="it it-nama" onchange="igSetVal('+r.id+',\'nama\',this.value)">'
-+'<option value="">-- Pilih produk --</option>'
-+igProdukList.map(function(p){return'<option value="'+igEscH(p)+'"'+(r.nama===p?' selected':'')+'>'+p+'</option>';}).join('')
-+'</select></td>'
++'<td><input class="it it-nama" list="ig-produk-list" value="'+igEscH(r.nama)+'" placeholder="Ketik nama produk..." oninput="igSetVal('+r.id+',\'nama\',this.value)" autocomplete="off"></td>'
       +'<td><input class="it it-size" type="text" value="'+igEscH(r.size)+'" placeholder="42" oninput="igSetVal('+r.id+',\'size\',this.value)"></td>'
       +'<td><select class="it" style="min-width:110px" onchange="igSetVal('+r.id+',\'tipe\',this.value)">'
       +IG_TIPE_OPTIONS.map(t=>'<option value="'+t+'"'+(r.tipe===t?' selected':'')+'>'+t+'</option>').join('')
@@ -1017,16 +1014,28 @@ function igUpdateSummary(){
   document.getElementById('ig-cnt-minus').textContent=minus;
 }
 async function igLoadProduk() {
-  var url = igApiUrl || localStorage.getItem('ig_api_url') || '';
-  if (!url) return;
-  try {
-    var r = await fetch(url + '?type=produk');
-    var d = await r.json();
-    if (d.status === 'ok' && d.produk) {
-      igProdukList = d.produk;
-      igRenderTable();
-    }
-  } catch(e) {}
+  // Coba ambil dari ig_api_url dulu, fallback ke scriptUrl utama
+  var urls = [];
+  var saved = localStorage.getItem('ig_api_url') || '';
+  if (saved) urls.push(saved);
+  if (scriptUrl && scriptUrl !== saved) urls.push(scriptUrl);
+  
+  for (var i = 0; i < urls.length; i++) {
+    try {
+      var r = await fetch(urls[i] + '?type=produk');
+      var d = await r.json();
+      if (d.status === 'ok' && d.produk && d.produk.length) {
+        igProdukList = d.produk;
+        var dl = document.getElementById('ig-produk-list');
+if (dl) {
+  dl.innerHTML = igProdukList.map(function(p){ return '<option value="'+igEscH(p)+'">'; }).join('');
+}
+        igRenderTable();
+        return;
+      }
+    } catch(e) {}
+  }
+  // Jika semua gagal, igProdukList tetap [] → input ketik bebas
 }
 function igClearAll(){
   if(!igRows.length)return;
@@ -1448,5 +1457,6 @@ if(sessionStorage.getItem('mtg_auth')==='1'){
   document.addEventListener('DOMContentLoaded',()=>{document.getElementById('pw-overlay').style.display='none';});
 }
 </script>
+  <datalist id="ig-produk-list"></datalist>
 </body>
 </html>
