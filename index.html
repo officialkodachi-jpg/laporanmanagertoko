@@ -41,7 +41,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .brand-tag { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; }
 .brand-name { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
 .brand-sub { font-size: 12px; color: var(--muted); font-weight: 300; margin-top: 2px; }
-.setup-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--card); border: 1px solid var(--border2); border-radius: 50px; color: var(--muted); font-family: var(--sans); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.setup-btn { display: none; align-items: center; gap: 6px; padding: 8px 14px; background: var(--card); border: 1px solid var(--border2); border-radius: 50px; color: var(--muted); font-family: var(--sans); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
 .setup-btn:hover { border-color: var(--accent); color: var(--accent); }
 .setup-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--hint); transition: background 0.3s; }
 .setup-dot.connected { background: var(--green); box-shadow: 0 0 5px rgba(22,163,74,0.5); }
@@ -225,9 +225,42 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); min-
 .empty-text { font-size: 13px; line-height: 1.6; }
 .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--hint); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* PASSWORD OVERLAY */
+.pw-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.pw-box { background: var(--card); border: 1px solid var(--border2); border-radius: var(--r-lg); padding: 36px 28px; width: 100%; max-width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.12); text-align: center; }
+.pw-logo { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px; }
+.pw-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.pw-sub { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+.pw-input { width: 100%; padding: 13px 16px; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--r); color: var(--text); font-family: var(--mono); font-size: 15px; outline: none; text-align: center; letter-spacing: 0.1em; margin-bottom: 10px; transition: border-color 0.2s; }
+.pw-input:focus { border-color: var(--accent); }
+.pw-input.shake { animation: shake 0.4s ease; border-color: var(--red) !important; }
+.pw-btn { width: 100%; padding: 13px; background: var(--accent); color: #ffffff; border: none; border-radius: var(--r); font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+.pw-btn:active { opacity: 0.8; }
+.pw-err { font-size: 12px; color: var(--red); margin-top: 8px; min-height: 18px; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
 </style>
 </head>
 <body>
+
+<!-- PASSWORD OVERLAY -->
+<div class="pw-overlay" id="pw-overlay">
+  <div class="pw-box">
+    <div class="pw-logo">MTG · Sepatu Kodachi</div>
+    <div class="pw-title">Masuk ke Tracker</div>
+    <div class="pw-sub">Masukkan password untuk melanjutkan</div>
+    <input class="pw-input" id="pw-input" type="password" placeholder="••••••••••" maxlength="30"
+      onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="pw-btn" onclick="checkPw()">Masuk →</button>
+    <div class="pw-err" id="pw-err"></div>
+  </div>
+</div>
 
 <!-- TOPBAR -->
 <div class="topbar">
@@ -1061,6 +1094,33 @@ function showToast(msg, type='') {
 document.getElementById('modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
+
+// ─────────────────────────────────────────────
+// PASSWORD
+// ─────────────────────────────────────────────
+const PW = 'kodachi123';
+function checkPw() {
+  const val = document.getElementById('pw-input').value;
+  if (val === PW) {
+    sessionStorage.setItem('mtg_auth', '1');
+    document.getElementById('pw-overlay').style.display = 'none';
+  } else {
+    const inp = document.getElementById('pw-input');
+    inp.classList.remove('shake');
+    void inp.offsetWidth;
+    inp.classList.add('shake');
+    document.getElementById('pw-err').textContent = 'Password salah, coba lagi';
+    inp.value = '';
+    setTimeout(() => inp.classList.remove('shake'), 400);
+  }
+}
+// Check on load
+if (sessionStorage.getItem('mtg_auth') === '1') {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('pw-overlay').style.display = 'none';
+  });
+}
+
 </script>
 </body>
 </html>
