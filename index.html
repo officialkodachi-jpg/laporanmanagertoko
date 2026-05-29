@@ -559,33 +559,33 @@ select.it{cursor:pointer}
     <!-- Sub-view: Config -->
     <div class="ig-subview" id="ig-subview-config">
       <div class="ig-api-box">
-        <label class="ig-api-label">URL Apps Script — Spreadsheet Kasir (untuk fetch produk &amp; simpan stok)</label>
+        <label class="ig-api-label">URL Apps Script — Spreadsheet Gudang (untuk fetch produk &amp; simpan stok)</label>
         <input class="ig-api-input" id="ig-api-url" placeholder="https://script.google.com/macros/s/..." value="">
         <div class="ig-api-note">
-          Gunakan URL Apps Script dari <b>spreadsheet Kasir</b> (ID: <code style="background:var(--surface);padding:1px 4px;border-radius:3px">1gJtL8Qr...</code>). Script ini menangani fetch produk (sheet "Data" B2:B500) <b>dan</b> simpan data ke spreadsheet Gudang (ID: <code style="background:var(--surface);padding:1px 4px;border-radius:3px">13yNmH5j...</code>).
+          Gunakan URL Apps Script dari <b>spreadsheet Stok Gudang v4</b> (ID: <code style="background:var(--surface);padding:1px 4px;border-radius:3px">13yNmH5j...</code>). Script ini menangani fetch produk dari sheet "Data" B2:B300 <b>dan</b> simpan data mutasi IN/OUT ke spreadsheet yang sama.
         </div>
         <button class="ig-save-url-btn" onclick="igSaveApiUrl()">Simpan URL</button>
       </div>
       <div class="ig-api-box" style="margin-top:8px">
         <label class="ig-api-label">Cara Setup (3 langkah)</label>
         <div style="font-size:11px;line-height:2;color:var(--muted)">
-          <b>1.</b> Buka spreadsheet <b>Kasir</b> → <b>Extensions → Apps Script</b><br>
-          <b>2.</b> Ganti/tambah fungsi <code style="background:var(--surface);padding:2px 5px;border-radius:3px">doGet</code> dan <code style="background:var(--surface);padding:2px 5px;border-radius:3px">doPost</code> dengan kode di bawah<br>
+          <b>1.</b> Buka spreadsheet <b>Stok Gudang v4</b> → <b>Extensions → Apps Script</b><br>
+          <b>2.</b> Tambah/ganti fungsi <code style="background:var(--surface);padding:2px 5px;border-radius:3px">doGet</code> dan <code style="background:var(--surface);padding:2px 5px;border-radius:3px">doPost</code> dengan kode di bawah<br>
           <b>3.</b> Deploy ulang → <b>Manage Deployments → Edit → versi baru → Update</b>
         </div>
       </div>
       <div class="ig-api-box" style="background:rgba(22,163,74,.04);border-color:rgba(22,163,74,.3)">
-        <label class="ig-api-label" style="color:var(--green)">Kode Apps Script (tambahkan ke spreadsheet Kasir)</label>
-        <div class="ig-code-block">// ── doGet: handle type=produk (JSONP) ──────────────────
+        <label class="ig-api-label" style="color:var(--green)">Kode Apps Script (pasang di spreadsheet Stok Gudang v4)</label>
+        <div class="ig-code-block">// ── doGet: handle type=produk_gudang (JSONP) ───────────
 function doGet(e) {
   var p = e.parameter;
   var cb = p.callback || "callback";
 
-  if (p.type === "produk") {
-    // Ambil nama produk dari spreadsheet Kasir sheet "Data" B2:B500
-    var ss = SpreadsheetApp.openById("1gJtL8Qr65ZXy5aNW4WWz1umKdSkFjGTZdPq7xfnJbfI");
+  if (p.type === "produk_gudang") {
+    // Ambil nama produk dari sheet "Data" B2:B300
+    var ss = SpreadsheetApp.openById("13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk");
     var sh = ss.getSheetByName("Data");
-    var vals = sh.getRange("B2:B500").getValues();
+    var vals = sh.getRange("B2:B300").getValues();
     var produk = vals.map(function(r){return r[0];})
                      .filter(function(v){return v && v.toString().trim();})
                      .filter(function(v,i,a){return a.indexOf(v)===i;}); // dedupe
@@ -594,45 +594,35 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
 
-  // Teruskan ke handler lain yang sudah ada (stok, cek, dll)
+  // Teruskan ke handler lain yang sudah ada
   return doGetExisting(e);
 }
 
-// ── doPost: simpan ke spreadsheet Gudang sheet "Data" ──
+// ── doPost: simpan mutasi IN/OUT ke sheet "Data" ────────
 function doPost(e) {
+  var ss = SpreadsheetApp.openById("13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk");
+  var sheet = ss.getSheetByName("Data");
   var data = JSON.parse(e.postData.contents);
-
-  // Handler stok_gudang: tulis ke spreadsheet Gudang
-  if (data.type === "stok_gudang" || (data.rows && Array.isArray(data.rows))) {
-    var ssGudang = SpreadsheetApp.openById("13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk");
-    var shGudang = ssGudang.getSheetByName("Data");
-    if (!shGudang) shGudang = ssGudang.getSheets()[0]; // fallback sheet pertama
-    (data.rows || []).forEach(function(row) {
-      shGudang.appendRow([
+  if (data.rows && Array.isArray(data.rows)) {
+    data.rows.forEach(function(row) {
+      sheet.appendRow([
         row.tanggal, row.nama, row.size, row.tipe,
         row.jumlah, row.inout, row.ket, row.total
       ]);
     });
-    return ContentService
-      .createTextOutput(JSON.stringify({status:"ok", saved: (data.rows||[]).length}))
-      .setMimeType(ContentService.MimeType.JSON);
   }
-
-  // Teruskan ke handler doPost lain yang sudah ada (harian, event, dll)
-  return doPostExisting(e);
-}
-
-// ── Rename fungsi doGet & doPost lama kamu menjadi: ────
-// doGetExisting(e)  → fungsi doGet yang sudah ada sebelumnya
-// doPostExisting(e) → fungsi doPost yang sudah ada sebelumnya</div>
+  return ContentService
+    .createTextOutput(JSON.stringify({status:"ok"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
       </div>
       <div class="ig-api-box" style="background:rgba(217,119,6,.04);border-color:rgba(217,119,6,.3);margin-top:8px">
         <label class="ig-api-label" style="color:var(--orange)">⚠ Catatan Penting</label>
         <div style="font-size:11px;line-height:1.9;color:var(--muted)">
-          Kode di atas <b>menggabungkan</b> doGet/doPost baru dengan yang sudah ada.<br>
-          Ganti nama fungsi <code style="background:var(--surface);padding:1px 4px">doGet</code> lama → <code style="background:var(--surface);padding:1px 4px">doGetExisting</code><br>
-          Ganti nama fungsi <code style="background:var(--surface);padding:1px 4px">doPost</code> lama → <code style="background:var(--surface);padding:1px 4px">doPostExisting</code><br>
-          Lalu tambahkan fungsi baru di atas. Setelah edit → <b>Deploy ulang versi baru</b>.
+          Kode di atas dipasang langsung di Apps Script <b>Stok Gudang v4</b>.<br>
+          Jika sudah ada fungsi <code style="background:var(--surface);padding:1px 4px">doGet</code> lama, ganti namanya → <code style="background:var(--surface);padding:1px 4px">doGetExisting</code><br>
+          Produk diambil dari sheet <b>"Data"</b> kolom B (B2:B300).<br>
+          Setelah edit → <b>Deploy ulang versi baru</b>.
         </div>
       </div>
     </div>
@@ -772,13 +762,13 @@ var igApiUrl=localStorage.getItem('ig_api_url')||'';
 var igToday=new Date().toISOString().split('T')[0];
 var IG_KET_OPTIONS=['Bawa Ke Toko','Hilang','Minus Stock','Ketemu','Retur','Penyesuaian'];
 var IG_TIPE_OPTIONS=['','Pendek','Panjang','Sport','Invisible','Ankle'];
-// ✅ FIX 3: igProdukList diisi via JSONP dari Apps Script kasir
+// ✅ igProdukList diisi via JSONP dari Apps Script Gudang (type=produk_gudang, sheet Data B2:B300)
 var igProdukList=[];
 var _produkLoaded=false;
 
 // ═══════════════════════════════════════════
-// ✅ FIX 3: LOAD PRODUK VIA JSONP (dari spreadsheet Kasir)
-// Menggunakan scriptUrl utama (Apps Script kasir) dengan type=produk
+// LOAD PRODUK VIA JSONP (dari spreadsheet Stok Gudang v4, sheet Data B2:B300)
+// Menggunakan scriptUrl utama (Apps Script gudang) dengan type=produk_gudang
 // ═══════════════════════════════════════════
 function igLoadProduk(silent) {
   var url = igApiUrl || localStorage.getItem('ig_api_url') || scriptUrl;
@@ -786,7 +776,7 @@ function igLoadProduk(silent) {
     setProdukStatus('err', '⚠ URL belum dikonfigurasi — buka tab ⚙️ Pengaturan API');
     return;
   }
-  if (!silent) setProdukStatus('loading', 'Memuat daftar produk...');
+  if (!silent) setProdukStatus('loading', 'Memuat daftar produk dari Stok Gudang v4...');
 
   // Bersihkan script JSONP lama
   var old = document.getElementById('jsonp-produk');
@@ -794,7 +784,7 @@ function igLoadProduk(silent) {
 
   // Timeout fallback
   var tid = setTimeout(function() {
-    if (!_produkLoaded) setProdukStatus('err', '⚠ Timeout — pastikan Apps Script sudah support type=produk');
+    if (!_produkLoaded) setProdukStatus('err', '⚠ Timeout — pastikan Apps Script sudah support type=produk_gudang');
   }, 10000);
 
   window.__igProdukCb = function(data) {
@@ -810,7 +800,7 @@ function igLoadProduk(silent) {
 
   var s = document.createElement('script');
   s.id = 'jsonp-produk';
-  s.src = url + '?type=produk&callback=__igProdukCb&_=' + Date.now();
+  s.src = url + '?type=produk_gudang&callback=__igProdukCb&_=' + Date.now();
   s.onerror = function() {
     clearTimeout(tid);
     setProdukStatus('err', '⚠ Script error — cek URL Apps Script');
@@ -1000,7 +990,7 @@ function igSaveApiUrl(){
   igLoadProduk();
 }
 
-// ✅ FIX 4: igSyncToSheets — kirim ke Apps Script dengan type=stok_gudang
+// igSyncToSheets — kirim rows ke Apps Script Gudang v4
 async function igSyncToSheets(){
   if(!igRows.length){showToast('Tidak ada data untuk disimpan','err');return;}
   var url=igApiUrl||localStorage.getItem('ig_api_url')||scriptUrl||'';
