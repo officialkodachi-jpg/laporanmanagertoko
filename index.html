@@ -308,6 +308,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .stok-raw-controls{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
 .stok-raw-select{flex:1;min-width:140px;padding:10px 12px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;outline:none}
 .stok-raw-btn{padding:10px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.stok-raw-btn.ghost{background:var(--card);color:var(--accent);border:1px solid var(--border2)}
+.stok-raw-btn.ghost.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.stok-raw-scaler{transform-origin:top left;display:inline-block}
 .stok-raw-updated{font-family:var(--mono);font-size:10px;color:var(--hint);margin-bottom:10px;text-align:center;min-height:13px}
 .stok-raw-wrap{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:var(--r);max-height:70vh}
 .stok-raw-table{border-collapse:collapse;font-family:var(--mono);font-size:11px;white-space:nowrap}
@@ -495,6 +498,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <div class="stok-raw-controls">
       <select id="stok-raw-sheet" class="stok-raw-select" onchange="loadStokRaw(this.value)"></select>
       <button class="stok-raw-btn" id="stok-raw-btn" onclick="loadStokRaw()">🔄 Muat</button>
+      <button class="stok-raw-btn ghost" id="stok-raw-fit-btn" onclick="toggleStokRawFit()">↔️ Pas layar</button>
     </div>
     <div class="stok-raw-updated" id="stok-raw-updated"></div>
     <div class="stok-raw-wrap" id="stok-raw-wrap">
@@ -1161,6 +1165,7 @@ function updateStokBadge() {
 // REPLIKA TAMPILAN SHEET ASLI (privat, via ?type=stokraw)
 // ═══════════════════════════════════════════
 let _stokRawLoaded = false;
+let stokRawFit = true; // default: muat pas layar
 
 async function loadStokRaw(sheetName) {
   if (!scriptUrl) { showToast('Atur URL dulu di ⚙️', 'err'); return; }
@@ -1210,7 +1215,7 @@ function renderStokRaw(d) {
     return;
   }
 
-  let html = '<table class="stok-raw-table"><tbody>';
+  let html = '<div class="stok-raw-scaler"><table class="stok-raw-table"><tbody>';
   for (let r = 0; r < vals.length; r++) {
     html += '<tr>';
     for (let c = 0; c < vals[r].length; c++) {
@@ -1228,8 +1233,46 @@ function renderStokRaw(d) {
     }
     html += '</tr>';
   }
-  html += '</tbody></table><div class="stok-raw-hint">Geser ke samping / bawah untuk melihat seluruh tabel. Tampilan ini hanya untuk dilihat — edit tetap di Google Sheet.</div>';
+  html += '</tbody></table></div><div class="stok-raw-hint" id="stok-raw-hint"></div>';
   wrap.innerHTML = html;
+  requestAnimationFrame(applyStokRawFit);
+}
+
+function applyStokRawFit() {
+  const wrap   = document.getElementById('stok-raw-wrap');
+  if (!wrap) return;
+  const scaler = wrap.querySelector('.stok-raw-scaler');
+  const table  = scaler && scaler.querySelector('table');
+  const hint   = document.getElementById('stok-raw-hint');
+  const fitBtn = document.getElementById('stok-raw-fit-btn');
+  if (!scaler || !table) return;
+
+  // reset dulu untuk ukur asli
+  scaler.style.transform = 'none';
+  scaler.style.width = '';
+  scaler.style.height = '';
+  const tw = table.offsetWidth;
+  const th = table.offsetHeight;
+
+  if (stokRawFit) {
+    const avail = wrap.clientWidth || tw;
+    const scale = tw > avail ? avail / tw : 1;
+    scaler.style.transform = `scale(${scale})`;
+    scaler.style.width  = (tw * scale) + 'px';
+    scaler.style.height = (th * scale) + 'px';
+    wrap.style.overflowX = 'hidden';
+    if (fitBtn) { fitBtn.classList.add('active'); fitBtn.textContent = '↔️ Pas layar'; }
+    if (hint) hint.textContent = 'Pas layar — tekan "Pas layar" lagi untuk ukuran penuh. Edit tetap di Google Sheet.';
+  } else {
+    wrap.style.overflowX = 'auto';
+    if (fitBtn) { fitBtn.classList.remove('active'); fitBtn.textContent = '🔍 Ukuran penuh'; }
+    if (hint) hint.textContent = 'Geser ke samping / bawah untuk melihat semua. Edit tetap di Google Sheet.';
+  }
+}
+
+function toggleStokRawFit() {
+  stokRawFit = !stokRawFit;
+  applyStokRawFit();
 }
 
 function escHtml(s) {
