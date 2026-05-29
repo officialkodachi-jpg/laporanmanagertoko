@@ -582,10 +582,10 @@ function doGet(e) {
   var cb = p.callback || "callback";
 
   if (p.type === "produk_gudang") {
-    // Ambil nama produk dari sheet "Data" B2:B300
+    // Ambil nama produk dari sheet "Stok Masuk" B3:B300
     var ss = SpreadsheetApp.openById("13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk");
-    var sh = ss.getSheetByName("Data");
-    var vals = sh.getRange("B2:B300").getValues();
+    var sh = ss.getSheetByName("Stok Masuk");
+    var vals = sh.getRange("B3:B300").getValues();
     var produk = vals.map(function(r){return r[0];})
                      .filter(function(v){return v && v.toString().trim();})
                      .filter(function(v,i,a){return a.indexOf(v)===i;}); // dedupe
@@ -598,16 +598,18 @@ function doGet(e) {
   return doGetExisting(e);
 }
 
-// ── doPost: simpan mutasi IN/OUT ke sheet "Data" ────────
+// ── doPost: simpan mutasi IN/OUT ke sheet "Stok Masuk" ─
+// Kolom: A=Tanggal, B=Nama Produk, C=SIZE, D=Tipe,
+//        E=(kosong), F=Jumlah, G=IN/OUT, H=KET, I=TOTAL
 function doPost(e) {
   var ss = SpreadsheetApp.openById("13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk");
-  var sheet = ss.getSheetByName("Data");
+  var sheet = ss.getSheetByName("Stok Masuk");
   var data = JSON.parse(e.postData.contents);
   if (data.rows && Array.isArray(data.rows)) {
     data.rows.forEach(function(row) {
       sheet.appendRow([
         row.tanggal, row.nama, row.size, row.tipe,
-        row.jumlah, row.inout, row.ket, row.total
+        "", row.jumlah, row.inout, row.ket, row.total
       ]);
     });
   }
@@ -620,8 +622,8 @@ function doPost(e) {
         <label class="ig-api-label" style="color:var(--orange)">⚠ Catatan Penting</label>
         <div style="font-size:11px;line-height:1.9;color:var(--muted)">
           Kode di atas dipasang langsung di Apps Script <b>Stok Gudang v4</b>.<br>
+          Data masuk ke sheet <b>"Stok Masuk"</b> — kolom E dikosongkan otomatis.<br>
           Jika sudah ada fungsi <code style="background:var(--surface);padding:1px 4px">doGet</code> lama, ganti namanya → <code style="background:var(--surface);padding:1px 4px">doGetExisting</code><br>
-          Produk diambil dari sheet <b>"Data"</b> kolom B (B2:B300).<br>
           Setelah edit → <b>Deploy ulang versi baru</b>.
         </div>
       </div>
