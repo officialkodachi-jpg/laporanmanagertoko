@@ -1013,29 +1013,29 @@ function igUpdateSummary(){
   document.getElementById('ig-cnt-ketemu').textContent=ketemu;
   document.getElementById('ig-cnt-minus').textContent=minus;
 }
-async function igLoadProduk() {
-  // Coba ambil dari ig_api_url dulu, fallback ke scriptUrl utama
-  var urls = [];
-  var saved = localStorage.getItem('ig_api_url') || '';
-  if (saved) urls.push(saved);
-  if (scriptUrl && scriptUrl !== saved) urls.push(scriptUrl);
-  
-  for (var i = 0; i < urls.length; i++) {
-    try {
-      var r = await fetch(urls[i] + '?type=produk');
-      var d = await r.json();
-      if (d.status === 'ok' && d.produk && d.produk.length) {
-        igProdukList = d.produk;
-        var dl = document.getElementById('ig-produk-list');
-if (dl) {
-  dl.innerHTML = igProdukList.map(function(p){ return '<option value="'+igEscH(p)+'">'; }).join('');
-}
-        igRenderTable();
-        return;
-      }
-    } catch(e) {}
-  }
-  // Jika semua gagal, igProdukList tetap [] → input ketik bebas
+function igLoadProduk() {
+  var url = localStorage.getItem('ig_api_url') || scriptUrl;
+  if (!url) return;
+
+  var old = document.getElementById('jsonp-produk');
+  if (old) old.remove();
+
+  window.__igProdukCb = function(data) {
+    if (data.status === 'ok' && data.produk && data.produk.length) {
+      igProdukList = data.produk;
+      var dl = document.getElementById('ig-produk-list');
+      if (dl) dl.innerHTML = igProdukList
+        .map(function(p){ return '<option value="'+igEscH(p)+'">'; })
+        .join('');
+      igRenderTable();
+    }
+  };
+
+  var s = document.createElement('script');
+  s.id = 'jsonp-produk';
+  s.src = url + '?type=produk&callback=__igProdukCb';
+  s.onerror = function() { console.log('JSONP gagal'); };
+  document.body.appendChild(s);
 }
 function igClearAll(){
   if(!igRows.length)return;
