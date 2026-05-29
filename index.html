@@ -1173,7 +1173,7 @@ async function saveHarian() {
     kategori: t.kategori,
     prioritas: t.prioritas,
     // D01 selalu ✓, tugas lain ikut checked state
-    status: t.autoTrack ? '✓' : (checked[t.kode] ? '✓' : '✗'),
+status: t.autoTrack ? (totalMenit >= TARGET_MENIT ? '✓' : '✗') : (checked[t.kode] ? '✓' : '✗'),
     catatan: t.autoTrack ? gpsNote : (notes[t.kode] || '')
   }));
 
