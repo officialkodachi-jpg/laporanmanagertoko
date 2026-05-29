@@ -303,6 +303,17 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .stok-qty .q-toko{color:var(--red);font-weight:600}
 .stok-qty .q-gud{color:var(--green);font-weight:600}
 .stok-sheet-link{display:block;text-align:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;margin-top:16px}
+/* replika tampilan sheet */
+.stok-raw-divider{margin:26px 0 12px;font-size:12px;font-weight:700;color:var(--text);letter-spacing:.03em;border-top:1px solid var(--border);padding-top:18px}
+.stok-raw-controls{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.stok-raw-select{flex:1;min-width:140px;padding:10px 12px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;outline:none}
+.stok-raw-btn{padding:10px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.stok-raw-updated{font-family:var(--mono);font-size:10px;color:var(--hint);margin-bottom:10px;text-align:center;min-height:13px}
+.stok-raw-wrap{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:var(--r);max-height:70vh}
+.stok-raw-table{border-collapse:collapse;font-family:var(--mono);font-size:11px;white-space:nowrap}
+.stok-raw-table td{border:1px solid var(--border);padding:4px 7px;text-align:center;color:#1a1a1a;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}
+.stok-raw-table tr:first-child td{position:sticky;top:0;z-index:1}
+.stok-raw-hint{font-size:10px;color:var(--hint);text-align:center;margin-top:8px}
 
 /* MODAL */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;padding:20px}
@@ -364,7 +375,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <div class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      <span class="brand-tag">Manager · v3.3</span>
+      <span class="brand-tag">Manager · v3.4</span>
       <span class="brand-name">Kodachi Shop Monjali</span>
       <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
     </div>
@@ -478,6 +489,17 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
 
     <a class="stok-sheet-link" id="stok-sheet-link" href="#" target="_blank" rel="noopener">📊 Buka Google Sheet Stok →</a>
+
+    <!-- ───────── REPLIKA TAMPILAN SHEET ASLI (privat) ───────── -->
+    <div class="stok-raw-divider">📋 Tampilan Sheet Stok</div>
+    <div class="stok-raw-controls">
+      <select id="stok-raw-sheet" class="stok-raw-select" onchange="loadStokRaw(this.value)"></select>
+      <button class="stok-raw-btn" id="stok-raw-btn" onclick="loadStokRaw()">🔄 Muat</button>
+    </div>
+    <div class="stok-raw-updated" id="stok-raw-updated"></div>
+    <div class="stok-raw-wrap" id="stok-raw-wrap">
+      <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Tekan "Muat" untuk menampilkan<br>isi sheet persis seperti aslinya</div></div>
+    </div>
   </div>
 
   <!-- TAB GRID -->
@@ -1133,6 +1155,95 @@ function updateStokBadge() {
   } else {
     badge.classList.remove('show', 'pulse');
   }
+}
+
+// ═══════════════════════════════════════════
+// REPLIKA TAMPILAN SHEET ASLI (privat, via ?type=stokraw)
+// ═══════════════════════════════════════════
+let _stokRawLoaded = false;
+
+async function loadStokRaw(sheetName) {
+  if (!scriptUrl) { showToast('Atur URL dulu di ⚙️', 'err'); return; }
+  const wrap = document.getElementById('stok-raw-wrap');
+  const btn  = document.getElementById('stok-raw-btn');
+  const upd  = document.getElementById('stok-raw-updated');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Memuat…'; }
+  wrap.innerHTML = `<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Memuat isi sheet…</div></div>`;
+  try {
+    let url = `${scriptUrl}?type=stokraw`;
+    if (sheetName) url += `&sheet=${encodeURIComponent(sheetName)}`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if (!d || !d.values) throw new Error(d && d.message ? d.message : 'Endpoint type=stokraw belum tersedia');
+
+    // isi dropdown sheet (sekali)
+    const sel = document.getElementById('stok-raw-sheet');
+    if (sel && d.sheets && (!_stokRawLoaded || sel.options.length === 0)) {
+      sel.innerHTML = d.sheets.map(s => `<option value="${escAttr(s)}"${s===d.sheet?' selected':''}>${escHtml(s)}</option>`).join('');
+    } else if (sel && d.sheet) {
+      sel.value = d.sheet;
+    }
+
+    renderStokRaw(d);
+    if (upd) upd.textContent = 'Diperbarui ' + fmtTime(d.updated);
+    _stokRawLoaded = true;
+  } catch (err) {
+    wrap.innerHTML = `<div class="alert err" style="margin:0">
+      ⚠️ <b>Belum bisa memuat tampilan sheet.</b><br><br>
+      Pastikan kode <b>type=stokraw</b> sudah ditambahkan ke Google Apps Script,<br>lalu <b>Deploy ulang</b>.<br><br>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--hint)">${escHtml(err.message||'')}</span></div>`;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 Muat'; }
+  }
+}
+
+function renderStokRaw(d) {
+  const wrap = document.getElementById('stok-raw-wrap');
+  const vals = d.values || [];
+  const bg   = d.bg || [];
+  const fc   = d.fc || [];
+  const fw   = d.fw || [];
+  const colW = d.colW || [];
+
+  if (!vals.length) {
+    wrap.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sheet kosong.</div></div>`;
+    return;
+  }
+
+  let html = '<table class="stok-raw-table"><tbody>';
+  for (let r = 0; r < vals.length; r++) {
+    html += '<tr>';
+    for (let c = 0; c < vals[r].length; c++) {
+      const v = vals[r][c];
+      let style = '';
+      const cellBg = bg[r] && bg[r][c];
+      if (cellBg && cellBg !== '#ffffff' && cellBg !== '#FFFFFF') style += `background:${cellBg};`;
+      const cellFc = fc[r] && fc[r][c];
+      if (cellFc) style += `color:${cellFc};`;
+      const cellFw = fw[r] && fw[r][c];
+      if (cellFw === 'bold') style += 'font-weight:700;';
+      const w = colW[c];
+      if (w) style += `max-width:${Math.min(w, 220)}px;`;
+      html += `<td style="${style}">${escHtml(v)}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table><div class="stok-raw-hint">Geser ke samping / bawah untuk melihat seluruh tabel. Tampilan ini hanya untuk dilihat — edit tetap di Google Sheet.</div>';
+  wrap.innerHTML = html;
+}
+
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escAttr(s) {
+  return String(s == null ? '' : s).replace(/"/g,'&quot;');
+}
+function fmtTime(iso) {
+  if (!iso) return '-';
+  try {
+    const dt = new Date(iso);
+    return dt.toLocaleString('id-ID', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  } catch(e){ return iso; }
 }
 
 // ═══════════════════════════════════════════
