@@ -535,6 +535,7 @@ select.it{cursor:pointer}
 
   <!-- UANG CASH -->
   <div class="panel" id="panel-cash">
+
     <!-- Setup URL GAS -->
     <div id="cash-url-setup" style="display:none;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.2);border-radius:var(--r);padding:14px 16px;margin-bottom:14px">
       <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px">⚙️ Setup URL Google Apps Script</div>
@@ -542,52 +543,99 @@ select.it{cursor:pointer}
       <input id="cash-gas-input" type="text" placeholder="https://script.google.com/macros/s/..." style="width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:11px;background:var(--card);color:var(--text);outline:none;margin-bottom:8px">
       <button onclick="saveCashUrl()" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer">Simpan & Muat Data</button>
     </div>
+
     <!-- Status bar -->
-    <div id="cash-status-bar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px">
       <div id="cash-status-txt" style="font-family:var(--mono);font-size:10px;color:var(--muted)">Belum dimuat</div>
       <div style="display:flex;gap:6px">
         <button onclick="loadCashData()" id="cash-refresh-btn" style="padding:7px 12px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer">🔄 Refresh</button>
         <button onclick="openCashSetup()" style="padding:7px 10px;background:var(--surface);color:var(--muted);border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:11px;cursor:pointer">⚙️</button>
       </div>
     </div>
-    <!-- Summary cards -->
-    <div id="cash-summary-row" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-      <div class="stat-card"><div class="stat-val green" id="cash-total-rify">—</div><div class="stat-label">Ambil Rify</div></div>
-      <div class="stat-card"><div class="stat-val" id="cash-total-dida" style="color:var(--blue)">—</div><div class="stat-label">Ambil Dida</div></div>
-      <div class="stat-card"><div class="stat-val" id="cash-total-setor" style="color:var(--red)">—</div><div class="stat-label">Total Setor</div></div>
-      <div class="stat-card"><div class="stat-val" id="cash-total-receh" style="color:var(--orange)">—</div><div class="stat-label">Uang Receh</div></div>
+
+    <!-- Saldo belum disetor — kartu utama -->
+    <div style="margin-bottom:16px">
+      <div class="section-hdr"><span class="section-hdr-label">💰 Belum Disetor</span><div class="section-hdr-line"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <!-- Rify -->
+        <div style="background:var(--card);border:1.5px solid rgba(22,163,74,.3);border-radius:var(--r);padding:16px 14px">
+          <div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Rify</div>
+          <div id="cash-belum-rify" style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--green);line-height:1">—</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:5px">dari <span id="cash-total-rify" style="color:var(--green);font-family:var(--mono)">—</span> total ambil</div>
+        </div>
+        <!-- Dida -->
+        <div style="background:var(--card);border:1.5px solid rgba(37,99,235,.3);border-radius:var(--r);padding:16px 14px">
+          <div style="font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Dida</div>
+          <div id="cash-belum-dida" style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--blue);line-height:1">—</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:5px">dari <span id="cash-total-dida" style="color:var(--blue);font-family:var(--mono)">—</span> total ambil</div>
+        </div>
+      </div>
+      <!-- Uang receh & total setor kecil -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="stat-card"><div class="stat-val" id="cash-total-receh" style="font-size:16px;color:var(--orange)">—</div><div class="stat-label">Uang Receh</div></div>
+        <div class="stat-card"><div class="stat-val" id="cash-total-setor" style="font-size:16px;color:var(--red)">—</div><div class="stat-label">Total Setor</div></div>
+      </div>
     </div>
-    <!-- Filter -->
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-      <select id="cash-filter-bulan" onchange="renderCashTable()" style="flex:1;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:13px;background:var(--card);color:var(--text);outline:none">
-        <option value="all">Semua Bulan</option>
-      </select>
-      <select id="cash-filter-jenis" onchange="renderCashTable()" style="flex:1;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:13px;background:var(--card);color:var(--text);outline:none">
-        <option value="all">Semua Transaksi</option>
-        <option value="rify">Ambil Rify</option>
-        <option value="dida">Ambil Dida</option>
-        <option value="setor">Setor</option>
-        <option value="receh">Uang Receh</option>
-      </select>
+
+    <!-- Form Input Pengambilan -->
+    <div style="margin-bottom:16px">
+      <div class="section-hdr"><span class="section-hdr-label">✏️ Input Pengambilan</span><div class="section-hdr-line"></div></div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px">
+        <!-- Tanggal -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500">Tanggal</div>
+          <input type="date" id="cash-inp-tgl" style="width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:13px;background:var(--surface);color:var(--text);outline:none;color-scheme:light">
+        </div>
+        <!-- Siapa -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500">Siapa yang mengambil?</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button id="cash-btn-rify" onclick="cashSelectPerson('rify')" style="padding:12px;border-radius:var(--r);border:2px solid var(--border2);background:var(--surface);color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">💚 Rify</button>
+            <button id="cash-btn-dida" onclick="cashSelectPerson('dida')" style="padding:12px;border-radius:var(--r);border:2px solid var(--border2);background:var(--surface);color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">💙 Dida</button>
+          </div>
+        </div>
+        <!-- Jumlah -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500">Jumlah Diambil (Rp)</div>
+          <input type="number" id="cash-inp-nominal" placeholder="Contoh: 500000" inputmode="numeric" style="width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:15px;background:var(--surface);color:var(--text);outline:none">
+          <div id="cash-preview-nominal" style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-top:4px;min-height:16px"></div>
+        </div>
+        <!-- Uang Receh (opsional) -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500">Uang Receh (opsional, Rp)</div>
+          <input type="number" id="cash-inp-receh" placeholder="Kosongkan jika tidak ada" inputmode="numeric" style="width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:13px;background:var(--surface);color:var(--text);outline:none">
+        </div>
+        <!-- Keterangan -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500">Keterangan (opsional)</div>
+          <input type="text" id="cash-inp-ket" placeholder="Contoh: titipan, setor..." style="width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:13px;background:var(--surface);color:var(--text);outline:none">
+        </div>
+        <!-- Tombol simpan -->
+        <button id="cash-simpan-btn" onclick="simpanCashData()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.02em">Simpan ke Spreadsheet →</button>
+        <div id="cash-simpan-status" style="text-align:center;font-size:12px;margin-top:8px;min-height:16px;font-family:var(--mono)"></div>
+      </div>
     </div>
-    <!-- Table -->
-    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--card)">
-      <table id="cash-table" style="border-collapse:collapse;width:100%;min-width:520px;font-size:12px">
-        <thead>
-          <tr style="background:var(--card2)">
-            <th style="padding:10px 12px;text-align:left;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.06em;white-space:nowrap">TANGGAL</th>
-            <th style="padding:10px 12px;text-align:right;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.06em">AMBIL RIFY</th>
-            <th style="padding:10px 12px;text-align:right;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--blue);letter-spacing:.06em">AMBIL DIDA</th>
-            <th style="padding:10px 12px;text-align:right;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em">UANG RECEH</th>
-            <th style="padding:10px 12px;text-align:left;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em">KET</th>
-          </tr>
-        </thead>
-        <tbody id="cash-tbody">
-          <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);font-size:13px">⚙️ Setup URL GAS untuk muat data</td></tr>
-        </tbody>
-      </table>
+
+    <!-- Riwayat ringkas (5 transaksi terakhir saja) -->
+    <div>
+      <div class="section-hdr"><span class="section-hdr-label">🗂 5 Transaksi Terakhir</span><div class="section-hdr-line"></div></div>
+      <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--card)">
+        <table style="border-collapse:collapse;width:100%;min-width:360px;font-size:12px">
+          <thead>
+            <tr style="background:var(--card2)">
+              <th style="padding:9px 12px;text-align:left;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.06em;white-space:nowrap">TGL</th>
+              <th style="padding:9px 12px;text-align:right;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:.06em">RIFY</th>
+              <th style="padding:9px 12px;text-align:right;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--blue);letter-spacing:.06em">DIDA</th>
+              <th style="padding:9px 12px;text-align:left;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em">KET</th>
+            </tr>
+          </thead>
+          <tbody id="cash-tbody">
+            <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted);font-size:13px">⚙️ Setup URL GAS untuk muat data</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div id="cash-empty" style="display:none;text-align:center;padding:40px;color:var(--muted);font-size:13px">📭 Tidak ada data</div>
+
   </div>
 
 </div>
@@ -1268,7 +1316,9 @@ if(sessionStorage.getItem('mtg_auth')==='1'){
 // ════ UANG CASH ════
 var cashData = [];
 var cashGasUrl = localStorage.getItem('cash_gas_url') || '';
+var cashSelectedPerson = null; // 'rify' | 'dida'
 
+// --- Setup URL ---
 function openCashSetup(){
   var box = document.getElementById('cash-url-setup');
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
@@ -1284,6 +1334,7 @@ function saveCashUrl(){
   loadCashData();
 }
 
+// --- Load data dari GAS (GET) ---
 async function loadCashData(){
   if(!cashGasUrl){
     document.getElementById('cash-url-setup').style.display = 'block';
@@ -1292,15 +1343,14 @@ async function loadCashData(){
   }
   var btn = document.getElementById('cash-refresh-btn');
   if(btn){btn.disabled=true;btn.textContent='⏳ Memuat...';}
-  setCashStatus('Memuat data...','loading');
+  setCashStatus('Memuat data...','muted');
   try {
     var r = await fetch(cashGasUrl + '?type=cash&_=' + Date.now());
     var d = await r.json();
     if(d.status === 'ok'){
       cashData = d.rows || [];
-      applyCashSummary(d.summary, d.rows);
-      buildCashBulanFilter();
-      renderCashTable();
+      applyCashSummary(cashData);
+      renderCashTableRecent();
       setCashStatus('✓ Diperbarui ' + new Date().toLocaleTimeString('id-ID'),'ok');
     } else {
       setCashStatus('⚠️ Error: ' + (d.message||'unknown'),'err');
@@ -1319,34 +1369,150 @@ function setCashStatus(msg, type){
   el.style.color = type==='ok'?'var(--green)':type==='err'?'var(--red)':'var(--muted)';
 }
 
-function applyCashSummary(summary, rows){
-  // Hitung dari rows (lebih akurat daripada header GAS)
-  var totRify=0, totDida=0, totSetor=0, totReceh=0;
+// --- Hitung & tampilkan summary: total ambil & belum setor per orang ---
+function applyCashSummary(rows){
+  var totRify=0, totDida=0, totSetorRify=0, totSetorDida=0, totReceh=0;
   (rows||[]).forEach(function(r){
-    if(r.rify > 0) totRify += r.rify;
-    if(r.dida > 0) totDida += r.dida;
-    if((r.ket||'').toLowerCase()==='setor'){
-      if(r.rify) totSetor += Math.abs(r.rify);
-      if(r.dida) totSetor += Math.abs(r.dida);
+    var ket = (r.ket||'').toLowerCase();
+    var isSetor = ket === 'setor';
+    if(r.rify !== null) {
+      if(isSetor) totSetorRify += Math.abs(r.rify);
+      else if(r.rify > 0) totRify += r.rify;
+    }
+    if(r.dida !== null) {
+      if(isSetor) totSetorDida += Math.abs(r.dida);
+      else if(r.dida > 0) totDida += r.dida;
     }
     if(r.receh > 0) totReceh += r.receh;
   });
-  document.getElementById('cash-total-rify').textContent = fRpPlain(totRify);
-  document.getElementById('cash-total-dida').textContent = fRpPlain(totDida);
-  document.getElementById('cash-total-setor').textContent = fRpPlain(totSetor);
-  document.getElementById('cash-total-receh').textContent = fRpPlain(totReceh);
+  var belumRify = Math.max(0, totRify - totSetorRify);
+  var belumDida = Math.max(0, totDida - totSetorDida);
+  var totSetor = totSetorRify + totSetorDida;
+
+  document.getElementById('cash-total-rify').textContent  = fRpPlain(totRify||null);
+  document.getElementById('cash-total-dida').textContent  = fRpPlain(totDida||null);
+  document.getElementById('cash-total-receh').textContent = fRpPlain(totReceh||null);
+  document.getElementById('cash-total-setor').textContent = fRpPlain(totSetor||null);
+  document.getElementById('cash-belum-rify').textContent  = fRpPlain(belumRify);
+  document.getElementById('cash-belum-dida').textContent  = fRpPlain(belumDida);
 }
 
-function buildCashBulanFilter(){
-  var seen = [], sel = document.getElementById('cash-filter-bulan');
-  cashData.forEach(function(r){ var b=getBulan(r.tgl); if(b&&!seen.includes(b))seen.push(b); });
-  // Rebuild options
-  sel.innerHTML = '<option value="all">Semua Bulan</option>';
-  seen.forEach(function(b){
-    var opt = document.createElement('option');
-    opt.value = b; opt.textContent = b;
-    sel.appendChild(opt);
+// --- Tabel 5 transaksi terakhir ---
+function renderCashTableRecent(){
+  var tbody = document.getElementById('cash-tbody');
+  var recent = (cashData||[]).slice(-5).reverse();
+  if(!recent.length){
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted);font-size:13px">📭 Tidak ada data</td></tr>';
+    return;
+  }
+  var html = '';
+  recent.forEach(function(r){
+    var isSetor = (r.ket||'').toLowerCase()==='setor';
+    html += '<tr style="border-bottom:1px solid var(--border)'+(isSetor?';background:rgba(220,38,38,.04)':'')+'">'
+      + '<td style="padding:9px 12px;font-weight:500;white-space:nowrap;font-size:12px">'+r.tgl+'</td>'
+      + '<td style="padding:9px 12px;text-align:right;font-family:var(--mono);font-size:12px">'+fRp(r.rify)+'</td>'
+      + '<td style="padding:9px 12px;text-align:right;font-family:var(--mono);font-size:12px">'+fRp(r.dida)+'</td>'
+      + '<td style="padding:9px 12px;font-size:11px;color:'+(isSetor?'var(--red)':'var(--muted)')+'">'+r.ket+'</td>'
+      + '</tr>';
   });
+  tbody.innerHTML = html;
+}
+
+// --- Form input: pilih orang ---
+function cashSelectPerson(person){
+  cashSelectedPerson = person;
+  var btnR = document.getElementById('cash-btn-rify');
+  var btnD = document.getElementById('cash-btn-dida');
+  if(person === 'rify'){
+    btnR.style.borderColor='var(--green)';btnR.style.background='rgba(22,163,74,.1)';btnR.style.color='var(--green)';
+    btnD.style.borderColor='var(--border2)';btnD.style.background='var(--surface)';btnD.style.color='var(--muted)';
+  } else {
+    btnD.style.borderColor='var(--blue)';btnD.style.background='rgba(37,99,235,.1)';btnD.style.color='var(--blue)';
+    btnR.style.borderColor='var(--border2)';btnR.style.background='var(--surface)';btnR.style.color='var(--muted)';
+  }
+}
+
+// Preview nominal dalam format Rp
+document.addEventListener('DOMContentLoaded', function(){
+  var inp = document.getElementById('cash-inp-nominal');
+  if(inp){
+    inp.addEventListener('input', function(){
+      var v = Number(this.value);
+      var el = document.getElementById('cash-preview-nominal');
+      if(el) el.textContent = v > 0 ? '→ ' + fRpPlain(v) : '';
+    });
+  }
+  // Set tanggal hari ini sebagai default
+  var tglInp = document.getElementById('cash-inp-tgl');
+  if(tglInp && !tglInp.value){
+    tglInp.value = new Date().toISOString().split('T')[0];
+  }
+});
+
+// --- Simpan data baru ke GAS (POST) ---
+async function simpanCashData(){
+  if(!cashGasUrl){
+    showToast('⚠️ Setup URL GAS dulu','err');
+    openCashSetup();
+    return;
+  }
+  var tgl    = document.getElementById('cash-inp-tgl').value;
+  var nom    = Number(document.getElementById('cash-inp-nominal').value);
+  var receh  = document.getElementById('cash-inp-receh').value;
+  var ket    = document.getElementById('cash-inp-ket').value.trim();
+
+  if(!tgl){ showToast('Pilih tanggal dulu','err'); return; }
+  if(!cashSelectedPerson){ showToast('Pilih dulu: Rify atau Dida','err'); return; }
+  if(!nom || nom <= 0){ showToast('Isi jumlah yang diambil','err'); return; }
+
+  var payload = {
+    action : 'addRow',
+    tgl    : tgl,
+    person : cashSelectedPerson,   // 'rify' | 'dida'
+    nominal: nom,
+    receh  : receh ? Number(receh) : '',
+    ket    : ket
+  };
+
+  var btn = document.getElementById('cash-simpan-btn');
+  var statusEl = document.getElementById('cash-simpan-status');
+  btn.disabled = true; btn.textContent = '⏳ Menyimpan...';
+  statusEl.style.color = 'var(--muted)'; statusEl.textContent = 'Mengirim data ke spreadsheet...';
+
+  try {
+    // GAS hanya support GET untuk no-cors; pakai fetch dgn mode no-cors tapi tetap kirim via URL param
+    var params = new URLSearchParams({
+      action  : payload.action,
+      tgl     : payload.tgl,
+      person  : payload.person,
+      nominal : payload.nominal,
+      receh   : payload.receh,
+      ket     : payload.ket
+    });
+    var res = await fetch(cashGasUrl + '?' + params.toString() + '&_=' + Date.now());
+    var data = await res.json();
+    if(data.status === 'ok'){
+      statusEl.style.color = 'var(--green)';
+      statusEl.textContent = '✓ Tersimpan! Refresh data...';
+      showToast('✓ Data tersimpan ke spreadsheet','ok');
+      // Reset form
+      document.getElementById('cash-inp-nominal').value = '';
+      document.getElementById('cash-inp-receh').value = '';
+      document.getElementById('cash-inp-ket').value = '';
+      document.getElementById('cash-preview-nominal').textContent = '';
+      // Reload data
+      setTimeout(loadCashData, 800);
+    } else {
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = '⚠️ ' + (data.message || 'Gagal menyimpan');
+      showToast('Gagal: ' + (data.message || 'unknown'), 'err');
+    }
+  } catch(e){
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '⚠️ Gagal terhubung ke GAS';
+    showToast('Gagal kirim data','err');
+  }
+  btn.disabled = false; btn.textContent = 'Simpan ke Spreadsheet →';
 }
 
 function fRp(v){
@@ -1364,60 +1530,10 @@ function fRpPlain(v){
 }
 function getBulan(tgl){ return (tgl||'').split(' ').slice(1).join(' ') || ''; }
 
-function renderCashTable(){
-  var filterBulan = document.getElementById('cash-filter-bulan').value;
-  var filterJenis = document.getElementById('cash-filter-jenis').value;
-
-  var rows = cashData.filter(function(r){
-    var bMatch = filterBulan==='all' || getBulan(r.tgl)===filterBulan;
-    var jMatch = true;
-    var ket = (r.ket||'').toLowerCase();
-    if(filterJenis==='rify')  jMatch = r.rify!==null && r.rify!==undefined && r.rify!=='';
-    else if(filterJenis==='dida')  jMatch = r.dida!==null && r.dida!==undefined && r.dida!=='';
-    else if(filterJenis==='setor') jMatch = ket==='setor';
-    else if(filterJenis==='receh') jMatch = r.receh!==null && r.receh!==undefined && r.receh!=='';
-    return bMatch && jMatch;
-  });
-
-  // Update summary for filtered
-  var totRify=0,totDida=0,totSetor=0,totReceh=0;
-  rows.forEach(function(r){
-    if(r.rify>0) totRify+=r.rify;
-    if(r.dida>0) totDida+=r.dida;
-    var ket=(r.ket||'').toLowerCase();
-    if(ket==='setor'){if(r.rify)totSetor+=Math.abs(r.rify);if(r.dida)totSetor+=Math.abs(r.dida);}
-    if(r.receh>0) totReceh+=r.receh;
-  });
-  document.getElementById('cash-total-rify').textContent = fRpPlain(totRify||null);
-  document.getElementById('cash-total-dida').textContent = fRpPlain(totDida||null);
-  document.getElementById('cash-total-setor').textContent = fRpPlain(totSetor||null);
-  document.getElementById('cash-total-receh').textContent = fRpPlain(totReceh||null);
-
-  var tbody = document.getElementById('cash-tbody');
-  if(!rows.length){
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);font-size:13px">📭 Tidak ada data</td></tr>';
-    return;
-  }
-
-  var html='', prevBulan='';
-  rows.forEach(function(r){
-    var bulan = getBulan(r.tgl);
-    if(bulan !== prevBulan){
-      html += '<tr><td colspan="5" style="padding:8px 12px 4px;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.12em;background:var(--surface);border-bottom:1px solid var(--border)">── '+bulan+' ──</td></tr>';
-      prevBulan = bulan;
-    }
-    var isSetor = (r.ket||'').toLowerCase()==='setor';
-    var rowBg = isSetor ? 'background:rgba(220,38,38,.04)' : '';
-    html += '<tr style="border-bottom:1px solid var(--border);'+rowBg+'">'
-      + '<td style="padding:9px 12px;font-weight:500;white-space:nowrap">'+r.tgl+'</td>'
-      + '<td style="padding:9px 12px;text-align:right;font-family:var(--mono);font-size:12px">'+fRp(r.rify)+'</td>'
-      + '<td style="padding:9px 12px;text-align:right;font-family:var(--mono);font-size:12px">'+fRp(r.dida)+'</td>'
-      + '<td style="padding:9px 12px;text-align:right;font-family:var(--mono);font-size:12px">'+(r.receh!==null&&r.receh!==undefined&&r.receh!==''?fRp(r.receh):'')+'</td>'
-      + '<td style="padding:9px 12px;font-size:11px;color:'+(isSetor?'var(--red)':'var(--muted)')+'">'+r.ket+'</td>'
-      + '</tr>';
-  });
-  tbody.innerHTML = html;
-}
+// Render lama tidak lagi dipakai — alias ke renderCashTableRecent agar tidak error jika dipanggil
+function renderCashTable(){ renderCashTableRecent(); }
+function buildCashBulanFilter(){}
+function applyCashSummaryOld(){}
 
 // Auto-load saat tab dibuka (lihat switchTab)
 
