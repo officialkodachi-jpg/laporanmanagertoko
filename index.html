@@ -1773,7 +1773,17 @@ function pgRenderTabs(){
   row.innerHTML=pgNames.map(function(n,i){
     return '<button class="subtab'+(i===0?' active':'')+'" id="pgtab-'+i+'" onclick="pgSelect(\''+n.replace(/'/g,"\\'")+'\',this)">'+escH(n)+'<span class="tab-badge" id="pgbadge-'+i+'" style="background:var(--red);position:static;margin-left:4px">0</span></button>';
   }).join('');
-  pgSelect(pgNames[0],document.getElementById('pgtab-0'));
+pgSelect(pgNames[0],document.getElementById('pgtab-0'));
+  // prefetch badge semua partimer lain di background
+  pgNames.forEach(function(nama,i){
+    if(i===0) return; // partimer pertama sudah diload oleh pgSelect
+    fetch(scriptUrl+'?type=pegawai&nama='+encodeURIComponent(nama)+'&_='+Date.now())
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var belum=(d.rows||[]).filter(function(r){return (r.status||'').indexOf('Belum')>=0;}).length;
+        _setBadge('pgbadge-'+i,belum,true);
+      }).catch(function(){});
+  });
 }
 function pgSelect(nama,btn){
   pgActive=nama;
