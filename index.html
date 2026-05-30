@@ -1764,7 +1764,7 @@ function loadPartimer(){
   row.innerHTML='<div class="empty" style="padding:10px"><span class="spinner"></span> Memuat nama...</div>';
   fetch(scriptUrl+'?type=partimer&_='+Date.now())
     .then(function(r){return r.json();})
-    .then(function(d){pgNames=(d&&d.nama)?d.nama:[];_pgLoadedOnce=true;pgRenderTabs();})
+    .then(function(d){pgNames=(d&&d.nama)?d.nama:[];_pgLoadedOnce=true;pgRenderTabs();pgUpdateMainBadge();})
     .catch(function(){row.innerHTML='<div class="empty"><div class="empty-text">Gagal memuat nama partimer</div></div>';});
 }
 function pgRenderTabs(){
@@ -1916,11 +1916,17 @@ function pgDelete(row){
     .catch(function(){showToast('Gagal','err');});
 }
 function pgUpdateMainBadge(){
-  // total belum ditindak dari semua nama yang sudah dimuat (perkiraan dari tab aktif saja kalau lain belum dimuat)
-  // hitung dari badge per tab
-  var total=0;
-  pgNames.forEach(function(n,i){var b=document.getElementById('pgbadge-'+i);if(b&&b.classList.contains('show'))total+=parseInt(b.textContent)||0;});
-  _setBadge('badge-pegawai',total,true);
+  if(!pgNames.length||!scriptUrl) return;
+  var total=0,done=0;
+  pgNames.forEach(function(nama){
+    fetch(scriptUrl+'?type=pegawai&nama='+encodeURIComponent(nama)+'&_='+Date.now())
+      .then(function(r){return r.json();})
+      .then(function(d){
+        (d.rows||[]).forEach(function(r){if((r.status||'').indexOf('Belum')>=0)total++;});
+        done++;
+        if(done===pgNames.length)_setBadge('badge-pegawai',total,true);
+      }).catch(function(){done++;if(done===pgNames.length)_setBadge('badge-pegawai',total,true);});
+  });
 }
 async function saveHarian(){
   if(!scriptUrl){openModal();return;}
