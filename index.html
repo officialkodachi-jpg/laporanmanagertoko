@@ -75,6 +75,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .km-act-btn.no{border-color:var(--red);color:var(--red)}.km-act-btn.no:active{background:rgba(220,38,38,.1)}
 /* admin & manager dua-duanya boleh update status kiriman; admin tetap bisa lihat form tambah */
 body.role-manager #km-add-box{display:none}
+.admin-only{display:none}
+body.role-admin .admin-only{display:inline-flex}
 .km-card{cursor:pointer}
 .km-detail-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center;padding:18px}
 .km-detail-bg.open{display:flex}
@@ -627,6 +629,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
       <button class="subtab active" onclick="switchLaporanView('lap',this)">📈 Mingguan</button>
       <button class="subtab" onclick="switchLaporanView('grid',this)">📊 Grid Bulanan</button>
       <button class="subtab" onclick="switchLaporanView('riw',this)">🗂 Riwayat</button>
+      <button class="subtab admin-only" id="subtab-log" onclick="switchLaporanView('log',this)">📜 Log Aktivitas</button>
     </div>
     <div class="subview active" id="subview-lap">
       <div class="subview-cap">Rekap persentase tugas per minggu dalam sebulan.</div>
@@ -642,6 +645,11 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
       <div class="subview-cap">Daftar tugas yang sudah diisi, urut per tanggal.</div>
       <div class="grid-controls"><input type="month" class="month-select" id="riwayat-month"><button class="load-btn" onclick="loadRiwayat()">Tampilkan</button></div>
       <div id="riwayat-container"><div class="empty"><div class="empty-icon">🗂</div><div class="empty-text">Pilih bulan untuk melihat riwayat</div></div></div>
+    </div>
+    <div class="subview" id="subview-log">
+      <div class="subview-cap">Catatan semua aktivitas akun manager: login, buka tab, isi tugas, simpan data, dll.</div>
+      <div class="grid-controls"><button class="load-btn" onclick="loadLog()">🔄 Muat Log Terbaru</button></div>
+      <div id="log-container"><div class="empty"><div class="empty-icon">📜</div><div class="empty-text">Klik untuk memuat log aktivitas</div></div></div>
     </div>
   </div>
 
@@ -1056,7 +1064,7 @@ function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.P
 // ════ GPS ════
 function startGps(){if(!('geolocation' in navigator)){updateLocBanner('unsupported');return;}if(_gpsStarted)return;_gpsStarted=true;updateLocBanner('waiting');geoWatchId=navigator.geolocation.watchPosition(onLocOk,onLocErr,{enableHighAccuracy:true,maximumAge:0,timeout:30000});navigator.geolocation.getCurrentPosition(onLocOk,onLocErr,{enableHighAccuracy:true,maximumAge:0,timeout:30000});setInterval(()=>navigator.geolocation.getCurrentPosition(onLocOk,()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:20000}),15000);_timerInterval=setInterval(updateTimerDisplay,1000);}
 function retryGps(){_gpsStarted=false;_retryCount=0;if(geoWatchId!==null){navigator.geolocation.clearWatch(geoWatchId);geoWatchId=null;}document.getElementById('loc-retry-btn').classList.remove('show');startGps();showToast('Mencoba ulang GPS...','');}
-function onLocOk(pos){clearTimeout(_retryTimer);_retryCount=0;const{latitude:lat,longitude:lng,accuracy}=pos.coords;lastPos={lat,lng,accuracy};const dist=Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng)),inS=dist<=TOKO.radius;document.getElementById('loc-distance').textContent=dist+'m';document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';document.getElementById('loc-retry-btn').classList.remove('show');if(inS&&!isAtStore){isAtStore=true;sessionStart=Date.now();locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});saveLocData();updateLocBanner('in');showToast('✓ Kamu tiba di Kodachi Shop!','ok');pushManagerLoc();}else if(!inS&&isAtStore){isAtStore=false;if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist});saveLocData();updateLocBanner('out');pushManagerLoc();}else{if(isAtStore)saveLocData();updateLocBanner(isAtStore?'in':'out');}updateD01Card();}
+function onLocOk(pos){clearTimeout(_retryTimer);_retryCount=0;const{latitude:lat,longitude:lng,accuracy}=pos.coords;lastPos={lat,lng,accuracy};const dist=Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng)),inS=dist<=TOKO.radius;document.getElementById('loc-distance').textContent=dist+'m';document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';document.getElementById('loc-retry-btn').classList.remove('show');if(inS&&!isAtStore){isAtStore=true;sessionStart=Date.now();locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});saveLocData();updateLocBanner('in');showToast('✓ Kamu tiba di Kodachi Shop!','ok');logActivity('Tiba di toko','Jarak '+dist+'m');pushManagerLoc();}else if(!inS&&isAtStore){isAtStore=false;if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist});saveLocData();updateLocBanner('out');logActivity('Keluar toko','Jarak '+dist+'m');pushManagerLoc();}else{if(isAtStore)saveLocData();updateLocBanner(isAtStore?'in':'out');}updateD01Card();}
 function onLocErr(err){if(err.code===1){updateLocBanner('denied');document.getElementById('loc-retry-btn').classList.add('show');}else{_retryCount++;updateLocBanner('waiting');if(_retryCount<=10)_retryTimer=setTimeout(()=>navigator.geolocation.getCurrentPosition(onLocOk,onLocErr,{enableHighAccuracy:true,maximumAge:0,timeout:25000}),Math.min(5000*_retryCount,30000));else document.getElementById('loc-retry-btn').classList.add('show');}}
 // Saat app dibuka kembali / kembali ke foreground: minta lokasi langsung supaya durasi terkoreksi
 function resumeGps(){if(document.visibilityState==='visible'){if('geolocation' in navigator){navigator.geolocation.getCurrentPosition(onLocOk,()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:25000});}updateTimerDisplay();}}
@@ -1198,7 +1206,7 @@ async function igSyncToSheets(){
     st.textContent='Terkirim '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});st.className='ig-sync-status ok';
     showToast('✓ '+igRows.length+' baris dikirim ke Sheets','ok');
   }catch(err){
-    try{var r2=await fetch(url,{method:'POST',body:JSON.stringify(payload)});var d=await r2.json();if(d.status==='ok'){st.textContent='Tersimpan';st.className='ig-sync-status ok';showToast('✓ Tersimpan','ok');}else throw new Error(d.message);}
+    try{var r2=await fetch(url,{method:'POST',body:JSON.stringify(payload)});var d=await r2.json();if(d.status==='ok'){st.textContent='Tersimpan';st.className='ig-sync-status ok';showToast('✓ Tersimpan','ok');logActivity('Simpan Gudang IN/OUT',(payload.entries?payload.entries.length:'')+' baris');}else throw new Error(d.message);}
     catch(e2){st.textContent='Gagal';st.className='ig-sync-status err';showToast('Gagal: '+String(e2.message).slice(0,50),'err');}
   }
   btn.disabled=false;btn.innerHTML='↑ Simpan ke Sheets';
@@ -1340,6 +1348,7 @@ function kmSave(){
         if(adaResi&&!d.fotoResi)gagal.push('resi');
         if(gagal.length)showToast('FOTO GAGAL: '+gagal.join(' & ')+' — '+((d.fotoErr||'').slice(0,40)),'err');
         else showToast('✓ Kiriman tersimpan','ok');
+        logActivity('Tambah kiriman stok',jasa+' — '+isi.slice(0,40));
       }else{showToast('Gagal: '+((d&&d.message)||'error'),'err');}
       resetForm();setTimeout(kmLoad,1500);
     })
@@ -1412,7 +1421,7 @@ function kmMark(row,sesuai){
   showToast('Menyimpan...','');
   var payload={type:'kiriman_update',row:row,status:'Sampai',sesuai:sesuai,tglSampai:todayValue,catatan:catatan};
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
-    .then(function(){showToast('✓ Status diperbarui','ok');kmCloseDetail();setTimeout(kmLoad,2000);})
+    .then(function(){showToast('✓ Status diperbarui','ok');logActivity('Tandai kiriman sampai','Baris '+row+' — '+sesuai);kmCloseDetail();setTimeout(kmLoad,2000);})
     .catch(function(){showToast('Gagal','err');});
 }
 // Ubah link Drive /view → link gambar yang bisa ditampilkan <img>
@@ -1466,14 +1475,14 @@ function kmReset(row){
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   if(!confirm('Kembalikan status ke "Dikirim"?'))return;
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'kiriman_update',row:row,status:'Dikirim',sesuai:'',tglSampai:'',catatan:''})})
-    .then(function(){showToast('✓ Direset','ok');kmCloseDetail();setTimeout(kmLoad,2000);})
+    .then(function(){showToast('✓ Direset','ok');logActivity('Reset kiriman','Baris '+row);kmCloseDetail();setTimeout(kmLoad,2000);})
     .catch(function(){showToast('Gagal','err');});
 }
 function kmDelete(row){
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   if(!confirm('Hapus kiriman ini permanen?'))return;
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'kiriman_delete',row:row})})
-    .then(function(){showToast('✓ Dihapus','ok');kmCloseDetail();setTimeout(kmLoad,2000);})
+    .then(function(){showToast('✓ Dihapus','ok');logActivity('Hapus kiriman','Baris '+row);kmCloseDetail();setTimeout(kmLoad,2000);})
     .catch(function(){showToast('Gagal','err');});
 }
 
@@ -1507,6 +1516,8 @@ function switchTab(name,btn){
   if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();}
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
   if(name==='cash'){if(cashData.length===0)loadCashData();}
+  var tabNama={harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link'};
+  logActivity('Buka tab',tabNama[name]||name);
 }
 function switchGudangView(v,btn){
   ['monitor','inout','kiriman'].forEach(function(k){
@@ -1524,7 +1535,38 @@ function switchLaporanView(v,btn){
   document.querySelectorAll('.subtab').forEach(t=>t.classList.remove('active'));
   document.getElementById('subview-'+v).classList.add('active');
   btn.classList.add('active');
+  if(v==='log')loadLog();
 }
+// Muat log aktivitas (admin)
+function loadLog(){
+  if(!scriptUrl)return;
+  var c=document.getElementById('log-container');
+  c.innerHTML='<div class="empty"><span class="spinner"></span> Memuat log...</div>';
+  fetch(scriptUrl+'?type=log&limit=150&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){renderLog((d&&d.rows)?d.rows:[]);})
+    .catch(function(){c.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Gagal memuat log</div></div>';});
+}
+function renderLog(rows){
+  var c=document.getElementById('log-container');
+  if(!rows.length){c.innerHTML='<div class="empty"><div class="empty-icon">📜</div><div class="empty-text">Belum ada aktivitas tercatat</div></div>';return;}
+  var aksiIcon={'Login':'🔓','Logout':'🔒','Sesi berakhir':'⏰','Buka aplikasi':'📱','Buka tab':'📂','Tiba di toko':'📍','Keluar toko':'🚪','Simpan tugas Harian':'✅','Catat Non-Harian':'📌','Simpan Gudang IN/OUT':'📦','Tambah kiriman stok':'🚚','Tandai kiriman sampai':'✓','Reset kiriman':'↩','Hapus kiriman':'🗑','Simpan Uang Cash':'💵'};
+  var html='';
+  var lastDate='';
+  rows.forEach(function(r){
+    var w=String(r.waktu||'');var tgl=w.substring(0,10),jam=w.substring(11,16);
+    if(tgl!==lastDate){lastDate=tgl;html+='<div class="section-hdr" style="margin-top:14px"><span class="section-hdr-label">'+logFmtTgl(tgl)+'</span><div class="section-hdr-line"></div></div>';}
+    var ic=aksiIcon[r.aksi]||'•';
+    var peran=r.peran==='admin'?'<span style="color:var(--accent)">admin</span>':'<span style="color:var(--orange)">manager</span>';
+    html+='<div class="stok-item" style="border-left-color:var(--border2)">'
+      +'<div style="font-size:18px;min-width:28px;text-align:center">'+ic+'</div>'
+      +'<div class="stok-item-body"><div class="stok-item-name">'+jam+' · '+escH(r.aksi||'')+'</div>'
+      +'<div class="stok-item-sub">'+(r.detail?escH(r.detail)+' · ':'')+peran+'</div></div>'
+      +'</div>';
+  });
+  c.innerHTML=html;
+}
+function logFmtTgl(t){if(!t||t.length<10)return t;var p=t.split('-');return parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1]+' '+p[0];}
 
 // ════ HARIAN ════
 function renderHarian(){
@@ -1645,7 +1687,7 @@ async function saveHarian(){
   var t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60);
   var gn=t>0?'GPS: '+h+'j '+m+'m di toko'+(t>=TARGET_MENIT?'':' (< target 4j)')+' · '+(isAtStore?'Masih di toko':'Sudah keluar toko'):'GPS: tidak ada durasi tercatat';
   var entries=HARIAN.map(x=>({tanggal:todayValue,kode:x.kode,nama:x.nama,kategori:x.kategori,prioritas:x.prioritas,status:x.autoTrack?(t>=TARGET_MENIT?'✓':'✗'):(checked[x.kode]?'✓':'✗'),catatan:x.autoTrack?gn:(notes[x.kode]||'')}));
-  try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'harian',entries})}),d=await r.json();if(d.status==='ok'){showToast('✓ Tersimpan','ok');checkTodayFilled();checkLaporanBadge();}else showToast('Gagal: '+(d.message||''),'err');}
+  try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'harian',entries})}),d=await r.json();if(d.status==='ok'){showToast('✓ Tersimpan','ok');logActivity('Simpan tugas Harian',gn);checkTodayFilled();checkLaporanBadge();}else showToast('Gagal: '+(d.message||''),'err');}
   catch(e){showToast('Gagal terhubung','err');}
   btn.disabled=false;btn.textContent='Simpan ke Google Sheets';
 }
@@ -1665,7 +1707,7 @@ async function saveEvent(){
   var ok=false;
   try{await fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});ok=true;}
   catch(err1){try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)});var d=await r.json();ok=(d.status==='ok');if(!ok)showToast('Gagal: '+(d.message||'error'),'err');}catch(err2){showToast('Gagal terhubung ke server','err');}}
-  if(ok){showToast('✓ Non-Harian tercatat!','ok');document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));setTimeout(checkEventBadge,2500);}
+  if(ok){showToast('✓ Non-Harian tercatat!','ok');logActivity('Catat Non-Harian',(selectedEvent?selectedEvent.nama:'')+' — '+selectedStatus);document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));setTimeout(checkEventBadge,2500);}
   if(btn){btn.disabled=false;btn.textContent='Catat →';}
 }
 
@@ -1875,6 +1917,21 @@ function clearSession(){
 var userRole = sessionValid() ? (localStorage.getItem('mtg_role')||'') : '';
 var userEmail= sessionValid() ? (localStorage.getItem('mtg_email')||'') : '';
 
+// ════ LOG AKTIVITAS ════
+// Catat aktivitas ke spreadsheet (fire-and-forget, tidak memperlambat app)
+var _lastLog={};
+function logActivity(aksi,detail){
+  try{
+    if(!scriptUrl||!scriptUrl.startsWith('http'))return;
+    // hindari spam duplikat aksi sama dalam 3 detik
+    var key=aksi+'|'+(detail||'');var now=Date.now();
+    if(_lastLog[key]&&(now-_lastLog[key])<3000)return;
+    _lastLog[key]=now;
+    var payload={type:'log',email:userEmail||'(belum login)',peran:userRole||'-',aksi:aksi,detail:detail||''};
+    fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)}).catch(function(){});
+  }catch(e){}
+}
+
 // Decode payload JWT (tanpa verifikasi tanda tangan — verifikasi cukup oleh Google saat login)
 function _decodeJwt(token){
   try{
@@ -1907,6 +1964,7 @@ function handleGoogleCredential(resp){
   applyRole();
   startSessionWatch();
   alarmMuted=false;
+  logActivity('Login','Masuk sebagai '+role);
   setTimeout(function(){loadStok(true);},500);
 }
 function showLoginError(msg){
@@ -1946,6 +2004,7 @@ function logout(){
 }
 // Logout inti. expired=true → karena sesi 8 jam habis (tanpa konfirmasi)
 function doLogout(expired){
+  logActivity(expired?'Sesi berakhir':'Logout',expired?'Auto-logout setelah 8 jam':'Keluar manual');
   if(_adminLocTimer){clearInterval(_adminLocTimer);_adminLocTimer=null;}
   if(_mgrPushTimer){clearInterval(_mgrPushTimer);_mgrPushTimer=null;}
   if(_sessionTimer){clearInterval(_sessionTimer);_sessionTimer=null;}
@@ -1979,6 +2038,7 @@ document.addEventListener('DOMContentLoaded',function(){
     document.getElementById('pw-overlay').style.display='none';
     applyRole();
     startSessionWatch();
+    logActivity('Buka aplikasi','Sesi masih aktif');
   }else{
     clearSession();userRole='';userEmail='';
     document.getElementById('pw-overlay').style.display='flex';
@@ -2221,6 +2281,7 @@ async function simpanCashData(){
     if(data.status === 'ok'){
       if(sta){sta.style.color='var(--green)'; sta.textContent='✓ Tersimpan!';}
       showToast('✓ Data tersimpan','ok');
+      logActivity('Simpan Uang Cash','Rp '+finalNom+(ket?' — '+ket:''));
       document.getElementById('cash-inp-nominal').value='';
       document.getElementById('cash-inp-ket').value='';
       var pv=document.getElementById('cash-preview-nominal');if(pv)pv.textContent='';
