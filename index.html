@@ -230,7 +230,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 /* ALARM BANNER */
 .alarm-banner{display:none;position:sticky;top:0;z-index:200;background:var(--red);color:#fff;padding:10px 20px;text-align:center;font-size:13px;font-weight:700;letter-spacing:.03em;animation:bannerShake .5s ease infinite alternate;cursor:pointer}
 .alarm-banner.show{display:flex;align-items:center;justify-content:center;gap:10px}
+/* Meeting banner selalu di atas stok banner */
+#meeting-banner{z-index:201 !important}
 @keyframes bannerShake{0%{background:#dc2626}100%{background:#b91c1c}}
+@keyframes meetingShake{0%{background:#0f766e}100%{background:#0d9488}}
 .alarm-banner .mute-hint{font-size:11px;font-weight:400;opacity:.85;margin-left:8px}
 
 /* GUDANG IN/OUT */
@@ -318,6 +321,12 @@ select.it{cursor:pointer}
 </style>
 </head>
 <body>
+
+<!-- MEETING BANNER — prioritas tertinggi, di atas stok -->
+<div class="alarm-banner" id="meeting-banner" style="background:#0f766e;animation-name:meetingShake;z-index:201" onclick="muteMeetingAlarm()">
+  <span>📹 MEETING HARI INI JAM 10:00 — Lonceng berbunyi pukul 09:55, Selasa!</span>
+  <span class="mute-hint">Tap untuk bisukan</span>
+</div>
 
 <!-- ALARM BANNER — sticky top, klik untuk mute sesi ini -->
 <div class="alarm-banner" id="alarm-banner" onclick="muteAlarm()">
@@ -497,7 +506,7 @@ select.it{cursor:pointer}
     <div style="text-align:center;padding:32px 16px 24px">
       <div style="font-size:48px;margin-bottom:12px">📹</div>
       <div style="font-size:20px;font-weight:700;margin-bottom:6px">Meeting Google Meet</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:28px">Notifikasi otomatis setiap jam 10:00 pagi</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:28px">🔔 Notifikasi otomatis setiap <b>Selasa jam 10:00 pagi</b></div>
       <a href="https://meet.google.com/jyr-kmaz-iue" target="_blank" id="meet-link-btn"
         style="display:inline-flex;align-items:center;gap:12px;background:var(--accent);color:#fff;text-decoration:none;padding:18px 32px;border-radius:var(--r-lg);font-size:16px;font-weight:700;letter-spacing:.02em;box-shadow:0 4px 20px rgba(37,99,235,.35);transition:opacity .2s"
         onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
@@ -513,12 +522,12 @@ select.it{cursor:pointer}
         style="width:100%;padding:12px;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer">
         Aktifkan Notifikasi
       </button>
-      <div style="margin-top:12px;padding:12px 14px;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.15);border-radius:var(--r);font-size:11px;color:var(--blue);line-height:1.6">
-        📅 Notifikasi pengingat <b>Meeting Google Meet</b> akan muncul setiap hari pukul <b>10:00 pagi</b>.
+      <div style="margin-top:12px;padding:12px 14px;background:rgba(15,118,110,.06);border:1px solid rgba(15,118,110,.2);border-radius:var(--r);font-size:11px;color:#0f766e;line-height:1.6">
+        📅 Lonceng berbunyi + banner muncul otomatis setiap <b>Selasa mulai jam 09:55</b> (5 menit sebelum meeting jam 10:00). Tidak perlu setup apapun — sudah aktif!
       </div>
     </div>
     <div id="meet-countdown-card" style="margin-top:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;display:none">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Countdown ke meeting berikutnya</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Countdown ke Selasa jam 09:55 berikutnya</div>
       <div id="meet-countdown" style="font-family:var(--mono);font-size:28px;font-weight:500;color:var(--accent)">--:--:--</div>
     </div>
   </div>
@@ -1016,87 +1025,158 @@ function saveUrl(){var v=document.getElementById('url-input').value.trim();if(!v
 document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 var _toastTimer;function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
 
-// ════ MEETING LINK & NOTIFIKASI ════
+// ════ MEETING LINK & NOTIFIKASI (SELALU AKTIF, SELASA JAM 10) ════
 (function initMeeting(){
   var MEET_URL='https://meet.google.com/jyr-kmaz-iue';
-  var NOTIF_KEY='meeting_notif_granted';
+  var meetingMuted=false; // session-scoped
+  var _meetAlarmInterval=null;
 
-  function updateNotifStatus(){
-    var el=document.getElementById('meet-notif-status');
-    var btn=document.getElementById('meet-notif-btn');
-    if(!('Notification' in window)){
-      el.textContent='Browser kamu tidak mendukung notifikasi.';
-      btn.style.display='none';
-      return;
-    }
-    if(Notification.permission==='granted'){
-      el.innerHTML='✅ <b style="color:var(--green)">Notifikasi aktif</b> — pengingat jam 10:00 pagi sudah disiapkan.';
-      btn.textContent='Notifikasi Sudah Aktif ✓';
-      btn.style.background='rgba(22,163,74,.1)';
-      btn.style.color='var(--green)';
-      btn.style.borderColor='rgba(22,163,74,.3)';
-      btn.disabled=true;
-      scheduleMeetingNotif();
-    } else if(Notification.permission==='denied'){
-      el.innerHTML='❌ Notifikasi <b>diblokir</b> oleh browser. Ubah di pengaturan browser kamu.';
-      btn.textContent='Notifikasi Diblokir';
-      btn.disabled=true;
-    } else {
-      el.textContent='Klik tombol di bawah untuk mengaktifkan notifikasi meeting.';
-      btn.textContent='Aktifkan Notifikasi 🔔';
-      btn.disabled=false;
-    }
+  // Lonceng suara (sine wave, lebih halus dari stok alarm)
+  function _playBell(count){
+    try{
+      if(!_stokAudioCtx)_stokAudioCtx=new(window.AudioContext||window.webkitAudioContext)();
+      var c=_stokAudioCtx;
+      if(c.state==='suspended')c.resume();
+      var t=c.currentTime;
+      for(var i=0;i<count;i++){
+        // Lonceng: 523Hz (C5) + 659Hz (E5) + 784Hz (G5) — sine wave
+        [523,659,784].forEach(function(freq,fi){
+          var o=c.createOscillator(),g=c.createGain();
+          o.type='sine';
+          o.frequency.setValueAtTime(freq,t+fi*0.12);
+          g.gain.setValueAtTime(0.0001,t+fi*0.12);
+          g.gain.exponentialRampToValueAtTime(0.38,t+fi*0.12+0.01);
+          g.gain.exponentialRampToValueAtTime(0.0001,t+fi*0.12+0.55);
+          o.connect(g);g.connect(c.destination);
+          o.start(t+fi*0.12);o.stop(t+fi*0.12+0.7);
+        });
+        t+=1.0;
+      }
+    }catch(e){}
   }
 
-  window.requestMeetingNotif=function(){
-    if(!('Notification' in window))return;
-    Notification.requestPermission().then(function(perm){
-      updateNotifStatus();
-      if(perm==='granted') showToast('Notifikasi meeting aktif ✓','ok');
-    });
+  // Cek apakah hari ini Selasa (day===2) DAN jam 09:55–10:59
+  function isMeetingTime(){
+    var now=new Date();
+    if(now.getDay()!==2) return false;
+    var h=now.getHours(), m=now.getMinutes();
+    return (h===9 && m>=55) || h===10;
+  }
+
+  // Tampilkan banner meeting + mulai alarm lonceng
+  function showMeetingBanner(){
+    var banner=document.getElementById('meeting-banner');
+    if(banner)banner.classList.add('show');
+    // Notifikasi di area Monitoring Stok (seperti stok kosong)
+    insertMeetingNotifCard(true);
+    if(_meetAlarmInterval)return;
+    _playBell(3);
+    _meetAlarmInterval=setInterval(function(){
+      if(!meetingMuted) _playBell(2);
+    },10000);
+  }
+
+  function hideMeetingBanner(){
+    var banner=document.getElementById('meeting-banner');
+    if(banner)banner.classList.remove('show');
+    if(_meetAlarmInterval){clearInterval(_meetAlarmInterval);_meetAlarmInterval=null;}
+    insertMeetingNotifCard(false);
+  }
+
+  // Insert/remove notif card di area #stok-list (seperti stok kosong)
+  function insertMeetingNotifCard(show){
+    var old=document.getElementById('meeting-notif-stok');
+    if(!show){if(old)old.remove();return;}
+    if(old)return; // sudah ada
+    var sl=document.getElementById('stok-list');
+    if(!sl)return;
+    var card=document.createElement('div');
+    card.id='meeting-notif-stok';
+    card.style.cssText='background:rgba(15,118,110,.08);border:1.5px solid rgba(15,118,110,.35);border-radius:14px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;cursor:pointer;';
+    card.onclick=function(){ window.open(MEET_URL,'_blank'); };
+    card.innerHTML='<div style="font-size:32px;animation:blink 1s infinite">📹</div>'
+      +'<div style="flex:1">'
+      +'<div style="font-size:13px;font-weight:700;color:#0f766e">MEETING SEKARANG — Selasa Jam 10:00!</div>'
+      +'<div style="font-size:11px;color:#0d9488;margin-top:2px">Tap untuk membuka Google Meet</div>'
+      +'<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px">meet.google.com/jyr-kmaz-iue</div>'
+      +'</div>'
+      +'<div style="background:#0f766e;color:#fff;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;white-space:nowrap">Buka →</div>';
+    sl.insertBefore(card, sl.firstChild);
+  }
+
+  window.muteMeetingAlarm=function(){
+    meetingMuted=true;
+    hideMeetingBanner();
+    // Tapi tetap tampilkan link di tab meeting
+    showToast('🔕 Alarm meeting dibisukan. Jadwal tetap berjalan.','');
+    window.open(MEET_URL,'_blank');
   };
 
-  function scheduleMeetingNotif(){
-    var now=new Date();
-    var next=new Date(now.getFullYear(),now.getMonth(),now.getDate(),10,0,0,0);
-    if(now>=next) next.setDate(next.getDate()+1);
-    var ms=next-now;
-    // Tampilkan countdown
+  // Update UI di panel Meeting
+  function updateMeetingPanel(){
+    var statusEl=document.getElementById('meet-notif-status');
+    var btn=document.getElementById('meet-notif-btn');
+    if(!statusEl||!btn)return;
+    statusEl.innerHTML='✅ <b style="color:#0f766e">Notifikasi aktif otomatis</b> — setiap <b>Selasa jam 10:00 pagi</b>, lonceng akan berbunyi dan banner muncul.';
+    btn.textContent='✓ Notifikasi Selalu Aktif (Selasa 10:00)';
+    btn.style.cssText='width:100%;padding:12px;background:rgba(15,118,110,.1);color:#0f766e;border:1px solid rgba(15,118,110,.3);border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:600;cursor:default';
+    btn.disabled=true;
+    // Countdown ke Selasa berikutnya jam 10
     document.getElementById('meet-countdown-card').style.display='block';
-    clearInterval(window._meetCdInterval);
-    window._meetCdInterval=setInterval(function(){
-      var n=new Date(), nx=new Date(n.getFullYear(),n.getMonth(),n.getDate(),10,0,0,0);
-      if(n>=nx) nx.setDate(nx.getDate()+1);
-      var diff=Math.max(0,nx-n);
-      var h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
-      document.getElementById('meet-countdown').textContent=
-        String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-    },1000);
-    clearTimeout(window._meetNotifTimer);
-    window._meetNotifTimer=setTimeout(function(){
-      if(Notification.permission==='granted'){
-        var n=new Notification('📹 Waktunya Meeting!',{
-          body:'Klik untuk membuka Google Meet: meet.google.com/jyr-kmaz-iue',
-          icon:'https://www.gstatic.com/meet/google_meet_marketing_ongoing_meeting_tablet_960_2052ade1a1e8c057ce0b5eeec41f2c27.jpg',
-          tag:'kodachi-meeting',
-          requireInteraction:true
-        });
-        n.onclick=function(){ window.open(MEET_URL,'_blank'); n.close(); };
-        showToast('🔔 Notifikasi meeting jam 10:00!','ok');
-      }
-      // Schedule berikutnya (besok)
-      setTimeout(scheduleMeetingNotif,5000);
-    },ms);
   }
 
-  // Pastikan jalankan setelah DOM siap
-  function onReady(){
-    updateNotifStatus();
-    // Juga update badge jika notif belum diberikan
-    if(Notification.permission!=='granted'){
-      var b=document.getElementById('badge-meeting');
-      if(b){b.classList.add('show');}
+  // Hitung milidetik ke Selasa berikutnya jam 10:00
+  function msToNextTuesday10(){
+    var now=new Date();
+    var day=now.getDay();
+    var daysUntil=(2-day+7)%7;
+    // Kalau hari ini Selasa tapi sudah lewat jam 09:55 → next Tuesday = 7 hari
+    if(daysUntil===0 && (now.getHours()>9 || (now.getHours()===9 && now.getMinutes()>=55))) daysUntil=7;
+    var next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+daysUntil,9,55,0,0);
+    return Math.max(0,next-now);
+  }
+
+  // Countdown update tiap detik
+  function startCountdown(){
+    clearInterval(window._meetCdInterval);
+    window._meetCdInterval=setInterval(function(){
+      var cdEl=document.getElementById('meet-countdown');
+      if(!cdEl)return;
+      var now=new Date();
+      // Jika Selasa jam 10, tampilkan LIVE
+      if(now.getDay()===2&&now.getHours()===9&&now.getMinutes()>=55){
+        cdEl.textContent='SEKARANG! 📹';
+        cdEl.style.color='#0f766e';
+        return;
+      }
+      var diff=msToNextTuesday10();
+      var h=Math.floor(diff/3600000),mi=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+      // kalau lebih dari 24 jam tampilkan hari
+      var d=Math.floor(diff/86400000);
+      if(d>0) cdEl.textContent=d+' hari '+String(h%24).padStart(2,'0')+'j '+String(mi).padStart(2,'0')+'m';
+      else cdEl.textContent=String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0')+':'+String(s).padStart(2,'0');
+      cdEl.style.color='var(--accent)';
+    },1000);
+  }
+
+  // Loop utama cek setiap menit
+  function mainLoop(){
+    if(isMeetingTime()&&!meetingMuted){
+      showMeetingBanner();
+    } else if(!isMeetingTime()){
+      meetingMuted=false; // reset mute kalau jam sudah lewat
+      hideMeetingBanner();
     }
+  }
+
+  function onReady(){
+    updateMeetingPanel();
+    startCountdown();
+    mainLoop();
+    setInterval(mainLoop,30000); // cek tiap 30 detik
+    // Update badge meeting (hapus — notif sudah built-in)
+    var b=document.getElementById('badge-meeting');
+    if(b)b.classList.remove('show');
   }
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',onReady);
