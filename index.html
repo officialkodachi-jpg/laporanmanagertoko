@@ -327,6 +327,13 @@ select.it{cursor:pointer}
 .role-badge.admin{background:rgba(217,119,6,.12);color:var(--orange)}
 .logout-btn{font-family:var(--sans);font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;border:1px solid rgba(220,38,38,.3);background:rgba(220,38,38,.06);color:var(--red);cursor:pointer;white-space:nowrap}
 .logout-btn:active{background:rgba(220,38,38,.15)}
+.link-row{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;text-decoration:none;color:var(--text);transition:all .2s}
+.link-row:active{transform:scale(.98);background:var(--surface)}
+.link-ic{font-size:22px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:11px;flex-shrink:0}
+.link-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.link-tx b{font-size:13px;font-weight:600;line-height:1.3}
+.link-tx small{font-size:11px;color:var(--muted)}
+.link-ar{color:var(--accent);font-size:18px;flex-shrink:0}
 .pw-role-row{display:flex;gap:8px;margin-bottom:14px}
 .pw-role-btn{flex:1;padding:11px;border-radius:var(--r);border:1.5px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
 .pw-role-btn.sel{border-color:var(--accent);background:rgba(37,99,235,.08);color:var(--accent)}
@@ -375,7 +382,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
 
 <div class="topbar"><div class="topbar-inner"><div class="brand">
   <span class="brand-tag">Manager · v5.1</span>
-  <span class="brand-name">Kodachi Shop Monjali</span>
+  <span class="brand-name">Laporan Manager Kodachi Shop</span>
   <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
 </div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="role-badge manager" id="role-badge" style="display:none">MANAGER</span><button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">🚪 Logout</button></div></div></div>
 
@@ -400,6 +407,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
   <button class="tab" onclick="switchTab('cash',this)">💵 Uang Cash</button>
   <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
   <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
+  <button class="tab" onclick="switchTab('link',this)">🔗 Link</button>
 </div><div class="tabs-line"></div></div>
 
 <div class="content">
@@ -671,6 +679,26 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
 
     <a class="stok-sheet-link" id="cash-sheet-link" href="https://docs.google.com/spreadsheets/d/1xYQepA-hAl3T_YBEQPCC8_dtzkPrt8aLmglO_8NN2co/edit?gid=0#gid=0" target="_blank">📊 Buka Google Sheet Uang Cash →</a>
 
+  </div>
+
+  <!-- LINK -->
+  <div class="panel" id="panel-link">
+    <div class="alert info" style="margin-bottom:14px">🔗 <b>Kumpulan Link</b> — semua spreadsheet & folder penting Kodachi Shop dalam satu tempat.</div>
+
+    <div class="section-hdr"><span class="section-hdr-label">📋 Tugas & Laporan</span><div class="section-hdr-line"></div></div>
+    <a class="link-row" href="https://docs.google.com/spreadsheets/d/1ci0F6DajqsXt7IeX88fddYQwT_bO4CxAiV4hJltCyAQ/edit?gid=0#gid=0" target="_blank"><span class="link-ic">📋</span><span class="link-tx"><b>Manager Task Guide</b><small>Daily tracker, Event Log, Laporan</small></span><span class="link-ar">→</span></a>
+
+    <div class="section-hdr"><span class="section-hdr-label">💵 Keuangan</span><div class="section-hdr-line"></div></div>
+    <a class="link-row" href="https://docs.google.com/spreadsheets/d/1xYQepA-hAl3T_YBEQPCC8_dtzkPrt8aLmglO_8NN2co/edit?gid=0#gid=0" target="_blank"><span class="link-ic">💵</span><span class="link-tx"><b>Uang Cash Toko (Ambil)</b><small>Catatan uang diambil & setoran</small></span><span class="link-ar">→</span></a>
+    <a class="link-row" href="https://drive.google.com/drive/folders/16m9O1pVMJCHzJBBKn_sdymaWi_PUxMAV?usp=drive_link" target="_blank"><span class="link-ic">🗂️</span><span class="link-tx"><b>Backup Harian Kasir Online 2026</b><small>Folder Google Drive</small></span><span class="link-ar">→</span></a>
+
+    <div class="section-hdr"><span class="section-hdr-label">📦 Stok & Gudang</span><div class="section-hdr-line"></div></div>
+    <a class="link-row" href="https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=1850526502#gid=1850526502" target="_blank"><span class="link-ic">📦</span><span class="link-tx"><b>Stok (Toko vs Gudang)</b><small>Monitoring stok toko & gudang</small></span><span class="link-ar">→</span></a>
+    <a class="link-row" href="https://docs.google.com/spreadsheets/d/13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk/edit?gid=1654205431#gid=1654205431" target="_blank"><span class="link-ic">📥</span><span class="link-tx"><b>Input Stok Gudang</b><small>Mutasi masuk/keluar gudang</small></span><span class="link-ar">→</span></a>
+    <a class="link-row" href="https://drive.google.com/drive/folders/1C5QVU_bDZXFRByYsBjvbqG85-qSeNtxL?usp=drive_link" target="_blank"><span class="link-ic">📚</span><span class="link-tx"><b>Record History Stok Gudang</b><small>Folder riwayat mutasi gudang</small></span><span class="link-ar">→</span></a>
+
+    <div class="section-hdr"><span class="section-hdr-label">👟 Display</span><div class="section-hdr-line"></div></div>
+    <a class="link-row" href="https://docs.google.com/spreadsheets/d/1aFyLfd0R1M7wasdbjB2sF7ap01EiCWosltFHI-wGjds/edit?gid=0#gid=0" target="_blank"><span class="link-ic">👟</span><span class="link-tx"><b>Monitoring Display Sepatu</b><small>Cek display & rak sepatu</small></span><span class="link-ar">→</span></a>
   </div>
 
 </div>
