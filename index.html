@@ -556,9 +556,12 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
         <div class="km-field"><label class="field-label">Jasa kirim</label>
           <select class="it" id="km-jasa"><option>Wibowo</option><option>Baraka</option><option>Cargo</option><option>Lainnya</option></select>
         </div>
-        <div class="km-field"><label class="field-label">No. Resi / Nota (opsional)</label><input type="text" class="it" id="km-resi" placeholder="boleh dikosongkan"></div>
+        <div class="km-field"><label class="field-label">Foto Resi (opsional)</label>
+          <input type="file" accept="image/*" id="km-resi-foto" style="font-size:12px" onchange="kmResiFotoChange()">
+          <div class="km-foto-prev" id="km-resi-prev"></div>
+        </div>
         <div class="km-field"><label class="field-label">Isi kiriman (barang yang dikirim)</label><textarea class="note-input" id="km-isi" placeholder="cth: Sparta HC BW 41 x2, Classic LC 42 x3"></textarea></div>
-        <div class="km-field"><label class="field-label">Foto nota</label>
+        <div class="km-field"><label class="field-label">Foto Nota</label>
           <input type="file" accept="image/*" id="km-foto" style="font-size:12px" onchange="kmFotoChange()">
           <div class="km-foto-prev" id="km-foto-prev"></div>
         </div>
@@ -1205,12 +1208,9 @@ function updateStokBadge(){
 }
 
 // ════ KIRIMAN STOK ════
-var kmData=[],_kmLoadedOnce=false,_kmFotoBase64='';
-// Kompres foto sebelum kirim (kecilkan ukuran agar muat di request Apps Script)
-function kmFotoChange(){
-  var f=document.getElementById('km-foto').files[0];
-  _kmFotoBase64='';document.getElementById('km-foto-prev').innerHTML='';
-  if(!f)return;
+var kmData=[],_kmLoadedOnce=false,_kmFotoBase64='',_kmResiBase64='';
+// Kompres satu file gambar → callback(base64)
+function _kmCompress(file,cb){
   var reader=new FileReader();
   reader.onload=function(e){
     var img=new Image();
@@ -1219,43 +1219,56 @@ function kmFotoChange(){
       if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}
       var cv=document.createElement('canvas');cv.width=w;cv.height=h;
       cv.getContext('2d').drawImage(img,0,0,w,h);
-      _kmFotoBase64=cv.toDataURL('image/jpeg',0.5);
-      var kb=Math.round(_kmFotoBase64.length/1024);
-      document.getElementById('km-foto-prev').innerHTML='<img src="'+_kmFotoBase64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Foto siap (~'+kb+' KB)</div>';
+      cb(cv.toDataURL('image/jpeg',0.5));
     };
     img.src=e.target.result;
   };
-  reader.readAsDataURL(f);
+  reader.readAsDataURL(file);
+}
+function kmFotoChange(){
+  var f=document.getElementById('km-foto').files[0];
+  _kmFotoBase64='';document.getElementById('km-foto-prev').innerHTML='';
+  if(!f)return;
+  _kmCompress(f,function(b64){_kmFotoBase64=b64;var kb=Math.round(b64.length/1024);
+    document.getElementById('km-foto-prev').innerHTML='<img src="'+b64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Foto nota siap (~'+kb+' KB)</div>';});
+}
+function kmResiFotoChange(){
+  var f=document.getElementById('km-resi-foto').files[0];
+  _kmResiBase64='';document.getElementById('km-resi-prev').innerHTML='';
+  if(!f)return;
+  _kmCompress(f,function(b64){_kmResiBase64=b64;var kb=Math.round(b64.length/1024);
+    document.getElementById('km-resi-prev').innerHTML='<img src="'+b64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Foto resi siap (~'+kb+' KB)</div>';});
 }
 function kmSave(){
   var url=scriptUrl;if(!url||!url.startsWith('http')){showToast('URL belum dikonfigurasi','err');return;}
   var tgl=document.getElementById('km-tgl').value||todayValue;
   var jasa=document.getElementById('km-jasa').value;
-  var resi=document.getElementById('km-resi').value.trim();
   var isi=document.getElementById('km-isi').value.trim();
   if(!isi){showToast('Isi kiriman belum diisi','err');return;}
-  var btn=document.getElementById('km-save-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>'+(_kmFotoBase64?'Mengirim + upload foto...':'Mengirim...');
-  var payload={type:'kiriman_add',tglKirim:tgl,jasa:jasa,resi:resi,isi:isi,foto:_kmFotoBase64||''};
-  var adaFoto=!!_kmFotoBase64;
-  // Pakai text/plain → tidak kena preflight CORS, body besar diizinkan, response bisa dibaca
+  var btn=document.getElementById('km-save-btn');btn.disabled=true;
+  var adaFoto=!!_kmFotoBase64,adaResi=!!_kmResiBase64;
+  btn.innerHTML='<span class="spinner"></span>'+((adaFoto||adaResi)?'Mengirim + upload foto...':'Mengirim...');
+  var payload={type:'kiriman_add',tglKirim:tgl,jasa:jasa,resi:'',isi:isi,foto:_kmFotoBase64||'',fotoResi:_kmResiBase64||''};
+  function resetForm(){
+    document.getElementById('km-isi').value='';
+    document.getElementById('km-foto').value='';_kmFotoBase64='';document.getElementById('km-foto-prev').innerHTML='';
+    document.getElementById('km-resi-foto').value='';_kmResiBase64='';document.getElementById('km-resi-prev').innerHTML='';
+  }
   fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
     .then(function(d){
       if(d&&d.status==='ok'){
-        if(adaFoto&&!d.foto)showToast('FOTO GAGAL: '+((d.fotoErr||'tidak diketahui').slice(0,60)),'err');
-        else showToast(adaFoto?'✓ Tersimpan + foto':'✓ Kiriman dicatat','ok');
+        var gagal=[];
+        if(adaFoto&&!d.foto)gagal.push('nota');
+        if(adaResi&&!d.fotoResi)gagal.push('resi');
+        if(gagal.length)showToast('FOTO GAGAL: '+gagal.join(' & ')+' — '+((d.fotoErr||'').slice(0,40)),'err');
+        else showToast('✓ Kiriman tersimpan','ok');
       }else{showToast('Gagal: '+((d&&d.message)||'error'),'err');}
-      document.getElementById('km-resi').value='';document.getElementById('km-isi').value='';
-      document.getElementById('km-foto').value='';_kmFotoBase64='';document.getElementById('km-foto-prev').innerHTML='';
-      setTimeout(kmLoad,1500);
+      resetForm();setTimeout(kmLoad,1500);
     })
     .catch(function(){
-      // fallback: no-cors (tidak bisa baca hasil)
       fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
-        .then(function(){showToast(adaFoto?'✓ Terkirim (cek foto setelah refresh)':'✓ Dicatat','ok');
-          document.getElementById('km-resi').value='';document.getElementById('km-isi').value='';
-          document.getElementById('km-foto').value='';_kmFotoBase64='';document.getElementById('km-foto-prev').innerHTML='';
-          setTimeout(kmLoad,3500);})
+        .then(function(){showToast('✓ Terkirim (cek setelah refresh)','ok');resetForm();setTimeout(kmLoad,3500);})
         .catch(function(){showToast('Gagal mengirim','err');});
     })
     .finally(function(){btn.disabled=false;btn.innerHTML='📤 Kirim ke Sheets';});
@@ -1292,10 +1305,13 @@ function kmRender(){
   });
   list.innerHTML=sorted.map(function(r){
     var s=kmStatusInfo(r);
-    var resiTxt=r.resi?escH(r.resi):'(tanpa resi)';
-    var meta='<i>🚚</i> '+escH(r.jasa||'-')+' · dikirim '+kmFmtTgl(r.tglKirim);
+    var hdrTxt=escH(r.jasa||'Kiriman')+' · '+kmFmtTgl(r.tglKirim);
+    var meta='<i>🚚</i> dikirim '+kmFmtTgl(r.tglKirim);
     if(r.status==='Sampai'&&r.tglSampai)meta+=' · tiba '+kmFmtTgl(r.tglSampai);
-    var foto=r.foto?'<a class="km-foto-link" href="'+escH(r.foto)+'" target="_blank" onclick="event.stopPropagation()">📷 Lihat foto nota</a>':'<span style="font-size:12px;color:var(--hint)">tanpa foto</span>';
+    var fotos='<div style="display:flex;gap:12px;flex-wrap:wrap">';
+    fotos+=r.fotoResi?'<a class="km-foto-link" href="'+escH(r.fotoResi)+'" target="_blank" onclick="event.stopPropagation()">🧾 Foto resi</a>':'<span style="font-size:12px;color:var(--hint)">tanpa resi</span>';
+    fotos+=r.foto?'<a class="km-foto-link" href="'+escH(r.foto)+'" target="_blank" onclick="event.stopPropagation()">📷 Foto nota</a>':'<span style="font-size:12px;color:var(--hint)">tanpa nota</span>';
+    fotos+='</div>';
     var note=(s.cls==='masalah'&&r.catatan)?'<div class="km-note">⚠ '+escH(r.catatan)+'</div>':'';
     var actions='';
     if(r.status!=='Sampai'){
@@ -1306,10 +1322,9 @@ function kmRender(){
         +'</div>';
     }
     return '<div class="km-card '+s.cls+'" onclick="kmOpenDetail('+r.row+')">'
-      +'<div class="km-card-top"><span class="km-resi">'+resiTxt+'</span><span class="km-badge '+s.cls+'">'+s.badge+'</span></div>'
-      +'<div class="km-meta">'+meta+'</div>'
+      +'<div class="km-card-top"><span class="km-resi">'+hdrTxt+'</span><span class="km-badge '+s.cls+'">'+s.badge+'</span></div>'
       +'<div class="km-isi">Isi: '+escH(r.isi||'-')+'</div>'
-      +foto+note+actions
+      +fotos+note+actions
       +'</div>';
   }).join('');
 }
@@ -1335,22 +1350,28 @@ function kmFindRow(row){return kmData.find(function(x){return x.row===row;});}
 function kmOpenDetail(row){
   var r=kmFindRow(row);if(!r)return;
   var s=kmStatusInfo(r);
-  document.getElementById('km-d-title').textContent='Kiriman '+(r.resi||'(tanpa resi)');
+  document.getElementById('km-d-title').textContent='Kiriman '+escH(r.jasa||'')+' · '+kmFmtTgl(r.tglKirim);
   var html='';
   html+='<div class="km-d-row"><span class="k">Status</span><span class="v"><span class="km-badge '+s.cls+'">'+s.badge+'</span></span></div>';
   html+='<div class="km-d-row"><span class="k">Jasa kirim</span><span class="v">'+escH(r.jasa||'-')+'</span></div>';
-  html+='<div class="km-d-row"><span class="k">No. Resi/Nota</span><span class="v">'+escH(r.resi||'(tidak ada)')+'</span></div>';
   html+='<div class="km-d-row"><span class="k">Tgl kirim</span><span class="v">'+kmFmtTgl(r.tglKirim)+'</span></div>';
   if(r.status==='Sampai')html+='<div class="km-d-row"><span class="k">Tgl sampai</span><span class="v">'+kmFmtTgl(r.tglSampai)+'</span></div>';
   html+='<div class="km-d-row"><span class="k">Isi kiriman</span><span class="v">'+escH(r.isi||'-')+'</span></div>';
   if(r.sesuai)html+='<div class="km-d-row"><span class="k">Kesesuaian</span><span class="v">'+escH(r.sesuai)+'</span></div>';
   if(r.catatan)html+='<div class="km-d-row"><span class="k">Catatan</span><span class="v" style="color:var(--red)">'+escH(r.catatan)+'</span></div>';
-  if(r.foto){
-    html+='<div class="km-d-foto"><img src="'+escH(kmFotoImgUrl(r.foto))+'" alt="foto nota" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'block\'"><a href="'+escH(r.foto)+'" target="_blank" style="display:none;color:var(--accent);font-size:12px">📷 Buka foto di tab baru</a></div>';
-    html+='<a href="'+escH(r.foto)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">📷 Buka foto ukuran penuh →</a>';
-  }else{
-    html+='<div style="color:var(--hint);font-size:12px;margin-top:10px">Tidak ada foto nota</div>';
+  // Foto Resi
+  if(r.fotoResi){
+    html+='<div style="font-size:11px;color:var(--muted);margin-top:14px;text-transform:uppercase;letter-spacing:.05em">🧾 Foto Resi</div>';
+    html+='<div class="km-d-foto"><img src="'+escH(kmFotoImgUrl(r.fotoResi))+'" alt="foto resi"></div>';
+    html+='<a href="'+escH(r.fotoResi)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">🧾 Buka resi ukuran penuh →</a>';
   }
+  // Foto Nota
+  if(r.foto){
+    html+='<div style="font-size:11px;color:var(--muted);margin-top:14px;text-transform:uppercase;letter-spacing:.05em">📷 Foto Nota</div>';
+    html+='<div class="km-d-foto"><img src="'+escH(kmFotoImgUrl(r.foto))+'" alt="foto nota"></div>';
+    html+='<a href="'+escH(r.foto)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">📷 Buka nota ukuran penuh →</a>';
+  }
+  if(!r.fotoResi&&!r.foto)html+='<div style="color:var(--hint);font-size:12px;margin-top:10px">Tidak ada foto</div>';
   // Aksi (admin & manager dua-duanya boleh)
   html+='<div class="km-d-actions">';
   if(r.status!=='Sampai'){
