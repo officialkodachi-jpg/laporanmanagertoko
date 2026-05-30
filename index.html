@@ -1215,12 +1215,13 @@ function kmFotoChange(){
   reader.onload=function(e){
     var img=new Image();
     img.onload=function(){
-      var max=1000,w=img.width,h=img.height;
+      var max=800,w=img.width,h=img.height;
       if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}
       var cv=document.createElement('canvas');cv.width=w;cv.height=h;
       cv.getContext('2d').drawImage(img,0,0,w,h);
-      _kmFotoBase64=cv.toDataURL('image/jpeg',0.7);
-      document.getElementById('km-foto-prev').innerHTML='<img src="'+_kmFotoBase64+'">';
+      _kmFotoBase64=cv.toDataURL('image/jpeg',0.5);
+      var kb=Math.round(_kmFotoBase64.length/1024);
+      document.getElementById('km-foto-prev').innerHTML='<img src="'+_kmFotoBase64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Foto siap (~'+kb+' KB)</div>';
     };
     img.src=e.target.result;
   };
@@ -1236,14 +1237,27 @@ function kmSave(){
   var btn=document.getElementById('km-save-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>'+(_kmFotoBase64?'Mengirim + upload foto...':'Mengirim...');
   var payload={type:'kiriman_add',tglKirim:tgl,jasa:jasa,resi:resi,isi:isi,foto:_kmFotoBase64||''};
   var adaFoto=!!_kmFotoBase64;
-  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
-    .then(function(){
-      showToast(adaFoto?'✓ Terkirim (foto sedang diproses)':'✓ Kiriman dicatat','ok');
+  // Pakai text/plain → tidak kena preflight CORS, body besar diizinkan, response bisa dibaca
+  fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d&&d.status==='ok'){
+        if(adaFoto&&!d.foto)showToast('✓ Tersimpan, tapi FOTO GAGAL diupload','err');
+        else showToast(adaFoto?'✓ Tersimpan + foto':'✓ Kiriman dicatat','ok');
+      }else{showToast('Gagal: '+((d&&d.message)||'error'),'err');}
       document.getElementById('km-resi').value='';document.getElementById('km-isi').value='';
       document.getElementById('km-foto').value='';_kmFotoBase64='';document.getElementById('km-foto-prev').innerHTML='';
-      setTimeout(kmLoad,3500); // beri waktu Apps Script simpan foto ke Drive
+      setTimeout(kmLoad,1500);
     })
-    .catch(function(){showToast('Gagal mengirim','err');})
+    .catch(function(){
+      // fallback: no-cors (tidak bisa baca hasil)
+      fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
+        .then(function(){showToast(adaFoto?'✓ Terkirim (cek foto setelah refresh)':'✓ Dicatat','ok');
+          document.getElementById('km-resi').value='';document.getElementById('km-isi').value='';
+          document.getElementById('km-foto').value='';_kmFotoBase64='';document.getElementById('km-foto-prev').innerHTML='';
+          setTimeout(kmLoad,3500);})
+        .catch(function(){showToast('Gagal mengirim','err');});
+    })
     .finally(function(){btn.disabled=false;btn.innerHTML='📤 Kirim ke Sheets';});
 }
 function kmLoad(){
