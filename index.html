@@ -7,6 +7,10 @@
 <meta name="theme-color" content="#2563eb">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kodachi Mgr">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='30' fill='%232563eb'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='110' font-family='sans-serif'%3E%F0%9F%8F%AA%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -1628,6 +1632,57 @@ function renderCashTable(){ renderCashRecent(); }
 function buildCashBulanFilter(){}
 
 // Auto-load saat tab dibuka (lihat switchTab)
+
+// ── PWA: Service Worker Registration ──────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
+
+// ── PWA: Install prompt (simpan untuk tombol install) ─────────
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // Tampilkan banner install jika belum standalone
+  if (!window.matchMedia('(display-mode: standalone)').matches) {
+    showInstallBanner();
+  }
+});
+
+function showInstallBanner() {
+  if (document.getElementById('pwa-install-banner')) return;
+  var banner = document.createElement('div');
+  banner.id = 'pwa-install-banner';
+  banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:12px 16px;background:#1e40af;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:var(--sans);font-size:13px;box-shadow:0 -2px 12px rgba(0,0,0,.2)';
+  banner.innerHTML = '<span>📲 <b>Install App</b> — akses cepat dari home screen</span>'
+    + '<div style="display:flex;gap:8px;flex-shrink:0">'
+    + '<button onclick="installPWA()" style="padding:7px 14px;background:#fff;color:#1e40af;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">Install</button>'
+    + '<button onclick="document.getElementById(\'pwa-install-banner\').remove()" style="padding:7px 10px;background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer">Nanti</button>'
+    + '</div>';
+  document.body.appendChild(banner);
+}
+
+async function installPWA() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  var { outcome } = await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  var banner = document.getElementById('pwa-install-banner');
+  if (banner) banner.remove();
+  if (outcome === 'accepted') showToast('✓ App berhasil diinstall!', 'ok');
+}
+
+// Sembunyikan banner jika sudah standalone
+window.matchMedia('(display-mode: standalone)').addEventListener('change', e => {
+  if (e.matches) {
+    var banner = document.getElementById('pwa-install-banner');
+    if (banner) banner.remove();
+  }
+});
 
 </script>
 </body>
