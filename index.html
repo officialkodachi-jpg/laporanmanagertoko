@@ -1242,7 +1242,7 @@ function kmSave(){
     .then(function(r){return r.json();})
     .then(function(d){
       if(d&&d.status==='ok'){
-        if(adaFoto&&!d.foto)showToast('✓ Tersimpan, tapi FOTO GAGAL diupload','err');
+        if(adaFoto&&!d.foto)showToast('FOTO GAGAL: '+((d.fotoErr||'tidak diketahui').slice(0,60)),'err');
         else showToast(adaFoto?'✓ Tersimpan + foto':'✓ Kiriman dicatat','ok');
       }else{showToast('Gagal: '+((d&&d.message)||'error'),'err');}
       document.getElementById('km-resi').value='';document.getElementById('km-isi').value='';
