@@ -73,9 +73,28 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .km-act-btn{padding:7px 12px;border-radius:20px;border:1.5px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer}
 .km-act-btn.ok{border-color:var(--green);color:var(--green)}.km-act-btn.ok:active{background:rgba(22,163,74,.1)}
 .km-act-btn.no{border-color:var(--red);color:var(--red)}.km-act-btn.no:active{background:rgba(220,38,38,.1)}
-/* admin tidak boleh update status; manager tidak boleh tambah kiriman */
-body.role-admin .km-actions{display:none}
+/* admin & manager dua-duanya boleh update status kiriman; admin tetap bisa lihat form tambah */
 body.role-manager #km-add-box{display:none}
+.km-card{cursor:pointer}
+.km-detail-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center;padding:18px}
+.km-detail-bg.open{display:flex}
+.km-detail{background:var(--card);border-radius:var(--r-lg);padding:0;width:100%;max-width:440px;max-height:88vh;overflow-y:auto}
+.km-detail-hd{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:1}
+.km-detail-hd b{font-size:15px}
+.km-detail-x{background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;line-height:1}
+.km-detail-bd{padding:16px 18px}
+.km-d-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.km-d-row:last-child{border-bottom:none}
+.km-d-row .k{color:var(--muted);flex-shrink:0}
+.km-d-row .v{text-align:right;font-weight:500;word-break:break-word}
+.km-d-foto{margin:12px 0}
+.km-d-foto img{width:100%;border-radius:10px;border:1px solid var(--border)}
+.km-d-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.km-d-actions button{flex:1;min-width:120px;padding:11px;border-radius:var(--r);border:1.5px solid var(--border2);background:var(--card);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
+.km-d-actions .ok{border-color:var(--green);color:var(--green)}
+.km-d-actions .no{border-color:var(--red);color:var(--red)}
+.km-d-actions .del{border-color:var(--red);color:var(--red);background:rgba(220,38,38,.05)}
+.km-d-actions .reset{border-color:var(--border2);color:var(--muted)}
 .subtab-row::-webkit-scrollbar{display:none}
 .subtab{flex:1;min-width:fit-content;padding:9px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
 .subtab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -771,6 +790,12 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
 </div></div>
 
 <div class="ac-dropdown" id="ac-dropdown"></div>
+<div class="km-detail-bg" id="km-detail-bg" onclick="if(event.target===this)kmCloseDetail()">
+  <div class="km-detail">
+    <div class="km-detail-hd"><b id="km-d-title">Detail Kiriman</b><button class="km-detail-x" onclick="kmCloseDetail()">×</button></div>
+    <div class="km-detail-bd" id="km-d-body"></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1208,14 +1233,15 @@ function kmSave(){
   var resi=document.getElementById('km-resi').value.trim();
   var isi=document.getElementById('km-isi').value.trim();
   if(!isi){showToast('Isi kiriman belum diisi','err');return;}
-  var btn=document.getElementById('km-save-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Mengirim...';
+  var btn=document.getElementById('km-save-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>'+(_kmFotoBase64?'Mengirim + upload foto...':'Mengirim...');
   var payload={type:'kiriman_add',tglKirim:tgl,jasa:jasa,resi:resi,isi:isi,foto:_kmFotoBase64||''};
+  var adaFoto=!!_kmFotoBase64;
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
     .then(function(){
-      showToast('✓ Kiriman dicatat','ok');
+      showToast(adaFoto?'✓ Terkirim (foto sedang diproses)':'✓ Kiriman dicatat','ok');
       document.getElementById('km-resi').value='';document.getElementById('km-isi').value='';
       document.getElementById('km-foto').value='';_kmFotoBase64='';document.getElementById('km-foto-prev').innerHTML='';
-      setTimeout(kmLoad,3000); // beri waktu Apps Script simpan foto ke Drive
+      setTimeout(kmLoad,3500); // beri waktu Apps Script simpan foto ke Drive
     })
     .catch(function(){showToast('Gagal mengirim','err');})
     .finally(function(){btn.disabled=false;btn.innerHTML='📤 Kirim ke Sheets';});
@@ -1255,17 +1281,17 @@ function kmRender(){
     var resiTxt=r.resi?escH(r.resi):'(tanpa resi)';
     var meta='<i>🚚</i> '+escH(r.jasa||'-')+' · dikirim '+kmFmtTgl(r.tglKirim);
     if(r.status==='Sampai'&&r.tglSampai)meta+=' · tiba '+kmFmtTgl(r.tglSampai);
-    var foto=r.foto?'<a class="km-foto-link" href="'+escH(r.foto)+'" target="_blank">📷 Lihat foto nota</a>':'<span style="font-size:12px;color:var(--hint)">tanpa foto</span>';
+    var foto=r.foto?'<a class="km-foto-link" href="'+escH(r.foto)+'" target="_blank" onclick="event.stopPropagation()">📷 Lihat foto nota</a>':'<span style="font-size:12px;color:var(--hint)">tanpa foto</span>';
     var note=(s.cls==='masalah'&&r.catatan)?'<div class="km-note">⚠ '+escH(r.catatan)+'</div>':'';
     var actions='';
     if(r.status!=='Sampai'){
       actions='<div class="km-actions">'
         +'<span style="font-size:11px;color:var(--muted)">Saat barang tiba:</span>'
-        +'<button class="km-act-btn ok" onclick="kmMark('+r.row+',\'Sesuai\')">✓ Sesuai</button>'
-        +'<button class="km-act-btn no" onclick="kmMark('+r.row+',\'Tidak\')">✗ Tak sesuai</button>'
+        +'<button class="km-act-btn ok" onclick="event.stopPropagation();kmMark('+r.row+',\'Sesuai\')">✓ Sesuai</button>'
+        +'<button class="km-act-btn no" onclick="event.stopPropagation();kmMark('+r.row+',\'Tidak\')">✗ Tak sesuai</button>'
         +'</div>';
     }
-    return '<div class="km-card '+s.cls+'">'
+    return '<div class="km-card '+s.cls+'" onclick="kmOpenDetail('+r.row+')">'
       +'<div class="km-card-top"><span class="km-resi">'+resiTxt+'</span><span class="km-badge '+s.cls+'">'+s.badge+'</span></div>'
       +'<div class="km-meta">'+meta+'</div>'
       +'<div class="km-isi">Isi: '+escH(r.isi||'-')+'</div>'
@@ -1281,7 +1307,62 @@ function kmMark(row,sesuai){
   showToast('Menyimpan...','');
   var payload={type:'kiriman_update',row:row,status:'Sampai',sesuai:sesuai,tglSampai:todayValue,catatan:catatan};
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
-    .then(function(){showToast('✓ Status diperbarui','ok');setTimeout(kmLoad,2000);})
+    .then(function(){showToast('✓ Status diperbarui','ok');kmCloseDetail();setTimeout(kmLoad,2000);})
+    .catch(function(){showToast('Gagal','err');});
+}
+// Ubah link Drive /view → link gambar yang bisa ditampilkan <img>
+function kmFotoImgUrl(u){
+  if(!u)return'';
+  var m=u.match(/\/d\/([^\/]+)\//);
+  if(m)return'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w1000';
+  return u;
+}
+function kmFindRow(row){return kmData.find(function(x){return x.row===row;});}
+function kmOpenDetail(row){
+  var r=kmFindRow(row);if(!r)return;
+  var s=kmStatusInfo(r);
+  document.getElementById('km-d-title').textContent='Kiriman '+(r.resi||'(tanpa resi)');
+  var html='';
+  html+='<div class="km-d-row"><span class="k">Status</span><span class="v"><span class="km-badge '+s.cls+'">'+s.badge+'</span></span></div>';
+  html+='<div class="km-d-row"><span class="k">Jasa kirim</span><span class="v">'+escH(r.jasa||'-')+'</span></div>';
+  html+='<div class="km-d-row"><span class="k">No. Resi/Nota</span><span class="v">'+escH(r.resi||'(tidak ada)')+'</span></div>';
+  html+='<div class="km-d-row"><span class="k">Tgl kirim</span><span class="v">'+kmFmtTgl(r.tglKirim)+'</span></div>';
+  if(r.status==='Sampai')html+='<div class="km-d-row"><span class="k">Tgl sampai</span><span class="v">'+kmFmtTgl(r.tglSampai)+'</span></div>';
+  html+='<div class="km-d-row"><span class="k">Isi kiriman</span><span class="v">'+escH(r.isi||'-')+'</span></div>';
+  if(r.sesuai)html+='<div class="km-d-row"><span class="k">Kesesuaian</span><span class="v">'+escH(r.sesuai)+'</span></div>';
+  if(r.catatan)html+='<div class="km-d-row"><span class="k">Catatan</span><span class="v" style="color:var(--red)">'+escH(r.catatan)+'</span></div>';
+  if(r.foto){
+    html+='<div class="km-d-foto"><img src="'+escH(kmFotoImgUrl(r.foto))+'" alt="foto nota" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'block\'"><a href="'+escH(r.foto)+'" target="_blank" style="display:none;color:var(--accent);font-size:12px">📷 Buka foto di tab baru</a></div>';
+    html+='<a href="'+escH(r.foto)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">📷 Buka foto ukuran penuh →</a>';
+  }else{
+    html+='<div style="color:var(--hint);font-size:12px;margin-top:10px">Tidak ada foto nota</div>';
+  }
+  // Aksi (admin & manager dua-duanya boleh)
+  html+='<div class="km-d-actions">';
+  if(r.status!=='Sampai'){
+    html+='<button class="ok" onclick="kmMark('+r.row+',\'Sesuai\')">✓ Sampai &amp; Sesuai</button>';
+    html+='<button class="no" onclick="kmMark('+r.row+',\'Tidak\')">✗ Sampai, Tak sesuai</button>';
+  }else{
+    html+='<button class="reset" onclick="kmReset('+r.row+')">↩ Kembalikan ke \'Dikirim\'</button>';
+  }
+  html+='<button class="del" onclick="kmDelete('+r.row+')">🗑 Hapus kiriman</button>';
+  html+='</div>';
+  document.getElementById('km-d-body').innerHTML=html;
+  document.getElementById('km-detail-bg').classList.add('open');
+}
+function kmCloseDetail(){document.getElementById('km-detail-bg').classList.remove('open');}
+function kmReset(row){
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  if(!confirm('Kembalikan status ke "Dikirim"?'))return;
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'kiriman_update',row:row,status:'Dikirim',sesuai:'',tglSampai:'',catatan:''})})
+    .then(function(){showToast('✓ Direset','ok');kmCloseDetail();setTimeout(kmLoad,2000);})
+    .catch(function(){showToast('Gagal','err');});
+}
+function kmDelete(row){
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  if(!confirm('Hapus kiriman ini permanen?'))return;
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'kiriman_delete',row:row})})
+    .then(function(){showToast('✓ Dihapus','ok');kmCloseDetail();setTimeout(kmLoad,2000);})
     .catch(function(){showToast('Gagal','err');});
 }
 
