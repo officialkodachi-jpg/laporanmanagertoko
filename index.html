@@ -1406,8 +1406,28 @@ const GOOGLE_CLIENT_ID='1077904025393-sopu3mb62k66u3acngco0ppg4huvbbbm.apps.goog
 const EMAIL_MANAGER=['fahdryifih@gmail.com'];
 const EMAIL_ADMIN  =['officialkodachi@gmail.com'];
 
-var userRole=sessionStorage.getItem('mtg_role')||'';
-var userEmail=sessionStorage.getItem('mtg_email')||'';
+const SESSION_MAX_MS = 5*60*60*1000;   // sesi login berlaku 8 jam, lalu wajib login lagi
+
+// Cek apakah sesi tersimpan masih berlaku (belum lewat 8 jam)
+function sessionValid(){
+  try{
+    if(localStorage.getItem('mtg_auth')!=='1') return false;
+    var t=parseInt(localStorage.getItem('mtg_auth_time')||'0',10);
+    if(!t || (Date.now()-t) > SESSION_MAX_MS) return false;
+    return true;
+  }catch(e){return false;}
+}
+function clearSession(){
+  try{
+    localStorage.removeItem('mtg_auth');
+    localStorage.removeItem('mtg_auth_time');
+    localStorage.removeItem('mtg_role');
+    localStorage.removeItem('mtg_email');
+  }catch(e){}
+}
+
+var userRole = sessionValid() ? (localStorage.getItem('mtg_role')||'') : '';
+var userEmail= sessionValid() ? (localStorage.getItem('mtg_email')||'') : '';
 
 // Decode payload JWT (tanpa verifikasi tanda tangan — verifikasi cukup oleh Google saat login)
 function _decodeJwt(token){
@@ -1429,13 +1449,17 @@ function handleGoogleCredential(resp){
   if(EMAIL_ADMIN.indexOf(email)>=0) role='admin';
   else if(EMAIL_MANAGER.indexOf(email)>=0) role='manager';
   if(!role){showLoginError('Akun '+email+' tidak diizinkan masuk.');return;}
-  // Berhasil
+  // Berhasil — simpan sesi dengan stempel waktu (berlaku 8 jam)
   userRole=role;userEmail=email;
-  sessionStorage.setItem('mtg_auth','1');
-  sessionStorage.setItem('mtg_role',role);
-  sessionStorage.setItem('mtg_email',email);
+  try{
+    localStorage.setItem('mtg_auth','1');
+    localStorage.setItem('mtg_auth_time',String(Date.now()));
+    localStorage.setItem('mtg_role',role);
+    localStorage.setItem('mtg_email',email);
+  }catch(e){}
   document.getElementById('pw-overlay').style.display='none';
   applyRole();
+  startSessionWatch();
   alarmMuted=false;
   setTimeout(function(){loadStok(true);},500);
 }
@@ -1472,27 +1496,45 @@ function applyRole(){
 }
 function logout(){
   if(!confirm('Keluar dari akun?'))return;
+  doLogout(false);
+}
+// Logout inti. expired=true → karena sesi 8 jam habis (tanpa konfirmasi)
+function doLogout(expired){
   if(_adminLocTimer){clearInterval(_adminLocTimer);_adminLocTimer=null;}
   if(_mgrPushTimer){clearInterval(_mgrPushTimer);_mgrPushTimer=null;}
+  if(_sessionTimer){clearInterval(_sessionTimer);_sessionTimer=null;}
   try{if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}catch(e){}
-  sessionStorage.removeItem('mtg_auth');
-  sessionStorage.removeItem('mtg_role');
-  sessionStorage.removeItem('mtg_email');
+  clearSession();
   userRole='';userEmail='';
   document.body.classList.remove('role-admin','role-manager');
   var lo=document.getElementById('logout-btn');if(lo)lo.style.display='none';
   var badge=document.getElementById('role-badge');if(badge)badge.style.display='none';
-  showLoginError('');
+  showLoginError(expired?'Sesi berakhir (8 jam). Silakan login lagi.':'');
   document.getElementById('pw-overlay').style.display='flex';
   initGoogleSignIn();
 }
 
+// Pantau masa berlaku sesi; kalau lewat 8 jam → logout otomatis & minta login
+var _sessionTimer=null;
+function startSessionWatch(){
+  if(_sessionTimer)clearInterval(_sessionTimer);
+  _sessionTimer=setInterval(function(){
+    if(!sessionValid()) doLogout(true);
+  },60000); // cek tiap 1 menit
+}
+// Saat app kembali ke depan (dibuka lagi), cek juga sesinya langsung
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible' && userRole && !sessionValid()) doLogout(true);
+});
+
 // Saat halaman dibuka
 document.addEventListener('DOMContentLoaded',function(){
-  if(sessionStorage.getItem('mtg_auth')==='1'&&userRole){
+  if(sessionValid()&&userRole){
     document.getElementById('pw-overlay').style.display='none';
     applyRole();
+    startSessionWatch();
   }else{
+    clearSession();userRole='';userEmail='';
     document.getElementById('pw-overlay').style.display='flex';
     initGoogleSignIn();
   }
