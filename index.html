@@ -370,6 +370,7 @@ select.it{cursor:pointer}
   <button class="tab" onclick="switchTab('gudang',this)">📦 Stok & Gudang<span class="tab-badge" id="badge-stok">0</span></button>
   <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
   <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
+  <button class="tab" onclick="switchTab('cash',this)">💵 Uang Cash</button>
 </div><div class="tabs-line"></div></div>
 
 <div class="content">
@@ -530,6 +531,63 @@ select.it{cursor:pointer}
       <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Countdown ke Selasa jam 09:55 berikutnya</div>
       <div id="meet-countdown" style="font-family:var(--mono);font-size:28px;font-weight:500;color:var(--accent)">--:--:--</div>
     </div>
+  </div>
+
+  <!-- UANG CASH -->
+  <div class="panel" id="panel-cash">
+    <!-- Setup URL GAS -->
+    <div id="cash-url-setup" style="display:none;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.2);border-radius:var(--r);padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px">⚙️ Setup URL Google Apps Script</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Paste URL deploy dari GAS untuk sheet Uang Cash</div>
+      <input id="cash-gas-input" type="text" placeholder="https://script.google.com/macros/s/..." style="width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:11px;background:var(--card);color:var(--text);outline:none;margin-bottom:8px">
+      <button onclick="saveCashUrl()" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer">Simpan & Muat Data</button>
+    </div>
+    <!-- Status bar -->
+    <div id="cash-status-bar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px">
+      <div id="cash-status-txt" style="font-family:var(--mono);font-size:10px;color:var(--muted)">Belum dimuat</div>
+      <div style="display:flex;gap:6px">
+        <button onclick="loadCashData()" id="cash-refresh-btn" style="padding:7px 12px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer">🔄 Refresh</button>
+        <button onclick="openCashSetup()" style="padding:7px 10px;background:var(--surface);color:var(--muted);border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:11px;cursor:pointer">⚙️</button>
+      </div>
+    </div>
+    <!-- Summary cards -->
+    <div id="cash-summary-row" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="stat-card"><div class="stat-val green" id="cash-total-rify">—</div><div class="stat-label">Ambil Rify</div></div>
+      <div class="stat-card"><div class="stat-val" id="cash-total-dida" style="color:var(--blue)">—</div><div class="stat-label">Ambil Dida</div></div>
+      <div class="stat-card"><div class="stat-val" id="cash-total-setor" style="color:var(--red)">—</div><div class="stat-label">Total Setor</div></div>
+      <div class="stat-card"><div class="stat-val" id="cash-total-receh" style="color:var(--orange)">—</div><div class="stat-label">Uang Receh</div></div>
+    </div>
+    <!-- Filter -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <select id="cash-filter-bulan" onchange="renderCashTable()" style="flex:1;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:13px;background:var(--card);color:var(--text);outline:none">
+        <option value="all">Semua Bulan</option>
+      </select>
+      <select id="cash-filter-jenis" onchange="renderCashTable()" style="flex:1;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:13px;background:var(--card);color:var(--text);outline:none">
+        <option value="all">Semua Transaksi</option>
+        <option value="rify">Ambil Rify</option>
+        <option value="dida">Ambil Dida</option>
+        <option value="setor">Setor</option>
+        <option value="receh">Uang Receh</option>
+      </select>
+    </div>
+    <!-- Table -->
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--card)">
+      <table id="cash-table" style="border-collapse:collapse;width:100%;min-width:520px;font-size:12px">
+        <thead>
+          <tr style="background:var(--card2)">
+            <th style="padding:10px 12px;text-align:left;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.06em;white-space:nowrap">TANGGAL</th>
+            <th style="padding:10px 12px;text-align:right;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.06em">AMBIL RIFY</th>
+            <th style="padding:10px 12px;text-align:right;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--blue);letter-spacing:.06em">AMBIL DIDA</th>
+            <th style="padding:10px 12px;text-align:right;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em">UANG RECEH</th>
+            <th style="padding:10px 12px;text-align:left;border-bottom:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em">KET</th>
+          </tr>
+        </thead>
+        <tbody id="cash-tbody">
+          <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);font-size:13px">⚙️ Setup URL GAS untuk muat data</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="cash-empty" style="display:none;text-align:center;padding:40px;color:var(--muted);font-size:13px">📭 Tidak ada data</div>
   </div>
 
 </div>
@@ -925,6 +983,7 @@ function switchTab(name,btn){
   btn.classList.add('active');
   if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();}
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
+  if(name==='cash'){if(cashGasUrl&&cashData.length===0)loadCashData();else if(!cashGasUrl)document.getElementById('cash-url-setup').style.display='block';}
 }
 function switchGudangView(v,btn){
   document.getElementById('gview-monitor').classList.remove('active');
@@ -1205,6 +1264,163 @@ if(sessionStorage.getItem('mtg_auth')==='1'){
     document.getElementById('pw-overlay').style.display='none';
   });
 }
+
+// ════ UANG CASH ════
+var cashData = [];
+var cashGasUrl = localStorage.getItem('cash_gas_url') || '';
+
+function openCashSetup(){
+  var box = document.getElementById('cash-url-setup');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  document.getElementById('cash-gas-input').value = cashGasUrl;
+}
+function saveCashUrl(){
+  var v = document.getElementById('cash-gas-input').value.trim();
+  if(!v.startsWith('http')){showToast('URL tidak valid','err');return;}
+  cashGasUrl = v;
+  localStorage.setItem('cash_gas_url', v);
+  document.getElementById('cash-url-setup').style.display = 'none';
+  showToast('URL tersimpan ✓','ok');
+  loadCashData();
+}
+
+async function loadCashData(){
+  if(!cashGasUrl){
+    document.getElementById('cash-url-setup').style.display = 'block';
+    setCashStatus('⚠️ Belum ada URL GAS — setup dulu','err');
+    return;
+  }
+  var btn = document.getElementById('cash-refresh-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Memuat...';}
+  setCashStatus('Memuat data...','loading');
+  try {
+    var r = await fetch(cashGasUrl + '?type=cash&_=' + Date.now());
+    var d = await r.json();
+    if(d.status === 'ok'){
+      cashData = d.rows || [];
+      applyCashSummary(d.summary, d.rows);
+      buildCashBulanFilter();
+      renderCashTable();
+      setCashStatus('✓ Diperbarui ' + new Date().toLocaleTimeString('id-ID'),'ok');
+    } else {
+      setCashStatus('⚠️ Error: ' + (d.message||'unknown'),'err');
+    }
+  } catch(e){
+    setCashStatus('⚠️ Gagal terhubung ke GAS','err');
+    showToast('Gagal fetch Uang Cash','err');
+  }
+  if(btn){btn.disabled=false;btn.textContent='🔄 Refresh';}
+}
+
+function setCashStatus(msg, type){
+  var el = document.getElementById('cash-status-txt');
+  if(!el) return;
+  el.textContent = msg;
+  el.style.color = type==='ok'?'var(--green)':type==='err'?'var(--red)':'var(--muted)';
+}
+
+function applyCashSummary(summary, rows){
+  // Hitung dari rows (lebih akurat daripada header GAS)
+  var totRify=0, totDida=0, totSetor=0, totReceh=0;
+  (rows||[]).forEach(function(r){
+    if(r.rify > 0) totRify += r.rify;
+    if(r.dida > 0) totDida += r.dida;
+    if((r.ket||'').toLowerCase()==='setor'){
+      if(r.rify) totSetor += Math.abs(r.rify);
+      if(r.dida) totSetor += Math.abs(r.dida);
+    }
+    if(r.receh > 0) totReceh += r.receh;
+  });
+  document.getElementById('cash-total-rify').textContent = fRpPlain(totRify);
+  document.getElementById('cash-total-dida').textContent = fRpPlain(totDida);
+  document.getElementById('cash-total-setor').textContent = fRpPlain(totSetor);
+  document.getElementById('cash-total-receh').textContent = fRpPlain(totReceh);
+}
+
+function buildCashBulanFilter(){
+  var seen = [], sel = document.getElementById('cash-filter-bulan');
+  cashData.forEach(function(r){ var b=getBulan(r.tgl); if(b&&!seen.includes(b))seen.push(b); });
+  // Rebuild options
+  sel.innerHTML = '<option value="all">Semua Bulan</option>';
+  seen.forEach(function(b){
+    var opt = document.createElement('option');
+    opt.value = b; opt.textContent = b;
+    sel.appendChild(opt);
+  });
+}
+
+function fRp(v){
+  if(v===null||v===undefined||v==='')return'';
+  var n = Number(v);
+  var abs = Math.abs(n);
+  var s = 'Rp ' + abs.toLocaleString('id-ID');
+  return n < 0
+    ? '<span style="color:var(--red)">-'+s+'</span>'
+    : '<span style="color:var(--green)">'+s+'</span>';
+}
+function fRpPlain(v){
+  if(!v&&v!==0)return'—';
+  return 'Rp ' + Math.abs(Number(v)).toLocaleString('id-ID');
+}
+function getBulan(tgl){ return (tgl||'').split(' ').slice(1).join(' ') || ''; }
+
+function renderCashTable(){
+  var filterBulan = document.getElementById('cash-filter-bulan').value;
+  var filterJenis = document.getElementById('cash-filter-jenis').value;
+
+  var rows = cashData.filter(function(r){
+    var bMatch = filterBulan==='all' || getBulan(r.tgl)===filterBulan;
+    var jMatch = true;
+    var ket = (r.ket||'').toLowerCase();
+    if(filterJenis==='rify')  jMatch = r.rify!==null && r.rify!==undefined && r.rify!=='';
+    else if(filterJenis==='dida')  jMatch = r.dida!==null && r.dida!==undefined && r.dida!=='';
+    else if(filterJenis==='setor') jMatch = ket==='setor';
+    else if(filterJenis==='receh') jMatch = r.receh!==null && r.receh!==undefined && r.receh!=='';
+    return bMatch && jMatch;
+  });
+
+  // Update summary for filtered
+  var totRify=0,totDida=0,totSetor=0,totReceh=0;
+  rows.forEach(function(r){
+    if(r.rify>0) totRify+=r.rify;
+    if(r.dida>0) totDida+=r.dida;
+    var ket=(r.ket||'').toLowerCase();
+    if(ket==='setor'){if(r.rify)totSetor+=Math.abs(r.rify);if(r.dida)totSetor+=Math.abs(r.dida);}
+    if(r.receh>0) totReceh+=r.receh;
+  });
+  document.getElementById('cash-total-rify').textContent = fRpPlain(totRify||null);
+  document.getElementById('cash-total-dida').textContent = fRpPlain(totDida||null);
+  document.getElementById('cash-total-setor').textContent = fRpPlain(totSetor||null);
+  document.getElementById('cash-total-receh').textContent = fRpPlain(totReceh||null);
+
+  var tbody = document.getElementById('cash-tbody');
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);font-size:13px">📭 Tidak ada data</td></tr>';
+    return;
+  }
+
+  var html='', prevBulan='';
+  rows.forEach(function(r){
+    var bulan = getBulan(r.tgl);
+    if(bulan !== prevBulan){
+      html += '<tr><td colspan="5" style="padding:8px 12px 4px;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.12em;background:var(--surface);border-bottom:1px solid var(--border)">── '+bulan+' ──</td></tr>';
+      prevBulan = bulan;
+    }
+    var isSetor = (r.ket||'').toLowerCase()==='setor';
+    var rowBg = isSetor ? 'background:rgba(220,38,38,.04)' : '';
+    html += '<tr style="border-bottom:1px solid var(--border);'+rowBg+'">'
+      + '<td style="padding:9px 12px;font-weight:500;white-space:nowrap">'+r.tgl+'</td>'
+      + '<td style="padding:9px 12px;text-align:right;font-family:var(--mono);font-size:12px">'+fRp(r.rify)+'</td>'
+      + '<td style="padding:9px 12px;text-align:right;font-family:var(--mono);font-size:12px">'+fRp(r.dida)+'</td>'
+      + '<td style="padding:9px 12px;text-align:right;font-family:var(--mono);font-size:12px">'+(r.receh!==null&&r.receh!==undefined&&r.receh!==''?fRp(r.receh):'')+'</td>'
+      + '<td style="padding:9px 12px;font-size:11px;color:'+(isSetor?'var(--red)':'var(--muted)')+'">'+r.ket+'</td>'
+      + '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+// Auto-load saat tab dibuka (lihat switchTab)
+
 </script>
 </body>
 </html>
