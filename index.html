@@ -1790,19 +1790,30 @@ function pgRenderContent(){
     +'<div class="km-field"><label class="field-label">Tanggal kejadian</label><input type="date" class="it" id="pg-tgl"></div>'
     +'<div class="km-field"><label class="field-label">Jenis</label><select class="it" id="pg-jenis">'+opts+'</select></div>'
     +'<div class="km-field"><label class="field-label">Keterangan</label><textarea class="note-input" id="pg-ket" placeholder="jelaskan kejadiannya"></textarea></div>'
-    +'<div class="km-field"><label class="field-label">Foto bukti (opsional)</label><input type="file" accept="image/*" id="pg-foto" style="font-size:12px" onchange="pgFotoChange()"><div class="km-foto-prev" id="pg-foto-prev"></div></div>'
+    +'<div class="km-field"><label class="field-label">Foto bukti (boleh lebih dari 1)</label><input type="file" accept="image/*" multiple id="pg-foto" style="font-size:12px" onchange="pgFotoChange()"><div class="km-foto-prev" id="pg-foto-prev"></div></div>'
     +'<button class="km-save-btn" id="pg-save-btn" onclick="pgSave()">📤 Simpan Catatan</button>'
     +'</div>'
     +'<div class="stok-controls" style="margin-bottom:12px"><button class="stok-refresh-btn" onclick="pgLoadCatatan()">🔄 Perbarui</button></div>'
     +'<div id="pg-list"><div class="empty"><span class="spinner"></span> Memuat...</div></div>';
   var kt=document.getElementById('pg-tgl');if(kt)kt.value=todayValue;
 }
+var pgFotoArr=[];
 function pgFotoChange(){
-  var f=document.getElementById('pg-foto').files[0];
-  pgFotoBase64='';document.getElementById('pg-foto-prev').innerHTML='';
-  if(!f)return;
-  _kmCompress(f,function(b64){pgFotoBase64=b64;var kb=Math.round(b64.length/1024);
-    document.getElementById('pg-foto-prev').innerHTML='<img src="'+b64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Foto siap (~'+kb+' KB)</div>';});
+  var files=document.getElementById('pg-foto').files;
+  pgFotoArr=[];document.getElementById('pg-foto-prev').innerHTML='';
+  if(!files||!files.length)return;
+  var total=files.length,done=0;
+  var prev=document.getElementById('pg-foto-prev');
+  prev.innerHTML='<div style="font-size:11px;color:var(--muted)">Memproses '+total+' foto...</div>';
+  Array.prototype.forEach.call(files,function(f){
+    _kmCompress(f,function(b64){
+      pgFotoArr.push(b64);done++;
+      if(done===total){
+        prev.innerHTML=pgFotoArr.map(function(b){return '<img src="'+b+'" style="max-height:90px;margin:3px 4px 0 0;border-radius:8px;border:1px solid var(--border)">';}).join('')
+          +'<div style="font-size:10px;color:var(--muted);margin-top:4px">'+total+' foto siap</div>';
+      }
+    });
+  });
 }
 function pgSave(){
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
@@ -1811,22 +1822,23 @@ function pgSave(){
   var ket=document.getElementById('pg-ket').value.trim();
   if(!ket){showToast('Keterangan belum diisi','err');return;}
   var btn=document.getElementById('pg-save-btn');btn.disabled=true;
-  var adaFoto=!!pgFotoBase64;
-  btn.innerHTML='<span class="spinner"></span>'+(adaFoto?'Mengirim + foto...':'Menyimpan...');
-  var payload={type:'pegawai_add',nama:pgActive,tgl:tgl,jenis:jenis,keterangan:ket,status:'Belum ditindak',foto:pgFotoBase64||''};
+  var adaFoto=pgFotoArr.length>0;
+  btn.innerHTML='<span class="spinner"></span>'+(adaFoto?'Mengirim + '+pgFotoArr.length+' foto...':'Menyimpan...');
+  var payload={type:'pegawai_add',nama:pgActive,tgl:tgl,jenis:jenis,keterangan:ket,status:'Belum ditindak',fotos:pgFotoArr};
+  function resetForm(){document.getElementById('pg-ket').value='';document.getElementById('pg-foto').value='';pgFotoArr=[];document.getElementById('pg-foto-prev').innerHTML='';}
   fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
     .then(function(d){
       if(d&&d.status==='ok'){
-        if(adaFoto&&!d.foto)showToast('Tersimpan, foto gagal: '+((d.fotoErr||'').slice(0,40)),'err');
+        if(adaFoto&&(!d.foto))showToast('Tersimpan, foto gagal: '+((d.fotoErr||'').slice(0,40)),'err');
         else showToast('✓ Catatan tersimpan','ok');
       }else showToast('Gagal menyimpan','err');
-      document.getElementById('pg-ket').value='';document.getElementById('pg-foto').value='';pgFotoBase64='';document.getElementById('pg-foto-prev').innerHTML='';
+      resetForm();
       logActivity('Catat pelanggaran',pgActive+' — '+jenis);
       setTimeout(pgLoadCatatan,1500);
     })
     .catch(function(){
-      fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)}).then(function(){showToast('✓ Terkirim','ok');document.getElementById('pg-ket').value='';document.getElementById('pg-foto').value='';pgFotoBase64='';document.getElementById('pg-foto-prev').innerHTML='';setTimeout(pgLoadCatatan,3000);}).catch(function(){showToast('Gagal','err');});
+      fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)}).then(function(){showToast('✓ Terkirim','ok');resetForm();setTimeout(pgLoadCatatan,3000);}).catch(function(){showToast('Gagal','err');});
     })
     .finally(function(){btn.disabled=false;btn.innerHTML='📤 Simpan Catatan';});
 }
@@ -1851,7 +1863,8 @@ function pgRenderList(){
   list.innerHTML=pgData.map(function(r){
     var cls=pgStatusCls(r.status);
     var p=(r.tgl||'').split('-');var tglTxt=p.length===3?(parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1]):r.tgl;
-    var foto=r.foto?'🖼 ada foto':'tanpa foto';
+    var fotoList=r.foto?String(r.foto).split('\n').filter(function(x){return x.trim();}):[];
+    var foto=fotoList.length?('🖼 '+fotoList.length+' foto'):'tanpa foto';
     return '<div class="km-card '+cls+'" onclick="pgOpenDetail('+r.row+')">'
       +'<div class="km-card-top"><span class="km-resi">'+escH(r.jenis||'-')+'</span><span class="km-badge '+cls+'">'+escH(r.status)+'</span></div>'
       +'<div class="km-meta">📅 '+tglTxt+' · '+foto+'</div>'
@@ -1871,9 +1884,13 @@ function pgOpenDetail(row){
   html+='<div class="km-d-row"><span class="k">Status</span><span class="v"><span class="km-badge '+cls+'">'+escH(r.status)+'</span></span></div>';
   html+='<div class="km-d-row"><span class="k">Keterangan</span><span class="v">'+escH(r.keterangan||'-')+'</span></div>';
   if(r.waktu)html+='<div class="km-d-row"><span class="k">Dicatat</span><span class="v">'+escH(r.waktu)+'</span></div>';
-  if(r.foto){
-    html+='<div class="km-d-foto"><img src="'+escH(kmFotoImgUrl(r.foto))+'" alt="bukti"></div>';
-    html+='<a href="'+escH(r.foto)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">🖼 Buka foto ukuran penuh →</a>';
+  var fotoList=r.foto?String(r.foto).split('\n').filter(function(x){return x.trim();}):[];
+  if(fotoList.length){
+    html+='<div style="font-size:11px;color:var(--muted);margin-top:14px;text-transform:uppercase;letter-spacing:.05em">🖼 Foto bukti ('+fotoList.length+')</div>';
+    fotoList.forEach(function(u,i){
+      html+='<div class="km-d-foto"><img src="'+escH(kmFotoImgUrl(u))+'" alt="bukti '+(i+1)+'"></div>';
+      html+='<a href="'+escH(u)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">🖼 Buka foto '+(i+1)+' ukuran penuh →</a>';
+    });
   }
   html+='<div class="km-d-actions">';
   if(cls==='masalah')html+='<button class="ok" onclick="pgMark('+r.row+',\'Sudah ditindak\')">✓ Tandai sudah ditindak</button>';
