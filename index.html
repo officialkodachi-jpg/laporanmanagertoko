@@ -575,7 +575,7 @@ select.it{cursor:pointer}
 
       <!-- Uang Receh -->
       <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:12px;color:var(--muted)">🪙 Uang Receh di Toko</div>
+        <div style="font-size:12px;color:var(--muted)">🪙 Uang Receh di Rify</div>
         <div id="cash-total-receh" style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--orange)">—</div>
       </div>
     </div>
@@ -608,8 +608,9 @@ select.it{cursor:pointer}
             style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:15px;background:var(--surface);color:var(--text);outline:none">
         </div>
 
-        <!-- Badge nama manager -->
-        <div id="cash-btn-b" style="padding:9px 14px;border-radius:var(--r);border:1.5px solid rgba(22,163,74,.35);background:rgba(22,163,74,.07);color:var(--green);font-family:var(--sans);font-size:12px;font-weight:700;text-align:center;margin-bottom:12px">💚 <span id="cash-btn-b-label">Manager</span> → Kolom B</div>
+        <!-- Badge nama manager — klik untuk simpan -->
+        <button id="cash-btn-b" onclick="simpanCashData()" style="width:100%;padding:13px;border-radius:var(--r);border:1.5px solid rgba(22,163,74,.35);background:rgba(22,163,74,.1);color:var(--green);font-family:var(--sans);font-size:13px;font-weight:700;text-align:center;margin-bottom:12px;cursor:pointer">💚 Simpan — <span id="cash-btn-b-label">Manager</span> → Kolom B</button>
+        <div id="cash-simpan-status" style="text-align:center;font-size:12px;margin-bottom:4px;min-height:14px;font-family:var(--mono)"></div>
 
         <!-- Uang Receh — form terpisah dengan tanggal + dropdown -->
         <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
@@ -617,7 +618,7 @@ select.it{cursor:pointer}
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
             <div>
               <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">Tanggal Receh</div>
-              <input type="date" id="cash-inp-tgl-receh" style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:12px;background:var(--surface);color:var(--text);outline:none;color-scheme:light">
+              <input type="date" id="cash-inp-tgl-receh" readonly style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:12px;background:var(--surface);color:var(--muted);outline:none;color-scheme:light;cursor:default">
             </div>
             <div>
               <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">Jenis <span style="color:var(--red)">*</span></div>
@@ -638,9 +639,7 @@ select.it{cursor:pointer}
           <div id="cash-simpan-receh-status" style="text-align:center;font-size:12px;margin-top:8px;min-height:14px;font-family:var(--mono)"></div>
         </div>
 
-        <div id="cash-preview-nominal" style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-bottom:10px;min-height:14px;margin-top:4px"></div>
-        <button id="cash-simpan-btn" onclick="simpanCashData()" style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer">Simpan ke Spreadsheet →</button>
-        <div id="cash-simpan-status" style="text-align:center;font-size:12px;margin-top:8px;min-height:14px;font-family:var(--mono)"></div>
+        <div id="cash-preview-nominal" style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-bottom:4px;min-height:14px;margin-top:10px"></div>
       </div>
     </div>
 
@@ -1527,22 +1526,22 @@ function cashSelectPerson(p){ cashSelectedPerson = 'b'; }
 
 document.addEventListener('DOMContentLoaded', function(){
   cashSelectedPerson = 'b';
+  var today = new Date().toISOString().split('T')[0];
   var inp = document.getElementById('cash-inp-nominal');
   if(inp) inp.addEventListener('input', updateCashPreview);
   var tgl = document.getElementById('cash-inp-tgl');
-  if(tgl && !tgl.value) tgl.value = new Date().toISOString().split('T')[0];
+  if(tgl){ tgl.value = today; tgl.readOnly = true; tgl.style.cursor = 'default'; tgl.style.color = 'var(--muted)'; }
   var tglR = document.getElementById('cash-inp-tgl-receh');
-  if(tglR && !tglR.value) tglR.value = new Date().toISOString().split('T')[0];
+  if(tglR){ tglR.value = today; }
 });
 
 // ── Simpan transaksi utama (Ambil/Setor kolom B) ──────────
 async function simpanCashData(){
   if(!cashGasUrl){ showToast('⚠️ Setup URL GAS dulu','err'); openCashSetup(); return; }
-  var tgl = document.getElementById('cash-inp-tgl').value;
+  var tgl = new Date().toISOString().split('T')[0]; // selalu hari ini
   var nom = Number(document.getElementById('cash-inp-nominal').value) || 0;
   var ket = document.getElementById('cash-inp-ket').value;
 
-  if(!tgl){ showToast('Pilih tanggal','err'); return; }
   if(!ket){ showToast('Pilih keterangan: Ambil atau Setor','err'); return; }
   if(!nom || nom <= 0){ showToast('Isi Jumlah','err'); return; }
 
@@ -1577,11 +1576,10 @@ async function simpanCashData(){
 // ── Simpan Uang Receh ─────────────────────────────────────
 async function simpanRecehData(){
   if(!cashGasUrl){ showToast('⚠️ Setup URL GAS dulu','err'); openCashSetup(); return; }
-  var tgl   = document.getElementById('cash-inp-tgl-receh').value;
+  var tgl   = new Date().toISOString().split('T')[0]; // selalu hari ini
   var ket   = document.getElementById('cash-inp-ket-receh').value;
   var receh = Number(document.getElementById('cash-inp-receh').value) || 0;
 
-  if(!tgl){ showToast('Pilih tanggal receh','err'); return; }
   if(!ket){ showToast('Pilih jenis: Tukar Receh atau Masuk Toko','err'); return; }
   if(!receh || receh <= 0){ showToast('Isi jumlah receh','err'); return; }
 
