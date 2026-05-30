@@ -616,40 +616,48 @@ select.it{cursor:pointer}
 
     <!-- ══ FORM INPUT ══ -->
     <div style="margin-bottom:16px">
-      <div class="section-hdr"><span class="section-hdr-label">✏️ Catat Pengambilan</span><div class="section-hdr-line"></div></div>
+      <div class="section-hdr"><span class="section-hdr-label">✏️ Catat Transaksi</span><div class="section-hdr-line"></div></div>
       <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px">
 
+        <!-- Baris 1: Tanggal + Keterangan (wajib) -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <!-- Tanggal -->
           <div>
             <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">Tanggal</div>
             <input type="date" id="cash-inp-tgl" style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:12px;background:var(--surface);color:var(--text);outline:none;color-scheme:light">
           </div>
-          <!-- Nominal -->
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">Keterangan <span style="color:var(--red)">*</span></div>
+            <select id="cash-inp-ket" onchange="cashOnKetChange()" style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:13px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+              <option value="">— Pilih —</option>
+              <option value="Ambil">📤 Ambil</option>
+              <option value="Setor">📥 Setor</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Badge nama manager -->
+        <div id="cash-btn-b" style="padding:9px 14px;border-radius:var(--r);border:1.5px solid rgba(22,163,74,.35);background:rgba(22,163,74,.07);color:var(--green);font-family:var(--sans);font-size:12px;font-weight:700;text-align:center;margin-bottom:12px">💚 <span id="cash-btn-b-label">Manager</span> → Kolom B</div>
+
+        <!-- Baris 2: Jumlah + Uang Receh -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
           <div>
             <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">Jumlah (Rp)</div>
-            <input type="number" id="cash-inp-nominal" placeholder="500000" inputmode="numeric" style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:13px;background:var(--surface);color:var(--text);outline:none">
-          </div>
-        </div>
-
-        <!-- Manager — otomatis kolom B -->
-        <div style="margin-bottom:12px">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500">Yang mengambil</div>
-          <div id="cash-btn-b" style="padding:11px;border-radius:var(--r);border:2px solid var(--green);background:rgba(22,163,74,.1);color:var(--green);font-family:var(--sans);font-size:13px;font-weight:700;text-align:center">💚 <span id="cash-btn-b-label">Manager</span></div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">Uang Receh (opsional)</div>
-            <input type="number" id="cash-inp-receh" placeholder="0" inputmode="numeric" style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:13px;background:var(--surface);color:var(--text);outline:none">
+            <input type="number" id="cash-inp-nominal" placeholder="0" inputmode="numeric"
+              style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:13px;background:var(--surface);color:var(--text);outline:none">
           </div>
           <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">Keterangan</div>
-            <input type="text" id="cash-inp-ket" placeholder="setor / titipan..." style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:13px;background:var(--surface);color:var(--text);outline:none">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">🪙 Uang Receh (opsional)</div>
+            <input type="number" id="cash-inp-receh" placeholder="0" inputmode="numeric" onchange="cashOnRecehChange()" oninput="cashOnRecehChange()"
+              style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:13px;background:var(--surface);color:var(--text);outline:none">
           </div>
         </div>
 
-        <div id="cash-preview-nominal" style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-bottom:10px;min-height:14px"></div>
+        <!-- Info receh -->
+        <div id="cash-receh-info" style="display:none;font-size:10px;color:var(--orange);font-family:var(--mono);margin-bottom:10px;padding:6px 10px;background:rgba(217,119,6,.08);border-radius:8px;margin-top:6px">
+          ⚠️ Uang receh diisi → Kolom B & E keduanya <b>negatif</b>. Jumlah (Rp) tidak perlu diisi.
+        </div>
+
+        <div id="cash-preview-nominal" style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-bottom:10px;min-height:14px;margin-top:4px"></div>
         <button id="cash-simpan-btn" onclick="simpanCashData()" style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer">Simpan ke Spreadsheet →</button>
         <div id="cash-simpan-status" style="text-align:center;font-size:12px;margin-top:8px;min-height:14px;font-family:var(--mono)"></div>
       </div>
@@ -1554,20 +1562,39 @@ function renderCashRecent(){
   }).join('');
 }
 
-// ── Selalu manager = kolom B ──────────────────────────────
-function cashSelectPerson(p){
-  cashSelectedPerson = 'b'; // selalu kolom B (manager)
+// ── Helpers interaksi form ─────────────────────────────────
+function cashOnKetChange(){
+  updateCashPreview();
 }
+function cashOnRecehChange(){
+  var receh = Number(document.getElementById('cash-inp-receh').value);
+  var info  = document.getElementById('cash-receh-info');
+  if(info) info.style.display = receh > 0 ? 'block' : 'none';
+  updateCashPreview();
+}
+function updateCashPreview(){
+  var el    = document.getElementById('cash-preview-nominal');
+  if(!el) return;
+  var ket   = document.getElementById('cash-inp-ket').value;
+  var nom   = Number(document.getElementById('cash-inp-nominal').value);
+  var receh = Number(document.getElementById('cash-inp-receh').value);
+  if(receh > 0){
+    el.innerHTML = '🪙 Receh → Kolom B: <b style="color:var(--red)">−'+fRpPlain(receh)+'</b> &nbsp; Kolom E: <b style="color:var(--red)">−'+fRpPlain(receh)+'</b>';
+  } else if(nom > 0 && ket){
+    var sign = ket==='Setor' ? '−' : '+';
+    var col  = ket==='Setor' ? 'var(--red)' : 'var(--green)';
+    el.innerHTML = 'Kolom B: <b style="color:'+col+'">'+sign+fRpPlain(nom)+'</b>';
+  } else {
+    el.textContent = '';
+  }
+}
+function cashSelectPerson(p){ cashSelectedPerson = 'b'; }
 
 // Preview nominal
 document.addEventListener('DOMContentLoaded', function(){
-  cashSelectedPerson = 'b'; // auto-set manager
+  cashSelectedPerson = 'b';
   var inp = document.getElementById('cash-inp-nominal');
-  if(inp) inp.addEventListener('input', function(){
-    var el = document.getElementById('cash-preview-nominal');
-    var v = Number(this.value);
-    if(el) el.textContent = v > 0 ? '→ ' + fRpPlain(v) : '';
-  });
+  if(inp) inp.addEventListener('input', updateCashPreview);
   var tgl = document.getElementById('cash-inp-tgl');
   if(tgl && !tgl.value) tgl.value = new Date().toISOString().split('T')[0];
 });
@@ -1575,12 +1602,34 @@ document.addEventListener('DOMContentLoaded', function(){
 // ── Simpan ke GAS (GET + params) ──────────────────────────
 async function simpanCashData(){
   if(!cashGasUrl){ showToast('⚠️ Setup URL GAS dulu','err'); openCashSetup(); return; }
-  var tgl  = document.getElementById('cash-inp-tgl').value;
-  var nom  = Number(document.getElementById('cash-inp-nominal').value);
-  var receh= document.getElementById('cash-inp-receh').value;
-  var ket  = document.getElementById('cash-inp-ket').value.trim();
+  var tgl   = document.getElementById('cash-inp-tgl').value;
+  var nom   = Number(document.getElementById('cash-inp-nominal').value) || 0;
+  var receh = Number(document.getElementById('cash-inp-receh').value)  || 0;
+  var ket   = document.getElementById('cash-inp-ket').value;
+
   if(!tgl){ showToast('Pilih tanggal','err'); return; }
-  if(!nom||nom<=0){ showToast('Isi jumlah yang diambil','err'); return; }
+  if(!ket){ showToast('Pilih keterangan: Ambil atau Setor','err'); return; }
+
+  // Mode uang receh: receh diisi, nominal boleh kosong
+  // Mode normal: nominal harus diisi
+  var modeReceh = receh > 0 && nom === 0;
+  var modeNormal = nom > 0;
+  if(!modeReceh && !modeNormal){ showToast('Isi Jumlah atau Uang Receh','err'); return; }
+
+  // Hitung nilai yang masuk ke sheet
+  // Ambil → positif, Setor → negatif
+  var finalNom   = 0;
+  var finalReceh = '';
+
+  if(modeReceh){
+    // Hanya receh diisi: kolom B = −receh, kolom E = −receh
+    finalNom   = -receh;   // negatif di kolom B
+    finalReceh = -receh;   // negatif di kolom E
+  } else {
+    // Mode normal
+    finalNom   = ket === 'Setor' ? -nom : nom;
+    finalReceh = receh > 0 ? (ket === 'Setor' ? -receh : receh) : '';
+  }
 
   var btn = document.getElementById('cash-simpan-btn');
   var sta = document.getElementById('cash-simpan-status');
@@ -1591,9 +1640,9 @@ async function simpanCashData(){
     var params = new URLSearchParams({
       action : 'addRow',
       tgl    : tgl,
-      person : cashSelectedPerson,  // 'b' atau 'c'
-      nominal: nom,
-      receh  : receh || '',
+      person : 'b',
+      nominal: finalNom,
+      receh  : finalReceh !== '' ? finalReceh : '',
       ket    : ket,
       _      : Date.now()
     });
@@ -1606,6 +1655,8 @@ async function simpanCashData(){
       document.getElementById('cash-inp-receh').value='';
       document.getElementById('cash-inp-ket').value='';
       document.getElementById('cash-preview-nominal').textContent='';
+      var ri = document.getElementById('cash-receh-info');
+      if(ri) ri.style.display='none';
       setTimeout(loadCashData, 700);
     } else {
       sta.style.color='var(--red)'; sta.textContent='⚠️ '+(data.message||'Gagal');
