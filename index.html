@@ -164,6 +164,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .note-input{width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;resize:vertical;line-height:1.5;min-height:70px}
 .note-input:focus{border-color:var(--accent)}
 .send-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;margin-top:10px}
+.send-btn:disabled{opacity:.5;cursor:not-allowed}
 .laporan-week{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
 .week-title{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:12px;font-family:var(--mono)}
 .week-avg{font-family:var(--mono);font-size:20px;font-weight:500;margin-bottom:4px}
@@ -221,8 +222,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .stok-qty{flex-shrink:0;text-align:right;font-family:var(--mono);font-size:11px;line-height:1.5}
 .stok-qty .q-toko{color:var(--red);font-weight:600}.stok-qty .q-gud{color:var(--green);font-weight:600}
 .stok-sheet-link{display:block;text-align:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;margin-top:16px}
-
-/* GUDANG IN/OUT */
 .ig-header{background:var(--red);color:#fff;text-align:center;font-size:14px;font-weight:700;padding:10px 14px;border-radius:var(--r) var(--r) 0 0;letter-spacing:.05em}
 .ig-summary{display:flex;background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);margin-bottom:14px}
 .ig-sum-cell{flex:1;padding:8px 6px;font-size:11px;font-weight:600;text-align:center;border-right:1px solid var(--border)}
@@ -264,8 +263,6 @@ select.it{cursor:pointer}
 .produk-status.loading{background:rgba(37,99,235,.07);color:var(--blue);border:1px solid rgba(37,99,235,.15)}
 .produk-status.ok{background:rgba(22,163,74,.07);color:var(--green);border:1px solid rgba(22,163,74,.15)}
 .produk-status.err{background:rgba(220,38,38,.07);color:var(--red);border:1px solid rgba(220,38,38,.15)}
-
-/* AUTOCOMPLETE */
 .ac-wrap{position:relative;min-width:170px}
 .ac-input{width:100%;padding:5px 7px;border:1px solid var(--border2);border-radius:6px;font-size:12px;background:var(--card);color:var(--text);font-family:var(--sans);outline:none}
 .ac-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(37,99,235,.12)}
@@ -275,8 +272,6 @@ select.it{cursor:pointer}
 .ac-item:last-child{border-bottom:none}
 .ac-item:hover,.ac-item.focused{background:rgba(37,99,235,.08);color:var(--accent)}
 .ac-item mark{background:rgba(37,99,235,.15);color:var(--accent);border-radius:2px;font-weight:700;font-style:normal}
-
-/* MODAL */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;padding:20px}
 .modal-bg.open{display:flex}
 .modal{background:var(--card);border:1px solid var(--border2);box-shadow:0 20px 60px rgba(0,0,0,.15);border-radius:var(--r-lg);padding:24px;width:100%;max-width:420px}
@@ -322,7 +317,7 @@ select.it{cursor:pointer}
 </div>
 
 <div class="topbar"><div class="topbar-inner"><div class="brand">
-  <span class="brand-tag">Manager · v4.1</span>
+  <span class="brand-tag">Manager · v4.2</span>
   <span class="brand-name">Kodachi Shop Monjali</span>
   <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
 </div></div></div>
@@ -435,7 +430,7 @@ select.it{cursor:pointer}
       <div class="status-row"><button class="status-btn" id="sbtn-ok" onclick="setStatus('✓')">✓ Selesai</button><button class="status-btn" id="sbtn-no" onclick="setStatus('✗')">✗ Tidak dilakukan</button></div>
       <div class="field-label">Catatan / Hasil</div>
       <textarea class="note-input" id="event-note" placeholder="Opsional: isi catatan atau hasil kerja..."></textarea>
-      <button class="send-btn" onclick="saveEvent()">Catat →</button>
+      <button class="send-btn" id="event-send-btn" onclick="saveEvent()">Catat →</button>
     </div>
   </div>
 
@@ -519,14 +514,13 @@ let stokLoadedOnce=false,_stokAudioCtx=null,_stokRefreshTimer=null,_stokLastRedC
 let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locationLog=[],lastPos=null;
 let _timerInterval=null,_retryTimer=null,_retryCount=0,_gpsStarted=false;
 
-// Gudang IN/OUT state
 var igRows=[],igApiUrl=localStorage.getItem('ig_api_url')||'';
 var igToday=new Date().toISOString().split('T')[0];
 var IG_KET_OPTIONS=['Bawa Ke Toko','Hilang','Minus Stock','Ketemu','Retur','Penyesuaian'];
 var IG_TIPE_OPTIONS=['','Pendek','Panjang','Sport','Invisible','Ankle'];
 var igProdukList=[],_produkLoaded=false;
 
-// ════════ LOAD PRODUK (JSONP) ════════
+// ════════ LOAD PRODUK ════════
 function igLoadProduk(silent){
   var url=igApiUrl||scriptUrl;
   if(!url||!url.startsWith('http')){setProdukStatus('err','⚠ URL belum dikonfigurasi');return;}
@@ -556,18 +550,7 @@ function setProdukStatus(type,msg){
 // ════════ AUTOCOMPLETE ════════
 var _acActiveId=null,_acFocusIdx=-1,_acDropEl=null;
 function acInit(){_acDropEl=document.getElementById('ac-dropdown');document.addEventListener('mousedown',function(e){if(!_acDropEl.contains(e.target)&&!e.target.classList.contains('ac-input'))acHide();});var w=document.querySelector('.ig-tbl-wrap');if(w)w.addEventListener('scroll',acHide,{passive:true});}
-function acShow(inputEl,rowId){
-  _acActiveId=rowId;_acFocusIdx=-1;
-  var q=inputEl.value.trim().toLowerCase(),list=igProdukList,filtered=q?list.filter(function(p){return p.toLowerCase().includes(q)}):list;
-  if(!filtered.length){acHide();return;}
-  var r=inputEl.getBoundingClientRect();
-  _acDropEl.style.left=r.left+'px';_acDropEl.style.top=(r.bottom+4)+'px';_acDropEl.style.width=Math.max(r.width,220)+'px';
-  _acDropEl.innerHTML=filtered.slice(0,40).map(function(p,i){
-    var hl=q?p.replace(new RegExp('('+escRe(q)+')','gi'),'<mark>$1</mark>'):p;
-    return '<div class="ac-item" data-val="'+escH(p)+'" onmousedown="acSelect(event,\''+escH(p).replace(/'/g,"\\'")+'\')">'+hl+'</div>';
-  }).join('');
-  _acDropEl.classList.add('open');
-}
+function acShow(inputEl,rowId){_acActiveId=rowId;_acFocusIdx=-1;var q=inputEl.value.trim().toLowerCase(),list=igProdukList,filtered=q?list.filter(function(p){return p.toLowerCase().includes(q)}):list;if(!filtered.length){acHide();return;}var r=inputEl.getBoundingClientRect();_acDropEl.style.left=r.left+'px';_acDropEl.style.top=(r.bottom+4)+'px';_acDropEl.style.width=Math.max(r.width,220)+'px';_acDropEl.innerHTML=filtered.slice(0,40).map(function(p,i){var hl=q?p.replace(new RegExp('('+escRe(q)+')','gi'),'<mark>$1</mark>'):p;return'<div class="ac-item" data-val="'+escH(p)+'" onmousedown="acSelect(event,\''+escH(p).replace(/'/g,"\\'")+'\')">'+hl+'</div>';}).join('');_acDropEl.classList.add('open');}
 function acHide(){if(_acDropEl)_acDropEl.classList.remove('open');_acActiveId=null;_acFocusIdx=-1;}
 function acSelect(e,val){if(e&&e.preventDefault)e.preventDefault();if(_acActiveId!==null){var r=igRows.find(x=>x.id===_acActiveId);if(r)r.nama=val;var inp=document.querySelector('tr[data-id="'+_acActiveId+'"] .ac-input');if(inp)inp.value=val;}acHide();}
 function acKeydown(e,rowId){if(!_acDropEl.classList.contains('open')){if(e.key==='ArrowDown')acShow(e.target,rowId);return;}var items=_acDropEl.querySelectorAll('.ac-item');if(e.key==='ArrowDown'){e.preventDefault();_acFocusIdx=Math.min(_acFocusIdx+1,items.length-1);acHL(items);}else if(e.key==='ArrowUp'){e.preventDefault();_acFocusIdx=Math.max(_acFocusIdx-1,-1);acHL(items);}else if(e.key==='Enter'||e.key==='Tab'){if(_acFocusIdx>=0&&items[_acFocusIdx]){e.preventDefault();acSelect(null,items[_acFocusIdx].dataset.val);}else acHide();}else if(e.key==='Escape')acHide();}
@@ -728,12 +711,60 @@ async function saveHarian(){
   btn.disabled=false;btn.textContent='Simpan ke Google Sheets';
 }
 
-// ════════ EVENTS ════════
+// ════════ EVENTS — FIXED v4.2 ════════
 var EV_ICONS={E01:'📥',E02:'💵',E03:'📊',E04:'⚠️',E05:'🚚',E06:'⚡',E07:'🔄',E08:'🎓',E09:'📢'};
 function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHTML='';EVENTS.forEach(ev=>{var el=document.createElement('div');var priCls='pri-'+ev.prioritas.toLowerCase();el.className='event-card '+priCls;el.id='ev-'+ev.kode;el.innerHTML='<div class="ev-icon">'+(EV_ICONS[ev.kode]||'📌')+'</div><div class="ev-body"><div class="event-nama">'+ev.nama+'</div><div class="event-meta">'+ev.kode+' · '+ev.frekuensi+' · <b>'+ev.prioritas+'</b></div></div><div class="ev-arrow">›</div>';el.onclick=()=>selectEvent(ev);g.appendChild(el);});}
 function selectEvent(ev){selectedEvent=ev;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));document.getElementById('ev-'+ev.kode).classList.add('selected');document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';document.getElementById('event-note').value='';document.getElementById('event-detail').style.display='block';document.getElementById('event-detail').scrollIntoView({behavior:'smooth',block:'nearest'});}
 function setStatus(s){selectedStatus=s;document.getElementById('sbtn-ok').className='status-btn'+(s==='✓'?' sel-ok':'');document.getElementById('sbtn-no').className='status-btn'+(s==='✗'?' sel-no':'');}
-async function saveEvent(){if(!scriptUrl){openModal();return;}if(!selectedEvent){showToast('Pilih tugas dulu','err');return;}if(!selectedStatus){showToast('Pilih status dulu','err');return;}try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'event',tanggal:todayValue,kode:selectedEvent.kode,nama:selectedEvent.nama,kategori:selectedEvent.kategori,frekuensi:selectedEvent.frekuensi,prioritas:selectedEvent.prioritas,status:selectedStatus,catatan:document.getElementById('event-note').value})});var d=await r.json();if(d.status==='ok'){showToast('✓ Tercatat','ok');document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));}else showToast('Gagal','err');}catch(e){showToast('Gagal terhubung','err');}}
+
+// ── saveEvent DIPERBAIKI: pakai mode:'no-cors' agar tidak kena CORS block ──
+async function saveEvent(){
+  if(!scriptUrl){openModal();return;}
+  if(!selectedEvent){showToast('Pilih tugas dulu','err');return;}
+  if(!selectedStatus){showToast('Pilih status dulu','err');return;}
+
+  var btn=document.getElementById('event-send-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Menyimpan...';}
+
+  var payload={
+    type:'event',
+    tanggal:todayValue,
+    kode:selectedEvent.kode,
+    nama:selectedEvent.nama,
+    kategori:selectedEvent.kategori,
+    frekuensi:selectedEvent.frekuensi,
+    prioritas:selectedEvent.prioritas,
+    status:selectedStatus,
+    catatan:document.getElementById('event-note').value||''
+  };
+
+  var ok=false;
+  try{
+    // Pakai no-cors — response tidak bisa dibaca tapi request tetap sampai ke server
+    await fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+    ok=true;
+  }catch(err1){
+    // Fallback tanpa no-cors (untuk env tertentu)
+    try{
+      var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)});
+      var d=await r.json();
+      ok=(d.status==='ok');
+      if(!ok)showToast('Gagal: '+(d.message||'error'),'err');
+    }catch(err2){
+      showToast('Gagal terhubung ke server','err');
+    }
+  }
+
+  if(ok){
+    showToast('✓ Non-Harian tercatat!','ok');
+    document.getElementById('event-detail').style.display='none';
+    selectedEvent=null;
+    selectedStatus=null;
+    document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));
+  }
+
+  if(btn){btn.disabled=false;btn.textContent='Catat →';}
+}
 
 // ════════ GRID ════════
 async function loadGrid(){if(!scriptUrl){openModal();return;}var b=document.getElementById('grid-month').value;if(!b)return;var c=document.getElementById('grid-container');c.innerHTML='<div class="empty"><span class="spinner"></span> Memuat...</div>';try{var r=await fetch(scriptUrl+'?type=grid&bulan='+b);renderGrid(await r.json(),b);}catch(e){c.innerHTML='<div class="empty">Gagal memuat</div>';}}
