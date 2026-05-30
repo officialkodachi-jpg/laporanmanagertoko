@@ -1740,7 +1740,24 @@ function renderShift(d,bulan){
     list.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-text"><b>Jadwal lengkap</b><br>Tidak ada shift kosong</div></div>';
     return;
   }
-  sum.innerHTML='<div class="notif-item warn">⚠ Ada <b>'+kosong.length+' shift kosong</b> bulan ini — segera isi di spreadsheet jadwal.</div>';
+ sum.innerHTML='<div class=\"notif-item warn\">⚠ Ada <b>'+kosong.length+' shift kosong</b> bulan ini — segera isi di spreadsheet jadwal.</div>';
+
+  // rekap per nama
+  var rekap=d.rekap||{};
+  var namaList=Object.keys(rekap).sort(function(a,b){return rekap[b]-rekap[a];});
+  if(namaList.length){
+    var rh='<div style="margin:10px 0;background:var(--card);border-radius:10px;padding:12px;border:1px solid var(--border)">'
+      +'<div style="font-weight:600;margin-bottom:8px;font-size:13px">👤 Rekap shift diambil bulan ini</div>';
+    namaList.forEach(function(nama){
+      rh+='<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">'
+        +'<span>'+escH(nama)+'</span>'
+        +'<span style="font-weight:700;color:var(--blue)">'+rekap[nama]+' shift</span>'
+        +'</div>';
+    });
+    rh+='</div>';
+    sum.innerHTML+=rh;
+  }
+
   var html='';
   kosong.forEach(function(k){
     var p=k.tgl.split('-'),dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
