@@ -717,7 +717,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
         </div>
 
         <!-- Badge nama manager — klik untuk simpan -->
-        <button id="cash-btn-b" onclick="simpanCashData()" style="width:100%;padding:13px;border-radius:var(--r);border:1.5px solid rgba(22,163,74,.35);background:rgba(22,163,74,.1);color:var(--green);font-family:var(--sans);font-size:13px;font-weight:700;text-align:center;margin-bottom:12px;cursor:pointer">💚 Simpan — <span id="cash-btn-b-label">Manager</span> → Kolom B</button>
+        <button id="cash-btn-b" onclick="simpanCashData()" style="width:100%;padding:15px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;font-family:var(--sans);font-size:15px;font-weight:700;text-align:center;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.25)">💾 Simpan — <span id="cash-btn-b-label">Manager</span> → Kolom B</button>
         <div id="cash-simpan-status" style="text-align:center;font-size:12px;margin-bottom:4px;min-height:14px;font-family:var(--mono)"></div>
 
         <!-- Uang Receh — form terpisah dengan tanggal + dropdown -->
@@ -2081,30 +2081,32 @@ async function simpanCashData(){
 
   var finalNom = ket === 'Setor' ? -nom : nom;
 
-  var btn = document.getElementById('cash-simpan-btn');
+  var btn = document.getElementById('cash-btn-b');
   var sta = document.getElementById('cash-simpan-status');
-  btn.disabled=true; btn.textContent='⏳ Menyimpan...';
-  sta.style.color='var(--muted)'; sta.textContent='Mengirim ke spreadsheet...';
+  var lbl = document.getElementById('cash-btn-b-label');
+  var lblTxt = lbl ? lbl.textContent : 'Manager';
+  if(btn){btn.disabled=true; btn.textContent='⏳ Menyimpan...';}
+  if(sta){sta.style.color='var(--muted)'; sta.textContent='Mengirim ke spreadsheet...';}
   try {
     var params = new URLSearchParams({ action:'addRow', tgl:tgl, person:'b', nominal:finalNom, receh:'', ket:ket, _:Date.now() });
     var res  = await fetch(cashGasUrl + '?' + params.toString());
     var data = await res.json();
     if(data.status === 'ok'){
-      sta.style.color='var(--green)'; sta.textContent='✓ Tersimpan!';
+      if(sta){sta.style.color='var(--green)'; sta.textContent='✓ Tersimpan!';}
       showToast('✓ Data tersimpan','ok');
       document.getElementById('cash-inp-nominal').value='';
       document.getElementById('cash-inp-ket').value='';
-      document.getElementById('cash-preview-nominal').textContent='';
+      var pv=document.getElementById('cash-preview-nominal');if(pv)pv.textContent='';
       setTimeout(loadCashData, 700);
     } else {
-      sta.style.color='var(--red)'; sta.textContent='⚠️ '+(data.message||'Gagal');
+      if(sta){sta.style.color='var(--red)'; sta.textContent='⚠️ '+(data.message||'Gagal');}
       showToast('Gagal: '+(data.message||'error'),'err');
     }
   } catch(e){
-    sta.style.color='var(--red)'; sta.textContent='⚠️ Gagal konek GAS';
+    if(sta){sta.style.color='var(--red)'; sta.textContent='⚠️ Gagal konek GAS';}
     showToast('Gagal kirim data','err');
   }
-  btn.disabled=false; btn.textContent='Simpan ke Spreadsheet →';
+  if(btn){btn.disabled=false; btn.innerHTML='💾 Simpan — <span id="cash-btn-b-label">'+lblTxt+'</span> → Kolom B';}
 }
 
 // ── Simpan Uang Receh ─────────────────────────────────────
