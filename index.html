@@ -322,6 +322,24 @@ select.it{cursor:pointer}
 .pw-btn{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer}
 .pw-err{font-size:12px;color:var(--red);margin-top:8px;min-height:18px}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.role-badge{font-family:var(--mono);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.05em;white-space:nowrap;align-self:flex-start}
+.role-badge.manager{background:rgba(37,99,235,.12);color:var(--accent)}
+.role-badge.admin{background:rgba(217,119,6,.12);color:var(--orange)}
+.pw-role-row{display:flex;gap:8px;margin-bottom:14px}
+.pw-role-btn{flex:1;padding:11px;border-radius:var(--r);border:1.5px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
+.pw-role-btn.sel{border-color:var(--accent);background:rgba(37,99,235,.08);color:var(--accent)}
+.admin-note{font-size:10px;color:var(--orange);margin-top:6px;font-style:italic}
+.admin-refresh{margin-top:10px;width:100%;padding:9px;background:rgba(217,119,6,.1);color:var(--orange);border:1px solid rgba(217,119,6,.3);border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
+/* Admin: sembunyikan semua kontrol edit & input — hanya memantau */
+body.role-admin .save-btn,
+body.role-admin #event-detail,
+body.role-admin .ig-toolbar,
+body.role-admin #panel-event .alert.info,
+body.role-admin #panel-harian .alert.info,
+body.role-admin .loc-retry-inline,
+body.role-admin #mt-edit-box{display:none!important}
+body.role-admin .task-item{cursor:default;pointer-events:none}
+body.role-admin .event-card{cursor:default;pointer-events:none}
 </style>
 </head>
 <body>
@@ -341,8 +359,12 @@ select.it{cursor:pointer}
 <div class="pw-overlay" id="pw-overlay">
   <div class="pw-box">
     <div class="pw-logo">Kodachi Shop · Monjali</div>
-    <div class="pw-title">Laporan Manager</div>
-    <div class="pw-sub">Masukkan password untuk melanjutkan</div>
+    <div class="pw-title">Login</div>
+    <div class="pw-sub">Pilih akun & masukkan password</div>
+    <div class="pw-role-row">
+      <button class="pw-role-btn sel" id="role-btn-manager" onclick="pickRole('manager')">👔 Manager</button>
+      <button class="pw-role-btn" id="role-btn-admin" onclick="pickRole('admin')">👑 Admin</button>
+    </div>
     <input class="pw-input" id="pw-input" type="password" placeholder="••••••••••" maxlength="30" onkeydown="if(event.key==='Enter')checkPw()">
     <button class="pw-btn" onclick="checkPw()">Masuk →</button>
     <div class="pw-err" id="pw-err"></div>
@@ -350,10 +372,10 @@ select.it{cursor:pointer}
 </div>
 
 <div class="topbar"><div class="topbar-inner"><div class="brand">
-  <span class="brand-tag">Manager · v5.0</span>
+  <span class="brand-tag">Manager · v5.1</span>
   <span class="brand-name">Kodachi Shop Monjali</span>
   <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
-</div></div></div>
+</div><span class="role-badge manager" id="role-badge" style="display:none">MANAGER</span></div></div>
 
 <div class="loc-banner"><div class="loc-card" id="loc-card">
   <div class="loc-icon" id="loc-icon">📍</div>
@@ -362,6 +384,7 @@ select.it{cursor:pointer}
     <div class="loc-detail" id="loc-detail">Mendeteksi posisi kamu</div>
     <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span>Target: 4 jam</span></div></div>
     <button class="loc-retry-inline" id="loc-retry-btn" onclick="retryGps()">🔄 Coba ulang deteksi lokasi</button>
+    <button class="admin-refresh" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc()">🔄 Perbarui posisi Manager</button>
   </div>
   <div class="loc-timer" id="loc-timer">0:00</div>
 </div></div>
@@ -716,6 +739,7 @@ let stokLoadedOnce=false,_stokAudioCtx=null,_stokRefreshTimer=null;
 let alarmMuted=false; // hanya berlaku sampai refresh
 let _alarmInterval=null;
 let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locationLog=[],lastPos=null;
+var _adminLocTimer=null,_mgrPushTimer=null;
 let _timerInterval=null,_retryTimer=null,_retryCount=0,_gpsStarted=false;
 
 // Gudang IN/OUT state
@@ -882,13 +906,58 @@ function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.P
 // ════ GPS ════
 function startGps(){if(!('geolocation' in navigator)){updateLocBanner('unsupported');return;}if(_gpsStarted)return;_gpsStarted=true;updateLocBanner('waiting');geoWatchId=navigator.geolocation.watchPosition(onLocOk,onLocErr,{enableHighAccuracy:true,maximumAge:0,timeout:30000});navigator.geolocation.getCurrentPosition(onLocOk,onLocErr,{enableHighAccuracy:true,maximumAge:0,timeout:30000});setInterval(()=>navigator.geolocation.getCurrentPosition(onLocOk,()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:20000}),15000);_timerInterval=setInterval(updateTimerDisplay,1000);}
 function retryGps(){_gpsStarted=false;_retryCount=0;if(geoWatchId!==null){navigator.geolocation.clearWatch(geoWatchId);geoWatchId=null;}document.getElementById('loc-retry-btn').classList.remove('show');startGps();showToast('Mencoba ulang GPS...','');}
-function onLocOk(pos){clearTimeout(_retryTimer);_retryCount=0;const{latitude:lat,longitude:lng,accuracy}=pos.coords;lastPos={lat,lng,accuracy};const dist=Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng)),inS=dist<=TOKO.radius;document.getElementById('loc-distance').textContent=dist+'m';document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';document.getElementById('loc-retry-btn').classList.remove('show');if(inS&&!isAtStore){isAtStore=true;sessionStart=Date.now();locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});saveLocData();updateLocBanner('in');showToast('✓ Kamu tiba di Kodachi Shop!','ok');}else if(!inS&&isAtStore){isAtStore=false;if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist});saveLocData();updateLocBanner('out');}else{if(isAtStore)saveLocData();updateLocBanner(isAtStore?'in':'out');}updateD01Card();}
+function onLocOk(pos){clearTimeout(_retryTimer);_retryCount=0;const{latitude:lat,longitude:lng,accuracy}=pos.coords;lastPos={lat,lng,accuracy};const dist=Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng)),inS=dist<=TOKO.radius;document.getElementById('loc-distance').textContent=dist+'m';document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';document.getElementById('loc-retry-btn').classList.remove('show');if(inS&&!isAtStore){isAtStore=true;sessionStart=Date.now();locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});saveLocData();updateLocBanner('in');showToast('✓ Kamu tiba di Kodachi Shop!','ok');pushManagerLoc();}else if(!inS&&isAtStore){isAtStore=false;if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist});saveLocData();updateLocBanner('out');pushManagerLoc();}else{if(isAtStore)saveLocData();updateLocBanner(isAtStore?'in':'out');}updateD01Card();}
 function onLocErr(err){if(err.code===1){updateLocBanner('denied');document.getElementById('loc-retry-btn').classList.add('show');}else{_retryCount++;updateLocBanner('waiting');if(_retryCount<=10)_retryTimer=setTimeout(()=>navigator.geolocation.getCurrentPosition(onLocOk,onLocErr,{enableHighAccuracy:true,maximumAge:0,timeout:25000}),Math.min(5000*_retryCount,30000));else document.getElementById('loc-retry-btn').classList.add('show');}}
 // Saat app dibuka kembali / kembali ke foreground: minta lokasi langsung supaya durasi terkoreksi
 function resumeGps(){if(document.visibilityState==='visible'){if('geolocation' in navigator){navigator.geolocation.getCurrentPosition(onLocOk,()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:25000});}updateTimerDisplay();}}
 document.addEventListener('visibilitychange',resumeGps);
 window.addEventListener('focus',resumeGps);
 window.addEventListener('pageshow',resumeGps);
+
+// ── ADMIN: hentikan tracking GPS milik sendiri ──
+function stopGpsTracking(){_gpsStarted=true;if(geoWatchId!==null){try{navigator.geolocation.clearWatch(geoWatchId);}catch(e){}geoWatchId=null;}if(_timerInterval){clearInterval(_timerInterval);_timerInterval=null;}}
+
+// ── MANAGER: kirim posisi terakhir ke server (agar admin bisa lihat) ──
+function pushManagerLoc(){
+  if(userRole!=='manager')return;
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  if(!lastPos)return;
+  var t=getCurrentTotalMinutes();
+  var payload={type:'loc',tanggal:todayValue,lat:lastPos.lat,lng:lastPos.lng,accuracy:Math.round(lastPos.accuracy||0),
+    dist:Math.round(haversine(lastPos.lat,lastPos.lng,TOKO.lat,TOKO.lng)),inStore:isAtStore?1:0,
+    menit:Math.round(t),waktu:Date.now()};
+  try{fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});}catch(e){}
+}
+
+// ── ADMIN: ambil posisi manager dari server ──
+function loadManagerLoc(){
+  if(userRole!=='admin')return;
+  var url=scriptUrl;if(!url||!url.startsWith('http')){renderManagerLoc(null);return;}
+  fetch(url+'?type=loc&tanggal='+todayValue+'&_='+Date.now())
+    .then(r=>r.json()).then(d=>renderManagerLoc(d)).catch(()=>renderManagerLoc(null));
+}
+function renderManagerLoc(d){
+  var i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),
+      det=document.getElementById('loc-detail'),tm=document.getElementById('loc-timer');
+  if(!d||(!d.lat&&!d.menit&&d.inStore===undefined)){
+    i.textContent='👑';i.className='loc-icon';st.textContent='Memantau posisi Manager';st.className='loc-status waiting';
+    det.innerHTML='Belum ada data posisi Manager hari ini<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
+    tm.textContent='—:—';return;
+  }
+  var inStore=(d.inStore==1||d.inStore===true);
+  var menit=d.menit||0,h=Math.floor(menit/60),m=Math.floor(menit%60);
+  var p=Math.min(100,menit/TARGET_MENIT*100);
+  i.textContent=inStore?'🟢':'📍';i.className='loc-icon '+(inStore?'active':'inactive');
+  st.textContent=inStore?'✓ Manager di dalam toko':'✗ Manager di luar toko';
+  st.className='loc-status '+(inStore?'in':'out');
+  var jamUpd=d.waktu?new Date(d.waktu).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'?';
+  det.innerHTML='Jarak '+(d.dist!=null?d.dist:'?')+'m dari toko · update '+jamUpd
+    +'<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
+  tm.textContent=h+':'+String(m).padStart(2,'0');
+  tm.className='loc-timer'+(p>=100?' done':p>=50?' warn':'');
+  var f=document.getElementById('time-bar-fill');if(f){f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');}
+  document.getElementById('time-bar-left').textContent=h+' jam '+m+' menit (Manager)';
+}
 function updateLocBanner(s){const i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),d=document.getElementById('loc-detail');if(s==='in'){i.textContent='🟢';i.className='loc-icon active';st.textContent='✓ Di dalam toko';st.className='loc-status in';d.textContent='Kodachi Shop Monjali · GPS aktif';}else if(s==='out'){i.textContent='📍';i.className='loc-icon inactive';st.textContent='✗ Di luar toko';st.className='loc-status out';d.textContent='Jarak: '+(document.getElementById('loc-distance').textContent||'?')+'m dari toko';}else if(s==='waiting'){i.textContent='🔄';i.className='loc-icon';st.textContent='Mencari sinyal GPS...';st.className='loc-status waiting';d.textContent='Mohon tunggu...';}else if(s==='denied'){i.textContent='🔒';i.className='loc-icon inactive';st.textContent='Izin lokasi ditolak';st.className='loc-status out';d.textContent='Buka pengaturan browser → izinkan lokasi';}else{i.textContent='❌';i.className='loc-icon inactive';st.textContent='GPS tidak didukung';st.className='loc-status out';d.textContent='Browser tidak mendukung geolocation';}}
 function getCurrentTotalMinutes(){let t=totalMinutesToday;if(isAtStore&&sessionStart)t+=(Date.now()-sessionStart)/60000;return t;}
 function fmtDur(m){const h=Math.floor(m/60),n=Math.floor(m%60);return h>0?h+'j '+n+'m':n+'m';}
@@ -1037,7 +1106,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   // Load stok & langsung trigger alarm kalau ada merah
   loadStok(true);
   _stokRefreshTimer=setInterval(()=>loadStok(true),STOK_AUTO_REFRESH_MS);
-  loadLocData();updateTimerDisplay();startGps();igLoadProduk(true);
+  igLoadProduk(true);
+  // GPS/role tracking diatur oleh applyRole() setelah login
 });
 function setCurrentMonth(id){var d=new Date();document.getElementById(id).value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
 
@@ -1308,15 +1378,21 @@ var _toastTimer;function showToast(msg,type){var t=document.getElementById('toas
   else onReady();
 })();
 
-// ════ PASSWORD ════
-const PW='kodachi123';
+// ════ PASSWORD & ROLE ════
+const PW_MANAGER='manager123';
+const PW_ADMIN='Akwal12345z';
+var _pickedRole='manager';            // pilihan di layar login
+var userRole=sessionStorage.getItem('mtg_role')||'';  // role aktif
+function pickRole(r){_pickedRole=r;document.getElementById('role-btn-manager').classList.toggle('sel',r==='manager');document.getElementById('role-btn-admin').classList.toggle('sel',r==='admin');document.getElementById('pw-err').textContent='';}
 function checkPw(){
   var v=document.getElementById('pw-input').value;
-  if(v===PW){
+  var ok=(_pickedRole==='manager'&&v===PW_MANAGER)||(_pickedRole==='admin'&&v===PW_ADMIN);
+  if(ok){
+    userRole=_pickedRole;
     sessionStorage.setItem('mtg_auth','1');
+    sessionStorage.setItem('mtg_role',userRole);
     document.getElementById('pw-overlay').style.display='none';
-    // Setelah login, langsung cek stok dan bunyikan alarm jika perlu
-    // (alarmMuted sudah reset karena ini sesi baru / login ulang)
+    applyRole();
     alarmMuted=false;
     setTimeout(()=>{loadStok(true);},500);
   }else{
@@ -1325,9 +1401,29 @@ function checkPw(){
     document.getElementById('pw-err').textContent='Password salah';i.value='';
   }
 }
+// Terapkan tampilan sesuai role
+function applyRole(){
+  var badge=document.getElementById('role-badge');
+  if(userRole==='admin'){
+    document.body.classList.add('role-admin');document.body.classList.remove('role-manager');
+    if(badge){badge.style.display='';badge.className='role-badge admin';badge.textContent='👑 ADMIN — Pantau';}
+    // Admin: hentikan tracking sendiri, tampilkan tombol refresh posisi manager
+    stopGpsTracking();
+    var ar=document.getElementById('admin-loc-refresh');if(ar)ar.style.display='block';
+    loadManagerLoc();
+    _adminLocTimer=setInterval(loadManagerLoc,60000);
+  }else{
+    document.body.classList.add('role-manager');document.body.classList.remove('role-admin');
+    if(badge){badge.style.display='';badge.className='role-badge manager';badge.textContent='👔 MANAGER';}
+    // Manager: jalankan tracking GPS seperti biasa
+    loadLocData();updateTimerDisplay();startGps();
+    _mgrPushTimer=setInterval(pushManagerLoc,60000); // kirim posisi tiap 1 menit
+  }
+}
 if(sessionStorage.getItem('mtg_auth')==='1'){
   document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('pw-overlay').style.display='none';
+    applyRole();
   });
 }
 
