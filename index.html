@@ -742,7 +742,7 @@ const EVENTS=[
 const BULAN_NAMES=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const DAY_SHORT=['Min','Sen','Sel','Rab','Kam','Jum','Sab'],DAY_FULL=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const TOKO={lat:-7.7448,lng:110.3716,radius:200},TARGET_MENIT=240;
-const DEFAULT_URL='https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBZjQgFE_/exec';
+const DEFAULT_URL='https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBEBZjQgFE_/exec';
 const SHEET_URL='https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=0#gid=0';
 const GUDANG_SHEET_URL='https://docs.google.com/spreadsheets/d/13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk/edit';
 const STOK_AUTO_REFRESH_MS=5*60*1000;
@@ -752,6 +752,8 @@ const STOK_EMPTY_NS='stok_empty_since:';
 // ════ STATE ════
 let checked={},notes={};
 let scriptUrl=localStorage.getItem('mtg_url')||DEFAULT_URL;
+// Koreksi otomatis kalau localStorage menyimpan URL lama yang rusak
+if(scriptUrl.indexOf('xFQgBZjQgFE_')>=0 || !scriptUrl.startsWith('http')){scriptUrl=DEFAULT_URL;localStorage.setItem('mtg_url',DEFAULT_URL);}
 let selectedEvent=null,selectedStatus=null;
 let stokData={red:[],yellow:[],blue:[]},stokFilter='all';
 let stokLoadedOnce=false,_stokAudioCtx=null,_stokRefreshTimer=null;
