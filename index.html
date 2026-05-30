@@ -502,7 +502,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
   <div class="panel" id="panel-gudang">
     <div class="subtab-row">
       <button class="subtab active" id="gtab-monitor" onclick="switchGudangView('monitor',this)">📦 Monitoring Stok<span class="tab-badge" id="badge-monitor" style="background:var(--red);position:static;margin-left:4px">0</span></button>
-      <button class="subtab" id="gtab-inout" onclick="switchGudangView('inout',this)">📥 Gudang IN/OUT</button>
+      <button class="subtab" id="gtab-inout" onclick="switchGudangView('inout',this)">📥 Gudang IN/OUT<span class="tab-badge" id="badge-inout" style="background:var(--red);position:static;margin-left:4px;display:none"></span></button>
       <button class="subtab" id="gtab-kiriman" onclick="switchGudangView('kiriman',this)">🚚 Kiriman Stok<span class="tab-badge" id="badge-kiriman" style="background:var(--orange);position:static;margin-left:4px">0</span></button>
     </div>
 
@@ -1158,6 +1158,7 @@ function igLoadStokGudang(){
   window.__igStokGudangCb=function(data){
     var warn=document.getElementById('stok-minus-warn');
     var list=document.getElementById('stok-minus-list');
+    var badge=document.getElementById('badge-inout');
     if(!warn||!list) return;
     if(data&&data.status==='ok'&&Array.isArray(data.data)){
       var minus=data.data.filter(function(d){return d.stok<0;});
@@ -1166,8 +1167,10 @@ function igLoadStokGudang(){
           return '• <b>'+d.nama+'</b>: <span style="font-family:var(--mono)">'+d.stok+' pasang</span>';
         }).join('<br>');
         warn.style.display='block';
+        if(badge){badge.textContent=minus.length;badge.style.display='inline-flex';}
       } else {
         warn.style.display='none';
+        if(badge){badge.style.display='none';}
       }
     }
   };
@@ -1500,7 +1503,7 @@ function switchTab(name,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
-  if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();}
+  if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();}
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
   if(name==='cash'){if(cashData.length===0)loadCashData();}
 }
