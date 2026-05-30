@@ -629,6 +629,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
       <button class="subtab active" onclick="switchLaporanView('lap',this)">📈 Mingguan</button>
       <button class="subtab" onclick="switchLaporanView('grid',this)">📊 Grid Bulanan</button>
       <button class="subtab" onclick="switchLaporanView('riw',this)">🗂 Riwayat</button>
+      <button class="subtab" onclick="switchLaporanView('jam',this)">⏱ Jam Kerja</button>
       <button class="subtab admin-only" id="subtab-log" onclick="switchLaporanView('log',this)">📜 Log Aktivitas</button>
     </div>
     <div class="subview active" id="subview-lap">
@@ -645,6 +646,12 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
       <div class="subview-cap">Daftar tugas yang sudah diisi, urut per tanggal.</div>
       <div class="grid-controls"><input type="month" class="month-select" id="riwayat-month"><button class="load-btn" onclick="loadRiwayat()">Tampilkan</button></div>
       <div id="riwayat-container"><div class="empty"><div class="empty-icon">🗂</div><div class="empty-text">Pilih bulan untuk melihat riwayat</div></div></div>
+    </div>
+    <div class="subview" id="subview-jam">
+      <div class="subview-cap">Jam kerja manager per hari (dari GPS). Target 4 jam/hari. Lihat hari mana yang kurang/lebih.</div>
+      <div class="grid-controls"><input type="month" class="month-select" id="jam-month" style="flex:1"><button class="load-btn" onclick="loadJamKerja()">Tampilkan</button></div>
+      <div id="jam-summary" style="margin-bottom:12px"></div>
+      <div id="jam-container"><div class="empty"><div class="empty-icon">⏱</div><div class="empty-text">Pilih bulan dan klik Tampilkan</div></div></div>
     </div>
     <div class="subview" id="subview-log">
       <div class="subview-cap">Catatan semua aktivitas akun manager: login, buka tab, isi tugas, simpan data, dll.</div>
@@ -1491,7 +1498,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   var td=formatTodayDisplay();
   document.getElementById('tgl-harian-display').textContent=td;
   document.getElementById('tgl-event-display').textContent=td;
-  setCurrentMonth('grid-month');setCurrentMonth('laporan-month');setCurrentMonth('riwayat-month');setCurrentMonth('shift-month');
+  setCurrentMonth('grid-month');setCurrentMonth('laporan-month');setCurrentMonth('riwayat-month');setCurrentMonth('shift-month');setCurrentMonth('jam-month');
   renderHarian();renderEventGrid();checkTodayFilled();checkLaporanBadge();checkEventBadge();
   igAddRow();igAddRow();igAddRow();
   acInit();initStokUI();
@@ -1536,6 +1543,7 @@ function switchLaporanView(v,btn){
   document.getElementById('subview-'+v).classList.add('active');
   btn.classList.add('active');
   if(v==='log')loadLog();
+  if(v==='jam')loadJamKerja();
 }
 // Muat log aktivitas (admin)
 function loadLog(){
@@ -1567,6 +1575,55 @@ function renderLog(rows){
   c.innerHTML=html;
 }
 function logFmtTgl(t){if(!t||t.length<10)return t;var p=t.split('-');return parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1]+' '+p[0];}
+
+// ════ REKAP JAM KERJA ════
+var DAY_FULL_JK=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+function loadJamKerja(){
+  if(!scriptUrl)return;
+  var bulan=document.getElementById('jam-month').value||todayValue.substring(0,7);
+  var c=document.getElementById('jam-container'),s=document.getElementById('jam-summary');
+  c.innerHTML='<div class="empty"><span class="spinner"></span> Memuat jam kerja...</div>';s.innerHTML='';
+  fetch(scriptUrl+'?type=jamkerja&bulan='+bulan+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){renderJamKerja(d);})
+    .catch(function(){c.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Gagal memuat</div></div>';});
+}
+function jkFmtDur(menit){var h=Math.floor(menit/60),m=menit%60;return h+'j '+m+'m';}
+function renderJamKerja(d){
+  var c=document.getElementById('jam-container'),s=document.getElementById('jam-summary');
+  var hari=(d&&d.hari)?d.hari:[];
+  var target=(d&&d.targetHari)?d.targetHari:240;
+  if(!hari.length){s.innerHTML='';c.innerHTML='<div class="empty"><div class="empty-icon">⏱</div><div class="empty-text">Belum ada data jam kerja bulan ini</div></div>';return;}
+  // ringkasan
+  var totalMenit=0,hariCukup=0;
+  hari.forEach(function(h){totalMenit+=h.menit;if(h.menit>=target)hariCukup++;});
+  var totalJam=Math.floor(totalMenit/60),totalSisa=totalMenit%60;
+  var targetMinggu=target*6; // 24 jam
+  s.innerHTML='<div class="km-stats-row" style="grid-template-columns:1fr 1fr 1fr">'
+    +'<div class="km-stat"><div class="km-stat-val" style="font-size:18px">'+hari.length+'</div><div class="km-stat-label">Hari kerja</div></div>'
+    +'<div class="km-stat"><div class="km-stat-val" style="font-size:18px;color:var(--green)">'+hariCukup+'</div><div class="km-stat-label">Hari ≥4 jam</div></div>'
+    +'<div class="km-stat"><div class="km-stat-val" style="font-size:18px;color:var(--red)">'+(hari.length-hariCukup)+'</div><div class="km-stat-label">Hari kurang</div></div>'
+    +'</div>'
+    +'<div class="notif-item" style="background:rgba(37,99,235,.07);border-color:rgba(37,99,235,.2);color:var(--accent)">Total jam kerja bulan ini: <b>'+totalJam+' jam '+totalSisa+' menit</b> · Target mingguan 4 jam × 6 hari = <b>24 jam</b></div>';
+  // daftar per hari
+  var html='';
+  hari.forEach(function(h){
+    var p=h.tgl.split('-'),dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+    var namaHari=DAY_FULL_JK[dt.getDay()],tglTxt=parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1];
+    var cukup=h.menit>=target;
+    var selisih=h.selisih; // menit dibanding 240
+    var selTxt,selColor;
+    if(selisih>=0){selTxt='lebih '+jkFmtDur(selisih);selColor='var(--green)';}
+    else{selTxt='kurang '+jkFmtDur(-selisih);selColor='var(--red)';}
+    var warna=cukup?'var(--green)':'var(--red)';
+    html+='<div class="stok-item" style="border-left-color:'+warna+'">'
+      +'<div class="stok-size-pill" style="background:'+(cukup?'rgba(22,163,74,.12)':'rgba(220,38,38,.12)')+';color:'+warna+';min-width:62px;font-size:12px">'+jkFmtDur(h.menit)+'</div>'
+      +'<div class="stok-item-body"><div class="stok-item-name">'+namaHari+', '+tglTxt+'</div>'
+      +'<div class="stok-item-sub" style="color:'+selColor+'">'+(cukup?'✓ ':'')+selTxt+' dari target 4 jam</div></div>'
+      +'</div>';
+  });
+  c.innerHTML=html;
+}
 
 // ════ HARIAN ════
 function renderHarian(){
