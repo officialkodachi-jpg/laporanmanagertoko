@@ -472,6 +472,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
       <button class="tab" onclick="switchTab('gudang',this)">📦 Stok & Gudang<span class="tab-badge" id="badge-stok">0</span></button>
       <button class="tab" onclick="switchTab('cash',this)">💵 Uang Cash<span class="tab-badge" id="badge-cash">!</span></button>
       <button class="tab" onclick="switchTab('shift',this)">📅 Shift<span class="tab-badge" id="badge-shift" style="background:var(--orange)">!</span></button>
+      <button class="tab" onclick="switchTab('pegawai',this)">👥 Kepegawaian<span class="tab-badge" id="badge-pegawai" style="background:var(--red)">0</span></button>
       <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
       <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
       <button class="tab" onclick="switchTab('link',this)">🔗 Link</button>
@@ -814,6 +815,13 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
     <a class="stok-sheet-link" href="https://docs.google.com/spreadsheets/d/1qESVbmwFv27qG9ViYK_OwI3ZN4tsDynNvF-LSS2jL-I/edit?gid=630986066#gid=630986066" target="_blank">📊 Buka Spreadsheet Jadwal Shift →</a>
   </div>
 
+  <!-- KEPEGAWAIAN -->
+  <div class="panel" id="panel-pegawai">
+    <div class="alert info" style="margin-bottom:14px">👥 <b>Kepegawaian</b> — catatan pelanggaran/kesalahan tiap partimer (nama diambil dari jadwal shift bulan ini). Pilih nama di bawah.</div>
+    <div class="subtab-row" id="pegawai-tabrow"><div class="empty" style="padding:10px"><span class="spinner"></span> Memuat nama partimer...</div></div>
+    <div id="pegawai-content"></div>
+  </div>
+
   <!-- LINK -->
   <div class="panel" id="panel-link">
     <div class="alert info" style="margin-bottom:14px">🔗 <b>Kumpulan Link</b> — semua spreadsheet & folder penting Kodachi Shop dalam satu tempat.</div>
@@ -848,6 +856,12 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
   <div class="km-detail">
     <div class="km-detail-hd"><b id="km-d-title">Detail Kiriman</b><button class="km-detail-x" onclick="kmCloseDetail()">×</button></div>
     <div class="km-detail-bd" id="km-d-body"></div>
+  </div>
+</div>
+<div class="km-detail-bg" id="pg-detail-bg" onclick="if(event.target===this)pgCloseDetail()">
+  <div class="km-detail">
+    <div class="km-detail-hd"><b id="pg-d-title">Detail Catatan</b><button class="km-detail-x" onclick="pgCloseDetail()">×</button></div>
+    <div class="km-detail-bd" id="pg-d-body"></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -1523,6 +1537,7 @@ function switchTab(name,btn){
   if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();}
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
   if(name==='cash'){if(cashData.length===0)loadCashData();}
+  if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
   var tabNama={harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link'};
   logActivity('Buka tab',tabNama[name]||name);
 }
@@ -1738,6 +1753,157 @@ function renderShift(d,bulan){
   list.innerHTML=html;
 }
 function updateShiftBadge(n){_setBadge('badge-shift',n,true);}
+
+// ════ KEPEGAWAIAN ════
+var pgNames=[],pgActive='',pgData=[],pgFotoBase64='',_pgLoadedOnce=false;
+var PG_JENIS=['Salah kirim','Uang hilang/selisih','Telat','Lainnya'];
+function loadPartimer(){
+  if(!scriptUrl)return;
+  var row=document.getElementById('pegawai-tabrow');
+  row.innerHTML='<div class="empty" style="padding:10px"><span class="spinner"></span> Memuat nama...</div>';
+  fetch(scriptUrl+'?type=partimer&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){pgNames=(d&&d.nama)?d.nama:[];_pgLoadedOnce=true;pgRenderTabs();})
+    .catch(function(){row.innerHTML='<div class="empty"><div class="empty-text">Gagal memuat nama partimer</div></div>';});
+}
+function pgRenderTabs(){
+  var row=document.getElementById('pegawai-tabrow');
+  if(!pgNames.length){row.innerHTML='<div class="empty" style="padding:10px"><div class="empty-text">Tidak ada partimer di jadwal bulan ini</div></div>';document.getElementById('pegawai-content').innerHTML='';return;}
+  row.innerHTML=pgNames.map(function(n,i){
+    return '<button class="subtab'+(i===0?' active':'')+'" id="pgtab-'+i+'" onclick="pgSelect(\''+n.replace(/'/g,"\\'")+'\',this)">'+escH(n)+'<span class="tab-badge" id="pgbadge-'+i+'" style="background:var(--red);position:static;margin-left:4px">0</span></button>';
+  }).join('');
+  pgSelect(pgNames[0],document.getElementById('pgtab-0'));
+}
+function pgSelect(nama,btn){
+  pgActive=nama;
+  document.querySelectorAll('#pegawai-tabrow .subtab').forEach(function(t){t.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  pgRenderContent();
+  pgLoadCatatan();
+}
+function pgRenderContent(){
+  var c=document.getElementById('pegawai-content');
+  var opts=PG_JENIS.map(function(j){return '<option>'+j+'</option>';}).join('');
+  c.innerHTML=''
+    +'<div id="pg-add-box" class="km-add-box">'
+    +'<div class="km-add-title">＋ Catat pelanggaran — '+escH(pgActive)+'</div>'
+    +'<div class="km-field"><label class="field-label">Tanggal kejadian</label><input type="date" class="it" id="pg-tgl"></div>'
+    +'<div class="km-field"><label class="field-label">Jenis</label><select class="it" id="pg-jenis">'+opts+'</select></div>'
+    +'<div class="km-field"><label class="field-label">Keterangan</label><textarea class="note-input" id="pg-ket" placeholder="jelaskan kejadiannya"></textarea></div>'
+    +'<div class="km-field"><label class="field-label">Foto bukti (opsional)</label><input type="file" accept="image/*" id="pg-foto" style="font-size:12px" onchange="pgFotoChange()"><div class="km-foto-prev" id="pg-foto-prev"></div></div>'
+    +'<button class="km-save-btn" id="pg-save-btn" onclick="pgSave()">📤 Simpan Catatan</button>'
+    +'</div>'
+    +'<div class="stok-controls" style="margin-bottom:12px"><button class="stok-refresh-btn" onclick="pgLoadCatatan()">🔄 Perbarui</button></div>'
+    +'<div id="pg-list"><div class="empty"><span class="spinner"></span> Memuat...</div></div>';
+  var kt=document.getElementById('pg-tgl');if(kt)kt.value=todayValue;
+}
+function pgFotoChange(){
+  var f=document.getElementById('pg-foto').files[0];
+  pgFotoBase64='';document.getElementById('pg-foto-prev').innerHTML='';
+  if(!f)return;
+  _kmCompress(f,function(b64){pgFotoBase64=b64;var kb=Math.round(b64.length/1024);
+    document.getElementById('pg-foto-prev').innerHTML='<img src="'+b64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Foto siap (~'+kb+' KB)</div>';});
+}
+function pgSave(){
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  var tgl=document.getElementById('pg-tgl').value||todayValue;
+  var jenis=document.getElementById('pg-jenis').value;
+  var ket=document.getElementById('pg-ket').value.trim();
+  if(!ket){showToast('Keterangan belum diisi','err');return;}
+  var btn=document.getElementById('pg-save-btn');btn.disabled=true;
+  var adaFoto=!!pgFotoBase64;
+  btn.innerHTML='<span class="spinner"></span>'+(adaFoto?'Mengirim + foto...':'Menyimpan...');
+  var payload={type:'pegawai_add',nama:pgActive,tgl:tgl,jenis:jenis,keterangan:ket,status:'Belum ditindak',foto:pgFotoBase64||''};
+  fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d&&d.status==='ok'){
+        if(adaFoto&&!d.foto)showToast('Tersimpan, foto gagal: '+((d.fotoErr||'').slice(0,40)),'err');
+        else showToast('✓ Catatan tersimpan','ok');
+      }else showToast('Gagal menyimpan','err');
+      document.getElementById('pg-ket').value='';document.getElementById('pg-foto').value='';pgFotoBase64='';document.getElementById('pg-foto-prev').innerHTML='';
+      logActivity('Catat pelanggaran',pgActive+' — '+jenis);
+      setTimeout(pgLoadCatatan,1500);
+    })
+    .catch(function(){
+      fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)}).then(function(){showToast('✓ Terkirim','ok');document.getElementById('pg-ket').value='';document.getElementById('pg-foto').value='';pgFotoBase64='';document.getElementById('pg-foto-prev').innerHTML='';setTimeout(pgLoadCatatan,3000);}).catch(function(){showToast('Gagal','err');});
+    })
+    .finally(function(){btn.disabled=false;btn.innerHTML='📤 Simpan Catatan';});
+}
+function pgLoadCatatan(){
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  var list=document.getElementById('pg-list');if(!list)return;
+  list.innerHTML='<div class="empty"><span class="spinner"></span> Memuat...</div>';
+  fetch(url+'?type=pegawai&nama='+encodeURIComponent(pgActive)+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){pgData=(d&&d.rows)?d.rows:[];pgRenderList();})
+    .catch(function(){list.innerHTML='<div class="empty"><div class="empty-text">Gagal memuat</div></div>';});
+}
+function pgStatusCls(s){return String(s).toLowerCase().indexOf('sudah')>=0?'sampai':'masalah';}
+function pgRenderList(){
+  var list=document.getElementById('pg-list');if(!list)return;
+  // badge belum ditindak untuk tab aktif
+  var belum=pgData.filter(function(r){return pgStatusCls(r.status)==='masalah';}).length;
+  var idx=pgNames.indexOf(pgActive);
+  if(idx>=0)_setBadge('pgbadge-'+idx,belum,true);
+  pgUpdateMainBadge();
+  if(!pgData.length){list.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Belum ada catatan untuk '+escH(pgActive)+'</div></div>';return;}
+  list.innerHTML=pgData.map(function(r){
+    var cls=pgStatusCls(r.status);
+    var p=(r.tgl||'').split('-');var tglTxt=p.length===3?(parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1]):r.tgl;
+    var foto=r.foto?'🖼 ada foto':'tanpa foto';
+    return '<div class="km-card '+cls+'" onclick="pgOpenDetail('+r.row+')">'
+      +'<div class="km-card-top"><span class="km-resi">'+escH(r.jenis||'-')+'</span><span class="km-badge '+cls+'">'+escH(r.status)+'</span></div>'
+      +'<div class="km-meta">📅 '+tglTxt+' · '+foto+'</div>'
+      +'<div class="km-isi">'+escH(r.keterangan||'-')+'</div>'
+      +'</div>';
+  }).join('');
+}
+function pgFindRow(row){return pgData.find(function(x){return x.row===row;});}
+function pgOpenDetail(row){
+  var r=pgFindRow(row);if(!r)return;
+  var cls=pgStatusCls(r.status);
+  document.getElementById('pg-d-title').textContent=escH(r.nama)+' — '+escH(r.jenis);
+  var html='';
+  html+='<div class="km-d-row"><span class="k">Nama</span><span class="v">'+escH(r.nama)+'</span></div>';
+  html+='<div class="km-d-row"><span class="k">Jenis</span><span class="v">'+escH(r.jenis)+'</span></div>';
+  html+='<div class="km-d-row"><span class="k">Tanggal</span><span class="v">'+escH(r.tgl)+'</span></div>';
+  html+='<div class="km-d-row"><span class="k">Status</span><span class="v"><span class="km-badge '+cls+'">'+escH(r.status)+'</span></span></div>';
+  html+='<div class="km-d-row"><span class="k">Keterangan</span><span class="v">'+escH(r.keterangan||'-')+'</span></div>';
+  if(r.waktu)html+='<div class="km-d-row"><span class="k">Dicatat</span><span class="v">'+escH(r.waktu)+'</span></div>';
+  if(r.foto){
+    html+='<div class="km-d-foto"><img src="'+escH(kmFotoImgUrl(r.foto))+'" alt="bukti"></div>';
+    html+='<a href="'+escH(r.foto)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">🖼 Buka foto ukuran penuh →</a>';
+  }
+  html+='<div class="km-d-actions">';
+  if(cls==='masalah')html+='<button class="ok" onclick="pgMark('+r.row+',\'Sudah ditindak\')">✓ Tandai sudah ditindak</button>';
+  else html+='<button class="reset" onclick="pgMark('+r.row+',\'Belum ditindak\')">↩ Kembalikan ke belum</button>';
+  html+='<button class="del" onclick="pgDelete('+r.row+')">🗑 Hapus catatan</button>';
+  html+='</div>';
+  document.getElementById('pg-d-body').innerHTML=html;
+  document.getElementById('pg-detail-bg').classList.add('open');
+}
+function pgCloseDetail(){document.getElementById('pg-detail-bg').classList.remove('open');}
+function pgMark(row,status){
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'pegawai_update',row:row,status:status})})
+    .then(function(){showToast('✓ Status diperbarui','ok');pgCloseDetail();setTimeout(pgLoadCatatan,1500);})
+    .catch(function(){showToast('Gagal','err');});
+}
+function pgDelete(row){
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  if(!confirm('Hapus catatan ini permanen?'))return;
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'pegawai_delete',row:row})})
+    .then(function(){showToast('✓ Dihapus','ok');pgCloseDetail();setTimeout(pgLoadCatatan,1500);})
+    .catch(function(){showToast('Gagal','err');});
+}
+function pgUpdateMainBadge(){
+  // total belum ditindak dari semua nama yang sudah dimuat (perkiraan dari tab aktif saja kalau lain belum dimuat)
+  // hitung dari badge per tab
+  var total=0;
+  pgNames.forEach(function(n,i){var b=document.getElementById('pgbadge-'+i);if(b&&b.classList.contains('show'))total+=parseInt(b.textContent)||0;});
+  _setBadge('badge-pegawai',total,true);
+}
 async function saveHarian(){
   if(!scriptUrl){openModal();return;}
   var btn=document.getElementById('save-harian-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Menyimpan...';
