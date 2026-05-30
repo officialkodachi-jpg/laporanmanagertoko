@@ -222,6 +222,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .stok-qty{flex-shrink:0;text-align:right;font-family:var(--mono);font-size:11px;line-height:1.5}
 .stok-qty .q-toko{color:var(--red);font-weight:600}.stok-qty .q-gud{color:var(--green);font-weight:600}
 .stok-sheet-link{display:block;text-align:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;margin-top:16px}
+
+/* GUDANG IN/OUT */
 .ig-header{background:var(--red);color:#fff;text-align:center;font-size:14px;font-weight:700;padding:10px 14px;border-radius:var(--r) var(--r) 0 0;letter-spacing:.05em}
 .ig-summary{display:flex;background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);margin-bottom:14px}
 .ig-sum-cell{flex:1;padding:8px 6px;font-size:11px;font-weight:600;text-align:center;border-right:1px solid var(--border)}
@@ -263,6 +265,8 @@ select.it{cursor:pointer}
 .produk-status.loading{background:rgba(37,99,235,.07);color:var(--blue);border:1px solid rgba(37,99,235,.15)}
 .produk-status.ok{background:rgba(22,163,74,.07);color:var(--green);border:1px solid rgba(22,163,74,.15)}
 .produk-status.err{background:rgba(220,38,38,.07);color:var(--red);border:1px solid rgba(220,38,38,.15)}
+
+/* AUTOCOMPLETE */
 .ac-wrap{position:relative;min-width:170px}
 .ac-input{width:100%;padding:5px 7px;border:1px solid var(--border2);border-radius:6px;font-size:12px;background:var(--card);color:var(--text);font-family:var(--sans);outline:none}
 .ac-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(37,99,235,.12)}
@@ -272,6 +276,8 @@ select.it{cursor:pointer}
 .ac-item:last-child{border-bottom:none}
 .ac-item:hover,.ac-item.focused{background:rgba(37,99,235,.08);color:var(--accent)}
 .ac-item mark{background:rgba(37,99,235,.15);color:var(--accent);border-radius:2px;font-weight:700;font-style:normal}
+
+/* MODAL */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;padding:20px}
 .modal-bg.open{display:flex}
 .modal{background:var(--card);border:1px solid var(--border2);box-shadow:0 20px 60px rgba(0,0,0,.15);border-radius:var(--r-lg);padding:24px;width:100%;max-width:420px}
@@ -317,7 +323,7 @@ select.it{cursor:pointer}
 </div>
 
 <div class="topbar"><div class="topbar-inner"><div class="brand">
-  <span class="brand-tag">Manager · v4.2</span>
+  <span class="brand-tag">Manager · v4.3</span>
   <span class="brand-name">Kodachi Shop Monjali</span>
   <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
 </div></div></div>
@@ -338,8 +344,7 @@ select.it{cursor:pointer}
 <div class="tabs-wrap"><div class="tabs">
   <button class="tab active" onclick="switchTab('harian',this)">📋 Harian<span class="tab-badge" id="badge-harian">!</span></button>
   <button class="tab" onclick="switchTab('event',this)">📌 Non-Harian</button>
-  <button class="tab" onclick="switchTab('stok',this)">📦 Stok<span class="tab-badge" id="badge-stok">0</span></button>
-  <button class="tab" onclick="switchTab('inputstok',this)">📥 Gudang IN/OUT</button>
+  <button class="tab" onclick="switchTab('gudang',this)">📦 Stok & Gudang<span class="tab-badge" id="badge-stok">0</span></button>
   <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
 </div><div class="tabs-line"></div></div>
 
@@ -360,62 +365,71 @@ select.it{cursor:pointer}
     <button class="save-btn" id="save-harian-btn" onclick="saveHarian()">Simpan ke Google Sheets</button>
   </div>
 
-  <!-- STOK -->
-  <div class="panel" id="panel-stok">
-    <div class="alert info" style="margin-bottom:14px">📦 <b>Monitoring Stok Toko vs Gudang</b> — peringatan otomatis kalau ada ukuran yang <b>kosong di toko</b> padahal masih <b>ada di gudang</b>.</div>
-    <div class="stok-controls"><button class="stok-refresh-btn" id="stok-refresh-btn" onclick="loadStok()">🔄 Perbarui Data</button><button class="stok-sound-btn" id="stok-sound-btn" onclick="toggleStokSound()">🔕 Alarm Off</button></div>
-    <div class="stok-updated" id="stok-updated">Belum dimuat</div>
-    <div class="stok-stats-row">
-      <div class="stok-stat red"><div class="stok-stat-val" id="stok-c-red">0</div><div class="stok-stat-label">Merah<br>(toko kosong)</div></div>
-      <div class="stok-stat yellow"><div class="stok-stat-val" id="stok-c-yellow">0</div><div class="stok-stat-label">Kuning<br>(sisa 1)</div></div>
-      <div class="stok-stat blue"><div class="stok-stat-val" id="stok-c-blue">0</div><div class="stok-stat-label">Biru<br>(menipis)</div></div>
+  <!-- STOK & GUDANG (gabungan) -->
+  <div class="panel" id="panel-gudang">
+    <div class="subtab-row">
+      <button class="subtab active" id="gtab-monitor" onclick="switchGudangView('monitor',this)">📦 Monitoring Stok</button>
+      <button class="subtab" id="gtab-inout" onclick="switchGudangView('inout',this)">📥 Gudang IN/OUT</button>
     </div>
-    <div class="stok-legend">
-      <div><span class="lg-dot" style="background:var(--red)"></span><b>Merah</b> — stok toko 0, gudang > 0</div>
-      <div><span class="lg-dot" style="background:var(--orange)"></span><b>Kuning</b> — stok toko 1, gudang > 1</div>
-      <div><span class="lg-dot" style="background:var(--blue)"></span><b>Biru</b> — stok toko < 3, gudang > 3</div>
-    </div>
-    <div class="stok-filter-row" id="stok-filter-row">
-      <button class="stok-chip active" onclick="setStokFilter('all',this)">Semua</button>
-      <button class="stok-chip" onclick="setStokFilter('red',this)">🔴 Merah</button>
-      <button class="stok-chip" onclick="setStokFilter('yellow',this)">🟡 Kuning</button>
-      <button class="stok-chip" onclick="setStokFilter('blue',this)">🔵 Biru</button>
-    </div>
-    <div id="stok-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Tekan "Perbarui Data"</div></div></div>
-    <a class="stok-sheet-link" id="stok-sheet-link" href="#" target="_blank">📊 Buka Google Sheet Stok →</a>
-  </div>
 
-  <!-- GUDANG IN/OUT -->
-  <div class="panel" id="panel-inputstok">
-    <div class="alert info" style="margin-bottom:14px">📥 <b>Gudang IN/OUT — Stok Gudang Mranggen</b> — catat mutasi stok masuk/keluar. Data terkirim ke Google Sheets setelah klik <b>Simpan ke Sheets</b>.</div>
-    <div class="produk-status loading" id="produk-status"><span class="spinner" style="width:12px;height:12px;border-width:2px"></span><span id="produk-status-text">Memuat daftar produk...</span></div>
-    <div class="ig-header">STOK GUDANG MRANGGEN</div>
-    <div class="ig-summary">
-      <div class="ig-sum-cell hilang">Hilang <span class="ig-sum-val" id="ig-cnt-hilang">0</span></div>
-      <div class="ig-sum-cell ketemu">Ketemu <span class="ig-sum-val" id="ig-cnt-ketemu">0</span></div>
-      <div class="ig-sum-cell minus">Minus <span class="ig-sum-val" id="ig-cnt-minus">0</span></div>
+    <!-- Sub-view: Monitoring Stok -->
+    <div class="subview active" id="gview-monitor">
+      <div class="alert info" style="margin-bottom:14px">📦 <b>Monitoring Stok Toko vs Gudang</b> — peringatan otomatis kalau ada ukuran yang <b>kosong di toko</b> padahal masih <b>ada di gudang</b>.</div>
+      <div class="stok-controls"><button class="stok-refresh-btn" id="stok-refresh-btn" onclick="loadStok()">🔄 Perbarui Data</button><button class="stok-sound-btn" id="stok-sound-btn" onclick="toggleStokSound()">🔕 Alarm Off</button></div>
+      <div class="stok-updated" id="stok-updated">Belum dimuat</div>
+      <div class="stok-stats-row">
+        <div class="stok-stat red"><div class="stok-stat-val" id="stok-c-red">0</div><div class="stok-stat-label">Merah<br>(toko kosong)</div></div>
+        <div class="stok-stat yellow"><div class="stok-stat-val" id="stok-c-yellow">0</div><div class="stok-stat-label">Kuning<br>(sisa 1)</div></div>
+        <div class="stok-stat blue"><div class="stok-stat-val" id="stok-c-blue">0</div><div class="stok-stat-label">Biru<br>(menipis)</div></div>
+      </div>
+      <div class="stok-legend">
+        <div><span class="lg-dot" style="background:var(--red)"></span><b>Merah</b> — stok toko 0, gudang > 0</div>
+        <div><span class="lg-dot" style="background:var(--orange)"></span><b>Kuning</b> — stok toko 1, gudang > 1</div>
+        <div><span class="lg-dot" style="background:var(--blue)"></span><b>Biru</b> — stok toko < 3, gudang > 3</div>
+      </div>
+      <div class="stok-filter-row" id="stok-filter-row">
+        <button class="stok-chip active" onclick="setStokFilter('all',this)">Semua</button>
+        <button class="stok-chip" onclick="setStokFilter('red',this)">🔴 Merah</button>
+        <button class="stok-chip" onclick="setStokFilter('yellow',this)">🟡 Kuning</button>
+        <button class="stok-chip" onclick="setStokFilter('blue',this)">🔵 Biru</button>
+      </div>
+      <div id="stok-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Tekan "Perbarui Data"</div></div></div>
+      <a class="stok-sheet-link" id="stok-sheet-link" href="#" target="_blank">📊 Buka Google Sheet Stok Toko →</a>
     </div>
-    <div class="ig-toolbar">
-      <button class="ig-add-btn" onclick="igAddRow()">＋ Tambah Baris</button>
-      <button class="ig-sync-btn" id="ig-sync-btn" onclick="igSyncToSheets()">↑ Simpan ke Sheets</button>
-      <button class="ig-clear-btn" onclick="igClearAll()">🗑 Hapus Semua</button>
-      <span class="ig-sync-status" id="ig-sync-status">Belum disinkronisasi</span>
-    </div>
-    <div class="ig-tbl-wrap">
-      <table class="ig-table" id="ig-table">
-        <thead><tr>
-          <th style="width:30px">#</th>
-          <th style="min-width:115px">Tanggal</th>
-          <th style="min-width:180px">Nama Produk</th>
-          <th style="width:60px">SIZE</th>
-          <th style="min-width:120px">Tipe Kaos Kaki</th>
-          <th style="width:60px">Jumlah</th>
-          <th style="width:100px">IN / OUT</th>
-          <th style="min-width:150px">KET (HARUS DIISI)</th>
-          <th style="width:30px"></th>
-        </tr></thead>
-        <tbody id="ig-tbody"><tr class="ig-empty-row"><td colspan="9">Belum ada data. Klik "+ Tambah Baris" untuk mulai input.</td></tr></tbody>
-      </table>
+
+    <!-- Sub-view: Gudang IN/OUT -->
+    <div class="subview" id="gview-inout">
+      <div class="alert info" style="margin-bottom:14px">📥 <b>Gudang IN/OUT — Stok Gudang Mranggen</b> — catat mutasi stok masuk/keluar. Data terkirim ke Google Sheets setelah klik <b>Simpan ke Sheets</b>.</div>
+      <div class="produk-status loading" id="produk-status"><span class="spinner" style="width:12px;height:12px;border-width:2px"></span><span id="produk-status-text">Memuat daftar produk...</span></div>
+      <div class="ig-header">STOK GUDANG MRANGGEN</div>
+      <div class="ig-summary">
+        <div class="ig-sum-cell hilang">Hilang <span class="ig-sum-val" id="ig-cnt-hilang">0</span></div>
+        <div class="ig-sum-cell ketemu">Ketemu <span class="ig-sum-val" id="ig-cnt-ketemu">0</span></div>
+        <div class="ig-sum-cell minus">Minus <span class="ig-sum-val" id="ig-cnt-minus">0</span></div>
+      </div>
+      <div class="ig-toolbar">
+        <button class="ig-add-btn" onclick="igAddRow()">＋ Tambah Baris</button>
+        <button class="ig-sync-btn" id="ig-sync-btn" onclick="igSyncToSheets()">↑ Simpan ke Sheets</button>
+        <button class="ig-clear-btn" onclick="igClearAll()">🗑 Hapus Semua</button>
+        <span class="ig-sync-status" id="ig-sync-status">Belum disinkronisasi</span>
+      </div>
+      <div class="ig-tbl-wrap">
+        <table class="ig-table" id="ig-table">
+          <thead><tr>
+            <th style="width:30px">#</th>
+            <th style="min-width:115px">Tanggal</th>
+            <th style="min-width:180px">Nama Produk</th>
+            <th style="width:60px">SIZE</th>
+            <th style="min-width:120px">Tipe Kaos Kaki</th>
+            <th style="width:60px">Jumlah</th>
+            <th style="width:100px">IN / OUT</th>
+            <th style="min-width:150px">KET (HARUS DIISI)</th>
+            <th style="width:30px"></th>
+          </tr></thead>
+          <tbody id="ig-tbody"><tr class="ig-empty-row"><td colspan="9">Belum ada data. Klik "+ Tambah Baris" untuk mulai input.</td></tr></tbody>
+        </table>
+      </div>
+      <a class="stok-sheet-link" id="gudang-sheet-link" href="#" target="_blank">📊 Buka Google Sheet Stok Gudang V4 →</a>
     </div>
   </div>
 
@@ -504,6 +518,7 @@ const DAY_SHORT=['Min','Sen','Sel','Rab','Kam','Jum','Sab'],DAY_FULL=['Minggu','
 const TOKO={lat:-7.7448,lng:110.3716,radius:200},TARGET_MENIT=240;
 const DEFAULT_URL='https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBEBZjQgFE_/exec';
 const SHEET_URL='https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=0#gid=0';
+const GUDANG_SHEET_URL='https://docs.google.com/spreadsheets/d/13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk/edit';
 const STOK_AUTO_REFRESH_MS=5*60*1000;
 
 let checked={},notes={};
@@ -514,13 +529,14 @@ let stokLoadedOnce=false,_stokAudioCtx=null,_stokRefreshTimer=null,_stokLastRedC
 let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locationLog=[],lastPos=null;
 let _timerInterval=null,_retryTimer=null,_retryCount=0,_gpsStarted=false;
 
+// Gudang IN/OUT state
 var igRows=[],igApiUrl=localStorage.getItem('ig_api_url')||'';
 var igToday=new Date().toISOString().split('T')[0];
 var IG_KET_OPTIONS=['Bawa Ke Toko','Hilang','Minus Stock','Ketemu','Retur','Penyesuaian'];
 var IG_TIPE_OPTIONS=['','Pendek','Panjang','Sport','Invisible','Ankle'];
 var igProdukList=[],_produkLoaded=false;
 
-// ════════ LOAD PRODUK ════════
+// ════════ LOAD PRODUK (JSONP) ════════
 function igLoadProduk(silent){
   var url=igApiUrl||scriptUrl;
   if(!url||!url.startsWith('http')){setProdukStatus('err','⚠ URL belum dikonfigurasi');return;}
@@ -550,7 +566,18 @@ function setProdukStatus(type,msg){
 // ════════ AUTOCOMPLETE ════════
 var _acActiveId=null,_acFocusIdx=-1,_acDropEl=null;
 function acInit(){_acDropEl=document.getElementById('ac-dropdown');document.addEventListener('mousedown',function(e){if(!_acDropEl.contains(e.target)&&!e.target.classList.contains('ac-input'))acHide();});var w=document.querySelector('.ig-tbl-wrap');if(w)w.addEventListener('scroll',acHide,{passive:true});}
-function acShow(inputEl,rowId){_acActiveId=rowId;_acFocusIdx=-1;var q=inputEl.value.trim().toLowerCase(),list=igProdukList,filtered=q?list.filter(function(p){return p.toLowerCase().includes(q)}):list;if(!filtered.length){acHide();return;}var r=inputEl.getBoundingClientRect();_acDropEl.style.left=r.left+'px';_acDropEl.style.top=(r.bottom+4)+'px';_acDropEl.style.width=Math.max(r.width,220)+'px';_acDropEl.innerHTML=filtered.slice(0,40).map(function(p,i){var hl=q?p.replace(new RegExp('('+escRe(q)+')','gi'),'<mark>$1</mark>'):p;return'<div class="ac-item" data-val="'+escH(p)+'" onmousedown="acSelect(event,\''+escH(p).replace(/'/g,"\\'")+'\')">'+hl+'</div>';}).join('');_acDropEl.classList.add('open');}
+function acShow(inputEl,rowId){
+  _acActiveId=rowId;_acFocusIdx=-1;
+  var q=inputEl.value.trim().toLowerCase(),list=igProdukList,filtered=q?list.filter(function(p){return p.toLowerCase().includes(q)}):list;
+  if(!filtered.length){acHide();return;}
+  var r=inputEl.getBoundingClientRect();
+  _acDropEl.style.left=r.left+'px';_acDropEl.style.top=(r.bottom+4)+'px';_acDropEl.style.width=Math.max(r.width,220)+'px';
+  _acDropEl.innerHTML=filtered.slice(0,40).map(function(p,i){
+    var hl=q?p.replace(new RegExp('('+escRe(q)+')','gi'),'<mark>$1</mark>'):p;
+    return '<div class="ac-item" data-val="'+escH(p)+'" onmousedown="acSelect(event,\''+escH(p).replace(/'/g,"\\'")+'\')">'+hl+'</div>';
+  }).join('');
+  _acDropEl.classList.add('open');
+}
 function acHide(){if(_acDropEl)_acDropEl.classList.remove('open');_acActiveId=null;_acFocusIdx=-1;}
 function acSelect(e,val){if(e&&e.preventDefault)e.preventDefault();if(_acActiveId!==null){var r=igRows.find(x=>x.id===_acActiveId);if(r)r.nama=val;var inp=document.querySelector('tr[data-id="'+_acActiveId+'"] .ac-input');if(inp)inp.value=val;}acHide();}
 function acKeydown(e,rowId){if(!_acDropEl.classList.contains('open')){if(e.key==='ArrowDown')acShow(e.target,rowId);return;}var items=_acDropEl.querySelectorAll('.ac-item');if(e.key==='ArrowDown'){e.preventDefault();_acFocusIdx=Math.min(_acFocusIdx+1,items.length-1);acHL(items);}else if(e.key==='ArrowUp'){e.preventDefault();_acFocusIdx=Math.max(_acFocusIdx-1,-1);acHL(items);}else if(e.key==='Enter'||e.key==='Tab'){if(_acFocusIdx>=0&&items[_acFocusIdx]){e.preventDefault();acSelect(null,items[_acFocusIdx].dataset.val);}else acHide();}else if(e.key==='Escape')acHide();}
@@ -640,7 +667,7 @@ async function igSyncToSheets(){
 }
 
 // ════════ STOK ════════
-function initStokUI(){document.getElementById('stok-sheet-link').href=SHEET_URL;refreshStokSoundBtn();}
+function initStokUI(){var l=document.getElementById('stok-sheet-link');if(l)l.href=SHEET_URL;var g=document.getElementById('gudang-sheet-link');if(g)g.href=GUDANG_SHEET_URL;refreshStokSoundBtn();}
 function refreshStokSoundBtn(){var b=document.getElementById('stok-sound-btn');if(stokSoundOn){b.className='stok-sound-btn on';b.textContent='🔔 Alarm On';}else{b.className='stok-sound-btn';b.textContent='🔕 Alarm Off';}}
 function toggleStokSound(){stokSoundOn=!stokSoundOn;localStorage.setItem('stok_sound',stokSoundOn?'1':'0');refreshStokSoundBtn();if(stokSoundOn){playAlarm(1);showToast('🔔 Alarm on','ok');}else showToast('🔕 Alarm off','');}
 function playAlarm(n){try{if(!_stokAudioCtx)_stokAudioCtx=new(window.AudioContext||window.webkitAudioContext)();var c=_stokAudioCtx;if(c.state==='suspended')c.resume();var t=c.currentTime;for(var i=0;i<n;i++){var o=c.createOscillator(),g=c.createGain();o.type='square';o.frequency.setValueAtTime(880,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.28);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.3);t+=.38;}}catch(e){}}
@@ -677,7 +704,8 @@ window.addEventListener('DOMContentLoaded',()=>{
 function setCurrentMonth(id){var d=new Date();document.getElementById(id).value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
 
 // ════════ TABS ════════
-function switchTab(name,btn){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('panel-'+name).classList.add('active');btn.classList.add('active');if(name==='stok'&&!stokLoadedOnce)loadStok();if(name==='inputstok'&&!_produkLoaded)igLoadProduk();}
+function switchTab(name,btn){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('panel-'+name).classList.add('active');btn.classList.add('active');if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();}}
+function switchGudangView(v,btn){document.getElementById('gview-monitor').classList.remove('active');document.getElementById('gview-inout').classList.remove('active');document.getElementById('gtab-monitor').classList.remove('active');document.getElementById('gtab-inout').classList.remove('active');document.getElementById('gview-'+v).classList.add('active');if(btn)btn.classList.add('active');if(v==='inout'&&!_produkLoaded)igLoadProduk();}
 function switchLaporanView(v,btn){document.querySelectorAll('.subview').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.subtab').forEach(t=>t.classList.remove('active'));document.getElementById('subview-'+v).classList.add('active');btn.classList.add('active');}
 
 // ════════ HARIAN ════════
@@ -711,58 +739,22 @@ async function saveHarian(){
   btn.disabled=false;btn.textContent='Simpan ke Google Sheets';
 }
 
-// ════════ EVENTS — FIXED v4.2 ════════
+// ════════ EVENTS ════════
 var EV_ICONS={E01:'📥',E02:'💵',E03:'📊',E04:'⚠️',E05:'🚚',E06:'⚡',E07:'🔄',E08:'🎓',E09:'📢'};
 function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHTML='';EVENTS.forEach(ev=>{var el=document.createElement('div');var priCls='pri-'+ev.prioritas.toLowerCase();el.className='event-card '+priCls;el.id='ev-'+ev.kode;el.innerHTML='<div class="ev-icon">'+(EV_ICONS[ev.kode]||'📌')+'</div><div class="ev-body"><div class="event-nama">'+ev.nama+'</div><div class="event-meta">'+ev.kode+' · '+ev.frekuensi+' · <b>'+ev.prioritas+'</b></div></div><div class="ev-arrow">›</div>';el.onclick=()=>selectEvent(ev);g.appendChild(el);});}
 function selectEvent(ev){selectedEvent=ev;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));document.getElementById('ev-'+ev.kode).classList.add('selected');document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';document.getElementById('event-note').value='';document.getElementById('event-detail').style.display='block';document.getElementById('event-detail').scrollIntoView({behavior:'smooth',block:'nearest'});}
 function setStatus(s){selectedStatus=s;document.getElementById('sbtn-ok').className='status-btn'+(s==='✓'?' sel-ok':'');document.getElementById('sbtn-no').className='status-btn'+(s==='✗'?' sel-no':'');}
-
-// ── saveEvent DIPERBAIKI: pakai mode:'no-cors' agar tidak kena CORS block ──
 async function saveEvent(){
   if(!scriptUrl){openModal();return;}
   if(!selectedEvent){showToast('Pilih tugas dulu','err');return;}
   if(!selectedStatus){showToast('Pilih status dulu','err');return;}
-
   var btn=document.getElementById('event-send-btn');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Menyimpan...';}
-
-  var payload={
-    type:'event',
-    tanggal:todayValue,
-    kode:selectedEvent.kode,
-    nama:selectedEvent.nama,
-    kategori:selectedEvent.kategori,
-    frekuensi:selectedEvent.frekuensi,
-    prioritas:selectedEvent.prioritas,
-    status:selectedStatus,
-    catatan:document.getElementById('event-note').value||''
-  };
-
+  var payload={type:'event',tanggal:todayValue,kode:selectedEvent.kode,nama:selectedEvent.nama,kategori:selectedEvent.kategori,frekuensi:selectedEvent.frekuensi,prioritas:selectedEvent.prioritas,status:selectedStatus,catatan:document.getElementById('event-note').value||''};
   var ok=false;
-  try{
-    // Pakai no-cors — response tidak bisa dibaca tapi request tetap sampai ke server
-    await fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
-    ok=true;
-  }catch(err1){
-    // Fallback tanpa no-cors (untuk env tertentu)
-    try{
-      var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)});
-      var d=await r.json();
-      ok=(d.status==='ok');
-      if(!ok)showToast('Gagal: '+(d.message||'error'),'err');
-    }catch(err2){
-      showToast('Gagal terhubung ke server','err');
-    }
-  }
-
-  if(ok){
-    showToast('✓ Non-Harian tercatat!','ok');
-    document.getElementById('event-detail').style.display='none';
-    selectedEvent=null;
-    selectedStatus=null;
-    document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));
-  }
-
+  try{await fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});ok=true;}
+  catch(err1){try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)});var d=await r.json();ok=(d.status==='ok');if(!ok)showToast('Gagal: '+(d.message||'error'),'err');}catch(err2){showToast('Gagal terhubung ke server','err');}}
+  if(ok){showToast('✓ Non-Harian tercatat!','ok');document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));}
   if(btn){btn.disabled=false;btn.textContent='Catat →';}
 }
 
