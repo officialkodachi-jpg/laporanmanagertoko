@@ -451,7 +451,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
   <button class="tab active" onclick="switchTab('harian',this)">📋 Harian<span class="tab-badge" id="badge-harian">!</span></button>
   <button class="tab" onclick="switchTab('event',this)">📌 Non-Harian<span class="tab-badge" id="badge-event" style="background:var(--orange)">!</span></button>
   <button class="tab" onclick="switchTab('gudang',this)">📦 Stok & Gudang<span class="tab-badge" id="badge-stok">0</span></button>
-  <button class="tab" onclick="switchTab('cash',this)">💵 Uang Cash</button>
+  <button class="tab" onclick="switchTab('cash',this)">💵 Uang Cash<span class="tab-badge" id="badge-cash">!</span></button>
   <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
   <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
   <button class="tab" onclick="switchTab('link',this)">🔗 Link</button>
@@ -662,6 +662,8 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
         <button onclick="loadCashData()" id="cash-refresh-btn" style="padding:7px 12px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer">🔄 Refresh</button>
       </div>
     </div>
+
+    <div id="cash-warn" style="display:none;border-radius:var(--r);padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:14px;line-height:1.5"></div>
 
     <!-- ══ KARTU BELUM DISETOR ══ -->
     <div style="margin-bottom:16px">
@@ -1424,6 +1426,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   // Load stok & langsung trigger alarm kalau ada merah
   loadStok(true);
   kmLoad();
+  loadCashData();
   _stokRefreshTimer=setInterval(()=>loadStok(true),STOK_AUTO_REFRESH_MS);
   igLoadProduk(true);
   // GPS/role tracking diatur oleh applyRole() setelah login
@@ -1933,6 +1936,26 @@ function applyCashSummary(rows, meta){
   var elBelum = document.getElementById('cash-belum-b');
   elBelum.textContent = belumB !== null ? fRpPlain(belumB) : '—';
   elBelum.style.color = belumB > 0 ? 'var(--red)' : belumB === 0 ? 'var(--green)' : 'var(--muted)';
+
+  // ── Peringatan jumlah uang belum disetor ──
+  var warn = document.getElementById('cash-warn');
+  var badge = document.getElementById('badge-cash');
+  if(warn){
+    if(belumB != null && belumB > 3000000){
+      warn.style.display='block';
+      warn.style.background='rgba(220,38,38,.1)';warn.style.border='1px solid rgba(220,38,38,.3)';warn.style.color='var(--red)';
+      warn.innerHTML='🔴 <b>Segera setor ke Bank!</b> Uang belum disetor sudah '+fRpPlain(belumB)+' (lebih dari 3 juta).';
+      if(badge){badge.textContent='!';badge.style.background='var(--red)';badge.classList.add('show','pulse');}
+    } else if(belumB != null && belumB > 1000000){
+      warn.style.display='block';
+      warn.style.background='rgba(217,119,6,.1)';warn.style.border='1px solid rgba(217,119,6,.3)';warn.style.color='var(--orange)';
+      warn.innerHTML='🟡 <b>Perhatian:</b> uang belum disetor '+fRpPlain(belumB)+' (lebih dari 1 juta). Pertimbangkan setor ke Bank.';
+      if(badge){badge.textContent='!';badge.style.background='var(--orange)';badge.classList.add('show','pulse');}
+    } else {
+      warn.style.display='none';
+      if(badge)badge.classList.remove('show','pulse');
+    }
+  }
 
   // Chips: ambil yang pending dari rows (kolom B positif, dikurangi negatif)
   var pendingB = [], balB = 0;
