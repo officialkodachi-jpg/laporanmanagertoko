@@ -399,7 +399,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
 
 <div class="tabs-wrap"><div class="tabs">
   <button class="tab active" onclick="switchTab('harian',this)">📋 Harian<span class="tab-badge" id="badge-harian">!</span></button>
-  <button class="tab" onclick="switchTab('event',this)">📌 Non-Harian</button>
+  <button class="tab" onclick="switchTab('event',this)">📌 Non-Harian<span class="tab-badge" id="badge-event" style="background:var(--orange)">!</span></button>
   <button class="tab" onclick="switchTab('gudang',this)">📦 Stok & Gudang<span class="tab-badge" id="badge-stok">0</span></button>
   <button class="tab" onclick="switchTab('cash',this)">💵 Uang Cash</button>
   <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
@@ -498,6 +498,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
   <!-- NON-HARIAN -->
   <div class="panel" id="panel-event">
     <div class="date-row"><div class="date-display" id="tgl-event-display">—</div><span class="today-label">📅 Hari ini</span></div>
+    <div id="notif-event" class="notif-list" style="display:none"></div>
     <div class="alert info" style="margin-bottom:14px">📌 <b>Tugas Non-Harian</b> — tap tugas di bawah → pilih ✓ atau ✗ → tulis catatan → kirim.</div>
     <div class="section-hdr"><span class="section-hdr-label">Tap tugas yang dikerjakan ↓</span><div class="section-hdr-line"></div></div>
     <div class="event-grid" id="event-grid"></div>
@@ -1122,7 +1123,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('tgl-harian-display').textContent=td;
   document.getElementById('tgl-event-display').textContent=td;
   setCurrentMonth('grid-month');setCurrentMonth('laporan-month');setCurrentMonth('riwayat-month');
-  renderHarian();renderEventGrid();checkTodayFilled();checkLaporanBadge();
+  renderHarian();renderEventGrid();checkTodayFilled();checkLaporanBadge();checkEventBadge();
   igAddRow();igAddRow();igAddRow();
   acInit();initStokUI();
   // Load stok & langsung trigger alarm kalau ada merah
@@ -1193,6 +1194,47 @@ function updateStats(){var done=Object.values(checked).filter(Boolean).length,to
 // ════ SAVE HARIAN ════
 async function checkTodayFilled(){if(!scriptUrl)return;try{var r=await fetch(scriptUrl+'?type=cek&tanggal='+todayValue),d=await r.json();var b=document.getElementById('badge-harian'),n=document.getElementById('notif-harian');if(d.filled){b.classList.remove('show');n.style.display='none';}else{b.classList.add('show');n.style.display='flex';n.innerHTML='<div class="notif-item">⚠ Hari ini belum ada data yang disimpan</div>';}}catch(e){}}
 async function checkLaporanBadge(){if(!scriptUrl)return;try{var b=document.getElementById('laporan-month').value,r=await fetch(scriptUrl+'?type=rekap&bulan='+b),d=await r.json();if(d.tasks)document.getElementById('badge-laporan').classList.toggle('show',d.tasks.some(t=>t.pct<70&&t.pct>0));}catch(e){}}
+
+// ── Peringatan Non-Harian: warning kalau 3 hari terakhir tidak ada tugas non-harian dikerjakan ──
+async function checkEventBadge(){
+  if(!scriptUrl)return;
+  var badge=document.getElementById('badge-event'),notif=document.getElementById('notif-event');
+  try{
+    var bulan=todayValue.substring(0,7); // YYYY-MM
+    var r=await fetch(scriptUrl+'?type=event&bulan='+bulan+'&_='+Date.now());
+    var d=await r.json();
+    var rows=(d&&d.rows)?d.rows:[];
+    // Cari tanggal terakhir ada event berstatus ✓ (kolom B=Tgl index1, G=Status index6)
+    var lastDone=null;
+    rows.forEach(function(row){
+      var tgl=row[1], status=row[6];
+      if(!tgl)return;
+      if(String(status).trim()!=='✓')return;
+      var dt=(tgl instanceof Date)?new Date(tgl):new Date(tgl);
+      if(isNaN(dt))return;
+      if(!lastDone||dt>lastDone)lastDone=dt;
+    });
+    var now=new Date();now.setHours(0,0,0,0);
+    var hariSejak;
+    if(!lastDone){hariSejak=999;}
+    else{var ld=new Date(lastDone);ld.setHours(0,0,0,0);hariSejak=Math.floor((now-ld)/86400000);}
+
+    if(hariSejak>=3){
+      // tampilkan warning
+      if(badge){badge.style.background='var(--orange)';badge.textContent='!';badge.classList.add('show','pulse');}
+      if(notif){
+        notif.style.display='flex';
+        var pesan = (hariSejak>=999)
+          ? '⚠ Bulan ini <b>belum ada</b> tugas Non-Harian yang dikerjakan. Yuk kerjakan minimal satu!'
+          : '⚠ Sudah <b>'+hariSejak+' hari</b> tidak ada tugas Non-Harian yang dikerjakan. Cek apakah ada stok opname, setoran, atau laporan yang tertunda.';
+        notif.innerHTML='<div class="notif-item warn">'+pesan+'</div>';
+      }
+    }else{
+      if(badge)badge.classList.remove('show','pulse');
+      if(notif){notif.style.display='none';notif.innerHTML='';}
+    }
+  }catch(e){}
+}
 async function saveHarian(){
   if(!scriptUrl){openModal();return;}
   var btn=document.getElementById('save-harian-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Menyimpan...';
@@ -1219,7 +1261,7 @@ async function saveEvent(){
   var ok=false;
   try{await fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});ok=true;}
   catch(err1){try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)});var d=await r.json();ok=(d.status==='ok');if(!ok)showToast('Gagal: '+(d.message||'error'),'err');}catch(err2){showToast('Gagal terhubung ke server','err');}}
-  if(ok){showToast('✓ Non-Harian tercatat!','ok');document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));}
+  if(ok){showToast('✓ Non-Harian tercatat!','ok');document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));setTimeout(checkEventBadge,2500);}
   if(btn){btn.disabled=false;btn.textContent='Catat →';}
 }
 
@@ -1406,7 +1448,7 @@ const GOOGLE_CLIENT_ID='1077904025393-sopu3mb62k66u3acngco0ppg4huvbbbm.apps.goog
 const EMAIL_MANAGER=['fahdryifih@gmail.com'];
 const EMAIL_ADMIN  =['officialkodachi@gmail.com'];
 
-const SESSION_MAX_MS = 5*60*60*1000;   // sesi login berlaku 8 jam, lalu wajib login lagi
+const SESSION_MAX_MS = 8*60*60*1000;   // sesi login berlaku 8 jam, lalu wajib login lagi
 
 // Cek apakah sesi tersimpan masih berlaku (belum lewat 8 jam)
 function sessionValid(){
