@@ -477,7 +477,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
   <!-- STOK & GUDANG -->
   <div class="panel" id="panel-gudang">
     <div class="subtab-row">
-      <button class="subtab active" id="gtab-monitor" onclick="switchGudangView('monitor',this)">📦 Monitoring Stok</button>
+      <button class="subtab active" id="gtab-monitor" onclick="switchGudangView('monitor',this)">📦 Monitoring Stok<span class="tab-badge" id="badge-monitor" style="background:var(--red);position:static;margin-left:4px">0</span></button>
       <button class="subtab" id="gtab-inout" onclick="switchGudangView('inout',this)">📥 Gudang IN/OUT</button>
       <button class="subtab" id="gtab-kiriman" onclick="switchGudangView('kiriman',this)">🚚 Kiriman Stok<span class="tab-badge" id="badge-kiriman" style="background:var(--orange);position:static;margin-left:4px">0</span></button>
     </div>
@@ -1201,10 +1201,21 @@ function renderStokList(){
   list.innerHTML=html||'<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Tidak ada item dengan filter ini</div></div>';
 }
 
-function updateStokBadge(){
-  var b=document.getElementById('badge-stok'),n=stokData.red.length;
-  if(n>0){b.textContent=n>99?'99+':n;b.classList.add('show','pulse');}
-  else b.classList.remove('show','pulse');
+// Set badge: tampil kalau n>0, sembunyi kalau 0
+function _setBadge(id,n,pulse){
+  var b=document.getElementById(id);if(!b)return;
+  if(n>0){b.textContent=n>99?'99+':n;b.classList.add('show');if(pulse)b.classList.add('pulse');b.style.display='';}
+  else{b.classList.remove('show','pulse');b.style.display='none';}
+}
+function updateStokBadge(){updateGudangBadges();}
+// Pusat: hitung badge sub-tab + tab utama
+function updateGudangBadges(){
+  var red=stokData.red.length;
+  var blmSampai=0;
+  kmData.forEach(function(r){if((r.status||'Dikirim')!=='Sampai')blmSampai++;});
+  _setBadge('badge-monitor',red,true);   // sub-tab Monitoring
+  _setBadge('badge-kiriman',blmSampai,true); // sub-tab Kiriman
+  _setBadge('badge-stok',red+blmSampai,true); // tab utama = total
 }
 
 // ════ KIRIMAN STOK ════
@@ -1294,8 +1305,7 @@ function kmRender(){
   document.getElementById('km-c-jalan').textContent=jalan;
   document.getElementById('km-c-sampai').textContent=sampai;
   document.getElementById('km-c-masalah').textContent=masalah;
-  var bk=document.getElementById('badge-kiriman');
-  if(bk){if(jalan>0){bk.textContent=jalan;bk.style.display='';}else{bk.textContent='0';bk.style.display='none';}}
+  updateGudangBadges();
   if(!kmData.length){list.innerHTML='<div class="empty"><div class="empty-icon">🚚</div><div class="empty-text">Belum ada data kiriman</div></div>';return;}
   // urutkan: yang masih jalan dulu, lalu terbaru
   var sorted=kmData.slice().sort(function(a,b){
@@ -1413,6 +1423,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   var kt=document.getElementById('km-tgl');if(kt)kt.value=todayValue;
   // Load stok & langsung trigger alarm kalau ada merah
   loadStok(true);
+  kmLoad();
   _stokRefreshTimer=setInterval(()=>loadStok(true),STOK_AUTO_REFRESH_MS);
   igLoadProduk(true);
   // GPS/role tracking diatur oleh applyRole() setelah login
