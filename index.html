@@ -1980,6 +1980,8 @@ var _lastLog={};
 function logActivity(aksi,detail){
   try{
     if(!scriptUrl||!scriptUrl.startsWith('http'))return;
+    // hanya catat aktivitas MANAGER (admin & lainnya tidak dicatat)
+    if(userRole!=='manager')return;
     // hindari spam duplikat aksi sama dalam 3 detik
     var key=aksi+'|'+(detail||'');var now=Date.now();
     if(_lastLog[key]&&(now-_lastLog[key])<3000)return;
