@@ -502,7 +502,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
   <div class="panel" id="panel-gudang">
     <div class="subtab-row">
       <button class="subtab active" id="gtab-monitor" onclick="switchGudangView('monitor',this)">📦 Monitoring Stok<span class="tab-badge" id="badge-monitor" style="background:var(--red);position:static;margin-left:4px">0</span></button>
-      <button class="subtab" id="gtab-inout" onclick="switchGudangView('inout',this)">📥 Gudang IN/OUT<span class="tab-badge" id="badge-inout" style="background:var(--red);position:static;margin-left:4px;display:none"></span></button>
+      <button class="subtab" id="gtab-inout" onclick="switchGudangView('inout',this)">📥 Gudang IN/OUT<span class="tab-badge" id="badge-inout" style="background:var(--red);position:static;margin-left:4px">0</span></button>
       <button class="subtab" id="gtab-kiriman" onclick="switchGudangView('kiriman',this)">🚚 Kiriman Stok<span class="tab-badge" id="badge-kiriman" style="background:var(--orange);position:static;margin-left:4px">0</span></button>
     </div>
 
@@ -893,6 +893,7 @@ let _timerInterval=null,_retryTimer=null,_retryCount=0,_gpsStarted=false;
 
 // Gudang IN/OUT state
 var igRows=[],igApiUrl='https://script.google.com/macros/s/AKfycbzdvyaOBVBc6K6OYz2YntXwdyDrS-GGEuQ5nd9223WqdccrwtvHhXeFILgBsg3dxSNn/exec';
+var igMinusCount=0;
 var igToday=new Date().toISOString().split('T')[0];
 var IG_KET_OPTIONS=['Bawa Ke Toko','Hilang','Minus Stock','Ketemu','Retur','Penyesuaian'];
 var IG_TIPE_OPTIONS=['','Pendek','Panjang','Sport','Invisible','Ankle'];
@@ -1158,20 +1159,19 @@ function igLoadStokGudang(){
   window.__igStokGudangCb=function(data){
     var warn=document.getElementById('stok-minus-warn');
     var list=document.getElementById('stok-minus-list');
-    var badge=document.getElementById('badge-inout');
     if(!warn||!list) return;
     if(data&&data.status==='ok'&&Array.isArray(data.data)){
       var minus=data.data.filter(function(d){return d.stok<0;});
+      igMinusCount=minus.length;
       if(minus.length){
         list.innerHTML=minus.map(function(d){
           return '• <b>'+d.nama+'</b>: <span style="font-family:var(--mono)">'+d.stok+' pasang</span>';
         }).join('<br>');
         warn.style.display='block';
-        if(badge){badge.textContent=minus.length;badge.style.display='inline-flex';}
       } else {
         warn.style.display='none';
-        if(badge){badge.style.display='none';}
       }
+      updateGudangBadges();
     }
   };
   var s=document.createElement('script');s.id='jsonp-stok-gudang';
@@ -1278,9 +1278,10 @@ function updateGudangBadges(){
   var red=stokData.red.length;
   var blmSampai=0;
   kmData.forEach(function(r){if((r.status||'Dikirim')!=='Sampai')blmSampai++;});
-  _setBadge('badge-monitor',red,true);   // sub-tab Monitoring
-  _setBadge('badge-kiriman',blmSampai,true); // sub-tab Kiriman
-  _setBadge('badge-stok',red+blmSampai,true); // tab utama = total
+  _setBadge('badge-monitor',red,true);
+  _setBadge('badge-inout',igMinusCount,true);
+  _setBadge('badge-kiriman',blmSampai,true);
+  _setBadge('badge-stok',red+blmSampai+igMinusCount,true);
 }
 
 // ════ KIRIMAN STOK ════
