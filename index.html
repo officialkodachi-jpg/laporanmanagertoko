@@ -635,21 +635,21 @@ select.it{cursor:pointer}
           </div>
         </div>
 
+        <!-- Jumlah — di atas badge manager -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">Jumlah (Rp)</div>
+          <input type="number" id="cash-inp-nominal" placeholder="0" inputmode="numeric"
+            style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:15px;background:var(--surface);color:var(--text);outline:none">
+        </div>
+
         <!-- Badge nama manager -->
         <div id="cash-btn-b" style="padding:9px 14px;border-radius:var(--r);border:1.5px solid rgba(22,163,74,.35);background:rgba(22,163,74,.07);color:var(--green);font-family:var(--sans);font-size:12px;font-weight:700;text-align:center;margin-bottom:12px">💚 <span id="cash-btn-b-label">Manager</span> → Kolom B</div>
 
-        <!-- Baris 2: Jumlah + Uang Receh -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
-          <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">Jumlah (Rp)</div>
-            <input type="number" id="cash-inp-nominal" placeholder="0" inputmode="numeric"
-              style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:13px;background:var(--surface);color:var(--text);outline:none">
-          </div>
-          <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">🪙 Uang Receh (opsional)</div>
-            <input type="number" id="cash-inp-receh" placeholder="0" inputmode="numeric" onchange="cashOnRecehChange()" oninput="cashOnRecehChange()"
-              style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:13px;background:var(--surface);color:var(--text);outline:none">
-          </div>
+        <!-- Uang Receh — baris sendiri -->
+        <div style="margin-bottom:4px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">🪙 Uang Receh (opsional)</div>
+          <input type="number" id="cash-inp-receh" placeholder="0" inputmode="numeric" onchange="cashOnRecehChange()" oninput="cashOnRecehChange()"
+            style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:13px;background:var(--surface);color:var(--text);outline:none">
         </div>
 
         <!-- Info receh -->
