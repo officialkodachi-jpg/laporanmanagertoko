@@ -360,6 +360,7 @@ select.it{cursor:pointer}
   <button class="tab" onclick="switchTab('event',this)">📌 Non-Harian</button>
   <button class="tab" onclick="switchTab('gudang',this)">📦 Stok & Gudang<span class="tab-badge" id="badge-stok">0</span></button>
   <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
+  <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
 </div><div class="tabs-line"></div></div>
 
 <div class="content">
@@ -487,6 +488,38 @@ select.it{cursor:pointer}
       <div class="subview-cap">Daftar tugas yang sudah diisi, urut per tanggal.</div>
       <div class="grid-controls"><input type="month" class="month-select" id="riwayat-month"><button class="load-btn" onclick="loadRiwayat()">Tampilkan</button></div>
       <div id="riwayat-container"><div class="empty"><div class="empty-icon">🗂</div><div class="empty-text">Pilih bulan untuk melihat riwayat</div></div></div>
+    </div>
+  </div>
+
+
+  <!-- MEETING LINK -->
+  <div class="panel" id="panel-meeting">
+    <div style="text-align:center;padding:32px 16px 24px">
+      <div style="font-size:48px;margin-bottom:12px">📹</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:6px">Meeting Google Meet</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:28px">Notifikasi otomatis setiap jam 10:00 pagi</div>
+      <a href="https://meet.google.com/jyr-kmaz-iue" target="_blank" id="meet-link-btn"
+        style="display:inline-flex;align-items:center;gap:12px;background:var(--accent);color:#fff;text-decoration:none;padding:18px 32px;border-radius:var(--r-lg);font-size:16px;font-weight:700;letter-spacing:.02em;box-shadow:0 4px 20px rgba(37,99,235,.35);transition:opacity .2s"
+        onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="white" fill-opacity="0.15"/><path d="M4 8.5C4 7.67 4.67 7 5.5 7h8C14.33 7 15 7.67 15 8.5v7c0 .83-.67 1.5-1.5 1.5h-8A1.5 1.5 0 0 1 4 15.5v-7z" fill="white"/><path d="M15 10.5l4-2v7l-4-2v-3z" fill="white"/></svg>
+        Buka Google Meet
+      </a>
+      <div style="margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--hint)">meet.google.com/jyr-kmaz-iue</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-top:8px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px">🔔 Status Notifikasi Meeting</div>
+      <div id="meet-notif-status" style="font-size:12px;color:var(--muted);margin-bottom:12px">Memuat status notifikasi...</div>
+      <button id="meet-notif-btn" onclick="requestMeetingNotif()"
+        style="width:100%;padding:12px;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer">
+        Aktifkan Notifikasi
+      </button>
+      <div style="margin-top:12px;padding:12px 14px;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.15);border-radius:var(--r);font-size:11px;color:var(--blue);line-height:1.6">
+        📅 Notifikasi pengingat <b>Meeting Google Meet</b> akan muncul setiap hari pukul <b>10:00 pagi</b>.
+      </div>
+    </div>
+    <div id="meet-countdown-card" style="margin-top:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;display:none">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Countdown ke meeting berikutnya</div>
+      <div id="meet-countdown" style="font-family:var(--mono);font-size:28px;font-weight:500;color:var(--accent)">--:--:--</div>
     </div>
   </div>
 
@@ -882,6 +915,7 @@ function switchTab(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();}
+  if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
 }
 function switchGudangView(v,btn){
   document.getElementById('gview-monitor').classList.remove('active');
@@ -981,6 +1015,93 @@ function closeModal(){document.getElementById('modal').classList.remove('open');
 function saveUrl(){var v=document.getElementById('url-input').value.trim();if(!v.startsWith('http')){showToast('URL tidak valid','err');return;}scriptUrl=v;localStorage.setItem('mtg_url',v);closeModal();showToast('URL tersimpan ✓','ok');checkTodayFilled();checkLaporanBadge();loadStok(true);}
 document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 var _toastTimer;function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ════ MEETING LINK & NOTIFIKASI ════
+(function initMeeting(){
+  var MEET_URL='https://meet.google.com/jyr-kmaz-iue';
+  var NOTIF_KEY='meeting_notif_granted';
+
+  function updateNotifStatus(){
+    var el=document.getElementById('meet-notif-status');
+    var btn=document.getElementById('meet-notif-btn');
+    if(!('Notification' in window)){
+      el.textContent='Browser kamu tidak mendukung notifikasi.';
+      btn.style.display='none';
+      return;
+    }
+    if(Notification.permission==='granted'){
+      el.innerHTML='✅ <b style="color:var(--green)">Notifikasi aktif</b> — pengingat jam 10:00 pagi sudah disiapkan.';
+      btn.textContent='Notifikasi Sudah Aktif ✓';
+      btn.style.background='rgba(22,163,74,.1)';
+      btn.style.color='var(--green)';
+      btn.style.borderColor='rgba(22,163,74,.3)';
+      btn.disabled=true;
+      scheduleMeetingNotif();
+    } else if(Notification.permission==='denied'){
+      el.innerHTML='❌ Notifikasi <b>diblokir</b> oleh browser. Ubah di pengaturan browser kamu.';
+      btn.textContent='Notifikasi Diblokir';
+      btn.disabled=true;
+    } else {
+      el.textContent='Klik tombol di bawah untuk mengaktifkan notifikasi meeting.';
+      btn.textContent='Aktifkan Notifikasi 🔔';
+      btn.disabled=false;
+    }
+  }
+
+  window.requestMeetingNotif=function(){
+    if(!('Notification' in window))return;
+    Notification.requestPermission().then(function(perm){
+      updateNotifStatus();
+      if(perm==='granted') showToast('Notifikasi meeting aktif ✓','ok');
+    });
+  };
+
+  function scheduleMeetingNotif(){
+    var now=new Date();
+    var next=new Date(now.getFullYear(),now.getMonth(),now.getDate(),10,0,0,0);
+    if(now>=next) next.setDate(next.getDate()+1);
+    var ms=next-now;
+    // Tampilkan countdown
+    document.getElementById('meet-countdown-card').style.display='block';
+    clearInterval(window._meetCdInterval);
+    window._meetCdInterval=setInterval(function(){
+      var n=new Date(), nx=new Date(n.getFullYear(),n.getMonth(),n.getDate(),10,0,0,0);
+      if(n>=nx) nx.setDate(nx.getDate()+1);
+      var diff=Math.max(0,nx-n);
+      var h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+      document.getElementById('meet-countdown').textContent=
+        String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    },1000);
+    clearTimeout(window._meetNotifTimer);
+    window._meetNotifTimer=setTimeout(function(){
+      if(Notification.permission==='granted'){
+        var n=new Notification('📹 Waktunya Meeting!',{
+          body:'Klik untuk membuka Google Meet: meet.google.com/jyr-kmaz-iue',
+          icon:'https://www.gstatic.com/meet/google_meet_marketing_ongoing_meeting_tablet_960_2052ade1a1e8c057ce0b5eeec41f2c27.jpg',
+          tag:'kodachi-meeting',
+          requireInteraction:true
+        });
+        n.onclick=function(){ window.open(MEET_URL,'_blank'); n.close(); };
+        showToast('🔔 Notifikasi meeting jam 10:00!','ok');
+      }
+      // Schedule berikutnya (besok)
+      setTimeout(scheduleMeetingNotif,5000);
+    },ms);
+  }
+
+  // Pastikan jalankan setelah DOM siap
+  function onReady(){
+    updateNotifStatus();
+    // Juga update badge jika notif belum diberikan
+    if(Notification.permission!=='granted'){
+      var b=document.getElementById('badge-meeting');
+      if(b){b.classList.add('show');}
+    }
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',onReady);
+  else onReady();
+})();
 
 // ════ PASSWORD ════
 const PW='kodachi123';
