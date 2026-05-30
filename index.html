@@ -13,6 +13,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='30' fill='%232563eb'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='110' font-family='sans-serif'%3E%F0%9F%8F%AA%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{--bg:#f5f6f8;--surface:#eceef2;--card:#fff;--card2:#f0f2f5;--border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);--text:#1a1c22;--muted:#6b7280;--hint:#adb5bd;--accent:#2563eb;--green:#16a34a;--red:#dc2626;--orange:#d97706;--blue:#2563eb;--mono:'DM Mono',monospace;--sans:'Sora',sans-serif;--r:14px;--r-lg:20px}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -368,15 +369,11 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
 <div class="pw-overlay" id="pw-overlay">
   <div class="pw-box">
     <div class="pw-logo">Kodachi Shop · Monjali</div>
-    <div class="pw-title">Login</div>
-    <div class="pw-sub">Pilih akun & masukkan password</div>
-    <div class="pw-role-row">
-      <button class="pw-role-btn sel" id="role-btn-manager" onclick="pickRole('manager')">👔 Manager</button>
-      <button class="pw-role-btn" id="role-btn-admin" onclick="pickRole('admin')">👑 Admin</button>
-    </div>
-    <input class="pw-input" id="pw-input" type="password" placeholder="••••••••••" maxlength="30" onkeydown="if(event.key==='Enter')checkPw()">
-    <button class="pw-btn" onclick="checkPw()">Masuk →</button>
+    <div class="pw-title">Laporan Manager</div>
+    <div class="pw-sub">Masuk dengan akun Google yang terdaftar</div>
+    <div id="gsi-btn" style="display:flex;justify-content:center;margin-bottom:12px"></div>
     <div class="pw-err" id="pw-err"></div>
+    <div style="font-size:10px;color:var(--hint);margin-top:14px;line-height:1.5">Hanya akun Manager &amp; Admin Kodachi yang diizinkan masuk.</div>
   </div>
 </div>
 
@@ -1401,38 +1398,64 @@ var _toastTimer;function showToast(msg,type){var t=document.getElementById('toas
   else onReady();
 })();
 
-// ════ PASSWORD & ROLE ════
-const PW_MANAGER='manager123';
-const PW_ADMIN='Akwal12345z';
-var _pickedRole='manager';            // pilihan di layar login
-var userRole=sessionStorage.getItem('mtg_role')||'';  // role aktif
-function pickRole(r){_pickedRole=r;document.getElementById('role-btn-manager').classList.toggle('sel',r==='manager');document.getElementById('role-btn-admin').classList.toggle('sel',r==='admin');document.getElementById('pw-err').textContent='';}
-function checkPw(){
-  var v=document.getElementById('pw-input').value;
-  var ok=(_pickedRole==='manager'&&v===PW_MANAGER)||(_pickedRole==='admin'&&v===PW_ADMIN);
-  if(ok){
-    userRole=_pickedRole;
-    sessionStorage.setItem('mtg_auth','1');
-    sessionStorage.setItem('mtg_role',userRole);
-    document.getElementById('pw-overlay').style.display='none';
-    applyRole();
-    alarmMuted=false;
-    setTimeout(()=>{loadStok(true);},500);
-  }else{
-    var i=document.getElementById('pw-input');
-    i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake');
-    document.getElementById('pw-err').textContent='Password salah';i.value='';
-  }
+// ════ GOOGLE SIGN-IN & ROLE ════
+const GOOGLE_CLIENT_ID='1077904025393-sopu3mb62k66u3acngco0ppg4huvbbbm.apps.googleusercontent.com';
+// Daftar email yang diizinkan (huruf kecil semua)
+const EMAIL_MANAGER=['fahdryifih@gmail.com'];
+const EMAIL_ADMIN  =['officialkodachi@gmail.com'];
+
+var userRole=sessionStorage.getItem('mtg_role')||'';
+var userEmail=sessionStorage.getItem('mtg_email')||'';
+
+// Decode payload JWT (tanpa verifikasi tanda tangan — verifikasi cukup oleh Google saat login)
+function _decodeJwt(token){
+  try{
+    var p=token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    var json=decodeURIComponent(atob(p).split('').map(function(c){return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);}).join(''));
+    return JSON.parse(json);
+  }catch(e){return null;}
 }
-// Terapkan tampilan sesuai role
+
+// Callback dari tombol Google Sign-In
+function handleGoogleCredential(resp){
+  var data=_decodeJwt(resp.credential);
+  if(!data||!data.email){showLoginError('Login gagal, coba lagi.');return;}
+  var email=(data.email||'').toLowerCase();
+  // Pastikan email sudah terverifikasi oleh Google
+  if(data.email_verified===false){showLoginError('Email Google belum terverifikasi.');return;}
+  var role='';
+  if(EMAIL_ADMIN.indexOf(email)>=0) role='admin';
+  else if(EMAIL_MANAGER.indexOf(email)>=0) role='manager';
+  if(!role){showLoginError('Akun '+email+' tidak diizinkan masuk.');return;}
+  // Berhasil
+  userRole=role;userEmail=email;
+  sessionStorage.setItem('mtg_auth','1');
+  sessionStorage.setItem('mtg_role',role);
+  sessionStorage.setItem('mtg_email',email);
+  document.getElementById('pw-overlay').style.display='none';
+  applyRole();
+  alarmMuted=false;
+  setTimeout(function(){loadStok(true);},500);
+}
+function showLoginError(msg){
+  var e=document.getElementById('pw-err');if(e)e.textContent=msg;
+}
+
+// Inisialisasi tombol Google (dipanggil setelah library GSI siap)
+function initGoogleSignIn(){
+  if(!(window.google&&google.accounts&&google.accounts.id)){setTimeout(initGoogleSignIn,300);return;}
+  google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:handleGoogleCredential});
+  var btn=document.getElementById('gsi-btn');
+  if(btn){google.accounts.id.renderButton(btn,{theme:'filled_blue',size:'large',text:'signin_with',shape:'pill',width:280,locale:'id'});}
+}
+
 function applyRole(){
   var badge=document.getElementById('role-badge');
   var lo=document.getElementById('logout-btn');
   if(userRole==='admin'){
     document.body.classList.add('role-admin');document.body.classList.remove('role-manager');
     if(badge){badge.style.display='';badge.className='role-badge admin';badge.textContent='👑 ADMIN — Pantau';}
-    if(lo)lo.style.display='';   // tombol logout hanya untuk admin
-    // Admin: hentikan tracking sendiri, tampilkan tombol refresh posisi manager
+    if(lo)lo.style.display='';
     stopGpsTracking();
     var ar=document.getElementById('admin-loc-refresh');if(ar)ar.style.display='block';
     loadManagerLoc();
@@ -1440,34 +1463,38 @@ function applyRole(){
   }else{
     document.body.classList.add('role-manager');document.body.classList.remove('role-admin');
     if(badge){badge.style.display='';badge.className='role-badge manager';badge.textContent='👔 MANAGER';}
-    if(lo)lo.style.display='none';   // manager tidak melihat tombol logout
-    // Manager: jalankan tracking GPS seperti biasa
+    if(lo)lo.style.display='';
     loadLocData();updateTimerDisplay();startGps();
-    _mgrPushTimer=setInterval(pushManagerLoc,60000); // kirim posisi tiap 1 menit
+    _mgrPushTimer=setInterval(pushManagerLoc,60000);
   }
 }
 function logout(){
-  if(!confirm('Keluar dari akun admin?'))return;
+  if(!confirm('Keluar dari akun?'))return;
   if(_adminLocTimer){clearInterval(_adminLocTimer);_adminLocTimer=null;}
   if(_mgrPushTimer){clearInterval(_mgrPushTimer);_mgrPushTimer=null;}
+  try{if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}catch(e){}
   sessionStorage.removeItem('mtg_auth');
   sessionStorage.removeItem('mtg_role');
-  userRole='';
+  sessionStorage.removeItem('mtg_email');
+  userRole='';userEmail='';
   document.body.classList.remove('role-admin','role-manager');
   var lo=document.getElementById('logout-btn');if(lo)lo.style.display='none';
   var badge=document.getElementById('role-badge');if(badge)badge.style.display='none';
-  // tampilkan kembali layar login, reset ke pilihan manager
-  _pickedRole='manager';pickRole('manager');
-  document.getElementById('pw-input').value='';
-  document.getElementById('pw-err').textContent='';
+  showLoginError('');
   document.getElementById('pw-overlay').style.display='flex';
+  initGoogleSignIn();
 }
-if(sessionStorage.getItem('mtg_auth')==='1'){
-  document.addEventListener('DOMContentLoaded',()=>{
+
+// Saat halaman dibuka
+document.addEventListener('DOMContentLoaded',function(){
+  if(sessionStorage.getItem('mtg_auth')==='1'&&userRole){
     document.getElementById('pw-overlay').style.display='none';
     applyRole();
-  });
-}
+  }else{
+    document.getElementById('pw-overlay').style.display='flex';
+    initGoogleSignIn();
+  }
+});
 
 // ════ UANG CASH ════
 var cashData    = [];
