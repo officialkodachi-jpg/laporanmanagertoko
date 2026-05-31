@@ -1852,14 +1852,37 @@ function renderShift(d,bulan,dNext,nextBulan){
     var kosongNext=(dNext.kosong)?dNext.kosong:[];
     var p1=nextBulan.split('-');
     var namaBulanNext=BULAN_NAMES[parseInt(p1[1])-1]+' '+p1[0];
-    var labelKosong=kosongNext.length?'⚠️ '+kosongNext.length+' shift kosong':'✅ Lengkap';
-    html+='<div class="section-hdr" style="margin-top:22px;margin-bottom:10px">'
-      +'<span class="section-hdr-label" style="color:var(--accent)">👀 Preview '+namaBulanNext+' — '+labelKosong+'</span>'
-      +'<div class="section-hdr-line"></div>'
+
+    // Garis pemisah tebal
+    html+='<div style="margin:28px -4px 0;height:3px;border-radius:2px;background:linear-gradient(to right,var(--accent),rgba(37,99,235,.15))"></div>';
+
+    // Header blok preview
+    html+='<div style="margin:16px 0 12px;display:flex;align-items:center;gap:10px">'
+      +'<div style="background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.06em;white-space:nowrap">PREVIEW</div>'
+      +'<div style="font-size:15px;font-weight:700;color:var(--text)">📅 '+namaBulanNext+'</div>'
+      +'<div style="flex:1;height:1px;background:var(--border)"></div>'
       +'</div>';
+
     if(dNext.sheetMissing){
       html+='<div class="empty" style="padding:16px 0"><div class="empty-icon">📭</div><div class="empty-text">Sheet jadwal '+p1[0]+' belum ada</div></div>';
     } else {
+      // Banner peringatan bulan depan (mirip banner bulan aktif)
+      if(kosongNext.length){
+        html+='<div style="margin-bottom:14px;background:#fef3c7;border:2px solid #f59e0b;border-radius:12px;padding:14px 16px">'
+          +'<div style="display:flex;align-items:flex-start;gap:10px">'
+          +'<span style="font-size:22px;line-height:1">⚠️</span>'
+          +'<div style="flex:1">'
+          +'<div style="font-weight:700;color:#92400e;font-size:14px;margin-bottom:2px">SHIFT KOSONG BULAN DEPAN!</div>'
+          +'<div style="color:#78350f;font-size:13px">Ada '+kosongNext.length+' slot shift belum terisi di '+namaBulanNext+'. Isi sekarang sebelum bulan berganti!</div>'
+          +'</div>'
+          +'</div>'
+          +'</div>';
+      } else {
+        html+='<div style="margin-bottom:14px;background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px">'
+          +'<span style="font-size:20px">✅</span>'
+          +'<div style="font-weight:700;color:#15803d;font-size:13px">Jadwal '+namaBulanNext+' sudah lengkap!</div>'
+          +'</div>';
+      }
       html+=_buildShiftListHtml(kosongNext);
       var rekapNextHtml=_buildRekapHtml(dNext.rekap||{});
       if(rekapNextHtml){
