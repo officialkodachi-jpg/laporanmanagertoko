@@ -1497,7 +1497,10 @@ function loadStreakHarian(){
   var monthLabel=document.getElementById('streak-month-label');
   if(!content)return;
   var bulan=todayValue.substring(0,7);
-  if(monthLabel) monthLabel.textContent=bulan;
+  var BULAN_NAMA=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  var bParts=bulan.split('-');
+  var bLabel=BULAN_NAMA[parseInt(bParts[1])-1]+' '+bParts[0];
+  if(monthLabel) monthLabel.textContent=bLabel;
   content.innerHTML='<div style="text-align:center;padding:16px 0;color:var(--hint);font-size:12px"><span class="spinner"></span> Memuat...</div>';
   fetch(scriptUrl+'?type=jamkerja&bulan='+bulan+'&_='+Date.now())
     .then(function(r){return r.json();})
@@ -1585,7 +1588,8 @@ function loadStreakHarian(){
         +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:var(--green)"></div>≥4j</div>'
         +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:rgba(22,163,74,.35)"></div>2–4j</div>'
         +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:rgba(22,163,74,.15)"></div>&lt;2j</div>'
-        +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:rgba(220,38,38,.2)"></div>Tanpa GPS</div>'
+        +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:var(--orange)"></div>Tanpa GPS</div>'
+        +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:rgba(220,38,38,.3)"></div>Absen</div>'
         +'</div>';
       content.innerHTML=html;
     })
@@ -2386,14 +2390,14 @@ function renderHarian(){
           +'</div>'
           +'<div class="d01-dur-row">'
           +'<div class="d01-dur-box"><div class="d01-dur-val muted" id="d01-dur-val">0j 0m</div><div class="d01-dur-label">Durasi di toko</div></div>'
-          +'<div class="d01-dur-box"><div class="d01-dur-val muted" style="font-size:18px">4j 0m</div><div class="d01-dur-label">Target harian</div></div>'
+          +'<div class="d01-dur-box" style="background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.18)"><div class="d01-dur-val green" style="font-size:20px">4j 0m</div><div class="d01-dur-label" style="color:var(--green);font-weight:600">Target</div></div>'
           +'</div>'
           +'<div class="d01-prog-track"><div class="d01-prog-fill" id="d01-prog-fill" style="width:0%;background:var(--hint)"></div></div>'
           +'<div class="d01-prog-labels"><span>0</span><span>1j</span><span>2j</span><span>3j</span><span>4j</span></div>'
           +'<div class="d01-caption"><span class="dot grey" id="d01-caption-dot"></span><span id="d01-caption-text">Menunggu sinyal GPS...</span></div>'
           +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">'
           +'<span class="task-auto-tag">📍 Otomatis dari GPS · D01</span>'
-          +'<div class="d01-swipe-hint" id="d01-swipe-hint-r">Streak ›</div>'
+          +'<div class="d01-swipe-hint" id="d01-swipe-hint-r" style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--hint)">Streak kehadiran <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>'
           +'</div>'
           +'</div>'
           +'</div>'
@@ -2403,11 +2407,11 @@ function renderHarian(){
           +'<div class="d01-streak-card">'
           +'<div class="d01-streak-hdr">'
           +'<span style="font-size:15px">🔥</span>'
-          +'<span class="d01-streak-hdr-label">Streak Kehadiran</span>'
+          +'<span class="d01-streak-hdr-label">Streak Kehadiran Bulan Ini</span>'
           +'<span class="d01-streak-hdr-month" id="streak-month-label">Memuat...</span>'
           +'</div>'
-          +'<div id="streak-content"><div style="text-align:center;padding:20px 0;color:var(--hint);font-size:12px">Memuat data kehadiran...</div></div>'
-          +'<div class="d01-swipe-hint-left"><span>‹ Kembali</span></div>'
+          +'<div id="streak-content"><div style="text-align:center;padding:20px 0;color:var(--hint);font-size:12px"><span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block"></span></div></div>'
+          +'<div class="d01-swipe-hint-left" style="display:flex;align-items:center;gap:3px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg><span>Kehadiran efektif</span></div>'
           +'</div>'
           +'</div>'
 
