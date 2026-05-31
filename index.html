@@ -2168,6 +2168,7 @@ function pgOlehLabel(oleh){
   return s;
 }
 function pgOpenDetail(row){
+  pgTindakArr=[];
   var r=pgFindRow(row);if(!r)return;
   var cls=pgStatusCls(r.status);
   document.getElementById('pg-d-title').textContent=escH(r.nama)+' — '+escH(r.jenis);
@@ -2187,15 +2188,68 @@ function pgOpenDetail(row){
       html+='<a href="'+escH(u)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">🖼 Buka foto '+(i+1)+' ukuran penuh →</a>';
     });
   }
+  // foto bukti tindakan (kalau sudah ada)
+  var ftList=r.fotoTindakan?String(r.fotoTindakan).split('\n').filter(function(x){return x.trim();}):[];
+  if(ftList.length){
+    html+='<div style="font-size:11px;color:var(--green);margin-top:14px;text-transform:uppercase;letter-spacing:.05em">✅ Foto bukti tindakan ('+ftList.length+')</div>';
+    ftList.forEach(function(u,i){
+      html+='<div class="km-d-foto"><img src="'+escH(kmFotoImgUrl(u))+'" alt="tindakan '+(i+1)+'"></div>';
+      html+='<a href="'+escH(u)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">✅ Buka foto tindakan '+(i+1)+' →</a>';
+    });
+  }
   html+='<div class="km-d-actions">';
-  if(cls==='masalah')html+='<button class="ok" onclick="pgMark('+r.row+',\'Sudah ditindak\')">✓ Tandai sudah ditindak</button>';
-  else html+='<button class="reset" onclick="pgMark('+r.row+',\'Belum ditindak\')">↩ Kembalikan ke belum</button>';
+  if(cls==='masalah'){
+    // wajib upload foto bukti tindakan dulu
+    html+='<div class="km-field" style="width:100%"><label class="field-label">Foto bukti tindakan (wajib, boleh lebih dari 1)</label>'
+      +'<input type="file" accept="image/*" multiple id="pg-tindak-foto" style="font-size:12px" onchange="pgTindakFotoChange()">'
+      +'<div class="km-foto-prev" id="pg-tindak-prev"></div></div>';
+    html+='<button class="ok" id="pg-tindak-btn" disabled style="opacity:.5" onclick="pgMarkDone('+r.row+',\''+escH(r.nama)+'\')">✓ Tandai sudah ditindak</button>';
+  } else {
+    html+='<button class="reset" onclick="pgMark('+r.row+',\'Belum ditindak\')">↩ Kembalikan ke belum</button>';
+  }
   if(userRole==='admin')html+='<button class="del" onclick="pgDelete('+r.row+')">🗑 Hapus catatan</button>';
   html+='</div>';
   document.getElementById('pg-d-body').innerHTML=html;
   document.getElementById('pg-detail-bg').classList.add('open');
 }
 function pgCloseDetail(){document.getElementById('pg-detail-bg').classList.remove('open');}
+var pgTindakArr=[];
+function pgTindakFotoChange(){
+  var files=document.getElementById('pg-tindak-foto').files;
+  pgTindakArr=[];var prev=document.getElementById('pg-tindak-prev');prev.innerHTML='';
+  var btn=document.getElementById('pg-tindak-btn');
+  if(!files||!files.length){if(btn){btn.disabled=true;btn.style.opacity='.5';}return;}
+  var total=files.length,done=0;
+  prev.innerHTML='<div style="font-size:11px;color:var(--muted)">Memproses '+total+' foto...</div>';
+  Array.prototype.forEach.call(files,function(f){
+    _kmCompress(f,function(b64){
+      pgTindakArr.push(b64);done++;
+      if(done===total){
+        prev.innerHTML=pgTindakArr.map(function(b){return '<img src="'+b+'" style="max-height:90px;margin:3px 4px 0 0;border-radius:8px;border:1px solid var(--border)">';}).join('')
+          +'<div style="font-size:10px;color:var(--muted);margin-top:4px">'+total+' foto siap</div>';
+        if(btn){btn.disabled=false;btn.style.opacity='1';}
+      }
+    });
+  });
+}
+function pgMarkDone(row,nama){
+  if(!pgTindakArr.length){showToast('Upload foto bukti tindakan dulu','err');return;}
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  var btn=document.getElementById('pg-tindak-btn');if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Mengirim...';}
+  var payload={type:'pegawai_update',row:row,status:'Sudah ditindak',nama:nama,fotos:pgTindakArr};
+  fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d&&d.status==='ok'){
+        if(!d.foto)showToast('Status tersimpan, foto gagal: '+((d.fotoErr||'').slice(0,40)),'err');
+        else showToast('✓ Ditandai sudah ditindak','ok');
+      }else showToast('Gagal','err');
+      pgTindakArr=[];pgCloseDetail();logActivity('Tindak pelanggaran',nama);setTimeout(pgLoadCatatan,1500);
+    })
+    .catch(function(){
+      fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)}).then(function(){showToast('✓ Terkirim','ok');pgTindakArr=[];pgCloseDetail();setTimeout(pgLoadCatatan,3000);}).catch(function(){showToast('Gagal','err');});
+    });
+}
 function pgMark(row,status){
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'pegawai_update',row:row,status:status})})
