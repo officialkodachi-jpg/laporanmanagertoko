@@ -2178,22 +2178,28 @@ function pgOpenDetail(row){
       html+='<a href="'+escH(u)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">🖼 Buka foto '+(i+1)+' ukuran penuh →</a>';
     });
   }
-  html+='<div class="km-d-actions">';
-  if(cls==='masalah')html+='<button class="ok" onclick="pgMark('+r.row+',\'Sudah ditindak\')">✓ Tandai sudah ditindak</button>';
-  else html+='<button class="reset" onclick="pgMark('+r.row+',\'Belum ditindak\')">↩ Kembalikan ke belum</button>';
-  html+='<button class="del" onclick="pgDelete('+r.row+')">🗑 Hapus catatan</button>';
-  html+='</div>';
+  if(userRole==='admin'){
+    html+='<div class="km-d-actions">';
+    if(cls==='masalah')html+='<button class="ok" onclick="pgMark('+r.row+',\'Sudah ditindak\')">✓ Tandai sudah ditindak</button>';
+    else html+='<button class="reset" onclick="pgMark('+r.row+',\'Belum ditindak\')">↩ Kembalikan ke belum</button>';
+    html+='<button class="del" onclick="pgDelete('+r.row+')">🗑 Hapus catatan</button>';
+    html+='</div>';
+  } else {
+    html+='<div style="margin-top:14px;font-size:12px;color:var(--muted);background:var(--card2,rgba(0,0,0,.03));padding:10px 12px;border-radius:8px">Hanya admin yang dapat menindak atau menghapus catatan ini.</div>';
+  }
   document.getElementById('pg-d-body').innerHTML=html;
   document.getElementById('pg-detail-bg').classList.add('open');
 }
 function pgCloseDetail(){document.getElementById('pg-detail-bg').classList.remove('open');}
 function pgMark(row,status){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa menindak catatan','err');return;}
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'pegawai_update',row:row,status:status})})
     .then(function(){showToast('✓ Status diperbarui','ok');pgCloseDetail();setTimeout(pgLoadCatatan,1500);})
     .catch(function(){showToast('Gagal','err');});
 }
 function pgDelete(row){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa menghapus catatan','err');return;}
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   if(!confirm('Hapus catatan ini permanen?'))return;
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'pegawai_delete',row:row})})
