@@ -1029,6 +1029,21 @@ function muteAlarm(){
 }
 
 var shiftAlarmMuted=false;
+var _shiftAlarmInterval=null;
+
+function _startShiftAlarm(){
+  if(_shiftAlarmInterval)return;
+  // Bunyi pertama: 3x beep
+  _playAlarmSound(3);
+  // Ulangi tiap 10 detik selama belum di-mute
+  _shiftAlarmInterval=setInterval(function(){
+    if(!shiftAlarmMuted) _playAlarmSound(2);
+  },10000);
+}
+function _stopShiftAlarm(){
+  if(_shiftAlarmInterval){clearInterval(_shiftAlarmInterval);_shiftAlarmInterval=null;}
+}
+
 function triggerShiftAlarmIfNeeded(totalKosong,dismissed,kosongIni,kosongNext,nextBulan){
   var banner=document.getElementById('shift-alarm-banner');
   if(!banner)return;
@@ -1045,15 +1060,18 @@ function triggerShiftAlarmIfNeeded(totalKosong,dismissed,kosongIni,kosongNext,ne
       cnt.textContent=parts.join(' + ')+' ';
     }
     banner.classList.add('show');
+    _startShiftAlarm();
   }else{
     banner.classList.remove('show');
+    _stopShiftAlarm();
   }
 }
 function muteShiftAlarm(){
   shiftAlarmMuted=true;
+  _stopShiftAlarm();
   var banner=document.getElementById('shift-alarm-banner');
   if(banner)banner.classList.remove('show');
-  showToast('🔕 Notifikasi shift dibisukan untuk sesi ini.','');
+  showToast('🔕 Alarm shift dibisukan untuk sesi ini. Refresh = bunyi lagi.','');
 }
 function triggerAlarmIfNeeded(){
   if(stokData.red.length>0&&!alarmMuted){
