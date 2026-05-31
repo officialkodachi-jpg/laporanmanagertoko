@@ -103,9 +103,9 @@ body.role-admin .admin-only{display:inline-flex}
 .subview{display:none}.subview.active{display:block}
 .subview-cap{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5}
 /* ── D01 Card — redesign ── */
-.d01-swipe-outer{overflow:hidden;border-radius:var(--r);margin-bottom:6px}
-.d01-swipe-track{display:flex;transition:transform .36s cubic-bezier(.4,0,.2,1);will-change:transform}
-.d01-swipe-slide{min-width:100%;flex-shrink:0}
+.d01-swipe-outer{overflow:hidden;border-radius:var(--r);margin-bottom:6px;width:100%}
+.d01-swipe-track{display:flex;transition:transform .36s cubic-bezier(.4,0,.2,1);will-change:transform;align-items:flex-start}
+.d01-swipe-slide{min-width:100%;flex-shrink:0;width:100%;box-sizing:border-box}
 .d01-dots{display:flex;justify-content:center;gap:5px;margin:6px 0 10px}
 .d01-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:background .2s,transform .2s;cursor:pointer;border:none;padding:0}
 .d01-dot.active{background:var(--accent);transform:scale(1.35)}
@@ -1472,8 +1472,20 @@ function _initD01Swipe(){
     cur=Math.max(0,Math.min(total-1,idx));
     track.style.transform='translateX(-'+(cur*100)+'%)';
     getDots().forEach(function(d,i){d.classList.toggle('active',i===cur);});
-    if(cur===1&&userRole==='manager'&&scriptUrl) loadStreakHarian();
+    // update tinggi outer sesuai slide aktif
+    var slides=track.querySelectorAll('.d01-swipe-slide');
+    if(slides[cur]){
+      var h=slides[cur].scrollHeight;
+      outer.style.height=h+'px';
+    }
+    if(cur===1&&scriptUrl) loadStreakHarian();
   }
+  // set initial height
+  function setInitialHeight(){
+    var slides=track.querySelectorAll('.d01-swipe-slide');
+    if(slides[0]) outer.style.height=slides[0].scrollHeight+'px';
+  }
+  setTimeout(setInitialHeight,100);
   outer.addEventListener('touchstart',function(e){startX=e.touches[0].clientX;isDrag=true;},{passive:true});
   outer.addEventListener('touchend',function(e){
     if(!isDrag)return;isDrag=false;
@@ -1488,10 +1500,9 @@ function _initD01Swipe(){
   });
 }
 
-// ════ STREAK HARIAN (manager) ════
+// ════ STREAK HARIAN (manager & admin) ════
 var _streakHarianLoaded=false;
 function loadStreakHarian(){
-  if(userRole!=='manager')return;
   if(!scriptUrl)return;
   var content=document.getElementById('streak-content');
   var monthLabel=document.getElementById('streak-month-label');
@@ -1592,6 +1603,15 @@ function loadStreakHarian(){
         +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:rgba(220,38,38,.3)"></div>Absen</div>'
         +'</div>';
       content.innerHTML=html;
+      // update tinggi outer agar konten streak tidak kepotong
+      setTimeout(function(){
+        var outer=document.getElementById('d01-swipe-outer');
+        var track=outer&&outer.querySelector('.d01-swipe-track');
+        var slides=track&&track.querySelectorAll('.d01-swipe-slide');
+        if(outer&&slides&&slides[1]){
+          outer.style.height=slides[1].scrollHeight+'px';
+        }
+      },50);
     })
     .catch(function(){
       var c=document.getElementById('streak-content');
@@ -2422,8 +2442,8 @@ function renderHarian(){
         setTimeout(updateD01Card,50);
         // init swipe
         _initD01Swipe();
-        // load streak (manager only)
-        if(userRole==='manager') setTimeout(loadStreakHarian,800);
+        // load streak semua role
+        setTimeout(loadStreakHarian,800);
       }else{
         var el=document.createElement('div');
         var priCls='pri-'+pri.toLowerCase();
