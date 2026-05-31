@@ -2094,10 +2094,10 @@ function loadNoteBukti(){
     if(!rows.length){if(box)box.innerHTML='<div style="font-size:11px;color:var(--hint);padding:6px 2px">Belum ada bukti dari Manager</div>';return;}
     var html='';
     rows.forEach(function(r){
-      html+='<div style="border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--card2)">'
+      html+='<div data-bukti-row="'+r.row+'" style="border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--card2)">'
         +'<div style="display:flex;align-items:flex-start;gap:8px">'
         +'<div style="flex:1;min-width:0;font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap"><b>Note:</b> '+escH(r.teks||'-')+'</div>'
-        +'<button onclick="noteBuktiDelete('+r.row+')" title="Sembunyikan dari aplikasi (data tetap di spreadsheet)" style="background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.3);border-radius:8px;padding:4px 8px;font-size:13px;cursor:pointer;flex-shrink:0">🗑</button>'
+        +'<button onclick="noteBuktiDelete('+r.row+')" data-row="'+r.row+'" title="Sembunyikan dari aplikasi (data tetap di spreadsheet)" style="background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.3);border-radius:8px;padding:4px 8px;font-size:13px;cursor:pointer;flex-shrink:0">🗑</button>'
         +'</div>'
         +(r.catatan?'<div style="font-size:11px;color:var(--muted);margin-top:4px"><b>Catatan:</b> '+escH(r.catatan)+'</div>':'')
         +'<div style="font-size:10px;color:var(--hint);font-family:var(--mono);margin-top:5px">'+escH(String(r.waktu||''))+(r.oleh?(' · '+escH(r.oleh)):'')+'</div>'
@@ -2108,24 +2108,16 @@ function loadNoteBukti(){
   }).catch(function(){if(box)box.innerHTML='<div style="font-size:11px;color:var(--red);padding:6px 2px">Gagal memuat</div>';});
 }
 
-// ── ADMIN: sembunyikan satu bukti DARI APLIKASI (spreadsheet tetap utuh) ──
 function noteBuktiDelete(row){
   if(userRole!=='admin'){showToast('Hanya admin yang bisa menghapus','err');return;}
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   if(!confirm('Sembunyikan bukti ini dari aplikasi? Data & foto tetap tersimpan di spreadsheet.'))return;
 
-  // ── Hapus dari DOM langsung (optimistic) ──
+  // Hapus card dari DOM pakai data-attribute (lebih reliabel)
   var box=document.getElementById('note-bukti-list');
   if(box){
-    // Cari elemen yang mengandung tombol dengan row ini
-    var btns=box.querySelectorAll('button');
-    btns.forEach(function(btn){
-      if(btn.getAttribute('onclick')==='noteBuktiDelete('+row+')'){
-        var card=btn.closest('div[style]');
-        if(card) card.remove();
-      }
-    });
-    // Kalau list jadi kosong
+    var card=box.querySelector('[data-bukti-row="'+row+'"]');
+    if(card) card.remove();
     if(!box.children.length){
       box.innerHTML='<div style="font-size:11px;color:var(--hint);padding:6px 2px">Belum ada bukti dari Manager</div>';
     }
@@ -2134,14 +2126,11 @@ function noteBuktiDelete(row){
   showToast('✓ Disembunyikan dari aplikasi','ok');
   logActivity('Sembunyikan bukti note','Baris '+row);
 
-  // ── Kirim ke server di background ──
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'note_bukti_delete',row:row})})
     .then(function(){
-      // Refresh dari server setelah 2 detik untuk sinkronisasi
       setTimeout(loadNoteBukti, 2000);
     })
     .catch(function(){
-      // Tetap refresh meski gagal
       setTimeout(loadNoteBukti, 3000);
     });
 }
