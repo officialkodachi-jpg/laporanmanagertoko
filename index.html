@@ -2113,9 +2113,37 @@ function noteBuktiDelete(row){
   if(userRole!=='admin'){showToast('Hanya admin yang bisa menghapus','err');return;}
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   if(!confirm('Sembunyikan bukti ini dari aplikasi? Data & foto tetap tersimpan di spreadsheet.'))return;
+
+  // ── Hapus dari DOM langsung (optimistic) ──
+  var box=document.getElementById('note-bukti-list');
+  if(box){
+    // Cari elemen yang mengandung tombol dengan row ini
+    var btns=box.querySelectorAll('button');
+    btns.forEach(function(btn){
+      if(btn.getAttribute('onclick')==='noteBuktiDelete('+row+')'){
+        var card=btn.closest('div[style]');
+        if(card) card.remove();
+      }
+    });
+    // Kalau list jadi kosong
+    if(!box.children.length){
+      box.innerHTML='<div style="font-size:11px;color:var(--hint);padding:6px 2px">Belum ada bukti dari Manager</div>';
+    }
+  }
+
+  showToast('✓ Disembunyikan dari aplikasi','ok');
+  logActivity('Sembunyikan bukti note','Baris '+row);
+
+  // ── Kirim ke server di background ──
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'note_bukti_delete',row:row})})
-    .then(function(){showToast('✓ Disembunyikan dari aplikasi','ok');logActivity('Sembunyikan bukti note','Baris '+row);setTimeout(loadNoteBukti,1500);})
-    .catch(function(){showToast('Gagal menyembunyikan','err');});
+    .then(function(){
+      // Refresh dari server setelah 2 detik untuk sinkronisasi
+      setTimeout(loadNoteBukti, 2000);
+    })
+    .catch(function(){
+      // Tetap refresh meski gagal
+      setTimeout(loadNoteBukti, 3000);
+    });
 }
 
 // ════ KIRIMAN STOK ════
