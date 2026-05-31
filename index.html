@@ -330,6 +330,9 @@ body.role-admin .admin-only{display:inline-flex}
 .stok-qty .q-toko{color:var(--red);font-weight:600}.stok-qty .q-gud{color:var(--green);font-weight:600}
 .stok-sheet-link{display:block;text-align:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;margin-top:16px}
 .notif-banner{display:flex;align-items:center;gap:10px;border:1.5px solid var(--border);border-radius:var(--r);padding:11px 13px;margin-bottom:8px}
+.notif-banner.note{border-color:rgba(37,99,235,.4);background:rgba(37,99,235,.08)}
+.notif-banner.note-urgent{border-color:rgba(220,38,38,.55);background:rgba(220,38,38,.09);animation:notePulse 1.2s ease infinite alternate}
+@keyframes notePulse{0%{box-shadow:0 0 0 0 rgba(220,38,38,.22)}100%{box-shadow:0 0 0 6px rgba(220,38,38,0)}}
 #notif-stack:empty{display:none}
 #notif-stack{margin-top:4px}
 
@@ -495,6 +498,12 @@ body.role-admin #admin-mgrlog{display:none!important}
   <span>📅 SHIFT KOSONG — <span id="shift-alarm-count"></span>slot belum terisi bulan ini!</span>
   <span class="mute-hint">Tap di sini untuk bisukan</span>
 </div>
+
+<!-- NOTE URGENT BANNER — pesan penting dari admin, merah, hanya tampil di HP Manager -->
+<div class="alarm-banner" id="note-alarm-banner" onclick="muteNoteAlarm()" style="background:#b91c1c">
+  <span>📌 PESAN PENTING DARI ADMIN — <span id="note-alarm-text"></span></span>
+  <span class="mute-hint">Tap untuk tutup</span>
+</div>
 </div>
 
 <div class="pw-overlay" id="pw-overlay">
@@ -586,6 +595,34 @@ body.role-admin #admin-mgrlog{display:none!important}
   <!-- HOME (admin only) -->
   <div class="panel" id="panel-home">
     <div style="font-size:11px;color:var(--muted);margin-bottom:16px;font-family:var(--mono)">Panel khusus Admin — monitoring real-time aktivitas Manager</div>
+
+    <!-- ✍️ NOTE UNTUK MANAGER — admin tulis pesan yang muncul sebagai banner di HP Manager -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <div style="font-size:18px">✍️</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Note untuk Manager</div>
+          <div style="font-size:10px;color:var(--hint);font-family:var(--mono)">Tampil sebagai banner di HP Manager (sejajar banner kiriman)</div>
+        </div>
+        <button class="btn-press" onclick="loadAdminNote()" style="background:rgba(37,99,235,.1);color:var(--accent);border:1px solid rgba(37,99,235,.25);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">⟳ Cek</button>
+      </div>
+      <div style="padding:12px 14px">
+        <div id="note-current-wrap" style="display:none;margin-bottom:10px;padding:10px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--hint);font-family:var(--mono);margin-bottom:4px">📍 NOTE AKTIF SAAT INI (dilihat Manager)</div>
+          <div id="note-current-text" style="font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap"></div>
+          <div id="note-current-meta" style="font-size:10px;color:var(--hint);font-family:var(--mono);margin-top:6px"></div>
+        </div>
+        <textarea id="note-input" class="note-input" placeholder="cth: Tolong cek stok Sparta sebelum tutup. Besok pengiriman datang jam 9 pagi, siapkan tempat."></textarea>
+        <label style="display:flex;align-items:center;gap:8px;margin:10px 0;cursor:pointer;font-size:12px;color:var(--text)">
+          <input type="checkbox" id="note-urgent" style="width:16px;height:16px;accent-color:var(--red)">
+          <span>🚨 Tandai <b>URGENT</b> — banner merah + alarm bunyi di HP Manager</span>
+        </label>
+        <div style="display:flex;gap:8px">
+          <button class="btn-press" id="note-save-btn" onclick="noteSave()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans)">📤 Kirim ke Manager</button>
+          <button class="btn-press" id="note-clear-btn" onclick="noteClear()" style="background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.3);border-radius:10px;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans)">🗑 Hapus</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Kiriman Belum Sampai -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
@@ -1851,6 +1888,22 @@ var _notifDismissed={}; // key banner yg sudah ditutup user (sesi ini)
 function renderNotifStack(){
   var box=document.getElementById('notif-stack');if(!box)return;
   var cards=[];
+  // 0) NOTE dari admin — selalu paling atas
+  if(_mgrNote&&_mgrNote.teks&&!_noteDismissed){
+    var nu=_mgrNote.urgent;
+    var njam=_mgrNote.waktu?new Date(Number(_mgrNote.waktu)).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+    cards.push(
+      '<div class="notif-banner '+(nu?'note-urgent':'note')+'">'
+      +'<div style="font-size:20px">'+(nu?'🚨':'📌')+'</div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-size:12px;font-weight:800;color:'+(nu?'var(--red)':'var(--accent)')+'">'+(nu?'PESAN PENTING dari Admin':'Note dari Admin')+'</div>'
+      +'<div style="font-size:12px;color:var(--text);margin-top:3px;line-height:1.5;white-space:pre-wrap">'+escH(_mgrNote.teks)+'</div>'
+      +(njam?'<div style="font-size:10px;color:var(--hint);font-family:var(--mono);margin-top:4px">dikirim '+escH(njam)+'</div>':'')
+      +'</div>'
+      +'<button onclick="dismissMgrNote()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px">×</button>'
+      +'</div>'
+    );
+  }
   // 1) Kiriman stok belum sampai — satu banner per kiriman
   kmData.forEach(function(r){
     if((r.status||'Dikirim')==='Sampai')return;
@@ -1874,6 +1927,98 @@ function renderNotifStack(){
   box.innerHTML=cards.join('');
 }
 function dismissNotif(key){_notifDismissed[key]=true;renderNotifStack();}
+
+// ════ NOTE ADMIN → MANAGER ════
+var _mgrNote=null;            // {teks,urgent,oleh,waktu} | null
+var _noteDismissed=false;     // Manager tutup banner note (sesi ini)
+var _noteAlarmMuted=false;    // Manager bisukan alarm urgent (sesi ini)
+var _noteAlarmSounded=false;  // sudah bunyi sekali utk note ini
+var _adminNoteTimer=null, _mgrNoteTimer=null;
+
+// ADMIN: kirim note ke server
+function noteSave(){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa menulis note','err');return;}
+  var url=scriptUrl;if(!url||!url.startsWith('http')){showToast('URL belum dikonfigurasi','err');return;}
+  var teks=(document.getElementById('note-input').value||'').trim();
+  if(!teks){showToast('Note masih kosong','err');return;}
+  var urgent=document.getElementById('note-urgent').checked?1:0;
+  var btn=document.getElementById('note-save-btn');if(btn){btn.disabled=true;btn.textContent='Mengirim...';}
+  var payload={type:'note_set',teks:teks,urgent:urgent,oleh:(userEmail||userRole||'admin'),waktu:Date.now()};
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
+    .then(function(){
+      showToast('✓ Note terkirim ke Manager','ok');
+      logActivity('Kirim note ke Manager',(urgent?'[URGENT] ':'')+teks.slice(0,50));
+      document.getElementById('note-urgent').checked=false;
+      setTimeout(loadAdminNote,1500);
+    })
+    .catch(function(){showToast('Gagal mengirim note','err');})
+    .finally(function(){if(btn){btn.disabled=false;btn.textContent='📤 Kirim ke Manager';}});
+}
+
+// ADMIN: hapus note aktif (banner di HP Manager ikut hilang)
+function noteClear(){
+  if(userRole!=='admin')return;
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  if(!confirm('Hapus note yang sedang aktif? Banner di HP Manager akan hilang.'))return;
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'note_set',teks:'',urgent:0,oleh:(userEmail||'admin'),waktu:Date.now()})})
+    .then(function(){showToast('✓ Note dihapus','ok');logActivity('Hapus note Manager','');document.getElementById('note-input').value='';setTimeout(loadAdminNote,1500);})
+    .catch(function(){showToast('Gagal menghapus','err');});
+}
+
+// ADMIN: muat note aktif → tampil di preview kartu
+function loadAdminNote(){
+  if(userRole!=='admin')return;
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  fetch(url+'?type=note&_='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    var wrap=document.getElementById('note-current-wrap');
+    var txt=document.getElementById('note-current-text');
+    var meta=document.getElementById('note-current-meta');
+    var urg=(d&&(d.urgent==1||d.urgent===true));
+    if(d&&d.teks){
+      if(wrap)wrap.style.display='block';
+      if(txt)txt.textContent=(urg?'🚨 ':'')+d.teks;
+      var jam=d.waktu?new Date(Number(d.waktu)).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+      if(meta)meta.textContent=(urg?'URGENT · ':'')+'dikirim '+jam;
+    }else if(wrap){wrap.style.display='none';}
+  }).catch(function(){});
+}
+
+// MANAGER: muat note dari server → render sebagai banner
+function loadManagerNote(){
+  if(userRole!=='manager')return;
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  fetch(url+'?type=note&_='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    var prevKey=_mgrNote?(_mgrNote.waktu+'|'+_mgrNote.teks):'';
+    if(d&&d.teks){
+      _mgrNote={teks:d.teks,urgent:(d.urgent==1||d.urgent===true),oleh:d.oleh||'',waktu:d.waktu||0};
+      var newKey=_mgrNote.waktu+'|'+_mgrNote.teks;
+      if(newKey!==prevKey){_noteDismissed=false;_noteAlarmMuted=false;_noteAlarmSounded=false;} // note baru → tampil & bunyi lagi
+    }else{_mgrNote=null;}
+    renderNotifStack();
+    updateNoteAlarm();
+  }).catch(function(){});
+}
+
+// MANAGER: banner merah sticky utk note URGENT
+function updateNoteAlarm(){
+  var banner=document.getElementById('note-alarm-banner');if(!banner)return;
+  if(_mgrNote&&_mgrNote.urgent&&!_noteAlarmMuted&&!_noteDismissed){
+    var t=document.getElementById('note-alarm-text');
+    if(t)t.textContent=String(_mgrNote.teks).slice(0,90);
+    banner.classList.add('show');
+    if(!_noteAlarmSounded&&typeof _playAlarmSound==='function'){_noteAlarmSounded=true;try{_playAlarmSound(3);}catch(e){}}
+  }else{banner.classList.remove('show');}
+}
+function muteNoteAlarm(){
+  _noteAlarmMuted=true;
+  var banner=document.getElementById('note-alarm-banner');if(banner)banner.classList.remove('show');
+  showToast('🔕 Pesan penting dibisukan. Masih bisa dilihat di banner bawah.','');
+}
+function dismissMgrNote(){
+  _noteDismissed=true;
+  var b=document.getElementById('note-alarm-banner');if(b)b.classList.remove('show');
+  renderNotifStack();
+}
 
 // ════ KIRIMAN STOK ════
 var kmData=[],_kmLoadedOnce=false,_kmFotoBase64='',_kmResiBase64='';
@@ -3420,6 +3565,9 @@ function applyRole(){
     var amg=document.getElementById('admin-mgrlog');if(amg)amg.style.display='block';
     loadManagerLoc();
     _adminLocTimer=setInterval(loadManagerLoc,60000);
+    loadAdminNote();
+    if(_adminNoteTimer)clearInterval(_adminNoteTimer);
+    _adminNoteTimer=setInterval(loadAdminNote,60000);
     // Auto-switch ke tab HOME untuk admin
     setTimeout(function(){
       var homeTab=document.getElementById('tab-home');
@@ -3432,6 +3580,9 @@ function applyRole(){
     loadLocData();updateTimerDisplay();startGps();
     _mgrPushTimer=setInterval(pushManagerLoc,60000);
     var amg2=document.getElementById('admin-mgrlog');if(amg2)amg2.style.display='none';
+    loadManagerNote();
+    if(_mgrNoteTimer)clearInterval(_mgrNoteTimer);
+    _mgrNoteTimer=setInterval(loadManagerNote,60000);
   }
   // loadShift dipanggil di sini (bukan di DOMContentLoaded)
   // supaya isAdmin sudah ter-set saat renderShift() berjalan
