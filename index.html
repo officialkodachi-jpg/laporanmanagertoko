@@ -825,6 +825,11 @@ body.role-admin #admin-mgrlog{display:none!important}
     <div class="event-detail" id="event-detail" style="display:none">
       <div class="field-label" style="margin-bottom:8px">Status</div>
       <div class="status-row"><button class="status-btn" id="sbtn-ok" onclick="setStatus('✓')">✓ Selesai</button><button class="status-btn" id="sbtn-no" onclick="setStatus('✗')">✗ Tidak dilakukan</button></div>
+      <div id="event-foto-wrap" style="display:none;margin-top:12px">
+        <div class="field-label" style="margin-bottom:6px">📸 Foto bukti pekerjaan <span style="color:var(--red)">(wajib, ambil langsung dari kamera)</span></div>
+        <input type="file" accept="image/*" capture="environment" id="event-foto" style="font-size:12px" onchange="eventFotoChange()">
+        <div class="km-foto-prev" id="event-foto-prev"></div>
+      </div>
       <div class="field-label">Catatan / Hasil</div>
       <textarea class="note-input" id="event-note" placeholder="Opsional: isi catatan atau hasil kerja..."></textarea>
       <button class="send-btn" id="event-send-btn" onclick="saveEvent()">Catat →</button>
@@ -1878,11 +1883,11 @@ function _kmCompress(file,cb){
   reader.onload=function(e){
     var img=new Image();
     img.onload=function(){
-      var max=800,w=img.width,h=img.height;
+      var max=640,w=img.width,h=img.height;
       if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}
       var cv=document.createElement('canvas');cv.width=w;cv.height=h;
       cv.getContext('2d').drawImage(img,0,0,w,h);
-      cb(cv.toDataURL('image/jpeg',0.5));
+      cb(cv.toDataURL('image/jpeg',0.4));
     };
     img.src=e.target.result;
   };
@@ -3032,19 +3037,36 @@ async function saveHarian(){
 // ════ EVENTS ════
 var EV_ICONS={E01:'📥',E02:'💵',E03:'📊',E04:'⚠️',E05:'🚚',E06:'⚡',E07:'🔄',E08:'🎓',E09:'📢'};
 function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHTML='';EVENTS.forEach(ev=>{var el=document.createElement('div');var priCls='pri-'+ev.prioritas.toLowerCase();el.className='event-card '+priCls;el.id='ev-'+ev.kode;el.innerHTML='<div class="ev-icon">'+(EV_ICONS[ev.kode]||'📌')+'</div><div class="ev-body"><div class="event-nama">'+ev.nama+'</div><div class="event-meta">'+ev.kode+' · '+ev.frekuensi+' · <b>'+ev.prioritas+'</b></div></div><div class="ev-arrow">›</div>';el.onclick=()=>selectEvent(ev);g.appendChild(el);});}
-function selectEvent(ev){selectedEvent=ev;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));document.getElementById('ev-'+ev.kode).classList.add('selected');document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';document.getElementById('event-note').value='';document.getElementById('event-detail').style.display='block';document.getElementById('event-detail').scrollIntoView({behavior:'smooth',block:'nearest'});}
-function setStatus(s){selectedStatus=s;document.getElementById('sbtn-ok').className='status-btn'+(s==='✓'?' sel-ok':'');document.getElementById('sbtn-no').className='status-btn'+(s==='✗'?' sel-no':'');}
+function selectEvent(ev){selectedEvent=ev;selectedStatus=null;eventFotoBase64='';document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));document.getElementById('ev-'+ev.kode).classList.add('selected');document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';document.getElementById('event-note').value='';var fw=document.getElementById('event-foto-wrap');if(fw)fw.style.display='none';var fp=document.getElementById('event-foto-prev');if(fp)fp.innerHTML='';var fi=document.getElementById('event-foto');if(fi)fi.value='';document.getElementById('event-detail').style.display='block';document.getElementById('event-detail').scrollIntoView({behavior:'smooth',block:'nearest'});}
+function setStatus(s){
+  selectedStatus=s;
+  document.getElementById('sbtn-ok').className='status-btn'+(s==='✓'?' sel-ok':'');
+  document.getElementById('sbtn-no').className='status-btn'+(s==='✗'?' sel-no':'');
+  // foto bukti wajib hanya untuk manager saat memilih "Selesai"
+  var fw=document.getElementById('event-foto-wrap');
+  if(fw)fw.style.display=(s==='✓'&&userRole==='manager')?'block':'none';
+}
+var eventFotoBase64='';
+function eventFotoChange(){
+  var f=document.getElementById('event-foto').files[0];
+  eventFotoBase64='';document.getElementById('event-foto-prev').innerHTML='';
+  if(!f)return;
+  _kmCompress(f,function(b64){eventFotoBase64=b64;
+    document.getElementById('event-foto-prev').innerHTML='<img src="'+b64+'" style="max-height:120px;margin-top:6px;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green);margin-top:4px">✓ Foto bukti siap</div>';});
+}
 async function saveEvent(){
   if(!scriptUrl){openModal();return;}
   if(!selectedEvent){showToast('Pilih tugas dulu','err');return;}
   if(!selectedStatus){showToast('Pilih status dulu','err');return;}
+  // manager wajib upload foto bukti (dari kamera) saat menandai Selesai
+  if(selectedStatus==='✓'&&userRole==='manager'&&!eventFotoBase64){showToast('Upload foto bukti dari kamera dulu','err');return;}
   var btn=document.getElementById('event-send-btn');
-  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Menyimpan...';}
-  var payload={type:'event',tanggal:todayValue,kode:selectedEvent.kode,nama:selectedEvent.nama,kategori:selectedEvent.kategori,frekuensi:selectedEvent.frekuensi,prioritas:selectedEvent.prioritas,status:selectedStatus,catatan:document.getElementById('event-note').value||''};
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>'+(eventFotoBase64?'Mengirim + foto...':'Menyimpan...');}
+  var payload={type:'event',tanggal:todayValue,kode:selectedEvent.kode,nama:selectedEvent.nama,kategori:selectedEvent.kategori,frekuensi:selectedEvent.frekuensi,prioritas:selectedEvent.prioritas,status:selectedStatus,catatan:document.getElementById('event-note').value||'',foto:eventFotoBase64||''};
   var ok=false;
   try{await fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});ok=true;}
   catch(err1){try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)});var d=await r.json();ok=(d.status==='ok');if(!ok)showToast('Gagal: '+(d.message||'error'),'err');}catch(err2){showToast('Gagal terhubung ke server','err');}}
-  if(ok){showToast('✓ Non-Harian tercatat!','ok');logActivity('Catat Non-Harian',(selectedEvent?selectedEvent.nama:'')+' — '+selectedStatus);document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));setTimeout(checkEventBadge,2500);}
+  if(ok){showToast('✓ Non-Harian tercatat!','ok');logActivity('Catat Non-Harian',(selectedEvent?selectedEvent.nama:'')+' — '+selectedStatus);document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;eventFotoBase64='';document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));setTimeout(checkEventBadge,2500);}
   if(btn){btn.disabled=false;btn.textContent='Catat →';}
 }
 
