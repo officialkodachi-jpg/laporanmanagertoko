@@ -286,6 +286,9 @@ body.role-admin .admin-only{display:inline-flex}
 .stok-qty{flex-shrink:0;text-align:right;font-family:var(--mono);font-size:11px;line-height:1.5}
 .stok-qty .q-toko{color:var(--red);font-weight:600}.stok-qty .q-gud{color:var(--green);font-weight:600}
 .stok-sheet-link{display:block;text-align:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;margin-top:16px}
+.notif-banner{display:flex;align-items:center;gap:10px;border:1.5px solid var(--border);border-radius:var(--r);padding:11px 13px;margin-bottom:8px}
+#notif-stack:empty{display:none}
+#notif-stack{margin-top:4px}
 
 /* STOK EMPTY SINCE BADGE */
 .empty-since-badge{display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:4px 10px;border-radius:20px;font-family:var(--mono);font-size:10px;font-weight:700;background:rgba(220,38,38,.12);color:var(--red);border:1px solid rgba(220,38,38,.25)}
@@ -467,6 +470,8 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
   </div>
   <div class="loc-timer" id="loc-timer">0:00</div>
 </div></div>
+
+<div id="notif-stack" style="margin:0 16px"></div>
 
 <div id="mgr-activity-banner" class="admin-only" style="display:none;margin:0 16px 12px;background:rgba(124,58,237,.1);border:1.5px solid rgba(124,58,237,.4);border-radius:var(--r);padding:12px 14px">
   <div style="display:flex;align-items:center;gap:10px">
@@ -1451,7 +1456,36 @@ function updateGudangBadges(){
   _setBadge('badge-inout',igMinusCount,true);
   _setBadge('badge-kiriman',blmSampai,true);
   _setBadge('badge-stok',red+blmSampai+igMinusCount,true);
+  renderNotifStack();
 }
+
+// ════ BANNER NOTIFIKASI BERTUMPUK (kiriman belum sampai, dll) ════
+var _notifDismissed={}; // key banner yg sudah ditutup user (sesi ini)
+function renderNotifStack(){
+  var box=document.getElementById('notif-stack');if(!box)return;
+  var cards=[];
+  // 1) Kiriman stok belum sampai — satu banner per kiriman
+  kmData.forEach(function(r){
+    if((r.status||'Dikirim')==='Sampai')return;
+    var key='kiriman-'+r.row;
+    if(_notifDismissed[key])return;
+    var jasa=escH(r.jasa||'-');
+    var isi=escH(String(r.isi||'').slice(0,50));
+    var tgl=r.tglKirim?kmFmtTgl(r.tglKirim):'';
+    cards.push(
+      '<div class="notif-banner" style="border-color:rgba(217,119,6,.4);background:rgba(217,119,6,.1)">'
+      +'<div style="font-size:20px">🚚</div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-size:12px;font-weight:800;color:var(--orange)">Kiriman belum sampai — '+jasa+'</div>'
+      +'<div style="font-size:11px;color:var(--text);margin-top:2px;line-height:1.4">'+(isi||'(tanpa rincian)')+(tgl?(' · dikirim '+escH(tgl)):'')+'</div>'
+      +'</div>'
+      +'<button onclick="dismissNotif(\''+key+'\')" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px">×</button>'
+      +'</div>'
+    );
+  });
+  box.innerHTML=cards.join('');
+}
+function dismissNotif(key){_notifDismissed[key]=true;renderNotifStack();}
 
 // ════ KIRIMAN STOK ════
 var kmData=[],_kmLoadedOnce=false,_kmFotoBase64='',_kmResiBase64='';
@@ -2853,6 +2887,9 @@ function applyRole(){
   // loadShift dipanggil di sini (bukan di DOMContentLoaded)
   // supaya isAdmin sudah ter-set saat renderShift() berjalan
   loadShift();
+  // muat kiriman & stok di awal agar banner notifikasi tampil tanpa harus buka tab
+  if(typeof kmLoad==='function')kmLoad();
+  if(typeof loadStok==='function')loadStok();
 }
 function logout(){
   if(!confirm('Keluar dari akun?'))return;
