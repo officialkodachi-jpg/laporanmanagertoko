@@ -1551,7 +1551,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadStok(true);
   kmLoad();
   loadCashData();
-  loadShift();
   _stokRefreshTimer=setInterval(()=>loadStok(true),STOK_AUTO_REFRESH_MS);
   igLoadProduk(true);
   loadPartimer();
@@ -2478,6 +2477,9 @@ function applyRole(){
     loadLocData();updateTimerDisplay();startGps();
     _mgrPushTimer=setInterval(pushManagerLoc,60000);
   }
+  // loadShift dipanggil di sini (bukan di DOMContentLoaded)
+  // supaya isAdmin sudah ter-set saat renderShift() berjalan
+  loadShift();
 }
 function logout(){
   if(!confirm('Keluar dari akun?'))return;
