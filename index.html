@@ -1740,17 +1740,79 @@ async function checkEventBadge(){
 
 // ════ JADWAL SHIFT ════
 var DAY_FULL2=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+// Helper: build next month string 'YYYY-MM'
+function _nextBulan(bulan){
+  var p=bulan.split('-'),yr=parseInt(p[0]),mo=parseInt(p[1]);
+  mo++; if(mo>12){mo=1;yr++;}
+  return yr+'-'+String(mo).padStart(2,'0');
+}
+// Helper: cek apakah hari ini >= H-3 akhir bulan untuk bulan yg dipilih
+function _isNearEndOfMonth(bulan){
+  var today=new Date(todayValue);
+  var p=bulan.split('-'),yr=parseInt(p[0]),mo=parseInt(p[1]);
+  // bulan yg dipilih harus bulan berjalan
+  if(today.getFullYear()!==yr||today.getMonth()+1!==mo)return false;
+  var lastDay=new Date(yr,mo,0).getDate(); // hari terakhir bulan ini
+  return today.getDate()>=(lastDay-2); // H-3 atau lebih dekat
+}
+
 function loadShift(){
   if(!scriptUrl)return;
   var bulan=document.getElementById('shift-month').value||todayValue.substring(0,7);
   var list=document.getElementById('shift-list');
   list.innerHTML='<div class="empty"><span class="spinner"></span> Memeriksa jadwal...</div>';
-  fetch(scriptUrl+'?type=shift&bulan='+bulan+'&_='+Date.now())
-    .then(function(r){return r.json();})
-    .then(function(d){renderShift(d,bulan);})
-    .catch(function(){list.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Gagal memuat jadwal</div></div>';});
+
+  var showNext=_isNearEndOfMonth(bulan);
+  var nextBulan=_nextBulan(bulan);
+
+  if(showNext){
+    // Fetch dua bulan sekaligus
+    Promise.all([
+      fetch(scriptUrl+'?type=shift&bulan='+bulan+'&_='+Date.now()).then(function(r){return r.json();}),
+      fetch(scriptUrl+'?type=shift&bulan='+nextBulan+'&_='+Date.now()).then(function(r){return r.json();})
+    ]).then(function(res){
+      renderShift(res[0],bulan,res[1],nextBulan);
+    }).catch(function(){list.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Gagal memuat jadwal</div></div>';});
+  } else {
+    fetch(scriptUrl+'?type=shift&bulan='+bulan+'&_='+Date.now())
+      .then(function(r){return r.json();})
+      .then(function(d){renderShift(d,bulan,null,'');})
+      .catch(function(){list.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Gagal memuat jadwal</div></div>';});
+  }
 }
-function renderShift(d,bulan){
+
+// Render daftar shift kosong untuk satu bulan → kembalikan HTML string
+function _buildShiftListHtml(kosong){
+  if(!kosong||!kosong.length) return '<div class="empty" style="padding:20px 0"><div class="empty-icon">✅</div><div class="empty-text"><b>Jadwal lengkap</b><br>Tidak ada shift kosong</div></div>';
+  var html='';
+  kosong.forEach(function(k){
+    var p=k.tgl.split('-'),dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+    var hari=DAY_FULL2[dt.getDay()],tglTxt=parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1];
+    var warna=k.shift==='PAGI'?'var(--orange)':'var(--blue)';
+    html+='<div class="stok-item" style="border-left-color:'+warna+'">'
+      +'<div class="stok-size-pill" style="background:'+(k.shift==='PAGI'?'rgba(217,119,6,.12)':'rgba(37,99,235,.12)')+';color:'+warna+';font-size:11px;min-width:54px">'+k.shift+'</div>'
+      +'<div class="stok-item-body"><div class="stok-item-name">'+hari+', '+tglTxt+'</div><div class="stok-item-sub">shift '+(k.shift==='PAGI'?'pagi (10.00–15.30)':'sore (15.30–21.00)')+' belum ada nama</div></div>'
+      +'</div>';
+  });
+  return html;
+}
+
+// Render rekap per nama → kembalikan HTML string
+function _buildRekapHtml(rekap){
+  var namaList=Object.keys(rekap||{}).sort(function(a,b){return rekap[b]-rekap[a];});
+  if(!namaList.length)return '';
+  var rh='<div style="background:var(--card);border-radius:10px;border:1px solid var(--border)">';
+  namaList.forEach(function(nama){
+    rh+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px">'
+      +'<span>'+escH(nama)+'</span>'
+      +'<span style="font-weight:700;color:var(--blue)">'+rekap[nama]+' shift</span>'
+      +'</div>';
+  });
+  rh+='</div>';
+  return rh;
+}
+
+function renderShift(d,bulan,dNext,nextBulan){
   var list=document.getElementById('shift-list');
   var kosong=(d&&d.kosong)?d.kosong:[];
   updateShiftBadge(kosong.length);
@@ -1760,7 +1822,7 @@ function renderShift(d,bulan){
 
   // Banner peringatan keras — dismiss disimpan ke spreadsheet (berlaku semua device)
   var banner=document.getElementById('shift-danger-banner');
-  var dismissed=d&&d.dismissed; // dari Apps Script
+  var dismissed=d&&d.dismissed;
   window._shiftDismissBulan=bulan;
   if(kosong.length&&!dismissed){
     document.getElementById('shift-danger-text').textContent='Ada '+kosong.length+' slot shift belum terisi bulan ini. Segera isi jadwal!';
@@ -1772,42 +1834,44 @@ function renderShift(d,bulan){
     banner.style.display='none';
   }
 
-  if(!kosong.length){
-    list.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-text"><b>Jadwal lengkap</b><br>Tidak ada shift kosong bulan ini</div></div>';
-    document.getElementById('shift-rekap-wrap').style.display='none';
-  } else {
-    var html='';
-    kosong.forEach(function(k){
-      var p=k.tgl.split('-'),dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
-      var hari=DAY_FULL2[dt.getDay()],tglTxt=parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1];
-      var warna=k.shift==='PAGI'?'var(--orange)':'var(--blue)';
-      html+='<div class="stok-item" style="border-left-color:'+warna+'">'
-        +'<div class="stok-size-pill" style="background:'+(k.shift==='PAGI'?'rgba(217,119,6,.12)':'rgba(37,99,235,.12)')+';color:'+warna+';font-size:11px;min-width:54px">'+k.shift+'</div>'
-        +'<div class="stok-item-body"><div class="stok-item-name">'+hari+', '+tglTxt+'</div><div class="stok-item-sub">shift '+(k.shift==='PAGI'?'pagi (10.00–15.30)':'sore (15.30–21.00)')+' belum ada nama</div></div>'
-        +'</div>';
-    });
-    list.innerHTML=html;
+  // ── Bulan aktif ──
+  var p0=bulan.split('-');
+  var namaBulanAktif=BULAN_NAMES[parseInt(p0[1])-1]+' '+p0[0];
+  var html='<div class="section-hdr" style="margin-bottom:10px"><span class="section-hdr-label">📅 '+namaBulanAktif+'</span><div class="section-hdr-line"></div></div>';
+  html+=_buildShiftListHtml(kosong);
+
+  // ── Rekap bulan aktif ──
+  var rekapHtml=_buildRekapHtml(d.rekap||{});
+  if(rekapHtml){
+    html+='<div style="font-weight:600;font-size:13px;color:var(--muted);margin:14px 0 8px">👤 Rekap shift '+namaBulanAktif+'</div>';
+    html+=rekapHtml;
   }
 
-  // Rekap per nama — di bawah
-  var rekap=d.rekap||{};
-  var namaList=Object.keys(rekap).sort(function(a,b){return rekap[b]-rekap[a];});
-  var rekapWrap=document.getElementById('shift-rekap-wrap');
-  var rekapList=document.getElementById('shift-rekap-list');
-  if(namaList.length){
-    var rh='<div style="background:var(--card);border-radius:10px;border:1px solid var(--border)">';
-    namaList.forEach(function(nama){
-      rh+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px">'
-        +'<span>'+escH(nama)+'</span>'
-        +'<span style="font-weight:700;color:var(--blue)">'+rekap[nama]+' shift</span>'
-        +'</div>';
-    });
-    rh+='</div>';
-    rekapList.innerHTML=rh;
-    rekapWrap.style.display='';
-  } else {
-    rekapWrap.style.display='none';
+  // ── Preview bulan berikutnya (hanya muncul kalau H-3 akhir bulan) ──
+  if(dNext){
+    var kosongNext=(dNext.kosong)?dNext.kosong:[];
+    var p1=nextBulan.split('-');
+    var namaBulanNext=BULAN_NAMES[parseInt(p1[1])-1]+' '+p1[0];
+    var labelKosong=kosongNext.length?'⚠️ '+kosongNext.length+' shift kosong':'✅ Lengkap';
+    html+='<div class="section-hdr" style="margin-top:22px;margin-bottom:10px">'
+      +'<span class="section-hdr-label" style="color:var(--accent)">👀 Preview '+namaBulanNext+' — '+labelKosong+'</span>'
+      +'<div class="section-hdr-line"></div>'
+      +'</div>';
+    if(dNext.sheetMissing){
+      html+='<div class="empty" style="padding:16px 0"><div class="empty-icon">📭</div><div class="empty-text">Sheet jadwal '+p1[0]+' belum ada</div></div>';
+    } else {
+      html+=_buildShiftListHtml(kosongNext);
+      var rekapNextHtml=_buildRekapHtml(dNext.rekap||{});
+      if(rekapNextHtml){
+        html+='<div style="font-weight:600;font-size:13px;color:var(--muted);margin:14px 0 8px">👤 Rekap shift '+namaBulanNext+'</div>';
+        html+=rekapNextHtml;
+      }
+    }
   }
+
+  list.innerHTML=html;
+  // Sembunyikan rekap-wrap lama (sudah dirender inline di atas)
+  document.getElementById('shift-rekap-wrap').style.display='none';
 }
 function shiftDismissBanner(){
   var bulan=window._shiftDismissBulan;
