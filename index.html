@@ -294,7 +294,7 @@ body.role-admin .admin-only{display:inline-flex}
 .empty-since-badge .since-icon{font-size:12px}
 
 /* ALARM BANNER */
-.alarm-banner{display:none;position:sticky;top:0;z-index:200;background:var(--red);color:#fff;padding:10px 20px;text-align:center;font-size:13px;font-weight:700;letter-spacing:.03em;animation:bannerShake .5s ease infinite alternate;cursor:pointer}
+.alarm-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:var(--red);color:#fff;padding:10px 20px;text-align:center;font-size:13px;font-weight:700;letter-spacing:.03em;animation:bannerShake .5s ease infinite alternate;cursor:pointer}
 .alarm-banner.show{display:flex;align-items:center;justify-content:center;gap:10px}
 /* Meeting banner selalu di atas stok banner */
 #meeting-banner{z-index:201 !important}
@@ -1025,6 +1025,16 @@ function muteAlarm(){
 }
 
 var shiftAlarmMuted=false;
+function _updateShiftBannerTop(){
+  var shiftBanner=document.getElementById('shift-alarm-banner');
+  if(!shiftBanner)return;
+  var offset=0;
+  var meetingBanner=document.getElementById('meeting-banner');
+  var alarmBanner=document.getElementById('alarm-banner');
+  if(meetingBanner&&meetingBanner.classList.contains('show'))offset+=meetingBanner.offsetHeight;
+  if(alarmBanner&&alarmBanner.classList.contains('show'))offset+=alarmBanner.offsetHeight;
+  shiftBanner.style.top=offset+'px';
+}
 function triggerShiftAlarmIfNeeded(kosongCount,dismissed){
   var banner=document.getElementById('shift-alarm-banner');
   if(!banner)return;
@@ -1032,6 +1042,7 @@ function triggerShiftAlarmIfNeeded(kosongCount,dismissed){
     var cnt=document.getElementById('shift-alarm-count');
     if(cnt)cnt.textContent=kosongCount+' ';
     banner.classList.add('show');
+    _updateShiftBannerTop();
   }else{
     banner.classList.remove('show');
   }
