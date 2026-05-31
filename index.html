@@ -1846,9 +1846,11 @@ function renderShift(d,bulan,dNext,nextBulan){
     banner.style.display='';
     if(dismissedInfo) dismissedInfo.style.display='none';
   } else if(kosong.length&&dismissed){
-    // Ada shift kosong, sudah di-dismiss → tampilkan info kecil + tombol "Tampilkan lagi" (admin only)
+    // Ada shift kosong, sudah di-dismiss
+    // Admin → tampilkan info kecil + tombol "Tampilkan lagi"
+    // Manager → sembunyikan semua, seolah tidak ada peringatan
     banner.style.display='none';
-    if(dismissedInfo) dismissedInfo.style.display='';
+    if(dismissedInfo) dismissedInfo.style.display=isAdmin?'':'none';
     if(undismissBtn) undismissBtn.style.display=isAdmin?'':'none';
   } else {
     // Tidak ada shift kosong
