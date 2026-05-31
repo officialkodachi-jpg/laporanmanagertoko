@@ -493,6 +493,20 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
   </div>
 </div>
 
+<div id="admin-mgrlog" style="display:none;margin:0 16px 14px;border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border)">
+    <div style="font-size:18px">📜</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:800;color:var(--text)">Aktivitas Manager (100 terbaru)</div>
+      <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="admin-mgrlog-email">fahdryifih@gmail.com</div>
+    </div>
+    <button class="btn-press" id="admin-mgrlog-btn" onclick="loadAdminMgrLog()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px"><span class="spin-ico" id="admin-mgrlog-ico">⟳</span> Muat</button>
+  </div>
+  <div id="admin-mgrlog-list" style="max-height:340px;overflow-y:auto;padding:6px 10px 10px">
+    <div class="empty" style="padding:18px"><div class="empty-text">Tekan "Muat" untuk melihat aktivitas manager</div></div>
+  </div>
+</div>
+
 <div id="loc-hidden" style="display:none"><span id="loc-debug"></span><span id="loc-distance"></span><span id="loc-accuracy"></span><span id="loc-sessions-count"></span><span id="loc-total-today"></span><div id="loc-log-list"></div></div>
 
 <div class="tabs-wrap">
@@ -1757,6 +1771,52 @@ function switchLaporanView(v,btn){
 // Muat log aktivitas (admin)
 var _logRows=[];
 var MGR_WATCH_EMAIL='fahdryifih@gmail.com';
+// Panel admin: 100 log terbaru dari email manager
+function _logJam(w){
+  w=String(w||'');var m=w.match(/(\d{2}:\d{2}:\d{2})/);if(m)return m[1];
+  var d=new Date(w);if(!isNaN(d.getTime())){var p=function(n){return String(n).padStart(2,'0');};return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());}return '--:--:--';
+}
+function _logTgl(w){
+  w=String(w||'');var m=w.match(/(\d{4}-\d{2}-\d{2})/);if(m)return m[1];
+  var d=new Date(w);if(!isNaN(d.getTime())){var p=function(n){return String(n).padStart(2,'0');};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}return '';
+}
+function loadAdminMgrLog(){
+  if(userRole!=='admin')return;
+  if(!scriptUrl)return;
+  var btn=document.getElementById('admin-mgrlog-btn');
+  var list=document.getElementById('admin-mgrlog-list');
+  if(btn){btn.classList.add('loading');btn.classList.remove('pinging');void btn.offsetWidth;btn.classList.add('pinging');}
+  list.innerHTML='<div class="empty" style="padding:18px"><span class="spinner"></span> Memuat...</div>';
+  fetch(scriptUrl+'?type=log&limit=300&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var rows=(d&&d.rows)?d.rows:[];
+      var mgr=rows.filter(function(r){return String(r.email||'').toLowerCase()===MGR_WATCH_EMAIL;}).slice(0,100);
+      renderAdminMgrLog(mgr);
+    })
+    .catch(function(){list.innerHTML='<div class="empty" style="padding:18px"><div class="empty-text">Gagal memuat</div></div>';})
+    .finally(function(){if(btn)btn.classList.remove('loading');});
+}
+function renderAdminMgrLog(rows){
+  var list=document.getElementById('admin-mgrlog-list');if(!list)return;
+  if(!rows.length){list.innerHTML='<div class="empty" style="padding:18px"><div class="empty-text">Belum ada aktivitas manager</div></div>';return;}
+  var ic={'Login':'🔓','Logout':'🔒','Sesi berakhir':'⏰','Buka aplikasi':'📱','Buka tab':'📂','Tiba di toko':'📍','Keluar toko':'🚪','Simpan tugas Harian':'✅','Catat Non-Harian':'📌','Simpan Gudang IN/OUT':'📦','Tambah kiriman stok':'🚚','Tandai kiriman sampai':'✓','Reset kiriman':'↩','Hapus kiriman':'🗑','Simpan Uang Cash':'💵','Tindak pelanggaran':'⚖️','Catat pelanggaran':'⚖️'};
+  var html='',lastT='';
+  rows.forEach(function(r){
+    var tgl=_logTgl(r.waktu),jam=_logJam(r.waktu);
+    if(tgl!==lastT){lastT=tgl;html+='<div style="font-size:10px;color:var(--hint);font-family:var(--mono);margin:8px 2px 4px;font-weight:700">'+escH(tgl)+'</div>';}
+    var dev=[];if(r.device)dev.push((r.device==='HP'?'📱':'💻')+escH(r.device));if(r.os)dev.push(escH(r.os));if(r.baterai&&r.baterai!=='-')dev.push('🔋'+escH(r.baterai));
+    html+='<div style="display:flex;gap:8px;padding:7px 4px;border-bottom:1px solid var(--border)">'
+      +'<div style="font-size:15px;min-width:22px;text-align:center">'+(ic[r.aksi]||'•')+'</div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text)">'+escH(jam)+'</div>'
+      +'<div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.3">'+escH(r.aksi||'')+'</div>'
+      +(r.detail?'<div style="font-size:10.5px;color:var(--muted);line-height:1.4;word-break:break-word">'+escH(String(r.detail).slice(0,80))+'</div>':'')
+      +(dev.length?'<div style="font-size:9.5px;color:var(--hint);font-family:var(--mono);margin-top:2px">'+dev.join(' · ')+'</div>':'')
+      +'</div></div>';
+  });
+  list.innerHTML=html;
+}
 var _lastSeenMgrLog=null; // waktu aktivitas manager terakhir yang sudah dilihat admin
 function loadLog(){
   if(!scriptUrl)return;
@@ -2915,6 +2975,7 @@ function applyRole(){
     if(lo)lo.style.display='';
     stopGpsTracking();
     var ar=document.getElementById('admin-loc-refresh');if(ar)ar.style.display='block';
+    var amg=document.getElementById('admin-mgrlog');if(amg)amg.style.display='block';
     loadManagerLoc();
     _adminLocTimer=setInterval(loadManagerLoc,60000);
   }else{
@@ -2923,6 +2984,7 @@ function applyRole(){
     if(lo)lo.style.display='';
     loadLocData();updateTimerDisplay();startGps();
     _mgrPushTimer=setInterval(pushManagerLoc,60000);
+    var amg2=document.getElementById('admin-mgrlog');if(amg2)amg2.style.display='none';
   }
   // loadShift dipanggil di sini (bukan di DOMContentLoaded)
   // supaya isAdmin sudah ter-set saat renderShift() berjalan
