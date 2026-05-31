@@ -517,6 +517,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--accent)" fill-opacity=".85"/><path d="M12 5.5L7.5 10L12 14.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <div class="tabs" id="tabs-scroll-el">
+      <button class="tab admin-only" id="tab-home" onclick="switchTab('home',this)">🏠 Home<span class="tab-badge" id="badge-home" style="background:var(--orange)"></span></button>
       <button class="tab active" onclick="switchTab('harian',this)">📋 Harian<span class="tab-badge" id="badge-harian">!</span></button>
       <button class="tab" onclick="switchTab('event',this)">📌 Non-Harian<span class="tab-badge" id="badge-event" style="background:var(--orange)">!</span></button>
       <button class="tab" onclick="switchTab('gudang',this)">📦 Stok & Gudang<span class="tab-badge" id="badge-stok">0</span></button>
@@ -535,6 +536,71 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
 </div>
 
 <div class="content">
+
+  <!-- HOME (admin only) -->
+  <div class="panel" id="panel-home">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px;font-family:var(--mono)">Panel khusus Admin — monitoring real-time aktivitas Manager</div>
+
+    <!-- Kartu Lokasi Manager (live) -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <div style="font-size:18px">📍</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Posisi Manager</div>
+          <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-loc-email">—</div>
+        </div>
+        <button onclick="loadHomeLoc(true)" style="background:rgba(217,119,6,.1);color:var(--orange);border:1px solid rgba(217,119,6,.3);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">⟳ Perbarui</button>
+      </div>
+      <div id="home-loc-body" style="padding:14px 16px">
+        <div style="color:var(--hint);font-size:12px">Memuat posisi manager...</div>
+      </div>
+    </div>
+
+    <!-- Kiriman Belum Sampai -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <div style="font-size:18px">🚚</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Kiriman Belum Sampai</div>
+          <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-kiriman-count">Memuat...</div>
+        </div>
+        <button onclick="loadHomeKiriman()" style="background:rgba(37,99,235,.1);color:var(--accent);border:1px solid rgba(37,99,235,.25);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">⟳ Muat</button>
+      </div>
+      <div id="home-kiriman-list" style="max-height:280px;overflow-y:auto;padding:8px 10px">
+        <div style="color:var(--hint);font-size:12px;padding:12px 4px">Tekan "Muat" untuk memperbarui</div>
+      </div>
+    </div>
+
+    <!-- Aktivitas & Update Manager (log terbaru) -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <div style="font-size:18px">📜</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Aktivitas & Update Manager</div>
+          <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-log-sub">100 terbaru · fahdryifih@gmail.com</div>
+        </div>
+        <button onclick="loadHomeLog()" id="home-log-btn" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;gap:5px"><span id="home-log-ico">⟳</span> Muat</button>
+      </div>
+      <div id="home-log-list" style="max-height:400px;overflow-y:auto;padding:6px 10px 10px">
+        <div style="color:var(--hint);font-size:12px;padding:14px 4px;text-align:center">Tekan "Muat" untuk melihat aktivitas manager</div>
+      </div>
+    </div>
+
+    <!-- Tugas Harian Manager Hari Ini -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <div style="font-size:18px">📋</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Progress Tugas Harian Manager</div>
+          <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-harian-sub">Hari ini</div>
+        </div>
+        <button onclick="loadHomeHarian()" style="background:rgba(22,163,74,.1);color:var(--green);border:1px solid rgba(22,163,74,.25);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">⟳ Muat</button>
+      </div>
+      <div id="home-harian-body" style="padding:14px 16px">
+        <div style="color:var(--hint);font-size:12px;text-align:center">Tekan "Muat" untuk melihat progress tugas</div>
+      </div>
+    </div>
+  </div>
 
   <!-- HARIAN -->
   <div class="panel active" id="panel-harian">
@@ -1741,12 +1807,13 @@ function switchTab(name,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
+  if(name==='home'){loadHomeLoc();loadHomeKiriman();loadHomeLog();loadHomeHarian();}
   if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();}
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
   if(name==='cash'){if(cashData.length===0)loadCashData();}
   if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
   if(name==='laporan'&&userRole==='admin')loadLog();
-  var tabNama={harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link'};
+  var tabNama={home:'Home',harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link'};
   logActivity('Buka tab',tabNama[name]||name);
 }
 function switchGudangView(v,btn){
@@ -2998,6 +3065,11 @@ function applyRole(){
     var amg=document.getElementById('admin-mgrlog');if(amg)amg.style.display='block';
     loadManagerLoc();
     _adminLocTimer=setInterval(loadManagerLoc,60000);
+    // Auto-switch ke tab HOME untuk admin
+    setTimeout(function(){
+      var homeTab=document.getElementById('tab-home');
+      if(homeTab) switchTab('home',homeTab);
+    },100);
   }else{
     document.body.classList.add('role-manager');document.body.classList.remove('role-admin');
     if(badge){badge.style.display='';badge.className='role-badge manager';badge.textContent='👔 MANAGER';}
@@ -3369,6 +3441,209 @@ function renderCashTable(){ renderCashRecent(); }
 function buildCashBulanFilter(){}
 
 // Auto-load saat tab dibuka (lihat switchTab)
+
+// ════ HOME TAB (admin only) ════
+
+// ── Lokasi Manager (mirror dari loadManagerLoc) ──
+function loadHomeLoc(force){
+  if(userRole!=='admin') return;
+  var body = document.getElementById('home-loc-body');
+  var emailEl = document.getElementById('home-loc-email');
+  if(emailEl) emailEl.textContent = MGR_WATCH_EMAIL;
+  // Re-use data dari loc card admin yg sudah ada, atau fetch ulang
+  if(typeof loadManagerLoc === 'function') {
+    loadManagerLoc(force);
+    // Setelah 1.2 detik baca state loc card dan cerminkan di home
+    setTimeout(function(){
+      var locStatus = document.getElementById('loc-status');
+      var locDetail = document.getElementById('loc-detail');
+      var locTimer  = document.getElementById('loc-timer');
+      var timeLeft  = document.getElementById('time-bar-left');
+      if(!locStatus || !body) return;
+      var statusTxt  = locStatus ? locStatus.textContent : '—';
+      var detailTxt  = locDetail ? locDetail.textContent : '—';
+      var timerTxt   = locTimer  ? locTimer.textContent  : '—';
+      var timeLTxt   = timeLeft  ? timeLeft.textContent  : '—';
+      var statusCls  = locStatus ? (locStatus.className.indexOf('in')>=0 ? 'var(--green)' : locStatus.className.indexOf('out')>=0 ? 'var(--red)' : 'var(--orange)') : 'var(--muted)';
+      body.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">'
+        + '<div style="flex:1">'
+        + '<div style="font-size:14px;font-weight:700;color:'+statusCls+'">'+escH(statusTxt)+'</div>'
+        + '<div style="font-size:12px;color:var(--muted);margin-top:3px">'+escH(detailTxt)+'</div>'
+        + '</div>'
+        + '<div style="font-family:var(--mono);font-size:26px;font-weight:500;color:var(--text)">'+escH(timerTxt)+'</div>'
+        + '</div>'
+        + '<div style="margin-top:12px;height:8px;background:var(--surface);border-radius:4px;overflow:hidden">'
+        + '<div style="height:100%;border-radius:4px;background:var(--accent);width:'+document.getElementById('time-bar-fill').style.width+'"></div>'
+        + '</div>'
+        + '<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);font-family:var(--mono)">'
+        + '<span>'+escH(timeLTxt)+'</span><span>Target: 4 jam</span>'
+        + '</div>';
+    }, 1400);
+    return;
+  }
+  body.innerHTML = '<div style="color:var(--hint);font-size:12px">Data tidak tersedia</div>';
+}
+
+// ── Kiriman belum sampai (mirror dari kmData) ──
+function loadHomeKiriman(){
+  if(userRole!=='admin') return;
+  var list = document.getElementById('home-kiriman-list');
+  var countEl = document.getElementById('home-kiriman-count');
+  list.innerHTML = '<div style="padding:14px 4px;text-align:center"><span class="spinner"></span></div>';
+  if(!scriptUrl) { list.innerHTML='<div style="color:var(--hint);font-size:12px;padding:12px 4px">URL belum dikonfigurasi</div>'; return; }
+  fetch(scriptUrl+'?type=kiriman&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var rows = (d&&d.rows)?d.rows:[];
+      var pending = rows.filter(function(r){return (r.status||'')!=='Sampai';});
+      if(countEl) countEl.textContent = pending.length + ' kiriman belum sampai';
+      _setBadge('badge-home', pending.length, true);
+      if(!pending.length){
+        list.innerHTML='<div style="padding:14px 8px;color:var(--green);font-size:13px;font-weight:600;text-align:center">✓ Semua kiriman sudah sampai</div>';
+        return;
+      }
+      list.innerHTML = pending.map(function(r){
+        var hdr = escH(r.jasa||'Kiriman') + ' · dikirim ' + kmFmtTgl(r.tglKirim);
+        return '<div onclick="kmOpenDetail('+r.row+')" style="display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid var(--border);border-left:3px solid var(--orange);border-radius:4px;margin-bottom:4px;background:rgba(217,119,6,.04);cursor:pointer">'
+          + '<div style="font-size:18px">🚚</div>'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:13px;font-weight:700;color:var(--orange)">'+hdr+'</div>'
+          + '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+escH(r.isi||'-')+'</div>'
+          + '<div style="font-size:11px;color:var(--accent);margin-top:3px">👆 Tap untuk lihat detail</div>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function(){
+      list.innerHTML='<div style="color:var(--red);font-size:12px;padding:12px 4px">⚠ Gagal memuat data kiriman</div>';
+      if(countEl) countEl.textContent = 'Gagal memuat';
+    });
+}
+
+// ── Log Aktivitas Manager (100 terbaru) ──
+function loadHomeLog(){
+  if(userRole!=='admin') return;
+  var list = document.getElementById('home-log-list');
+  var btn  = document.getElementById('home-log-btn');
+  var ico  = document.getElementById('home-log-ico');
+  if(!scriptUrl) { list.innerHTML='<div style="color:var(--hint);font-size:12px;padding:12px 4px">URL belum dikonfigurasi</div>'; return; }
+  list.innerHTML='<div style="padding:18px;text-align:center"><span class="spinner"></span> Memuat...</div>';
+  if(btn) btn.disabled=true;
+  if(ico) ico.textContent='⌛';
+  fetch(scriptUrl+'?type=log&limit=300&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var rows = (d&&d.rows)?d.rows:[];
+      var mgr  = rows.filter(function(r){return String(r.email||'').toLowerCase()===MGR_WATCH_EMAIL;}).slice(0,100);
+      renderHomeLog(mgr);
+    })
+    .catch(function(){
+      list.innerHTML='<div style="color:var(--red);font-size:12px;padding:12px 4px">⚠ Gagal memuat log</div>';
+    })
+    .finally(function(){
+      if(btn){btn.disabled=false;}
+      if(ico) ico.textContent='⟳';
+    });
+}
+
+function renderHomeLog(rows){
+  var list = document.getElementById('home-log-list');
+  if(!rows||!rows.length){
+    list.innerHTML='<div style="padding:18px;color:var(--hint);font-size:12px;text-align:center">Belum ada aktivitas manager</div>';
+    return;
+  }
+  var ic ={'Login':'🔓','Logout':'🔒','Sesi berakhir':'⏰','Buka aplikasi':'📱','Buka tab':'📂','Tiba di toko':'📍','Keluar toko':'🚪','Simpan tugas Harian':'✅','Catat Non-Harian':'📌','Simpan Gudang IN/OUT':'📦','Tambah kiriman stok':'🚚','Tandai kiriman sampai':'✓','Reset kiriman':'↩','Hapus kiriman':'🗑','Simpan Uang Cash':'💵','Tindak pelanggaran':'⚖️','Catat pelanggaran':'⚖️'};
+  var col={'Login':'var(--green)','Logout':'var(--muted)','Sesi berakhir':'var(--hint)','Tiba di toko':'var(--green)','Keluar toko':'var(--orange)','Simpan tugas Harian':'var(--blue)','Catat Non-Harian':'var(--blue)','Simpan Gudang IN/OUT':'var(--orange)','Tambah kiriman stok':'var(--orange)','Tandai kiriman sampai':'var(--green)','Hapus kiriman':'var(--red)','Simpan Uang Cash':'var(--green)','Tindak pelanggaran':'var(--red)','Catat pelanggaran':'var(--red)','Reset kiriman':'var(--orange)','Hapus kiriman':'var(--red)'};
+  var html='', lastT='';
+  rows.forEach(function(r){
+    var tgl=_logTgl(r.waktu), jam=_logJam(r.waktu);
+    if(tgl!==lastT){
+      lastT=tgl;
+      html+='<div style="font-size:10px;color:var(--hint);font-family:var(--mono);margin:10px 2px 5px;font-weight:700;letter-spacing:.04em">'+escH(logFmtTgl(tgl))+'</div>';
+    }
+    var bc=col[r.aksi]||'var(--border2)';
+    var detHtml=r.detail?'<div style="font-size:11px;color:var(--text);background:var(--surface);border-radius:6px;padding:5px 8px;margin-top:5px;line-height:1.5;word-break:break-word">'+escH(r.detail)+'</div>':'';
+    html+='<div style="display:flex;gap:9px;padding:10px 6px;border-bottom:1px solid var(--border);border-left:3px solid '+bc+';border-radius:4px;margin-bottom:3px;background:var(--card)">'
+      +'<div style="font-size:18px;min-width:26px;text-align:center;padding-top:1px">'+(ic[r.aksi]||'•')+'</div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-family:var(--mono);font-size:13px;font-weight:800;color:var(--text)">🕐 '+escH(jam)+'</div>'
+      +'<div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.35;margin-top:1px">'+escH(r.aksi||'')+'</div>'
+      +detHtml
+      +'</div></div>';
+  });
+  list.innerHTML=html;
+}
+
+// ── Progress Tugas Harian Manager (hari ini) ──
+function loadHomeHarian(){
+  if(userRole!=='admin') return;
+  var body = document.getElementById('home-harian-body');
+  var sub  = document.getElementById('home-harian-sub');
+  if(!scriptUrl){body.innerHTML='<div style="color:var(--hint);font-size:12px">URL belum dikonfigurasi</div>';return;}
+  body.innerHTML='<div style="text-align:center"><span class="spinner"></span> Memuat...</div>';
+  if(sub) sub.textContent = 'Hari ini · ' + formatTodayDisplay();
+  fetch(scriptUrl+'?type=cek&tanggal='+todayValue+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d.filled){
+        body.innerHTML='<div style="color:var(--orange);font-size:13px;font-weight:600;padding:6px 0">⚠ Belum ada data tugas harian yang disimpan hari ini</div>';
+        return;
+      }
+      // Kalau sudah tersimpan, fetch rekap harian hari ini
+      fetch(scriptUrl+'?type=harian&bulan='+todayValue.substring(0,7)+'&_='+Date.now())
+        .then(function(r2){return r2.json();})
+        .then(function(d2){
+          var rows=(d2&&d2.rows)?d2.rows:[];
+          var today=rows.filter(function(r){return r[0]===todayValue;});
+          if(!today.length){
+            body.innerHTML='<div style="color:var(--hint);font-size:12px">Data hari ini belum tersedia</div>';
+            return;
+          }
+          var done=today.filter(function(r){return r[5]==='✓';}).length;
+          var total=today.length;
+          var pct=total?Math.round(done/total*100):0;
+          var barColor=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';
+          var html='<div style="display:flex;gap:14px;margin-bottom:14px">'
+            +'<div style="text-align:center;flex:1;background:var(--surface);border-radius:10px;padding:12px 8px"><div style="font-family:var(--mono);font-size:24px;font-weight:500;color:var(--green)">'+done+'</div><div style="font-size:10px;color:var(--muted);margin-top:4px">selesai</div></div>'
+            +'<div style="text-align:center;flex:1;background:var(--surface);border-radius:10px;padding:12px 8px"><div style="font-family:var(--mono);font-size:24px;font-weight:500;color:var(--orange)">'+(total-done)+'</div><div style="font-size:10px;color:var(--muted);margin-top:4px">belum</div></div>'
+            +'<div style="text-align:center;flex:1;background:var(--surface);border-radius:10px;padding:12px 8px"><div style="font-family:var(--mono);font-size:24px;font-weight:500;color:'+barColor+'">'+pct+'%</div><div style="font-size:10px;color:var(--muted);margin-top:4px">selesai</div></div>'
+            +'</div>'
+            +'<div style="background:var(--surface);border-radius:4px;height:8px;overflow:hidden;margin-bottom:14px">'
+            +'<div style="height:100%;border-radius:4px;background:'+barColor+';width:'+pct+'%;transition:width .4s ease"></div>'
+            +'</div>';
+          // List tugas dengan status
+          var tasksDone = today.filter(function(r){return r[5]==='✓';});
+          var tasksMiss = today.filter(function(r){return r[5]!=='✓';});
+          if(tasksMiss.length){
+            html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">Belum Selesai</div>';
+            html+=tasksMiss.map(function(r){
+              return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.12);margin-bottom:4px;font-size:12px">'
+                +'<span style="color:var(--red);font-weight:700">✗</span>'
+                +'<span style="flex:1;color:var(--text)">'+escH(r[2]||r[1])+'</span>'
+                +'<span style="font-family:var(--mono);font-size:10px;color:var(--hint)">'+escH(r[1])+'</span>'
+                +'</div>';
+            }).join('');
+          }
+          if(tasksDone.length){
+            html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:10px 0 6px;text-transform:uppercase;letter-spacing:.06em">Sudah Selesai</div>';
+            html+=tasksDone.map(function(r){
+              return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:rgba(22,163,74,.05);border:1px solid rgba(22,163,74,.15);margin-bottom:4px;font-size:12px">'
+                +'<span style="color:var(--green);font-weight:700">✓</span>'
+                +'<span style="flex:1;color:var(--muted);text-decoration:line-through">'+escH(r[2]||r[1])+'</span>'
+                +'<span style="font-family:var(--mono);font-size:10px;color:var(--hint)">'+escH(r[1])+'</span>'
+                +'</div>';
+            }).join('');
+          }
+          body.innerHTML = html;
+        })
+        .catch(function(){body.innerHTML='<div style="color:var(--hint);font-size:12px">Gagal memuat detail tugas</div>';});
+    })
+    .catch(function(){body.innerHTML='<div style="color:var(--red);font-size:12px">⚠ Gagal memuat data</div>';});
+}
+
+// ── Auto-load HOME saat tab dibuka ──
+// (ditambahkan ke switchTab di bawah)
 
 // ── Tabs scroll arrow buttons ──────────────────────────────
 (function(){
