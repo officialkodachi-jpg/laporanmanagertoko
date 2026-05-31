@@ -300,6 +300,7 @@ body.role-admin .admin-only{display:inline-flex}
 #meeting-banner{z-index:201 !important}
 @keyframes bannerShake{0%{background:#dc2626}100%{background:#b91c1c}}
 @keyframes meetingShake{0%{background:#0f766e}100%{background:#0d9488}}
+@keyframes shiftBannerPulse{0%{background:#d97706}100%{background:#b45309}}
 .alarm-banner .mute-hint{font-size:11px;font-weight:400;opacity:.85;margin-left:8px}
 
 /* GUDANG IN/OUT */
@@ -424,7 +425,13 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
 
 <!-- ALARM BANNER — sticky top, klik untuk mute sesi ini -->
 <div class="alarm-banner" id="alarm-banner" onclick="muteAlarm()">
-  <span>🚨 STOK KOSONG DI TOKO — Butuh perhatian segera!</span>
+  <span>🚨 STOK KOSONG DI TOKO — <span id="alarm-banner-count"></span>item butuh perhatian!</span>
+  <span class="mute-hint">Tap di sini untuk bisukan</span>
+</div>
+
+<!-- SHIFT KOSONG BANNER — orange, di bawah banner stok -->
+<div class="alarm-banner" id="shift-alarm-banner" onclick="muteShiftAlarm()" style="background:#d97706;animation-name:shiftBannerPulse;z-index:199">
+  <span>📅 SHIFT KOSONG — <span id="shift-alarm-count"></span>slot belum terisi bulan ini!</span>
   <span class="mute-hint">Tap di sini untuk bisukan</span>
 </div>
 
@@ -1016,10 +1023,31 @@ function muteAlarm(){
   if(sb){sb.className='stok-sound-btn muted';sb.textContent='🔕 MUTED — refresh = bunyi lagi';}
   showToast('🔕 Alarm dibisukan untuk sesi ini. Refresh = bunyi lagi.','');
 }
+
+var shiftAlarmMuted=false;
+function triggerShiftAlarmIfNeeded(kosongCount,dismissed){
+  var banner=document.getElementById('shift-alarm-banner');
+  if(!banner)return;
+  if(kosongCount>0&&!dismissed&&!shiftAlarmMuted){
+    var cnt=document.getElementById('shift-alarm-count');
+    if(cnt)cnt.textContent=kosongCount+' ';
+    banner.classList.add('show');
+  }else{
+    banner.classList.remove('show');
+  }
+}
+function muteShiftAlarm(){
+  shiftAlarmMuted=true;
+  var banner=document.getElementById('shift-alarm-banner');
+  if(banner)banner.classList.remove('show');
+  showToast('🔕 Notifikasi shift dibisukan untuk sesi ini.','');
+}
 function triggerAlarmIfNeeded(){
   if(stokData.red.length>0&&!alarmMuted){
     var banner=document.getElementById('alarm-banner');
     if(banner)banner.classList.add('show');
+    var cnt=document.getElementById('alarm-banner-count');
+    if(cnt)cnt.textContent=stokData.red.length+' ';
     var sb=document.getElementById('stok-sound-btn');
     if(sb){sb.className='stok-sound-btn ringing';sb.textContent='🔔 ALARM — Tap Mute';}
     startAlarm();
@@ -1826,6 +1854,8 @@ function renderShift(d,bulan,dNext,nextBulan){
   var dismissed=d&&d.dismissed;
   // Badge hanya tampil kalau ada shift kosong DAN belum di-dismiss
   updateShiftBadge((kosong.length&&!dismissed)?kosong.length:0);
+  // Banner orange di atas — tampil kalau ada shift kosong dan belum dismiss
+  triggerShiftAlarmIfNeeded(kosong.length,dismissed);
 
   if(d&&d.sheetMissing){list.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sheet jadwal tahun ini belum ada</div></div>';return;}
   if(d&&d.error){list.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Error: '+escH(d.error)+'</div></div>';return;}
