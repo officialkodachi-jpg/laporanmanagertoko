@@ -2140,7 +2140,7 @@ function loadAdminMgrLog(){
   var list=document.getElementById('admin-mgrlog-list');
   if(btn){btn.classList.add('loading');btn.classList.remove('pinging');void btn.offsetWidth;btn.classList.add('pinging');}
   list.innerHTML='<div class="empty" style="padding:18px"><span class="spinner"></span> Memuat...</div>';
-  fetch(scriptUrl+'?type=log&limit=300&_='+Date.now())
+  fetch(scriptUrl+'?type=log&limit=2000&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){
       var rows=(d&&d.rows)?d.rows:[];
@@ -2195,7 +2195,7 @@ function loadLog(){
   if(!scriptUrl)return;
   var c=document.getElementById('log-container');
   c.innerHTML='<div class="empty"><span class="spinner"></span> Memuat log...</div>';
-  fetch(scriptUrl+'?type=log&limit=300&_='+Date.now())
+  fetch(scriptUrl+'?type=log&limit=2000&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){_logRows=(d&&d.rows)?d.rows:[];_buildLogEmailFilter();renderLog(_logRows);checkMgrActivity();})
     .catch(function(){c.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Gagal memuat log</div></div>';});
@@ -3866,7 +3866,7 @@ function loadHomeLog(){
   list.innerHTML='<div style="padding:18px;text-align:center"><span class="spinner"></span> Memuat...</div>';
   if(btn) btn.disabled=true;
   if(ico) ico.textContent='⌛';
-  fetch(scriptUrl+'?type=log&limit=300&_='+Date.now())
+  fetch(scriptUrl+'?type=log&limit=2000&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){
       var rows = (d&&d.rows)?d.rows:[];
