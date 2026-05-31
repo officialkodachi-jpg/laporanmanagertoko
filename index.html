@@ -1709,12 +1709,21 @@ function renderLog(rows){
     // baris info perangkat (kalau ada)
     var devBits=[];
     if(r.device)devBits.push((r.device==='HP'?'📱 ':'💻 ')+escH(r.device));
+    if(r.model&&r.model!=='-')devBits.push(escH(r.model));
     if(r.os)devBits.push(escH(r.os));
     if(r.browser)devBits.push(escH(r.browser));
     if(r.layar)devBits.push('🖥 '+escH(r.layar));
+    if(r.koneksi&&r.koneksi!=='-')devBits.push('📶 '+escH(r.koneksi));
+    if(r.baterai&&r.baterai!=='-')devBits.push('🔋 '+escH(r.baterai));
     if(r.online)devBits.push(r.online==='offline'?'⚠ offline':'🌐 online');
     var devHtml=devBits.length
       ?'<div style="font-size:10px;color:var(--hint);margin-top:4px;font-family:var(--mono)">'+devBits.join(' · ')+'</div>'
+      :'';
+    var langBits=[];
+    if(r.bahasa&&r.bahasa!=='-')langBits.push('🗣 '+escH(r.bahasa));
+    if(r.zona&&r.zona!=='-')langBits.push('🕓 '+escH(r.zona));
+    var langHtml=langBits.length
+      ?'<div style="font-size:10px;color:var(--hint);margin-top:3px;font-family:var(--mono)">'+langBits.join(' · ')+'</div>'
       :'';
     // waktu HP lokal (sampai milidetik) kalau ada, tampil sebagai info tambahan
     var waktuHp=r.waktuLokal?'<div style="font-size:10px;color:var(--hint);margin-top:3px;font-family:var(--mono)">⏱ HP: '+escH(r.waktuLokal)+'</div>':'';
@@ -1729,6 +1738,7 @@ function renderLog(rows){
       +'<div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.35">'+escH(r.aksi||'')+'</div>'
       +detailHtml
       +devHtml
+      +langHtml
       +waktuHp
       +'</div></div>';
   });
@@ -2586,21 +2596,41 @@ function _logDeviceInfo(){
     var ua=navigator.userAgent||'';
     var isMobile=/Mobi|Android|iPhone|iPad|iPod/i.test(ua);
     var device=isMobile?'HP':'Laptop/PC';
-    // tebak browser
-    var br='Lainnya';
-    if(/Edg\//.test(ua))br='Edge';else if(/OPR\//.test(ua))br='Opera';
-    else if(/Chrome\//.test(ua)&&!/Edg|OPR/.test(ua))br='Chrome';
-    else if(/Firefox\//.test(ua))br='Firefox';
-    else if(/Safari\//.test(ua)&&!/Chrome/.test(ua))br='Safari';
+    // tebak browser + versi
+    var br='Lainnya',ver='';
+    var m;
+    if(/Edg\//.test(ua)){br='Edge';m=ua.match(/Edg\/([\d.]+)/);}
+    else if(/OPR\//.test(ua)){br='Opera';m=ua.match(/OPR\/([\d.]+)/);}
+    else if(/Chrome\//.test(ua)&&!/Edg|OPR/.test(ua)){br='Chrome';m=ua.match(/Chrome\/([\d.]+)/);}
+    else if(/Firefox\//.test(ua)){br='Firefox';m=ua.match(/Firefox\/([\d.]+)/);}
+    else if(/Safari\//.test(ua)&&!/Chrome/.test(ua)){br='Safari';m=ua.match(/Version\/([\d.]+)/);}
+    if(m&&m[1])ver=m[1];
+    var browserFull=br+(ver?(' '+ver):'');
     // tebak OS
     var os='Lainnya';
     if(/Android/i.test(ua))os='Android';else if(/iPhone|iPad|iPod/i.test(ua))os='iOS';
     else if(/Windows/i.test(ua))os='Windows';else if(/Mac OS/i.test(ua))os='macOS';
     else if(/Linux/i.test(ua))os='Linux';
+    // model/merek HP (Android kasih, iPhone cuma "iPhone")
+    var model='-';
+    if(/iPhone/i.test(ua))model='iPhone';
+    else if(/iPad/i.test(ua))model='iPad';
+    else{
+      var am=ua.match(/Android[^;]*;\s*([^)]+?)\s*(?:Build|\))/);
+      if(am&&am[1]){model=am[1].replace(/;.*$/,'').trim();}
+    }
     var layar=(window.screen?window.screen.width+'×'+window.screen.height:'-');
     var online=(navigator.onLine===false)?'offline':'online';
-    return {device:device,browser:br,os:os,layar:layar,online:online};
-  }catch(e){return {device:'-',browser:'-',os:'-',layar:'-',online:'-'};}
+    // bahasa & zona waktu
+    var bahasa=(navigator.language||navigator.userLanguage||'-');
+    var zona='-';try{zona=Intl.DateTimeFormat().resolvedOptions().timeZone||'-';}catch(e){}
+    // jenis koneksi (Chrome/Android)
+    var koneksi='-';
+    try{var cn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+      if(cn&&cn.effectiveType)koneksi=cn.effectiveType+(cn.type?(' / '+cn.type):'');}catch(e){}
+    return {device:device,browser:browserFull,os:os,layar:layar,online:online,
+            model:model,bahasa:bahasa,zona:zona,koneksi:koneksi};
+  }catch(e){return {device:'-',browser:'-',os:'-',layar:'-',online:'-',model:'-',bahasa:'-',zona:'-',koneksi:'-'};}
 }
 function logActivity(aksi,detail){
   try{
@@ -2619,14 +2649,27 @@ function logActivity(aksi,detail){
       +pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+'.'+pad(d.getMilliseconds(),3);
     var posTxt='';
     try{ if(typeof lastPos!=='undefined'&&lastPos){ posTxt=lastPos.lat.toFixed(5)+','+lastPos.lng.toFixed(5); } }catch(e){}
-    var payload={
+    var basePayload={
       type:'log', email:userEmail||'(belum login)', peran:userRole||'-',
       aksi:aksi, detail:detail||'',
       waktuClient:d.toISOString(), waktuLokal:waktuLokal,
       device:di.device, browser:di.browser, os:di.os, layar:di.layar, online:di.online,
+      model:di.model, bahasa:di.bahasa, zona:di.zona, koneksi:di.koneksi,
       posisi:posTxt
     };
-    fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)}).catch(function(){});
+    function kirim(bateraiTxt){
+      basePayload.baterai=bateraiTxt||'-';
+      fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(basePayload)}).catch(function(){});
+    }
+    // baterai (async, Chrome/Android saja)
+    try{
+      if(navigator.getBattery){
+        navigator.getBattery().then(function(b){
+          var lvl=Math.round((b.level||0)*100)+'%'+(b.charging?' (charging)':'');
+          kirim(lvl);
+        }).catch(function(){kirim('-');});
+      }else kirim('-');
+    }catch(e){kirim('-');}
   }catch(e){}
 }
 
