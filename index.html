@@ -427,6 +427,9 @@ body.role-admin .loc-retry-inline,
 body.role-admin #mt-edit-box{display:none!important}
 body.role-admin .task-item{cursor:default;pointer-events:none}
 body.role-admin .event-card{cursor:default;pointer-events:none}
+/* Admin: sembunyikan notif kiriman & mgrlog di atas tabs — sudah ada di tab Home */
+body.role-admin #notif-stack,
+body.role-admin #admin-mgrlog{display:none!important}
 </style>
 </head>
 <body>
@@ -3554,7 +3557,7 @@ function renderHomeLog(rows){
     return;
   }
   var ic ={'Login':'🔓','Logout':'🔒','Sesi berakhir':'⏰','Buka aplikasi':'📱','Buka tab':'📂','Tiba di toko':'📍','Keluar toko':'🚪','Simpan tugas Harian':'✅','Catat Non-Harian':'📌','Simpan Gudang IN/OUT':'📦','Tambah kiriman stok':'🚚','Tandai kiriman sampai':'✓','Reset kiriman':'↩','Hapus kiriman':'🗑','Simpan Uang Cash':'💵','Tindak pelanggaran':'⚖️','Catat pelanggaran':'⚖️'};
-  var col={'Login':'var(--green)','Logout':'var(--muted)','Sesi berakhir':'var(--hint)','Tiba di toko':'var(--green)','Keluar toko':'var(--orange)','Simpan tugas Harian':'var(--blue)','Catat Non-Harian':'var(--blue)','Simpan Gudang IN/OUT':'var(--orange)','Tambah kiriman stok':'var(--orange)','Tandai kiriman sampai':'var(--green)','Hapus kiriman':'var(--red)','Simpan Uang Cash':'var(--green)','Tindak pelanggaran':'var(--red)','Catat pelanggaran':'var(--red)','Reset kiriman':'var(--orange)','Hapus kiriman':'var(--red)'};
+  var col={'Login':'var(--green)','Logout':'var(--muted)','Sesi berakhir':'var(--hint)','Tiba di toko':'var(--green)','Keluar toko':'var(--orange)','Simpan tugas Harian':'var(--blue)','Catat Non-Harian':'var(--blue)','Simpan Gudang IN/OUT':'var(--orange)','Tambah kiriman stok':'var(--orange)','Tandai kiriman sampai':'var(--green)','Hapus kiriman':'var(--red)','Simpan Uang Cash':'var(--green)','Tindak pelanggaran':'var(--red)','Catat pelanggaran':'var(--red)','Reset kiriman':'var(--orange)'};
   var html='', lastT='';
   rows.forEach(function(r){
     var tgl=_logTgl(r.waktu), jam=_logJam(r.waktu);
@@ -3563,13 +3566,35 @@ function renderHomeLog(rows){
       html+='<div style="font-size:10px;color:var(--hint);font-family:var(--mono);margin:10px 2px 5px;font-weight:700;letter-spacing:.04em">'+escH(logFmtTgl(tgl))+'</div>';
     }
     var bc=col[r.aksi]||'var(--border2)';
+    // Detail isi aksi
     var detHtml=r.detail?'<div style="font-size:11px;color:var(--text);background:var(--surface);border-radius:6px;padding:5px 8px;margin-top:5px;line-height:1.5;word-break:break-word">'+escH(r.detail)+'</div>':'';
+    // Info perangkat (selengkap versi Laporan)
+    var dev=[];
+    if(r.device)dev.push((r.device==='HP'?'📱 ':'💻 ')+escH(r.device));
+    if(r.model&&r.model!=='-')dev.push(escH(r.model));
+    if(r.os)dev.push(escH(r.os));
+    if(r.browser)dev.push(escH(r.browser));
+    if(r.layar)dev.push('🖥 '+escH(r.layar));
+    if(r.koneksi&&r.koneksi!=='-')dev.push('📶 '+escH(r.koneksi));
+    if(r.baterai&&r.baterai!=='-')dev.push('🔋 '+escH(r.baterai));
+    if(r.online)dev.push(r.online==='offline'?'⚠ offline':'🌐 online');
+    var devHtml=dev.length?'<div style="font-size:9.5px;color:var(--hint);margin-top:4px;font-family:var(--mono);line-height:1.5">'+dev.join(' · ')+'</div>':'';
+    // Bahasa & zona waktu
+    var lang=[];
+    if(r.bahasa&&r.bahasa!=='-')lang.push('🗣 '+escH(r.bahasa));
+    if(r.zona&&r.zona!=='-')lang.push('🕓 '+escH(r.zona));
+    var langHtml=lang.length?'<div style="font-size:9.5px;color:var(--hint);margin-top:2px;font-family:var(--mono)">'+lang.join(' · ')+'</div>':'';
+    // Waktu HP (presisi)
+    var hpHtml=r.waktuLokal?'<div style="font-size:9.5px;color:var(--hint);margin-top:2px;font-family:var(--mono)">⏱ HP: '+escH(r.waktuLokal)+'</div>':'';
     html+='<div style="display:flex;gap:9px;padding:10px 6px;border-bottom:1px solid var(--border);border-left:3px solid '+bc+';border-radius:4px;margin-bottom:3px;background:var(--card)">'
       +'<div style="font-size:18px;min-width:26px;text-align:center;padding-top:1px">'+(ic[r.aksi]||'•')+'</div>'
       +'<div style="flex:1;min-width:0">'
-      +'<div style="font-family:var(--mono);font-size:13px;font-weight:800;color:var(--text)">🕐 '+escH(jam)+'</div>'
-      +'<div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.35;margin-top:1px">'+escH(r.aksi||'')+'</div>'
+      +'<div style="font-family:var(--mono);font-size:14px;font-weight:800;color:var(--text);letter-spacing:.03em">🕐 '+escH(jam)+'</div>'
+      +'<div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.35;margin-top:2px">'+escH(r.aksi||'')+'</div>'
       +detHtml
+      +devHtml
+      +langHtml
+      +hpHtml
       +'</div></div>';
   });
   list.innerHTML=html;
