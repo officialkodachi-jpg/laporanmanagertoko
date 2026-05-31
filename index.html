@@ -2110,7 +2110,7 @@ function pgSave(){
   var btn=document.getElementById('pg-save-btn');btn.disabled=true;
   var adaFoto=pgFotoArr.length>0;
   btn.innerHTML='<span class="spinner"></span>'+(adaFoto?'Mengirim + '+pgFotoArr.length+' foto...':'Menyimpan...');
-  var payload={type:'pegawai_add',nama:pgActive,tgl:tgl,jenis:jenis,keterangan:ket,status:'Belum ditindak',fotos:pgFotoArr};
+  var payload={type:'pegawai_add',nama:pgActive,tgl:tgl,jenis:jenis,keterangan:ket,status:'Belum ditindak',fotos:pgFotoArr,oleh:(userRole||'-'),olehEmail:(userEmail||'')};
   function resetForm(){document.getElementById('pg-ket').value='';document.getElementById('pg-foto').value='';pgFotoArr=[];document.getElementById('pg-foto-prev').innerHTML='';}
   fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
@@ -2151,14 +2151,22 @@ function pgRenderList(){
     var p=(r.tgl||'').split('-');var tglTxt=p.length===3?(parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1]):r.tgl;
     var fotoList=r.foto?String(r.foto).split('\n').filter(function(x){return x.trim();}):[];
     var foto=fotoList.length?('🖼 '+fotoList.length+' foto'):'tanpa foto';
+    var olehTxt=r.oleh?(' · ✍ '+escH(pgOlehLabel(r.oleh))):'';
     return '<div class="km-card '+cls+'" onclick="pgOpenDetail('+r.row+')">'
       +'<div class="km-card-top"><span class="km-resi">'+escH(r.jenis||'-')+'</span><span class="km-badge '+cls+'">'+escH(r.status)+'</span></div>'
-      +'<div class="km-meta">📅 '+tglTxt+' · '+foto+'</div>'
+      +'<div class="km-meta">📅 '+tglTxt+' · '+foto+olehTxt+'</div>'
       +'<div class="km-isi">'+escH(r.keterangan||'-')+'</div>'
       +'</div>';
   }).join('');
 }
 function pgFindRow(row){return pgData.find(function(x){return x.row===row;});}
+function pgOlehLabel(oleh){
+  var s=String(oleh||'');
+  var low=s.toLowerCase();
+  if(low.indexOf('admin')>=0)return s.replace(/^admin/i,'👑 Admin');
+  if(low.indexOf('manager')>=0)return s.replace(/^manager/i,'👔 Manager');
+  return s;
+}
 function pgOpenDetail(row){
   var r=pgFindRow(row);if(!r)return;
   var cls=pgStatusCls(r.status);
@@ -2169,7 +2177,8 @@ function pgOpenDetail(row){
   html+='<div class="km-d-row"><span class="k">Tanggal</span><span class="v">'+escH(r.tgl)+'</span></div>';
   html+='<div class="km-d-row"><span class="k">Status</span><span class="v"><span class="km-badge '+cls+'">'+escH(r.status)+'</span></span></div>';
   html+='<div class="km-d-row"><span class="k">Keterangan</span><span class="v">'+escH(r.keterangan||'-')+'</span></div>';
-  if(r.waktu)html+='<div class="km-d-row"><span class="k">Dicatat</span><span class="v">'+escH(r.waktu)+'</span></div>';
+  if(r.oleh)html+='<div class="km-d-row"><span class="k">Dicatat oleh</span><span class="v">'+escH(pgOlehLabel(r.oleh))+'</span></div>';
+  if(r.waktu)html+='<div class="km-d-row"><span class="k">Waktu input</span><span class="v">'+escH(r.waktu)+'</span></div>';
   var fotoList=r.foto?String(r.foto).split('\n').filter(function(x){return x.trim();}):[];
   if(fotoList.length){
     html+='<div style="font-size:11px;color:var(--muted);margin-top:14px;text-transform:uppercase;letter-spacing:.05em">🖼 Foto bukti ('+fotoList.length+')</div>';
