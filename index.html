@@ -1671,19 +1671,52 @@ function loadLog(){
 function renderLog(rows){
   var c=document.getElementById('log-container');
   if(!rows.length){c.innerHTML='<div class="empty"><div class="empty-icon">📜</div><div class="empty-text">Belum ada aktivitas tercatat</div></div>';return;}
-  var aksiIcon={'Login':'🔓','Logout':'🔒','Sesi berakhir':'⏰','Buka aplikasi':'📱','Buka tab':'📂','Tiba di toko':'📍','Keluar toko':'🚪','Simpan tugas Harian':'✅','Catat Non-Harian':'📌','Simpan Gudang IN/OUT':'📦','Tambah kiriman stok':'🚚','Tandai kiriman sampai':'✓','Reset kiriman':'↩','Hapus kiriman':'🗑','Simpan Uang Cash':'💵'};
+  var aksiIcon={'Login':'🔓','Logout':'🔒','Sesi berakhir':'⏰','Buka aplikasi':'📱','Buka tab':'📂','Tiba di toko':'📍','Keluar toko':'🚪','Simpan tugas Harian':'✅','Catat Non-Harian':'📌','Simpan Gudang IN/OUT':'📦','Tambah kiriman stok':'🚚','Tandai kiriman sampai':'✓','Reset kiriman':'↩','Hapus kiriman':'🗑','Simpan Uang Cash':'💵','Tindak pelanggaran':'⚖️'};
+  // Warna border per kategori aksi
+  var aksiColor={
+    'Login':'var(--green)','Logout':'var(--muted)','Sesi berakhir':'var(--hint)',
+    'Tiba di toko':'var(--green)','Keluar toko':'var(--orange)',
+    'Simpan tugas Harian':'var(--blue)','Catat Non-Harian':'var(--blue)',
+    'Simpan Gudang IN/OUT':'var(--orange)','Tambah kiriman stok':'var(--orange)',
+    'Tandai kiriman sampai':'var(--green)','Hapus kiriman':'var(--red)',
+    'Simpan Uang Cash':'var(--green)','Tindak pelanggaran':'var(--red)'
+  };
   var html='';
   var lastDate='';
+  var totalHari=0,totalAksi=rows.length;
   rows.forEach(function(r){
-    var w=String(r.waktu||'');var tgl=w.substring(0,10),jam=w.substring(11,16);
-    if(tgl!==lastDate){lastDate=tgl;html+='<div class="section-hdr" style="margin-top:14px"><span class="section-hdr-label">'+logFmtTgl(tgl)+'</span><div class="section-hdr-line"></div></div>';}
+    // Waktu: ambil dari kolom waktu server (simpan detik juga kalau ada)
+    var w=String(r.waktu||''
+    );
+    // Coba parse detik: format bisa "2025-05-31 14:23:45" atau "2025-05-31T14:23:45"
+    var tgl=w.substring(0,10);
+    var jamPart=w.replace('T',' ').substring(11,19); // HH:MM:SS kalau ada, else HH:MM
+    var jam=jamPart||'--:--';
+    if(tgl!==lastDate){
+      lastDate=tgl;totalHari++;
+      html+='<div class="section-hdr" style="margin-top:14px"><span class="section-hdr-label">'+logFmtTgl(tgl)+'</span><div class="section-hdr-line"></div></div>';
+    }
     var ic=aksiIcon[r.aksi]||'•';
-    var peran=r.peran==='admin'?'<span style="color:var(--accent)">admin</span>':'<span style="color:var(--orange)">manager</span>';
-    html+='<div class="stok-item" style="border-left-color:var(--border2)">'
-      +'<div style="font-size:18px;min-width:28px;text-align:center">'+ic+'</div>'
-      +'<div class="stok-item-body"><div class="stok-item-name">'+jam+' · '+escH(r.aksi||'')+'</div>'
-      +'<div class="stok-item-sub">'+(r.detail?escH(r.detail)+' · ':'')+peran+'</div></div>'
-      +'</div>';
+    var borderColor=aksiColor[r.aksi]||'var(--border2)';
+    var peranLabel=r.peran==='admin'
+      ?'<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(217,119,6,.12);color:var(--orange);font-weight:700">👑 admin</span>'
+      :'<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(37,99,235,.1);color:var(--accent);font-weight:700">👔 manager</span>';
+    var emailTxt=r.email?'<span style="font-family:var(--mono);font-size:10px;color:var(--hint)">'+escH(r.email)+'</span>':''
+    ;
+    var detailHtml=r.detail
+      ?'<div style="font-size:11px;color:var(--text);background:var(--surface);border-radius:6px;padding:5px 8px;margin-top:5px;line-height:1.5;word-break:break-word">'+escH(r.detail)+'</div>'
+      :'';
+    html+='<div class="stok-item" style="border-left-color:'+borderColor+';align-items:flex-start;padding:11px 14px">'
+      +'<div style="font-size:20px;min-width:30px;text-align:center;padding-top:1px">'+ic+'</div>'
+      +'<div class="stok-item-body" style="min-width:0">'
+      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">'
+      +'<span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);letter-spacing:.03em">'+jam+'</span>'
+      +peranLabel
+      +emailTxt
+      +'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.35">'+escH(r.aksi||'')+'</div>'
+      +detailHtml
+      +'</div></div>';
   });
   c.innerHTML=html;
 }
@@ -2543,7 +2576,7 @@ function logActivity(aksi,detail){
     var key=aksi+'|'+(detail||'');var now=Date.now();
     if(_lastLog[key]&&(now-_lastLog[key])<3000)return;
     _lastLog[key]=now;
-    var payload={type:'log',email:userEmail||'(belum login)',peran:userRole||'-',aksi:aksi,detail:detail||''};
+    var payload={type:'log',email:userEmail||'(belum login)',peran:userRole||'-',aksi:aksi,detail:detail||'',waktuClient:new Date().toISOString()};
     fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)}).catch(function(){});
   }catch(e){}
 }
