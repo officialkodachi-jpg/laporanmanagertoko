@@ -1761,7 +1761,10 @@ function checkMgrActivity(){
   if(_lastSeenMgrLog===null){_lastSeenMgrLog=key;return;}
   if(key!==_lastSeenMgrLog){
     _lastSeenMgrLog=key;
-    var jam=String(latest.waktu||'').replace('T',' ').substring(11,19);
+    var ww=String(latest.waktu||'');
+    var jm=ww.match(/(\d{2}:\d{2}:\d{2})/);
+    var jam=jm?jm[1]:'';
+    if(!jam){var dd=new Date(ww);if(!isNaN(dd.getTime())){var pad=function(n){return String(n).padStart(2,'0');};jam=pad(dd.getHours())+':'+pad(dd.getMinutes())+':'+pad(dd.getSeconds());}}
     document.getElementById('mgr-activity-text').innerHTML=
       '<b>'+escH(latest.aksi||'')+'</b>'+(latest.detail?' — '+escH(String(latest.detail).slice(0,60)):'')
       +'<br><span style="font-family:var(--mono);font-size:11px;color:var(--hint)">⏱ '+escH(jam)+'</span>';
@@ -1792,7 +1795,14 @@ function _buildLogEmailFilter(){
   var sel=document.getElementById('log-email-filter');if(!sel)return;
   var emails={};_logRows.forEach(function(r){if(r.email)emails[r.email]=(emails[r.email]||0)+1;});
   var keys=Object.keys(emails).sort();
-  var cur=sel.value||'__all__';
+  // default pertama kali: filter ke email manager yg dipantau kalau ada
+  var firstBuild=!sel._built;
+  var cur=sel.value||(firstBuild?'':'__all__');
+  if(firstBuild){
+    var match=keys.filter(function(e){return e.toLowerCase()===MGR_WATCH_EMAIL;})[0];
+    cur=match||'__all__';
+    sel._built=true;
+  }
   var opt='<option value="__all__">Semua email ('+_logRows.length+')</option>';
   keys.forEach(function(e){opt+='<option value="'+escH(e)+'">'+escH(e)+' ('+emails[e]+')</option>';});
   sel.innerHTML=opt;
@@ -1832,12 +1842,23 @@ function renderLog(rows){
   var html='';
   var lastDate='';
   view.forEach(function(r){
-    // Waktu: ambil dari kolom waktu server (sampai detik)
+    // Waktu server bisa "2026-05-31 14:23:45" / "2026-05-31T14:23:45" / atau "Sun May 31 2026 14:23:45 GMT..."
     var w=String(r.waktu||'');
-    var tgl=w.substring(0,10);
-    var jamPart=w.replace('T',' ').substring(11,19); // HH:MM:SS
-    var jam=jamPart||'--:--:--';
-    if(showDateHdr&&tgl!==lastDate){
+    var tgl='', jam='--:--:--';
+    var m=w.match(/(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})/);
+    if(m){tgl=m[1];jam=m[2];}
+    else{
+      var d2=new Date(w);
+      if(!isNaN(d2.getTime())){
+        var pad=function(n){return String(n).padStart(2,'0');};
+        tgl=d2.getFullYear()+'-'+pad(d2.getMonth()+1)+'-'+pad(d2.getDate());
+        jam=pad(d2.getHours())+':'+pad(d2.getMinutes())+':'+pad(d2.getSeconds());
+      }else if(w.length>=10){
+        tgl=w.substring(0,10);
+        var jm=w.replace('T',' ').substring(11,19);if(jm)jam=jm;
+      }
+    }
+    if(showDateHdr&&tgl&&tgl!==lastDate){
       lastDate=tgl;
       html+='<div class="section-hdr" style="margin-top:14px"><span class="section-hdr-label">'+logFmtTgl(tgl)+'</span><div class="section-hdr-line"></div></div>';
     }
