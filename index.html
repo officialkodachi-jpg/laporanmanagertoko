@@ -2107,34 +2107,39 @@ function loadNoteBukti(){
     if(box)box.innerHTML=html;
   }).catch(function(){if(box)box.innerHTML='<div style="font-size:11px;color:var(--red);padding:6px 2px">Gagal memuat</div>';});
 }
-
 function noteBuktiDelete(row){
   if(userRole!=='admin'){showToast('Hanya admin yang bisa menghapus','err');return;}
-  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  var url=scriptUrl;if(!url||!url.startsWith('http')){showToast('URL belum dikonfigurasi','err');return;}
   if(!confirm('Sembunyikan bukti ini dari aplikasi? Data & foto tetap tersimpan di spreadsheet.'))return;
 
-  // Hapus card dari DOM pakai data-attribute (lebih reliabel)
+  // Hapus dari DOM dulu (optimistic update)
   var box=document.getElementById('note-bukti-list');
   if(box){
     var card=box.querySelector('[data-bukti-row="'+row+'"]');
     if(card) card.remove();
-    if(!box.children.length){
+    if(!box.querySelector('[data-bukti-row]')){
       box.innerHTML='<div style="font-size:11px;color:var(--hint);padding:6px 2px">Belum ada bukti dari Manager</div>';
     }
   }
 
-  showToast('✓ Disembunyikan dari aplikasi','ok');
+  showToast('Menyembunyikan...','');
   logActivity('Sembunyikan bukti note','Baris '+row);
 
-  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'note_bukti_delete',row:row})})
-    .then(function(){
-      setTimeout(loadNoteBukti, 2000);
+  var payload=JSON.stringify({type:'note_bukti_delete',row:row});
+
+  fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:payload})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d&&d.status==='ok'){showToast('✓ Disembunyikan dari aplikasi','ok');}
+      else{showToast('Gagal: '+(d&&d.message||'error'),'err');setTimeout(loadNoteBukti,1500);}
     })
     .catch(function(){
-      setTimeout(loadNoteBukti, 3000);
+      // fallback no-cors
+      fetch(url,{method:'POST',mode:'no-cors',body:payload})
+        .then(function(){showToast('✓ Disembunyikan (cek setelah refresh)','ok');})
+        .catch(function(){showToast('Gagal menghubungi server','err');setTimeout(loadNoteBukti,1500);});
     });
 }
-
 // ════ KIRIMAN STOK ════
 var kmData=[],_kmLoadedOnce=false,_kmFotoBase64='',_kmResiBase64='';
 // Kompres satu file gambar → callback(base64)
