@@ -808,11 +808,32 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
 
   <!-- SHIFT -->
   <div class="panel" id="panel-shift">
-    <div class="alert info" style="margin-bottom:14px">📅 <b>Jadwal Shift Partimer</b> — pastikan setiap hari shift PAGI &amp; SORE terisi. Di bawah daftar shift yang masih kosong bulan ini.</div>
+    <div class="alert info" style="margin-bottom:14px">📅 <b>Jadwal Shift Partimer</b> — pastikan setiap hari shift PAGI &amp; SORE terisi.</div>
+
+    <!-- Peringatan keras shift kosong (dismissible) -->
+    <div id="shift-danger-banner" style="display:none;margin-bottom:14px;background:#fee2e2;border:2px solid #ef4444;border-radius:12px;padding:14px 16px">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <span style="font-size:22px;line-height:1">🚨</span>
+        <div style="flex:1">
+          <div style="font-weight:700;color:#b91c1c;font-size:14px;margin-bottom:2px">ADA SHIFT KOSONG!</div>
+          <div id="shift-danger-text" style="color:#991b1b;font-size:13px"></div>
+        </div>
+        <button onclick="shiftDismissBanner()" style="background:none;border:none;color:#b91c1c;font-size:18px;cursor:pointer;padding:0;line-height:1;display:none" id="shift-dismiss-btn" title="Dismiss peringatan (Admin only)">✕</button>
+      </div>
+    </div>
+
     <div class="grid-controls"><input type="month" class="month-select" id="shift-month" style="flex:1"><button class="load-btn" onclick="loadShift()">Cek</button></div>
-    <div id="shift-summary" style="margin-bottom:12px"></div>
-    <div id="shift-list"><div class="empty"><div class="empty-icon">📅</div><div class="empty-text">Pilih bulan & klik Cek</div></div></div>
+
+    <!-- Daftar shift kosong -->
+    <div id="shift-list" style="margin-top:10px"><div class="empty"><div class="empty-icon">📅</div><div class="empty-text">Pilih bulan & klik Cek</div></div></div>
+
     <a class="stok-sheet-link" href="https://docs.google.com/spreadsheets/d/1qESVbmwFv27qG9ViYK_OwI3ZN4tsDynNvF-LSS2jL-I/edit?gid=630986066#gid=630986066" target="_blank">📊 Buka Spreadsheet Jadwal Shift →</a>
+
+    <!-- Rekap shift per nama — di paling bawah -->
+    <div id="shift-rekap-wrap" style="display:none;margin-top:20px">
+      <div style="font-weight:600;font-size:13px;color:var(--text-secondary);margin-bottom:8px">👤 Rekap shift diambil bulan ini</div>
+      <div id="shift-rekap-list"></div>
+    </div>
   </div>
 
   <!-- KEPEGAWAIAN -->
@@ -1722,53 +1743,87 @@ var DAY_FULL2=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 function loadShift(){
   if(!scriptUrl)return;
   var bulan=document.getElementById('shift-month').value||todayValue.substring(0,7);
-  var list=document.getElementById('shift-list'),sum=document.getElementById('shift-summary');
-  list.innerHTML='<div class="empty"><span class="spinner"></span> Memeriksa jadwal...</div>';sum.innerHTML='';
+  var list=document.getElementById('shift-list');
+  list.innerHTML='<div class="empty"><span class="spinner"></span> Memeriksa jadwal...</div>';
   fetch(scriptUrl+'?type=shift&bulan='+bulan+'&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){renderShift(d,bulan);})
     .catch(function(){list.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Gagal memuat jadwal</div></div>';});
 }
 function renderShift(d,bulan){
-  var list=document.getElementById('shift-list'),sum=document.getElementById('shift-summary');
+  var list=document.getElementById('shift-list');
   var kosong=(d&&d.kosong)?d.kosong:[];
   updateShiftBadge(kosong.length);
+
   if(d&&d.sheetMissing){list.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sheet jadwal tahun ini belum ada</div></div>';return;}
   if(d&&d.error){list.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Error: '+escH(d.error)+'</div></div>';return;}
-  if(!kosong.length){
-    sum.innerHTML='<div class="notif-item" style="background:rgba(22,163,74,.08);border-color:rgba(22,163,74,.2);color:var(--green)">✓ Semua shift bulan ini sudah terisi penuh</div>';
-    list.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-text"><b>Jadwal lengkap</b><br>Tidak ada shift kosong</div></div>';
-    return;
-  }
- sum.innerHTML='<div class=\"notif-item warn\">⚠ Ada <b>'+kosong.length+' shift kosong</b> bulan ini — segera isi di spreadsheet jadwal.</div>';
 
-  // rekap per nama
+  // Banner peringatan keras — dismiss disimpan ke spreadsheet (berlaku semua device)
+  var banner=document.getElementById('shift-danger-banner');
+  var dismissed=d&&d.dismissed; // dari Apps Script
+  window._shiftDismissBulan=bulan;
+  if(kosong.length&&!dismissed){
+    document.getElementById('shift-danger-text').textContent='Ada '+kosong.length+' slot shift belum terisi bulan ini. Segera isi jadwal!';
+    var isAdmin=document.body.classList.contains('role-admin');
+    var dismissBtn=document.getElementById('shift-dismiss-btn');
+    if(dismissBtn) dismissBtn.style.display=isAdmin?'':'none';
+    banner.style.display='';
+  } else {
+    banner.style.display='none';
+  }
+
+  if(!kosong.length){
+    list.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-text"><b>Jadwal lengkap</b><br>Tidak ada shift kosong bulan ini</div></div>';
+    document.getElementById('shift-rekap-wrap').style.display='none';
+  } else {
+    var html='';
+    kosong.forEach(function(k){
+      var p=k.tgl.split('-'),dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+      var hari=DAY_FULL2[dt.getDay()],tglTxt=parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1];
+      var warna=k.shift==='PAGI'?'var(--orange)':'var(--blue)';
+      html+='<div class="stok-item" style="border-left-color:'+warna+'">'
+        +'<div class="stok-size-pill" style="background:'+(k.shift==='PAGI'?'rgba(217,119,6,.12)':'rgba(37,99,235,.12)')+';color:'+warna+';font-size:11px;min-width:54px">'+k.shift+'</div>'
+        +'<div class="stok-item-body"><div class="stok-item-name">'+hari+', '+tglTxt+'</div><div class="stok-item-sub">shift '+(k.shift==='PAGI'?'pagi (10.00–15.30)':'sore (15.30–21.00)')+' belum ada nama</div></div>'
+        +'</div>';
+    });
+    list.innerHTML=html;
+  }
+
+  // Rekap per nama — di bawah
   var rekap=d.rekap||{};
   var namaList=Object.keys(rekap).sort(function(a,b){return rekap[b]-rekap[a];});
+  var rekapWrap=document.getElementById('shift-rekap-wrap');
+  var rekapList=document.getElementById('shift-rekap-list');
   if(namaList.length){
-    var rh='<div style="margin:10px 0;background:var(--card);border-radius:10px;padding:12px;border:1px solid var(--border)">'
-      +'<div style="font-weight:600;margin-bottom:8px;font-size:13px">👤 Rekap shift diambil bulan ini</div>';
+    var rh='<div style="background:var(--card);border-radius:10px;border:1px solid var(--border)">';
     namaList.forEach(function(nama){
-      rh+='<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">'
+      rh+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px">'
         +'<span>'+escH(nama)+'</span>'
         +'<span style="font-weight:700;color:var(--blue)">'+rekap[nama]+' shift</span>'
         +'</div>';
     });
     rh+='</div>';
-    sum.innerHTML+=rh;
+    rekapList.innerHTML=rh;
+    rekapWrap.style.display='';
+  } else {
+    rekapWrap.style.display='none';
   }
-
-  var html='';
-  kosong.forEach(function(k){
-    var p=k.tgl.split('-'),dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
-    var hari=DAY_FULL2[dt.getDay()],tglTxt=parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1];
-    var warna=k.shift==='PAGI'?'var(--orange)':'var(--blue)';
-    html+='<div class="stok-item" style="border-left-color:'+warna+'">'
-      +'<div class="stok-size-pill" style="background:'+(k.shift==='PAGI'?'rgba(217,119,6,.12)':'rgba(37,99,235,.12)')+';color:'+warna+';font-size:11px;min-width:54px">'+k.shift+'</div>'
-      +'<div class="stok-item-body"><div class="stok-item-name">'+hari+', '+tglTxt+'</div><div class="stok-item-sub">shift '+(k.shift==='PAGI'?'pagi (10.00–15.30)':'sore (15.30–21.00)')+' belum ada nama</div></div>'
-      +'</div>';
-  });
-  list.innerHTML=html;
+}
+function shiftDismissBanner(){
+  var bulan=window._shiftDismissBulan;
+  if(!bulan||!scriptUrl)return;
+  // Sembunyikan lokal dulu (responsif)
+  document.getElementById('shift-danger-banner').style.display='none';
+  // Kirim ke Apps Script → simpan di spreadsheet → berlaku semua device
+  var userEmail='';
+  try{var gi=window._gsiUserInfo;if(gi&&gi.email)userEmail=gi.email;}catch(e){}
+  fetch(scriptUrl,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({type:'shift_dismiss',bulan:bulan,email:userEmail,waktu:new Date().toISOString()})
+  }).then(function(r){return r.json();})
+    .then(function(d){if(d&&d.status==='ok')showToast('✓ Peringatan di-dismiss (semua device)','ok');else showToast('Dismiss lokal saja — gagal sync','err');})
+    .catch(function(){showToast('Dismiss lokal saja — gagal konek','err');});
 }
 function updateShiftBadge(n){_setBadge('badge-shift',n,true);}
 
