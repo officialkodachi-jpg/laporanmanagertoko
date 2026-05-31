@@ -1282,9 +1282,30 @@ function igRenderTable(){
   igUpdateSummary();
 }
 function igUpdateSummary(){
+  // angka utama diambil dari spreadsheet (igLoadRingkasan). ini hanya fallback awal.
+  if(_igRingkasanLoaded) return;
   document.getElementById('ig-cnt-hilang').textContent=igRows.filter(r=>r.ket==='Hilang').length;
   document.getElementById('ig-cnt-ketemu').textContent=igRows.filter(r=>r.ket==='Ketemu').length;
   document.getElementById('ig-cnt-minus').textContent=igRows.filter(r=>r.ket==='Minus Stock').length;
+}
+
+var _igRingkasanLoaded=false;
+function igLoadRingkasan(){
+  var url=igApiUrl;
+  if(!url||!url.startsWith('http')) return;
+  var old=document.getElementById('jsonp-ringkasan');if(old)old.remove();
+  window.__igRingkasanCb=function(data){
+    if(data&&data.status==='ok'){
+      _igRingkasanLoaded=true;
+      document.getElementById('ig-cnt-hilang').textContent=(data.hilang!=null?data.hilang:0);
+      document.getElementById('ig-cnt-ketemu').textContent=(data.ketemu!=null?data.ketemu:0);
+      document.getElementById('ig-cnt-minus').textContent=(data.minus!=null?data.minus:0);
+    }
+  };
+  var s=document.createElement('script');s.id='jsonp-ringkasan';
+  s.src=url+'?type=ringkasan&callback=__igRingkasanCb&_='+Date.now();
+  s.onerror=function(){};
+  document.body.appendChild(s);
 }
 
 function igLoadStokGudang(){
@@ -1640,7 +1661,7 @@ function switchTab(name,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
-  if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();}
+  if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();}
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
   if(name==='cash'){if(cashData.length===0)loadCashData();}
   if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
@@ -1655,7 +1676,7 @@ function switchGudangView(v,btn){
   document.getElementById('gview-'+v).classList.add('active');
   if(btn)btn.classList.add('active');
   if(v==='inout'&&!_produkLoaded)igLoadProduk();
-  if(v==='inout')igLoadStokGudang();
+  if(v==='inout'){igLoadStokGudang();igLoadRingkasan();}
   if(v==='kiriman'&&!_kmLoadedOnce)kmLoad();
 }
 function switchLaporanView(v,btn){
