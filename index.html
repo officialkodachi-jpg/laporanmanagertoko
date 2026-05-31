@@ -2095,7 +2095,10 @@ function loadNoteBukti(){
     var html='';
     rows.forEach(function(r){
       html+='<div style="border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--card2)">'
-        +'<div style="font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap"><b>Note:</b> '+escH(r.teks||'-')+'</div>'
+        +'<div style="display:flex;align-items:flex-start;gap:8px">'
+        +'<div style="flex:1;min-width:0;font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap"><b>Note:</b> '+escH(r.teks||'-')+'</div>'
+        +'<button onclick="noteBuktiDelete('+r.row+')" title="Sembunyikan dari aplikasi (data tetap di spreadsheet)" style="background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.3);border-radius:8px;padding:4px 8px;font-size:13px;cursor:pointer;flex-shrink:0">🗑</button>'
+        +'</div>'
         +(r.catatan?'<div style="font-size:11px;color:var(--muted);margin-top:4px"><b>Catatan:</b> '+escH(r.catatan)+'</div>':'')
         +'<div style="font-size:10px;color:var(--hint);font-family:var(--mono);margin-top:5px">'+escH(String(r.waktu||''))+(r.oleh?(' · '+escH(r.oleh)):'')+'</div>'
         +(r.foto?'<a href="'+escH(r.foto)+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:12px;color:var(--accent);text-decoration:none">📷 Lihat foto bukti</a>':'<div style="font-size:11px;color:var(--hint);margin-top:6px">tanpa foto</div>')
@@ -2103,6 +2106,16 @@ function loadNoteBukti(){
     });
     if(box)box.innerHTML=html;
   }).catch(function(){if(box)box.innerHTML='<div style="font-size:11px;color:var(--red);padding:6px 2px">Gagal memuat</div>';});
+}
+
+// ── ADMIN: sembunyikan satu bukti DARI APLIKASI (spreadsheet tetap utuh) ──
+function noteBuktiDelete(row){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa menghapus','err');return;}
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  if(!confirm('Sembunyikan bukti ini dari aplikasi? Data & foto tetap tersimpan di spreadsheet.'))return;
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'note_bukti_delete',row:row})})
+    .then(function(){showToast('✓ Disembunyikan dari aplikasi','ok');logActivity('Sembunyikan bukti note','Baris '+row);setTimeout(loadNoteBukti,1500);})
+    .catch(function(){showToast('Gagal menyembunyikan','err');});
 }
 
 // ════ KIRIMAN STOK ════
