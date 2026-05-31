@@ -461,7 +461,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
     <div class="loc-detail" id="loc-detail">Mendeteksi posisi kamu</div>
     <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span>Target: 4 jam</span></div></div>
     <button class="loc-retry-inline" id="loc-retry-btn" onclick="retryGps()">🔄 Coba ulang deteksi lokasi</button>
-    <button class="admin-refresh" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc()">🔄 Perbarui posisi Manager</button>
+    <button class="admin-refresh" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc(true)">🔄 Perbarui posisi Manager</button>
   </div>
   <div class="loc-timer" id="loc-timer">0:00</div>
 </div></div>
@@ -1178,11 +1178,18 @@ function pushManagerLoc(){
 }
 
 // ── ADMIN: ambil posisi manager dari server ──
-function loadManagerLoc(){
+function loadManagerLoc(manual){
   if(userRole!=='admin')return;
   var url=scriptUrl;if(!url||!url.startsWith('http')){renderManagerLoc(null);return;}
+  if(manual)showToast('Memuat posisi Manager...','');
   fetch(url+'?type=loc&tanggal='+todayValue+'&_='+Date.now())
-    .then(r=>r.json()).then(d=>renderManagerLoc(d)).catch(()=>renderManagerLoc(null));
+    .then(r=>r.json()).then(d=>{
+      renderManagerLoc(d);
+      if(manual){
+        if(d&&(d.lat||d.menit||d.inStore!==undefined))showToast('✓ Posisi Manager diperbarui','ok');
+        else showToast('Belum ada data posisi Manager hari ini','');
+      }
+    }).catch(()=>{renderManagerLoc(null);if(manual)showToast('Gagal memuat posisi','err');});
 }
 function renderManagerLoc(d){
   var i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),
