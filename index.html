@@ -1706,6 +1706,18 @@ function renderLog(rows){
     var detailHtml=r.detail
       ?'<div style="font-size:11px;color:var(--text);background:var(--surface);border-radius:6px;padding:5px 8px;margin-top:5px;line-height:1.5;word-break:break-word">'+escH(r.detail)+'</div>'
       :'';
+    // baris info perangkat (kalau ada)
+    var devBits=[];
+    if(r.device)devBits.push((r.device==='HP'?'📱 ':'💻 ')+escH(r.device));
+    if(r.os)devBits.push(escH(r.os));
+    if(r.browser)devBits.push(escH(r.browser));
+    if(r.layar)devBits.push('🖥 '+escH(r.layar));
+    if(r.online)devBits.push(r.online==='offline'?'⚠ offline':'🌐 online');
+    var devHtml=devBits.length
+      ?'<div style="font-size:10px;color:var(--hint);margin-top:4px;font-family:var(--mono)">'+devBits.join(' · ')+'</div>'
+      :'';
+    // waktu HP lokal (sampai milidetik) kalau ada, tampil sebagai info tambahan
+    var waktuHp=r.waktuLokal?'<div style="font-size:10px;color:var(--hint);margin-top:3px;font-family:var(--mono)">⏱ HP: '+escH(r.waktuLokal)+'</div>':'';
     html+='<div class="stok-item" style="border-left-color:'+borderColor+';align-items:flex-start;padding:11px 14px">'
       +'<div style="font-size:20px;min-width:30px;text-align:center;padding-top:1px">'+ic+'</div>'
       +'<div class="stok-item-body" style="min-width:0">'
@@ -1716,6 +1728,8 @@ function renderLog(rows){
       +'</div>'
       +'<div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.35">'+escH(r.aksi||'')+'</div>'
       +detailHtml
+      +devHtml
+      +waktuHp
       +'</div></div>';
   });
   c.innerHTML=html;
@@ -2567,6 +2581,27 @@ var userEmail= sessionValid() ? (localStorage.getItem('mtg_email')||'') : '';
 // ════ LOG AKTIVITAS ════
 // Catat aktivitas ke spreadsheet (fire-and-forget, tidak memperlambat app)
 var _lastLog={};
+function _logDeviceInfo(){
+  try{
+    var ua=navigator.userAgent||'';
+    var isMobile=/Mobi|Android|iPhone|iPad|iPod/i.test(ua);
+    var device=isMobile?'HP':'Laptop/PC';
+    // tebak browser
+    var br='Lainnya';
+    if(/Edg\//.test(ua))br='Edge';else if(/OPR\//.test(ua))br='Opera';
+    else if(/Chrome\//.test(ua)&&!/Edg|OPR/.test(ua))br='Chrome';
+    else if(/Firefox\//.test(ua))br='Firefox';
+    else if(/Safari\//.test(ua)&&!/Chrome/.test(ua))br='Safari';
+    // tebak OS
+    var os='Lainnya';
+    if(/Android/i.test(ua))os='Android';else if(/iPhone|iPad|iPod/i.test(ua))os='iOS';
+    else if(/Windows/i.test(ua))os='Windows';else if(/Mac OS/i.test(ua))os='macOS';
+    else if(/Linux/i.test(ua))os='Linux';
+    var layar=(window.screen?window.screen.width+'×'+window.screen.height:'-');
+    var online=(navigator.onLine===false)?'offline':'online';
+    return {device:device,browser:br,os:os,layar:layar,online:online};
+  }catch(e){return {device:'-',browser:'-',os:'-',layar:'-',online:'-'};}
+}
 function logActivity(aksi,detail){
   try{
     if(!scriptUrl||!scriptUrl.startsWith('http'))return;
@@ -2576,7 +2611,21 @@ function logActivity(aksi,detail){
     var key=aksi+'|'+(detail||'');var now=Date.now();
     if(_lastLog[key]&&(now-_lastLog[key])<3000)return;
     _lastLog[key]=now;
-    var payload={type:'log',email:userEmail||'(belum login)',peran:userRole||'-',aksi:aksi,detail:detail||'',waktuClient:new Date().toISOString()};
+    var di=_logDeviceInfo();
+    var d=new Date();
+    // waktu presisi client sampai milidetik (zona waktu lokal HP)
+    var pad=function(n,l){l=l||2;return String(n).padStart(l,'0');};
+    var waktuLokal=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '
+      +pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+'.'+pad(d.getMilliseconds(),3);
+    var posTxt='';
+    try{ if(typeof lastPos!=='undefined'&&lastPos){ posTxt=lastPos.lat.toFixed(5)+','+lastPos.lng.toFixed(5); } }catch(e){}
+    var payload={
+      type:'log', email:userEmail||'(belum login)', peran:userRole||'-',
+      aksi:aksi, detail:detail||'',
+      waktuClient:d.toISOString(), waktuLokal:waktuLokal,
+      device:di.device, browser:di.browser, os:di.os, layar:di.layar, online:di.online,
+      posisi:posTxt
+    };
     fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)}).catch(function(){});
   }catch(e){}
 }
