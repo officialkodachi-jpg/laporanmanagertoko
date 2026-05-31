@@ -468,6 +468,17 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
   <div class="loc-timer" id="loc-timer">0:00</div>
 </div></div>
 
+<div id="mgr-activity-banner" class="admin-only" style="display:none;margin:0 16px 12px;background:rgba(124,58,237,.1);border:1.5px solid rgba(124,58,237,.4);border-radius:var(--r);padding:12px 14px">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="font-size:22px">🔔</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:800;color:#7c3aed">Aktivitas Manager terbaru</div>
+      <div id="mgr-activity-text" style="font-size:12px;color:var(--text);margin-top:2px;line-height:1.4">—</div>
+    </div>
+    <button onclick="dismissMgrActivity()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px">×</button>
+  </div>
+</div>
+
 <div id="loc-hidden" style="display:none"><span id="loc-debug"></span><span id="loc-distance"></span><span id="loc-accuracy"></span><span id="loc-sessions-count"></span><span id="loc-total-today"></span><div id="loc-log-list"></div></div>
 
 <div class="tabs-wrap">
@@ -510,6 +521,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
     <div class="prog-wrap"><div class="prog-header"><span class="prog-label">Progress hari ini</span><span class="prog-pct" id="prog-pct">0%</span></div><div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div></div>
     <div id="harian-list"></div>
     <button class="save-btn" id="save-harian-btn" onclick="saveHarian()">Simpan ke Google Sheets</button>
+    <a class="stok-sheet-link" href="https://docs.google.com/spreadsheets/d/1ci0F6DajqsXt7IeX88fddYQwT_bO4CxAiV4hJltCyAQ/edit?gid=1670613726#gid=1670613726" target="_blank">📊 Buka Manager Task Guide →</a>
   </div>
 
   <!-- STOK & GUDANG -->
@@ -553,7 +565,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
       <div class="alert info" style="margin-bottom:14px">📥 <b>Gudang IN/OUT — Stok Gudang Mranggen</b> — catat mutasi stok masuk/keluar. Data terkirim ke Google Sheets setelah klik <b>Simpan ke Sheets</b>.</div>
       <div class="produk-status loading" id="produk-status"><span class="spinner" style="width:12px;height:12px;border-width:2px"></span><span id="produk-status-text">Memuat daftar produk...</span></div>
       <div id="stok-minus-warn" style="display:none;background:rgba(220,38,38,.08);border:1.5px solid rgba(220,38,38,.3);border-radius:var(--r);padding:12px 14px;margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px">⚠️ Stok Gudang MINUS — perlu dicek!</div><div id="stok-minus-list" style="font-size:12px;color:var(--red);line-height:1.8"></div></div>
-      <div class="ig-header">STOK GUDANG MRANGGEN 2026</div>
+      <div class="ig-header">STOK GUDANG MRANGGEN</div>
       <div class="ig-summary">
         <div class="ig-sum-cell hilang">Hilang <span class="ig-sum-val" id="ig-cnt-hilang">0</span></div>
         <div class="ig-sum-cell ketemu">Ketemu <span class="ig-sum-val" id="ig-cnt-ketemu">0</span></div>
@@ -632,6 +644,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
       <textarea class="note-input" id="event-note" placeholder="Opsional: isi catatan atau hasil kerja..."></textarea>
       <button class="send-btn" id="event-send-btn" onclick="saveEvent()">Catat →</button>
     </div>
+    <a class="stok-sheet-link" href="https://docs.google.com/spreadsheets/d/1ci0F6DajqsXt7IeX88fddYQwT_bO4CxAiV4hJltCyAQ/edit?gid=1670613726#gid=1670613726" target="_blank">📊 Buka Manager Task Guide →</a>
   </div>
 
   <!-- LAPORAN -->
@@ -1665,6 +1678,7 @@ function switchTab(name,btn){
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
   if(name==='cash'){if(cashData.length===0)loadCashData();}
   if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
+  if(name==='laporan'&&userRole==='admin')loadLog();
   var tabNama={harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link'};
   logActivity('Buka tab',tabNama[name]||name);
 }
@@ -1689,14 +1703,55 @@ function switchLaporanView(v,btn){
 }
 // Muat log aktivitas (admin)
 var _logRows=[];
+var MGR_WATCH_EMAIL='fahdryifih@gmail.com';
+var _lastSeenMgrLog=null; // waktu aktivitas manager terakhir yang sudah dilihat admin
 function loadLog(){
   if(!scriptUrl)return;
   var c=document.getElementById('log-container');
   c.innerHTML='<div class="empty"><span class="spinner"></span> Memuat log...</div>';
   fetch(scriptUrl+'?type=log&limit=300&_='+Date.now())
     .then(function(r){return r.json();})
-    .then(function(d){_logRows=(d&&d.rows)?d.rows:[];_buildLogEmailFilter();renderLog(_logRows);})
+    .then(function(d){_logRows=(d&&d.rows)?d.rows:[];_buildLogEmailFilter();renderLog(_logRows);checkMgrActivity();})
     .catch(function(){c.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Gagal memuat log</div></div>';});
+}
+// Notifikasi admin: cek aktivitas terbaru dari email manager yg dipantau
+function checkMgrActivity(){
+  if(userRole!=='admin')return;
+  var mgr=_logRows.filter(function(r){return String(r.email||'').toLowerCase()===MGR_WATCH_EMAIL;});
+  if(!mgr.length)return;
+  // _logRows sudah terbaru-dulu dari server → ambil yang pertama
+  var latest=mgr[0];
+  var key=String(latest.waktu||'')+'|'+String(latest.aksi||'');
+  // pertama kali buka: simpan sebagai "sudah dilihat", jangan bunyikan
+  if(_lastSeenMgrLog===null){_lastSeenMgrLog=key;return;}
+  if(key!==_lastSeenMgrLog){
+    _lastSeenMgrLog=key;
+    var jam=String(latest.waktu||'').replace('T',' ').substring(11,19);
+    document.getElementById('mgr-activity-text').innerHTML=
+      '<b>'+escH(latest.aksi||'')+'</b>'+(latest.detail?' — '+escH(String(latest.detail).slice(0,60)):'')
+      +'<br><span style="font-family:var(--mono);font-size:11px;color:var(--hint)">⏱ '+escH(jam)+'</span>';
+    var b=document.getElementById('mgr-activity-banner');if(b)b.style.display='block';
+    playMgrSound();
+  }
+}
+function dismissMgrActivity(){var b=document.getElementById('mgr-activity-banner');if(b)b.style.display='none';}
+// Bunyi khas notifikasi aktivitas manager (beda: nada ganda naik-turun)
+function playMgrSound(){
+  try{
+    var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+    var ctx=new AC();
+    var seq=[[880,0],[1320,0.16],[1100,0.32]]; // pola 3 nada khas
+    seq.forEach(function(s){
+      var o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='triangle';o.frequency.value=s[0];
+      o.connect(g);g.connect(ctx.destination);
+      var t=ctx.currentTime+s[1];
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.25,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.14);
+      o.start(t);o.stop(t+0.16);
+    });
+  }catch(e){}
 }
 function _buildLogEmailFilter(){
   var sel=document.getElementById('log-email-filter');if(!sel)return;
