@@ -1564,14 +1564,13 @@ function loadStreakHarian(){
         +'</div>'
         +'<div class="d01-streak-side">'
         +'<div class="d01-streak-mini"><span class="d01-streak-mini-label">Masuk toko</span><span class="d01-streak-mini-val" style="color:var(--green)">'+totalHadir+'</span></div>'
-        +'<div class="d01-streak-mini"><span class="d01-streak-mini-label">Tanpa GPS</span><span class="d01-streak-mini-val" style="color:'+tanpaGPSColor+'">'+totalAbsen+'</span></div>'
+        
         +'</div>'
         +'</div>';
       // bar masuk vs tanpa GPS
-      html+='<div class="d01-streak-bar-labels"><span>Masuk <b style="color:var(--green)">'+masukPct+'%</b></span><span>Tanpa GPS <b style="color:'+tanpaGPSColor+'">'+absenPct+'%</b></span></div>'
+      html+='<div class="d01-streak-bar-labels"><span>Masuk <b style="color:var(--green)">'+masukPct+'%</b></span></div>'
         +'<div class="d01-streak-bar-track">'
         +'<div class="d01-streak-bar-masuk" style="width:'+masukPct+'%"></div>'
-        +'<div class="d01-streak-bar-absen" style="width:'+absenPct+'%;background:'+tanpaGPSColor+'"></div>'
         +'</div>';
       // kalender mini
       html+='<div class="d01-streak-cal-hdr">SEN · SEL · RAB · KAM · JUM · SAB</div>';
@@ -1607,7 +1606,7 @@ function loadStreakHarian(){
         +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:var(--green)"></div>≥4j</div>'
         +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:rgba(22,163,74,.35)"></div>2–4j</div>'
         +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:rgba(22,163,74,.15)"></div>&lt;2j</div>'
-        +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:var(--orange)"></div>Tanpa GPS</div>'
+        
         +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:rgba(220,38,38,.3)"></div>Absen</div>'
         +'</div>';
       content.innerHTML=html;
