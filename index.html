@@ -574,6 +574,21 @@ body.role-admin #admin-mgrlog{display:none!important}
       </div>
     </div>
 
+    <!-- Streak Kehadiran -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <div style="font-size:18px">📅</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Streak Kehadiran</div>
+          <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-streak-sub">Bulan ini</div>
+        </div>
+        <button onclick="loadHomeStreak()" style="background:rgba(124,58,237,.1);color:#7c3aed;border:1px solid rgba(124,58,237,.3);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">⟳ Muat</button>
+      </div>
+      <div id="home-streak-body" style="padding:14px 16px">
+        <div style="color:var(--hint);font-size:12px;text-align:center">Tekan "Muat" untuk melihat streak kehadiran</div>
+      </div>
+    </div>
+
     <!-- Rekap Jam Kerja Bulan Ini -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
@@ -1840,7 +1855,7 @@ function switchTab(name,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
-  if(name==='home'){loadHomeKiriman();loadHomeLog();loadHomeHarian();loadHomeJamKerja();loadHomeEvent();loadHomeRekap();}
+  if(name==='home'){loadHomeKiriman();loadHomeLog();loadHomeHarian();loadHomeJamKerja();loadHomeEvent();loadHomeRekap();loadHomeStreak();}
   if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();}
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
   if(name==='cash'){if(cashData.length===0)loadCashData();}
@@ -3628,6 +3643,187 @@ function renderHomeLog(rows){
       +'</div></div>';
   });
   list.innerHTML=html;
+}
+
+// ── Streak Kehadiran ──
+function loadHomeStreak(){
+  if(userRole!=='admin') return;
+  var body=document.getElementById('home-streak-body');
+  var sub =document.getElementById('home-streak-sub');
+  if(!scriptUrl){body.innerHTML='<div style="color:var(--hint);font-size:12px">URL belum dikonfigurasi</div>';return;}
+  body.innerHTML='<div style="text-align:center"><span class="spinner"></span> Memuat...</div>';
+  var bulan=todayValue.substring(0,7);
+  if(sub) sub.textContent='Bulan '+bulan;
+  fetch(scriptUrl+'?type=jamkerja&bulan='+bulan+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var hari=(d&&d.hari)?d.hari:[];
+      // Set tanggal yang ada data (ada GPS masuk)
+      var hadir={};
+      hari.forEach(function(h){ if(h.tgl) hadir[h.tgl]=h.menit||0; });
+
+      // Bangun array semua hari kerja bulan ini (Senin–Sabtu) s/d hari ini
+      var p=bulan.split('-'), yr=parseInt(p[0]), mo=parseInt(p[1]);
+      var today=new Date(todayValue);
+      var dim=new Date(yr,mo,0).getDate();
+      var hariKerja=[], hariAbsen=[];
+      for(var d2=1;d2<=dim;d2++){
+        var dt=new Date(yr,mo-1,d2);
+        if(dt>today) break;          // belum lewat hari ini
+        if(dt.getDay()===0) continue; // skip Minggu
+        var tglStr=yr+'-'+String(mo).padStart(2,'0')+'-'+String(d2).padStart(2,'0');
+        hariKerja.push(tglStr);
+        if(!hadir[tglStr]) hariAbsen.push(tglStr);
+      }
+
+      // Hitung streak saat ini (mundur dari hari ini / kemarin)
+      // Cari hari kerja terakhir s/d hari ini
+      var streakSaatIni=0;
+      for(var i=hariKerja.length-1;i>=0;i--){
+        if(hadir[hariKerja[i]]) streakSaatIni++;
+        else break;
+      }
+      // Hitung streak terpanjang bulan ini
+      var streakMax=0, streakRun=0;
+      hariKerja.forEach(function(t){
+        if(hadir[t]){ streakRun++; if(streakRun>streakMax)streakMax=streakRun; }
+        else streakRun=0;
+      });
+
+      var totalKerja=hariKerja.length;
+      var totalHadir=Object.keys(hadir).length;
+      var totalAbsen=hariAbsen.length;
+      var pctHadir=totalKerja?Math.round(totalHadir/totalKerja*100):0;
+
+      // Warna streak saat ini
+      var streakColor=streakSaatIni>=5?'var(--green)':streakSaatIni>=2?'var(--orange)':'var(--red)';
+      var streakLabel=streakSaatIni>=5?'🔥 Bagus!':streakSaatIni>=2?'👍 Lumayan':streakSaatIni===0?'😴 Tidak hadir berturut-turut':'⚠ Perlu dijaga';
+
+      var html='';
+
+      // Angka besar: streak saat ini
+      html+='<div style="display:flex;align-items:center;gap:16px;padding:8px 0 16px">'
+        +'<div style="text-align:center;flex:1">'
+        +'<div style="font-family:var(--mono);font-size:48px;font-weight:500;color:'+streakColor+';line-height:1">'+streakSaatIni+'</div>'
+        +'<div style="font-size:11px;color:var(--muted);margin-top:4px">hari berturut-turut</div>'
+        +'<div style="font-size:12px;font-weight:700;color:'+streakColor+';margin-top:4px">'+streakLabel+'</div>'
+        +'</div>'
+        +'<div style="width:1px;background:var(--border);align-self:stretch"></div>'
+        +'<div style="flex:1;display:flex;flex-direction:column;gap:10px">'
+        +'<div style="text-align:center"><div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--accent)">'+streakMax+'</div><div style="font-size:10px;color:var(--muted)">streak terpanjang</div></div>'
+        +'<div style="text-align:center"><div style="font-family:var(--mono);font-size:22px;font-weight:500;color:'+(totalAbsen>3?'var(--red)':totalAbsen>0?'var(--orange)':'var(--green)')+'">'+totalAbsen+'</div><div style="font-size:10px;color:var(--muted)">hari absen</div></div>'
+        +'</div>'
+        +'</div>';
+
+      // ── Kartu: Masuk vs Tanpa GPS ──
+      var tanpaGPS = totalAbsen; // hari kerja lewat tapi tidak ada data GPS sama sekali
+      var tanpaGPSColor = tanpaGPS===0?'var(--green)':tanpaGPS<=3?'var(--orange)':'var(--red)';
+      var masukBarW = totalKerja ? Math.round(totalHadir/totalKerja*100) : 0;
+      var absenBarW = totalKerja ? Math.round(tanpaGPS/totalKerja*100) : 0;
+      html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px">'
+        // Header baris
+        +'<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">📅 Masuk Toko vs Tanpa Data GPS</div>'
+        // Dua kolom besar
+        +'<div style="display:flex;gap:10px;margin-bottom:12px">'
+          // Masuk toko
+          +'<div style="flex:1;background:rgba(22,163,74,.07);border:1px solid rgba(22,163,74,.2);border-radius:10px;padding:12px;text-align:center">'
+            +'<div style="font-family:var(--mono);font-size:36px;font-weight:500;color:var(--green);line-height:1">'+totalHadir+'</div>'
+            +'<div style="font-size:10px;color:var(--muted);margin-top:5px;font-weight:600">hari masuk toko</div>'
+            +'<div style="font-size:10px;color:var(--green);margin-top:2px;font-family:var(--mono)">ada data GPS</div>'
+          +'</div>'
+          // Tanpa GPS
+          +'<div style="flex:1;background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2);border-radius:10px;padding:12px;text-align:center">'
+            +'<div style="font-family:var(--mono);font-size:36px;font-weight:500;color:'+tanpaGPSColor+';line-height:1">'+tanpaGPS+'</div>'
+            +'<div style="font-size:10px;color:var(--muted);margin-top:5px;font-weight:600">hari tanpa GPS</div>'
+            +'<div style="font-size:10px;color:'+tanpaGPSColor+';margin-top:2px;font-family:var(--mono)">tidak ada data</div>'
+          +'</div>'
+        +'</div>'
+        // Progress bar ganda
+        +'<div style="margin-bottom:6px">'
+          +'<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px">'
+            +'<span>Masuk <b style="color:var(--green)">'+masukBarW+'%</b></span>'
+            +'<span>Tanpa GPS <b style="color:'+tanpaGPSColor+'">'+absenBarW+'%</b></span>'
+          +'</div>'
+          +'<div style="background:var(--surface);border-radius:4px;height:10px;overflow:hidden;display:flex">'
+            +'<div style="height:100%;background:var(--green);width:'+masukBarW+'%;transition:width .4s ease;border-radius:4px 0 0 4px"></div>'
+            +'<div style="height:100%;background:'+(tanpaGPS===0?'transparent':tanpaGPSColor)+';width:'+absenBarW+'%;transition:width .4s ease;border-radius:0 4px 4px 0"></div>'
+          +'</div>'
+        +'</div>'
+        // Catatan total hari kerja
+        +'<div style="font-size:10px;color:var(--hint);text-align:right;font-family:var(--mono)">dari '+totalKerja+' hari kerja bulan ini (Senin–Sabtu)</div>'
+        +'</div>';
+
+      // Bar hadir bulan ini
+      html+='<div style="background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.15);border-radius:10px;padding:10px 14px;margin-bottom:14px">'
+        +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">'
+        +'<span style="color:var(--muted)">Kehadiran bulan ini</span>'
+        +'<span style="font-family:var(--mono);font-weight:700;color:'+(pctHadir>=80?'var(--green)':pctHadir>=60?'var(--orange)':'var(--red)')+'">'+totalHadir+'/'+totalKerja+' hari ('+pctHadir+'%)</span>'
+        +'</div>'
+        +'<div style="background:var(--surface);border-radius:4px;height:8px;overflow:hidden">'
+        +'<div style="height:100%;border-radius:4px;background:'+(pctHadir>=80?'var(--green)':pctHadir>=60?'var(--orange)':'var(--red)')+';width:'+pctHadir+'%;transition:width .4s ease"></div>'
+        +'</div>'
+        +'</div>';
+
+      // Kalender mini — kotak per hari kerja bulan ini
+      html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Kalender Kehadiran</div>';
+      html+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">';
+      var HARI_PENDEK=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+      // Header hari
+      ['Sen','Sel','Rab','Kam','Jum','Sab'].forEach(function(h){
+        html+='<div style="width:32px;text-align:center;font-size:9px;color:var(--hint);font-family:var(--mono)">'+h+'</div>';
+      });
+      html+='</div><div style="display:flex;flex-wrap:wrap;gap:4px">';
+      // Offset awal bulan (Senin=0)
+      var firstDay=new Date(yr,mo-1,1).getDay(); // 0=Min
+      var offset=firstDay===0?5:firstDay-1; // geser agar Senin di kiri
+      for(var o=0;o<offset;o++) html+='<div style="width:32px;height:32px"></div>';
+      for(var d3=1;d3<=dim;d3++){
+        var dt2=new Date(yr,mo-1,d3);
+        var tglS=yr+'-'+String(mo).padStart(2,'0')+'-'+String(d3).padStart(2,'0');
+        if(dt2.getDay()===0) continue; // skip Minggu, tidak render
+        var isFuture=dt2>today;
+        var isHadir=!!hadir[tglS];
+        var mnt=hadir[tglS]||0;
+        var bg,color,title;
+        if(isFuture){bg='var(--surface)';color='var(--hint)';}
+        else if(isHadir){
+          bg=mnt>=240?'var(--green)':mnt>=120?'var(--orange)':'rgba(22,163,74,.35)';
+          color='#fff';
+        } else {
+          bg='rgba(220,38,38,.15)';color='var(--red)';
+        }
+        var hj=Math.floor(mnt/60),mj=Math.round(mnt%60);
+        var ttip=isHadir?(hj+'j'+mj+'m'):(isFuture?'':'absen');
+        html+='<div style="width:32px;height:32px;border-radius:6px;background:'+bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:default" title="'+tglS+(ttip?' · '+ttip:'')+'">'
+          +'<div style="font-size:10px;font-weight:700;color:'+color+'">'+d3+'</div>'
+          +(isHadir&&ttip?'<div style="font-size:7px;color:'+color+';opacity:.85;line-height:1">'+ttip+'</div>':'')
+          +'</div>';
+      }
+      html+='</div>';
+
+      // Legenda
+      html+='<div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">'
+        +'<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:var(--green)"></div>≥4 jam</div>'
+        +'<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:var(--orange)"></div>2–4 jam</div>'
+        +'<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:rgba(22,163,74,.35)"></div>&lt;2 jam</div>'
+        +'<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:rgba(220,38,38,.15)"></div>Absen</div>'
+        +'</div>';
+
+      // Daftar hari absen
+      if(hariAbsen.length){
+        html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:14px 0 7px;text-transform:uppercase;letter-spacing:.06em">🔴 Hari Absen ('+hariAbsen.length+')</div>';
+        html+='<div style="display:flex;flex-wrap:wrap;gap:5px">';
+        hariAbsen.forEach(function(t){
+          var p2=t.split('-'),dt3=new Date(parseInt(p2[0]),parseInt(p2[1])-1,parseInt(p2[2]));
+          var nh=HARI_PENDEK[dt3.getDay()];
+          html+='<div style="padding:4px 9px;border-radius:20px;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.2);font-size:11px;font-weight:600;color:var(--red);font-family:var(--mono)">'+nh+' '+parseInt(p2[2])+'</div>';
+        });
+        html+='</div>';
+      }
+
+      body.innerHTML=html;
+    })
+    .catch(function(){body.innerHTML='<div style="color:var(--red);font-size:12px">⚠ Gagal memuat data kehadiran</div>';});
 }
 
 // ── Rekap Jam Kerja Bulan Ini ──
