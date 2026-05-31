@@ -294,12 +294,13 @@ body.role-admin .admin-only{display:inline-flex}
 .empty-since-badge .since-icon{font-size:12px}
 
 /* ALARM BANNER */
-.alarm-banner{display:none;position:sticky;top:0;z-index:200;background:var(--red);color:#fff;padding:10px 20px;text-align:center;font-size:13px;font-weight:700;letter-spacing:.03em;animation:bannerShake .5s ease infinite alternate;cursor:pointer}
+.alarm-banner{display:none;background:var(--red);color:#fff;padding:10px 20px;text-align:center;font-size:13px;font-weight:700;letter-spacing:.03em;animation:bannerShake .5s ease infinite alternate;cursor:pointer}
+.banner-stack{position:sticky;top:0;z-index:200}
 .alarm-banner.show{display:flex;align-items:center;justify-content:center;gap:10px}
 /* Meeting banner selalu di atas stok banner */
-#meeting-banner{z-index:201 !important}
 @keyframes bannerShake{0%{background:#dc2626}100%{background:#b91c1c}}
 @keyframes meetingShake{0%{background:#0f766e}100%{background:#0d9488}}
+@keyframes shiftBannerPulse{0%{background:#d97706}100%{background:#b45309}}
 .alarm-banner .mute-hint{font-size:11px;font-weight:400;opacity:.85;margin-left:8px}
 
 /* GUDANG IN/OUT */
@@ -402,6 +403,8 @@ body.role-manager .logout-btn{display:none!important}
 .pw-role-btn.sel{border-color:var(--accent);background:rgba(37,99,235,.08);color:var(--accent)}
 .admin-note{font-size:10px;color:var(--orange);margin-top:6px;font-style:italic}
 .admin-refresh{margin-top:10px;width:100%;padding:9px;background:rgba(217,119,6,.1);color:var(--orange);border:1px solid rgba(217,119,6,.3);border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
+.admin-refresh.loading{opacity:.75;cursor:wait}
+.admin-refresh .spinner{border-top-color:var(--orange);border-color:rgba(217,119,6,.3);border-top-color:var(--orange)}
 /* Admin: sembunyikan semua kontrol edit & input — hanya memantau */
 body.role-admin .save-btn,
 body.role-admin #event-detail,
@@ -416,16 +419,24 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
 </head>
 <body>
 
+<div class="banner-stack">
 <!-- MEETING BANNER — prioritas tertinggi, di atas stok -->
-<div class="alarm-banner" id="meeting-banner" style="background:#0f766e;animation-name:meetingShake;z-index:201" onclick="muteMeetingAlarm()">
+<div class="alarm-banner" id="meeting-banner" style="background:#0f766e;animation-name:meetingShake" onclick="muteMeetingAlarm()">
   <span>📹 MEETING HARI INI JAM 10:00 — Lonceng berbunyi pukul 09:55, Selasa!</span>
   <span class="mute-hint">Tap untuk bisukan</span>
 </div>
 
-<!-- ALARM BANNER — sticky top, klik untuk mute sesi ini -->
+<!-- ALARM BANNER — stok kosong merah -->
 <div class="alarm-banner" id="alarm-banner" onclick="muteAlarm()">
-  <span>🚨 STOK KOSONG DI TOKO — Butuh perhatian segera!</span>
+  <span>🚨 STOK KOSONG DI TOKO — <span id="alarm-banner-count"></span>item butuh perhatian!</span>
   <span class="mute-hint">Tap di sini untuk bisukan</span>
+</div>
+
+<!-- SHIFT KOSONG BANNER — orange, di bawah banner stok -->
+<div class="alarm-banner" id="shift-alarm-banner" onclick="muteShiftAlarm()" style="background:#d97706;animation-name:shiftBannerPulse">
+  <span>📅 SHIFT KOSONG — <span id="shift-alarm-count"></span>slot belum terisi bulan ini!</span>
+  <span class="mute-hint">Tap di sini untuk bisukan</span>
+</div>
 </div>
 
 <div class="pw-overlay" id="pw-overlay">
@@ -452,7 +463,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
     <div class="loc-detail" id="loc-detail">Mendeteksi posisi kamu</div>
     <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span>Target: 4 jam</span></div></div>
     <button class="loc-retry-inline" id="loc-retry-btn" onclick="retryGps()">🔄 Coba ulang deteksi lokasi</button>
-    <button class="admin-refresh" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc()">🔄 Perbarui posisi Manager</button>
+    <button class="admin-refresh" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc(true)">🔄 Perbarui posisi Manager</button>
   </div>
   <div class="loc-timer" id="loc-timer">0:00</div>
 </div></div>
@@ -471,7 +482,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
       <button class="tab" onclick="switchTab('event',this)">📌 Non-Harian<span class="tab-badge" id="badge-event" style="background:var(--orange)">!</span></button>
       <button class="tab" onclick="switchTab('gudang',this)">📦 Stok & Gudang<span class="tab-badge" id="badge-stok">0</span></button>
       <button class="tab" onclick="switchTab('cash',this)">💵 Uang Cash<span class="tab-badge" id="badge-cash">!</span></button>
-      <button class="tab" onclick="switchTab('shift',this)">📅 Shift<span class="tab-badge" id="badge-shift" style="background:var(--orange)">!</span></button>
+      <button class="tab" onclick="switchTab('shift',this)">📅 Shift<span class="tab-badge" id="badge-shift" style="background:var(--orange);display:none"></span></button>
       <button class="tab" onclick="switchTab('pegawai',this)">👥 Kepegawaian<span class="tab-badge" id="badge-pegawai" style="background:var(--red)">0</span></button>
       <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
       <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
@@ -823,7 +834,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
     </div>
 
     <!-- Muncul setelah banner di-dismiss — admin bisa tampilkan lagi -->
-    <div id="shift-dismissed-info" style="display:none;margin-bottom:14px;background:rgba(220,38,38,.05);border:1.5px dashed rgba(220,38,38,.3);border-radius:12px;padding:11px 14px;display:none">
+    <div id="shift-dismissed-info" style="display:none;margin-bottom:14px;background:rgba(220,38,38,.05);border:1.5px dashed rgba(220,38,38,.3);border-radius:12px;padding:11px 14px">
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-size:16px">🔕</span>
         <div style="flex:1;font-size:12px;color:var(--muted)">Peringatan shift kosong sudah di-dismiss oleh admin.</div>
@@ -1016,10 +1027,40 @@ function muteAlarm(){
   if(sb){sb.className='stok-sound-btn muted';sb.textContent='🔕 MUTED — refresh = bunyi lagi';}
   showToast('🔕 Alarm dibisukan untuk sesi ini. Refresh = bunyi lagi.','');
 }
+
+var shiftAlarmMuted=false;
+function triggerShiftAlarmIfNeeded(totalKosong,dismissed,kosongIni,kosongNext,nextBulan){
+  var banner=document.getElementById('shift-alarm-banner');
+  if(!banner)return;
+  if(totalKosong>0&&!dismissed&&!shiftAlarmMuted){
+    var cnt=document.getElementById('shift-alarm-count');
+    if(cnt){
+      var parts=[];
+      if(kosongIni>0) parts.push(kosongIni+' bulan ini');
+      if(kosongNext>0){
+        var p=nextBulan?nextBulan.split('-'):[];
+        var namaBln=p.length>1?(BULAN_NAMES[parseInt(p[1])-1]||'depan'):'depan';
+        parts.push(kosongNext+' bulan '+namaBln);
+      }
+      cnt.textContent=parts.join(' + ')+' ';
+    }
+    banner.classList.add('show');
+  }else{
+    banner.classList.remove('show');
+  }
+}
+function muteShiftAlarm(){
+  shiftAlarmMuted=true;
+  var banner=document.getElementById('shift-alarm-banner');
+  if(banner)banner.classList.remove('show');
+  showToast('🔕 Notifikasi shift dibisukan untuk sesi ini.','');
+}
 function triggerAlarmIfNeeded(){
   if(stokData.red.length>0&&!alarmMuted){
     var banner=document.getElementById('alarm-banner');
     if(banner)banner.classList.add('show');
+    var cnt=document.getElementById('alarm-banner-count');
+    if(cnt)cnt.textContent=stokData.red.length+' ';
     var sb=document.getElementById('stok-sound-btn');
     if(sb){sb.className='stok-sound-btn ringing';sb.textContent='🔔 ALARM — Tap Mute';}
     startAlarm();
@@ -1139,11 +1180,20 @@ function pushManagerLoc(){
 }
 
 // ── ADMIN: ambil posisi manager dari server ──
-function loadManagerLoc(){
+function loadManagerLoc(manual){
   if(userRole!=='admin')return;
+  var btn=document.getElementById('admin-loc-refresh');
   var url=scriptUrl;if(!url||!url.startsWith('http')){renderManagerLoc(null);return;}
+  if(manual&&btn){btn.disabled=true;btn.classList.add('loading');btn.innerHTML='<span class="spinner"></span> Memuat posisi Manager...';}
   fetch(url+'?type=loc&tanggal='+todayValue+'&_='+Date.now())
-    .then(r=>r.json()).then(d=>renderManagerLoc(d)).catch(()=>renderManagerLoc(null));
+    .then(r=>r.json()).then(d=>{
+      renderManagerLoc(d);
+      if(manual){
+        if(d&&(d.lat||d.menit||d.inStore!==undefined))showToast('✓ Posisi Manager diperbarui','ok');
+        else showToast('Belum ada data posisi Manager hari ini','');
+      }
+    }).catch(()=>{renderManagerLoc(null);if(manual)showToast('Gagal memuat posisi','err');})
+    .finally(()=>{if(manual&&btn){btn.disabled=false;btn.classList.remove('loading');btn.innerHTML='🔄 Perbarui posisi Manager';}});
 }
 function renderManagerLoc(d){
   var i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),
@@ -1551,7 +1601,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadStok(true);
   kmLoad();
   loadCashData();
-  loadShift();
   _stokRefreshTimer=setInterval(()=>loadStok(true),STOK_AUTO_REFRESH_MS);
   igLoadProduk(true);
   loadPartimer();
@@ -1762,7 +1811,7 @@ function _isNearEndOfMonth(bulan){
   // bulan yg dipilih harus bulan berjalan
   if(today.getFullYear()!==yr||today.getMonth()+1!==mo)return false;
   var lastDay=new Date(yr,mo,0).getDate(); // hari terakhir bulan ini
-  return today.getDate()>=(lastDay-2); // H-3 atau lebih dekat
+  return today.getDate()>=(lastDay-6); // H-7 atau lebih dekat
 }
 
 function loadShift(){
@@ -1824,38 +1873,50 @@ function _buildRekapHtml(rekap){
 function renderShift(d,bulan,dNext,nextBulan){
   var list=document.getElementById('shift-list');
   var kosong=(d&&d.kosong)?d.kosong:[];
-  updateShiftBadge(kosong.length);
+  var dismissed=d&&d.dismissed;
+  // Badge hanya tampil kalau ada shift kosong DAN belum di-dismiss
+  updateShiftBadge((kosong.length&&!dismissed)?kosong.length:0);
+  // Banner orange di atas — tampil kalau ada shift kosong dan belum dismiss
+  var kosongNext=(dNext&&dNext.kosong)?dNext.kosong:[];
+  var totalKosong=kosong.length+kosongNext.length;
+  triggerShiftAlarmIfNeeded(totalKosong,dismissed,kosong.length,kosongNext.length,nextBulan);
 
   if(d&&d.sheetMissing){list.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sheet jadwal tahun ini belum ada</div></div>';return;}
   if(d&&d.error){list.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Error: '+escH(d.error)+'</div></div>';return;}
 
-  // Banner peringatan keras — dismiss disimpan ke spreadsheet (berlaku semua device)
   var banner=document.getElementById('shift-danger-banner');
   var dismissedInfo=document.getElementById('shift-dismissed-info');
   var undismissBtn=document.getElementById('shift-undismiss-btn');
-  var dismissed=d&&d.dismissed;
   var isAdmin=document.body.classList.contains('role-admin');
   window._shiftDismissBulan=bulan;
   window._shiftKosongCount=kosong.length;
 
   if(kosong.length&&!dismissed){
     // Ada shift kosong, belum di-dismiss → tampilkan banner merah
+    // Semua role lihat banner; hanya admin yang bisa klik dismiss
     document.getElementById('shift-danger-text').textContent='Ada '+kosong.length+' slot shift belum terisi bulan ini. Segera isi jadwal!';
     var dismissBtn=document.getElementById('shift-dismiss-btn');
-    if(dismissBtn) dismissBtn.style.display=isAdmin?'':'none';
-    banner.style.display='';
+    if(dismissBtn) dismissBtn.style.display=isAdmin?'inline-block':'none';
+    banner.style.display='block';
     if(dismissedInfo) dismissedInfo.style.display='none';
+    if(undismissBtn) undismissBtn.style.display='none';
   } else if(kosong.length&&dismissed){
     // Ada shift kosong, sudah di-dismiss
     // Admin → tampilkan info kecil + tombol "Tampilkan lagi"
-    // Manager → sembunyikan semua, seolah tidak ada peringatan
+    // Manager → sembunyikan semua (tidak perlu tahu, admin sudah tangani)
     banner.style.display='none';
-    if(dismissedInfo) dismissedInfo.style.display=isAdmin?'':'none';
-    if(undismissBtn) undismissBtn.style.display=isAdmin?'':'none';
+    if(isAdmin){
+      if(dismissedInfo) dismissedInfo.style.display='block';
+      if(undismissBtn) undismissBtn.style.display='inline-block';
+    } else {
+      if(dismissedInfo) dismissedInfo.style.display='none';
+      if(undismissBtn) undismissBtn.style.display='none';
+    }
   } else {
     // Tidak ada shift kosong
     banner.style.display='none';
     if(dismissedInfo) dismissedInfo.style.display='none';
+    if(undismissBtn) undismissBtn.style.display='none';
   }
 
   // ── Bulan aktif ──
@@ -1929,8 +1990,8 @@ function shiftDismissBanner(){
   var undismissBtn=document.getElementById('shift-undismiss-btn');
   var isAdmin=document.body.classList.contains('role-admin');
   if(banner) banner.style.display='none';
-  if(dismissedInfo) dismissedInfo.style.display='';
-  if(undismissBtn) undismissBtn.style.display=isAdmin?'':'none';
+  if(dismissedInfo) dismissedInfo.style.display='block';
+  if(undismissBtn) undismissBtn.style.display=isAdmin?'inline-block':'none';
   // Kirim ke Apps Script → simpan di spreadsheet → berlaku semua device
   var userEmail='';
   try{var gi=window._gsiUserInfo;if(gi&&gi.email)userEmail=gi.email;}catch(e){}
@@ -1953,8 +2014,8 @@ function shiftUndismissBanner(){
   if(banner&&window._shiftKosongCount){
     document.getElementById('shift-danger-text').textContent='Ada '+window._shiftKosongCount+' slot shift belum terisi bulan ini. Segera isi jadwal!';
     var dismissBtn=document.getElementById('shift-dismiss-btn');
-    if(dismissBtn) dismissBtn.style.display=isAdmin?'':'none';
-    banner.style.display='';
+    if(dismissBtn) dismissBtn.style.display=isAdmin?'inline-block':'none';
+    banner.style.display='block';
   }
   // Hapus dari sheet Shift Dismiss di Apps Script
   var userEmail='';
@@ -2049,7 +2110,7 @@ function pgSave(){
   var btn=document.getElementById('pg-save-btn');btn.disabled=true;
   var adaFoto=pgFotoArr.length>0;
   btn.innerHTML='<span class="spinner"></span>'+(adaFoto?'Mengirim + '+pgFotoArr.length+' foto...':'Menyimpan...');
-  var payload={type:'pegawai_add',nama:pgActive,tgl:tgl,jenis:jenis,keterangan:ket,status:'Belum ditindak',fotos:pgFotoArr};
+  var payload={type:'pegawai_add',nama:pgActive,tgl:tgl,jenis:jenis,keterangan:ket,status:'Belum ditindak',fotos:pgFotoArr,oleh:(userRole||'-'),olehEmail:(userEmail||'')};
   function resetForm(){document.getElementById('pg-ket').value='';document.getElementById('pg-foto').value='';pgFotoArr=[];document.getElementById('pg-foto-prev').innerHTML='';}
   fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
@@ -2090,20 +2151,26 @@ function pgRenderList(){
     var p=(r.tgl||'').split('-');var tglTxt=p.length===3?(parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1]):r.tgl;
     var fotoList=r.foto?String(r.foto).split('\n').filter(function(x){return x.trim();}):[];
     var foto=fotoList.length?('🖼 '+fotoList.length+' foto'):'tanpa foto';
+    var olehTxt=r.oleh?(' · ✍ '+escH(pgOlehLabel(r.oleh))):'';
     return '<div class="km-card '+cls+'" onclick="pgOpenDetail('+r.row+')">'
       +'<div class="km-card-top"><span class="km-resi">'+escH(r.jenis||'-')+'</span><span class="km-badge '+cls+'">'+escH(r.status)+'</span></div>'
-      +'<div class="km-meta">📅 '+tglTxt+' · '+foto+'</div>'
+      +'<div class="km-meta">📅 '+tglTxt+' · '+foto+olehTxt+'</div>'
       +'<div class="km-isi">'+escH(r.keterangan||'-')+'</div>'
       +'</div>';
   }).join('');
 }
 function pgFindRow(row){return pgData.find(function(x){return x.row===row;});}
-var _pgTindakanArr=[];
+function pgOlehLabel(oleh){
+  var s=String(oleh||'');
+  var low=s.toLowerCase();
+  if(low.indexOf('admin')>=0)return s.replace(/^admin/i,'👑 Admin');
+  if(low.indexOf('manager')>=0)return s.replace(/^manager/i,'👔 Manager');
+  return s;
+}
 function pgOpenDetail(row){
+  pgTindakArr=[];
   var r=pgFindRow(row);if(!r)return;
   var cls=pgStatusCls(r.status);
-  var isAdmin=document.body.classList.contains('role-admin');
-  _pgTindakanArr=[];
   document.getElementById('pg-d-title').textContent=escH(r.nama)+' — '+escH(r.jenis);
   var html='';
   html+='<div class="km-d-row"><span class="k">Nama</span><span class="v">'+escH(r.nama)+'</span></div>';
@@ -2111,9 +2178,8 @@ function pgOpenDetail(row){
   html+='<div class="km-d-row"><span class="k">Tanggal</span><span class="v">'+escH(r.tgl)+'</span></div>';
   html+='<div class="km-d-row"><span class="k">Status</span><span class="v"><span class="km-badge '+cls+'">'+escH(r.status)+'</span></span></div>';
   html+='<div class="km-d-row"><span class="k">Keterangan</span><span class="v">'+escH(r.keterangan||'-')+'</span></div>';
-  if(r.waktu)html+='<div class="km-d-row"><span class="k">Dicatat</span><span class="v">'+escH(r.waktu)+'</span></div>';
-
-  // ── Foto bukti pelanggaran ──
+  if(r.oleh)html+='<div class="km-d-row"><span class="k">Dicatat oleh</span><span class="v">'+escH(pgOlehLabel(r.oleh))+'</span></div>';
+  if(r.waktu)html+='<div class="km-d-row"><span class="k">Waktu input</span><span class="v">'+escH(r.waktu)+'</span></div>';
   var fotoList=r.foto?String(r.foto).split('\n').filter(function(x){return x.trim();}):[];
   if(fotoList.length){
     html+='<div style="font-size:11px;color:var(--muted);margin-top:14px;text-transform:uppercase;letter-spacing:.05em">🖼 Foto bukti ('+fotoList.length+')</div>';
@@ -2122,85 +2188,68 @@ function pgOpenDetail(row){
       html+='<a href="'+escH(u)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">🖼 Buka foto '+(i+1)+' ukuran penuh →</a>';
     });
   }
-
-  // ── Foto tindakan (tampil untuk semua role jika sudah ada) ──
-  var fotoTindakList=r.fotoTindakan?String(r.fotoTindakan).split('\n').filter(function(x){return x.trim();}):[];
-  if(fotoTindakList.length){
-    html+='<div style="font-size:11px;color:var(--green);margin-top:16px;text-transform:uppercase;letter-spacing:.05em;font-weight:700">✅ Foto tindakan ('+fotoTindakList.length+')</div>';
-    fotoTindakList.forEach(function(u,i){
+  // foto bukti tindakan (kalau sudah ada)
+  var ftList=r.fotoTindakan?String(r.fotoTindakan).split('\n').filter(function(x){return x.trim();}):[];
+  if(ftList.length){
+    html+='<div style="font-size:11px;color:var(--green);margin-top:14px;text-transform:uppercase;letter-spacing:.05em">✅ Foto bukti tindakan ('+ftList.length+')</div>';
+    ftList.forEach(function(u,i){
       html+='<div class="km-d-foto"><img src="'+escH(kmFotoImgUrl(u))+'" alt="tindakan '+(i+1)+'"></div>';
-      html+='<a href="'+escH(u)+'" target="_blank" style="color:var(--green);font-size:12px;text-decoration:none">🖼 Buka foto tindakan '+(i+1)+' →</a>';
+      html+='<a href="'+escH(u)+'" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">✅ Buka foto tindakan '+(i+1)+' →</a>';
     });
   }
-
-  // ── Upload foto tindakan: HANYA ADMIN ──
-  if(isAdmin){
-    html+='<div style="margin-top:18px;padding:14px;background:rgba(124,58,237,.06);border:1px dashed rgba(124,58,237,.25);border-radius:12px">';
-    html+='<div style="font-size:11px;font-weight:700;color:#7c3aed;margin-bottom:10px">👑 Upload foto bukti tindakan <span style="font-weight:400;color:var(--muted)">(hanya admin)</span></div>';
-    html+='<input type="file" accept="image/*" multiple id="pg-tindak-foto-input" style="font-size:12px;width:100%" onchange="pgTindakanFotoChange()">';
-    html+='<div id="pg-tindak-foto-prev" style="margin-top:8px"></div>';
-    html+='<button id="pg-tindak-upload-btn" onclick="pgUploadTindakan('+r.row+')" disabled style="margin-top:10px;width:100%;padding:10px;background:#7c3aed;color:#fff;border:none;border-radius:10px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;opacity:.5">📤 Upload foto tindakan</button>';
-    html+='</div>';
+  html+='<div class="km-d-actions">';
+  if(cls==='masalah'){
+    // wajib upload foto bukti tindakan dulu
+    html+='<div class="km-field" style="width:100%"><label class="field-label">Foto bukti tindakan (wajib, boleh lebih dari 1)</label>'
+      +'<input type="file" accept="image/*" multiple id="pg-tindak-foto" style="font-size:12px" onchange="pgTindakFotoChange()">'
+      +'<div class="km-foto-prev" id="pg-tindak-prev"></div></div>';
+    html+='<button class="ok" id="pg-tindak-btn" disabled style="opacity:.5" onclick="pgMarkDone('+r.row+',\''+escH(r.nama)+'\')">✓ Tandai sudah ditindak</button>';
+  } else {
+    html+='<button class="reset" onclick="pgMark('+r.row+',\'Belum ditindak\')">↩ Kembalikan ke belum</button>';
   }
-
-  // ── Tombol aksi ──
-  html+='<div class="km-d-actions" style="margin-top:14px">';
-  if(cls==='masalah')html+='<button class="ok" onclick="pgMark('+r.row+',\'Sudah ditindak\')">✓ Tandai sudah ditindak</button>';
-  else html+='<button class="reset" onclick="pgMark('+r.row+',\'Belum ditindak\')">↩ Kembalikan ke belum</button>';
-  // tombol hapus catatan hanya untuk admin
-  if(isAdmin)html+='<button class="del" onclick="pgDelete('+r.row+')">🗑 Hapus catatan</button>';
+  if(userRole==='admin')html+='<button class="del" onclick="pgDelete('+r.row+')">🗑 Hapus catatan</button>';
   html+='</div>';
-
-
   document.getElementById('pg-d-body').innerHTML=html;
   document.getElementById('pg-detail-bg').classList.add('open');
 }
-function pgTindakanFotoChange(){
-  var files=document.getElementById('pg-tindak-foto-input').files;
-  _pgTindakanArr=[];
-  var prev=document.getElementById('pg-tindak-foto-prev');
-  var btn=document.getElementById('pg-tindak-upload-btn');
-  if(!files||!files.length){prev.innerHTML='';btn.disabled=true;btn.style.opacity='.5';return;}
+function pgCloseDetail(){document.getElementById('pg-detail-bg').classList.remove('open');}
+var pgTindakArr=[];
+function pgTindakFotoChange(){
+  var files=document.getElementById('pg-tindak-foto').files;
+  pgTindakArr=[];var prev=document.getElementById('pg-tindak-prev');prev.innerHTML='';
+  var btn=document.getElementById('pg-tindak-btn');
+  if(!files||!files.length){if(btn){btn.disabled=true;btn.style.opacity='.5';}return;}
   var total=files.length,done=0;
   prev.innerHTML='<div style="font-size:11px;color:var(--muted)">Memproses '+total+' foto...</div>';
-  btn.disabled=true;btn.style.opacity='.5';
   Array.prototype.forEach.call(files,function(f){
     _kmCompress(f,function(b64){
-      _pgTindakanArr.push(b64);done++;
+      pgTindakArr.push(b64);done++;
       if(done===total){
-        prev.innerHTML=_pgTindakanArr.map(function(b){return '<img src="'+b+'" style="max-height:80px;margin:3px 4px 0 0;border-radius:8px;border:1px solid var(--border)">';}).join('')
-          +'<div style="font-size:10px;color:var(--muted);margin-top:4px">'+total+' foto siap diupload</div>';
-        btn.disabled=false;btn.style.opacity='1';
+        prev.innerHTML=pgTindakArr.map(function(b){return '<img src="'+b+'" style="max-height:90px;margin:3px 4px 0 0;border-radius:8px;border:1px solid var(--border)">';}).join('')
+          +'<div style="font-size:10px;color:var(--muted);margin-top:4px">'+total+' foto siap</div>';
+        if(btn){btn.disabled=false;btn.style.opacity='1';}
       }
     });
   });
 }
-function pgUploadTindakan(row){
+function pgMarkDone(row,nama){
+  if(!pgTindakArr.length){showToast('Upload foto bukti tindakan dulu','err');return;}
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
-  if(!_pgTindakanArr.length){showToast('Pilih foto dulu','err');return;}
-  var btn=document.getElementById('pg-tindak-upload-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Mengupload '+_pgTindakanArr.length+' foto...';
-  var payload={type:'pegawai_update',row:row,fotos:_pgTindakanArr};
+  var btn=document.getElementById('pg-tindak-btn');if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Mengirim...';}
+  var payload={type:'pegawai_update',row:row,status:'Sudah ditindak',nama:nama,fotos:pgTindakArr};
   fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
     .then(function(d){
       if(d&&d.status==='ok'){
-        showToast('✓ Foto tindakan tersimpan','ok');
-        logActivity('Upload foto tindakan','baris '+row);
-        pgCloseDetail();setTimeout(pgLoadCatatan,1500);
-      } else {
-        showToast('Gagal upload: '+(d.fotoErr||d.message||'error'),'err');
-        btn.disabled=false;btn.innerHTML='📤 Upload foto tindakan';
-      }
+        if(!d.foto)showToast('Status tersimpan, foto gagal: '+((d.fotoErr||'').slice(0,40)),'err');
+        else showToast('✓ Ditandai sudah ditindak','ok');
+      }else showToast('Gagal','err');
+      pgTindakArr=[];pgCloseDetail();logActivity('Tindak pelanggaran',nama);setTimeout(pgLoadCatatan,1500);
     })
     .catch(function(){
-      // fallback no-cors (tidak bisa baca respons, anggap berhasil)
-      fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
-        .then(function(){showToast('✓ Foto tindakan terkirim','ok');pgCloseDetail();setTimeout(pgLoadCatatan,3000);})
-        .catch(function(){showToast('Gagal mengirim foto','err');btn.disabled=false;btn.innerHTML='📤 Upload foto tindakan';});
+      fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)}).then(function(){showToast('✓ Terkirim','ok');pgTindakArr=[];pgCloseDetail();setTimeout(pgLoadCatatan,3000);}).catch(function(){showToast('Gagal','err');});
     });
 }
-function pgCloseDetail(){document.getElementById('pg-detail-bg').classList.remove('open');}
 function pgMark(row,status){
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'pegawai_update',row:row,status:status})})
@@ -2208,6 +2257,7 @@ function pgMark(row,status){
     .catch(function(){showToast('Gagal','err');});
 }
 function pgDelete(row){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa menghapus catatan','err');return;}
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   if(!confirm('Hapus catatan ini permanen?'))return;
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'pegawai_delete',row:row})})
@@ -2437,7 +2487,7 @@ var _toastTimer;function showToast(msg,type){var t=document.getElementById('toas
 // ════ GOOGLE SIGN-IN & ROLE ════
 const GOOGLE_CLIENT_ID='1077904025393-sopu3mb62k66u3acngco0ppg4huvbbbm.apps.googleusercontent.com';
 // Daftar email yang diizinkan (huruf kecil semua)
-const EMAIL_MANAGER=['fahdryifih@gmail.com','akwalsadida@gmail.com'];
+const EMAIL_MANAGER=['fahdryifih@gmail.com','akwalsadida@gmail.com','kusumaharani12@gmail.com'];
 const EMAIL_ADMIN  =['officialkodachi@gmail.com'];
 
 const SESSION_MAX_MS = 8*60*60*1000;   // sesi login berlaku 8 jam, lalu wajib login lagi
@@ -2545,6 +2595,9 @@ function applyRole(){
     loadLocData();updateTimerDisplay();startGps();
     _mgrPushTimer=setInterval(pushManagerLoc,60000);
   }
+  // loadShift dipanggil di sini (bukan di DOMContentLoaded)
+  // supaya isAdmin sudah ter-set saat renderShift() berjalan
+  loadShift();
 }
 function logout(){
   if(!confirm('Keluar dari akun?'))return;
