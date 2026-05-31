@@ -294,10 +294,10 @@ body.role-admin .admin-only{display:inline-flex}
 .empty-since-badge .since-icon{font-size:12px}
 
 /* ALARM BANNER */
-.alarm-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:var(--red);color:#fff;padding:10px 20px;text-align:center;font-size:13px;font-weight:700;letter-spacing:.03em;animation:bannerShake .5s ease infinite alternate;cursor:pointer}
+.alarm-banner{display:none;background:var(--red);color:#fff;padding:10px 20px;text-align:center;font-size:13px;font-weight:700;letter-spacing:.03em;animation:bannerShake .5s ease infinite alternate;cursor:pointer}
+.banner-stack{position:sticky;top:0;z-index:200}
 .alarm-banner.show{display:flex;align-items:center;justify-content:center;gap:10px}
 /* Meeting banner selalu di atas stok banner */
-#meeting-banner{z-index:201 !important}
 @keyframes bannerShake{0%{background:#dc2626}100%{background:#b91c1c}}
 @keyframes meetingShake{0%{background:#0f766e}100%{background:#0d9488}}
 @keyframes shiftBannerPulse{0%{background:#d97706}100%{background:#b45309}}
@@ -417,22 +417,24 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
 </head>
 <body>
 
+<div class="banner-stack">
 <!-- MEETING BANNER — prioritas tertinggi, di atas stok -->
-<div class="alarm-banner" id="meeting-banner" style="background:#0f766e;animation-name:meetingShake;z-index:201" onclick="muteMeetingAlarm()">
+<div class="alarm-banner" id="meeting-banner" style="background:#0f766e;animation-name:meetingShake" onclick="muteMeetingAlarm()">
   <span>📹 MEETING HARI INI JAM 10:00 — Lonceng berbunyi pukul 09:55, Selasa!</span>
   <span class="mute-hint">Tap untuk bisukan</span>
 </div>
 
-<!-- ALARM BANNER — sticky top, klik untuk mute sesi ini -->
+<!-- ALARM BANNER — stok kosong merah -->
 <div class="alarm-banner" id="alarm-banner" onclick="muteAlarm()">
   <span>🚨 STOK KOSONG DI TOKO — <span id="alarm-banner-count"></span>item butuh perhatian!</span>
   <span class="mute-hint">Tap di sini untuk bisukan</span>
 </div>
 
 <!-- SHIFT KOSONG BANNER — orange, di bawah banner stok -->
-<div class="alarm-banner" id="shift-alarm-banner" onclick="muteShiftAlarm()" style="background:#d97706;animation-name:shiftBannerPulse;z-index:199">
+<div class="alarm-banner" id="shift-alarm-banner" onclick="muteShiftAlarm()" style="background:#d97706;animation-name:shiftBannerPulse">
   <span>📅 SHIFT KOSONG — <span id="shift-alarm-count"></span>slot belum terisi bulan ini!</span>
   <span class="mute-hint">Tap di sini untuk bisukan</span>
+</div>
 </div>
 
 <div class="pw-overlay" id="pw-overlay">
@@ -1025,24 +1027,22 @@ function muteAlarm(){
 }
 
 var shiftAlarmMuted=false;
-function _updateShiftBannerTop(){
-  var shiftBanner=document.getElementById('shift-alarm-banner');
-  if(!shiftBanner)return;
-  var offset=0;
-  var meetingBanner=document.getElementById('meeting-banner');
-  var alarmBanner=document.getElementById('alarm-banner');
-  if(meetingBanner&&meetingBanner.classList.contains('show'))offset+=meetingBanner.offsetHeight;
-  if(alarmBanner&&alarmBanner.classList.contains('show'))offset+=alarmBanner.offsetHeight;
-  shiftBanner.style.top=offset+'px';
-}
-function triggerShiftAlarmIfNeeded(kosongCount,dismissed){
+function triggerShiftAlarmIfNeeded(totalKosong,dismissed,kosongIni,kosongNext,nextBulan){
   var banner=document.getElementById('shift-alarm-banner');
   if(!banner)return;
-  if(kosongCount>0&&!dismissed&&!shiftAlarmMuted){
+  if(totalKosong>0&&!dismissed&&!shiftAlarmMuted){
     var cnt=document.getElementById('shift-alarm-count');
-    if(cnt)cnt.textContent=kosongCount+' ';
+    if(cnt){
+      var parts=[];
+      if(kosongIni>0) parts.push(kosongIni+' bulan ini');
+      if(kosongNext>0){
+        var p=nextBulan?nextBulan.split('-'):[];
+        var namaBln=p.length>1?(BULAN_NAMES[parseInt(p[1])-1]||'depan'):'depan';
+        parts.push(kosongNext+' bulan '+namaBln);
+      }
+      cnt.textContent=parts.join(' + ')+' ';
+    }
     banner.classList.add('show');
-    _updateShiftBannerTop();
   }else{
     banner.classList.remove('show');
   }
@@ -1800,7 +1800,7 @@ function _isNearEndOfMonth(bulan){
   // bulan yg dipilih harus bulan berjalan
   if(today.getFullYear()!==yr||today.getMonth()+1!==mo)return false;
   var lastDay=new Date(yr,mo,0).getDate(); // hari terakhir bulan ini
-  return today.getDate()>=(lastDay-2); // H-3 atau lebih dekat
+  return today.getDate()>=(lastDay-6); // H-7 atau lebih dekat
 }
 
 function loadShift(){
@@ -1866,7 +1866,9 @@ function renderShift(d,bulan,dNext,nextBulan){
   // Badge hanya tampil kalau ada shift kosong DAN belum di-dismiss
   updateShiftBadge((kosong.length&&!dismissed)?kosong.length:0);
   // Banner orange di atas — tampil kalau ada shift kosong dan belum dismiss
-  triggerShiftAlarmIfNeeded(kosong.length,dismissed);
+  var kosongNext=(dNext&&dNext.kosong)?dNext.kosong:[];
+  var totalKosong=kosong.length+kosongNext.length;
+  triggerShiftAlarmIfNeeded(totalKosong,dismissed,kosong.length,kosongNext.length,nextBulan);
 
   if(d&&d.sheetMissing){list.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sheet jadwal tahun ini belum ada</div></div>';return;}
   if(d&&d.error){list.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Error: '+escH(d.error)+'</div></div>';return;}
