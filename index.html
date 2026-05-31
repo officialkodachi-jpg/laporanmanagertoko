@@ -471,7 +471,7 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
       <button class="tab" onclick="switchTab('event',this)">📌 Non-Harian<span class="tab-badge" id="badge-event" style="background:var(--orange)">!</span></button>
       <button class="tab" onclick="switchTab('gudang',this)">📦 Stok & Gudang<span class="tab-badge" id="badge-stok">0</span></button>
       <button class="tab" onclick="switchTab('cash',this)">💵 Uang Cash<span class="tab-badge" id="badge-cash">!</span></button>
-      <button class="tab" onclick="switchTab('shift',this)">📅 Shift<span class="tab-badge" id="badge-shift" style="background:var(--orange)">!</span></button>
+      <button class="tab" onclick="switchTab('shift',this)">📅 Shift<span class="tab-badge" id="badge-shift" style="background:var(--orange);display:none"></span></button>
       <button class="tab" onclick="switchTab('pegawai',this)">👥 Kepegawaian<span class="tab-badge" id="badge-pegawai" style="background:var(--red)">0</span></button>
       <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
       <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
@@ -1824,16 +1824,16 @@ function _buildRekapHtml(rekap){
 function renderShift(d,bulan,dNext,nextBulan){
   var list=document.getElementById('shift-list');
   var kosong=(d&&d.kosong)?d.kosong:[];
-  updateShiftBadge(kosong.length);
+  var dismissed=d&&d.dismissed;
+  // Badge hanya tampil kalau ada shift kosong DAN belum di-dismiss
+  updateShiftBadge((kosong.length&&!dismissed)?kosong.length:0);
 
   if(d&&d.sheetMissing){list.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sheet jadwal tahun ini belum ada</div></div>';return;}
   if(d&&d.error){list.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Error: '+escH(d.error)+'</div></div>';return;}
 
-  // Banner peringatan keras — dismiss disimpan ke spreadsheet (berlaku semua device)
   var banner=document.getElementById('shift-danger-banner');
   var dismissedInfo=document.getElementById('shift-dismissed-info');
   var undismissBtn=document.getElementById('shift-undismiss-btn');
-  var dismissed=d&&d.dismissed;
   var isAdmin=document.body.classList.contains('role-admin');
   window._shiftDismissBulan=bulan;
   window._shiftKosongCount=kosong.length;
