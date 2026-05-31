@@ -1484,11 +1484,16 @@ function _initD01Swipe(){
     if(cur===1&&scriptUrl) loadStreakHarian();
   }
   // set initial height
-  function setInitialHeight(){
+  function setInitialHeight(retry){
     var slides=track.querySelectorAll('.d01-swipe-slide');
-    if(slides[0]) outer.style.height=slides[0].scrollHeight+'px';
+    if(slides[0]){
+      var h=slides[0].scrollHeight;
+      if(h>10){outer.style.height=h+'px';}
+      else if((retry||0)<10){setTimeout(function(){setInitialHeight((retry||0)+1);},150);}
+      else{outer.style.height='auto';}
+    }
   }
-  setTimeout(setInitialHeight,100);
+  requestAnimationFrame(function(){setInitialHeight(0);});
   outer.addEventListener('touchstart',function(e){startX=e.touches[0].clientX;isDrag=true;},{passive:true});
   outer.addEventListener('touchend',function(e){
     if(!isDrag)return;isDrag=false;
@@ -2443,8 +2448,8 @@ function renderHarian(){
 
         list.appendChild(el);
         setTimeout(updateD01Card,50);
-        // init swipe
-        _initD01Swipe();
+        // init swipe — pakai setTimeout biar DOM sudah ready
+        setTimeout(_initD01Swipe, 0);
         // load streak semua role
         setTimeout(loadStreakHarian,800);
       }else{
