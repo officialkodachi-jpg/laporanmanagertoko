@@ -1494,6 +1494,8 @@ function _initD01Swipe(){
     }
   }
   requestAnimationFrame(function(){setInitialHeight(0);});
+  // preload data streak begitu kartu dibangun (tidak menunggu user swipe)
+  if(scriptUrl) loadStreakHarian();
   outer.addEventListener('touchstart',function(e){startX=e.touches[0].clientX;isDrag=true;},{passive:true});
   outer.addEventListener('touchend',function(e){
     if(!isDrag)return;isDrag=false;
@@ -1510,11 +1512,15 @@ function _initD01Swipe(){
 
 // ════ STREAK HARIAN (manager & admin) ════
 var _streakHarianLoaded=false;
-function loadStreakHarian(){
+function loadStreakHarian(retry){
   if(!scriptUrl)return;
   var content=document.getElementById('streak-content');
   var monthLabel=document.getElementById('streak-month-label');
-  if(!content)return;
+  if(!content){
+    // DOM kartu belum siap → coba lagi sebentar (maks ~2 detik)
+    if((retry||0)<12){setTimeout(function(){loadStreakHarian((retry||0)+1);},160);}
+    return;
+  }
   var bulan=todayValue.substring(0,7);
   var BULAN_NAMA=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
   var bParts=bulan.split('-');
@@ -1622,7 +1628,7 @@ function loadStreakHarian(){
     })
     .catch(function(){
       var c=document.getElementById('streak-content');
-      if(c)c.innerHTML='<div style="color:var(--red);font-size:12px;text-align:center;padding:12px">⚠ Gagal memuat data kehadiran</div>';
+      if(c)c.innerHTML='<div style="text-align:center;padding:12px"><div style="color:var(--red);font-size:12px;margin-bottom:8px">⚠ Gagal memuat data kehadiran</div><button onclick="loadStreakHarian()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer">⟳ Coba lagi</button></div>';
     });
 }
 
