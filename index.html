@@ -822,6 +822,15 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
       </div>
     </div>
 
+    <!-- Muncul setelah banner di-dismiss — admin bisa tampilkan lagi -->
+    <div id="shift-dismissed-info" style="display:none;margin-bottom:14px;background:rgba(220,38,38,.05);border:1.5px dashed rgba(220,38,38,.3);border-radius:12px;padding:11px 14px;display:none">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:16px">🔕</span>
+        <div style="flex:1;font-size:12px;color:var(--muted)">Peringatan shift kosong sudah di-dismiss oleh admin.</div>
+        <button id="shift-undismiss-btn" onclick="shiftUndismissBanner()" style="display:none;padding:6px 12px;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.35);border-radius:8px;color:var(--red);font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">Tampilkan lagi</button>
+      </div>
+    </div>
+
     <div class="grid-controls"><input type="month" class="month-select" id="shift-month" style="flex:1"><button class="load-btn" onclick="loadShift()">Cek</button></div>
 
     <!-- Daftar shift kosong -->
@@ -1822,16 +1831,29 @@ function renderShift(d,bulan,dNext,nextBulan){
 
   // Banner peringatan keras — dismiss disimpan ke spreadsheet (berlaku semua device)
   var banner=document.getElementById('shift-danger-banner');
+  var dismissedInfo=document.getElementById('shift-dismissed-info');
+  var undismissBtn=document.getElementById('shift-undismiss-btn');
   var dismissed=d&&d.dismissed;
+  var isAdmin=document.body.classList.contains('role-admin');
   window._shiftDismissBulan=bulan;
+  window._shiftKosongCount=kosong.length;
+
   if(kosong.length&&!dismissed){
+    // Ada shift kosong, belum di-dismiss → tampilkan banner merah
     document.getElementById('shift-danger-text').textContent='Ada '+kosong.length+' slot shift belum terisi bulan ini. Segera isi jadwal!';
-    var isAdmin=document.body.classList.contains('role-admin');
     var dismissBtn=document.getElementById('shift-dismiss-btn');
     if(dismissBtn) dismissBtn.style.display=isAdmin?'':'none';
     banner.style.display='';
-  } else {
+    if(dismissedInfo) dismissedInfo.style.display='none';
+  } else if(kosong.length&&dismissed){
+    // Ada shift kosong, sudah di-dismiss → tampilkan info kecil + tombol "Tampilkan lagi" (admin only)
     banner.style.display='none';
+    if(dismissedInfo) dismissedInfo.style.display='';
+    if(undismissBtn) undismissBtn.style.display=isAdmin?'':'none';
+  } else {
+    // Tidak ada shift kosong
+    banner.style.display='none';
+    if(dismissedInfo) dismissedInfo.style.display='none';
   }
 
   // ── Bulan aktif ──
@@ -1900,7 +1922,13 @@ function shiftDismissBanner(){
   var bulan=window._shiftDismissBulan;
   if(!bulan||!scriptUrl)return;
   // Sembunyikan lokal dulu (responsif)
-  document.getElementById('shift-danger-banner').style.display='none';
+  var banner=document.getElementById('shift-danger-banner');
+  var dismissedInfo=document.getElementById('shift-dismissed-info');
+  var undismissBtn=document.getElementById('shift-undismiss-btn');
+  var isAdmin=document.body.classList.contains('role-admin');
+  if(banner) banner.style.display='none';
+  if(dismissedInfo) dismissedInfo.style.display='';
+  if(undismissBtn) undismissBtn.style.display=isAdmin?'':'none';
   // Kirim ke Apps Script → simpan di spreadsheet → berlaku semua device
   var userEmail='';
   try{var gi=window._gsiUserInfo;if(gi&&gi.email)userEmail=gi.email;}catch(e){}
@@ -1911,6 +1939,31 @@ function shiftDismissBanner(){
   }).then(function(r){return r.json();})
     .then(function(d){if(d&&d.status==='ok')showToast('✓ Peringatan di-dismiss (semua device)','ok');else showToast('Dismiss lokal saja — gagal sync','err');})
     .catch(function(){showToast('Dismiss lokal saja — gagal konek','err');});
+}
+function shiftUndismissBanner(){
+  var bulan=window._shiftDismissBulan;
+  if(!bulan||!scriptUrl)return;
+  var banner=document.getElementById('shift-danger-banner');
+  var dismissedInfo=document.getElementById('shift-dismissed-info');
+  var isAdmin=document.body.classList.contains('role-admin');
+  // Tampilkan banner merah lagi lokal
+  if(dismissedInfo) dismissedInfo.style.display='none';
+  if(banner&&window._shiftKosongCount){
+    document.getElementById('shift-danger-text').textContent='Ada '+window._shiftKosongCount+' slot shift belum terisi bulan ini. Segera isi jadwal!';
+    var dismissBtn=document.getElementById('shift-dismiss-btn');
+    if(dismissBtn) dismissBtn.style.display=isAdmin?'':'none';
+    banner.style.display='';
+  }
+  // Hapus dari sheet Shift Dismiss di Apps Script
+  var userEmail='';
+  try{var gi=window._gsiUserInfo;if(gi&&gi.email)userEmail=gi.email;}catch(e){}
+  fetch(scriptUrl,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({type:'shift_undismiss',bulan:bulan,email:userEmail})
+  }).then(function(r){return r.json();})
+    .then(function(d){if(d&&d.status==='ok')showToast('✓ Peringatan ditampilkan lagi (semua device)','ok');else showToast('Tampil lokal — gagal sync','err');})
+    .catch(function(){showToast('Tampil lokal — gagal konek','err');});
 }
 function updateShiftBadge(n){_setBadge('badge-shift',n,true);}
 
