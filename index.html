@@ -544,21 +544,6 @@ body.role-admin #admin-mgrlog{display:none!important}
   <div class="panel" id="panel-home">
     <div style="font-size:11px;color:var(--muted);margin-bottom:16px;font-family:var(--mono)">Panel khusus Admin — monitoring real-time aktivitas Manager</div>
 
-    <!-- Kartu Lokasi Manager (live) -->
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
-      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-        <div style="font-size:18px">📍</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:800;color:var(--text)">Posisi Manager</div>
-          <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-loc-email">—</div>
-        </div>
-        <button onclick="loadHomeLoc(true)" style="background:rgba(217,119,6,.1);color:var(--orange);border:1px solid rgba(217,119,6,.3);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">⟳ Perbarui</button>
-      </div>
-      <div id="home-loc-body" style="padding:14px 16px">
-        <div style="color:var(--hint);font-size:12px">Memuat posisi manager...</div>
-      </div>
-    </div>
-
     <!-- Kiriman Belum Sampai -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
@@ -586,6 +571,51 @@ body.role-admin #admin-mgrlog{display:none!important}
       </div>
       <div id="home-log-list" style="max-height:400px;overflow-y:auto;padding:6px 10px 10px">
         <div style="color:var(--hint);font-size:12px;padding:14px 4px;text-align:center">Tekan "Muat" untuk melihat aktivitas manager</div>
+      </div>
+    </div>
+
+    <!-- Rekap Jam Kerja Bulan Ini -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <div style="font-size:18px">⏱</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Rekap Jam Kerja Bulan Ini</div>
+          <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-jam-sub">Target: 4 jam/hari</div>
+        </div>
+        <button onclick="loadHomeJamKerja()" style="background:rgba(37,99,235,.1);color:var(--accent);border:1px solid rgba(37,99,235,.25);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">⟳ Muat</button>
+      </div>
+      <div id="home-jam-body" style="padding:14px 16px">
+        <div style="color:var(--hint);font-size:12px;text-align:center">Tekan "Muat" untuk melihat rekap jam kerja</div>
+      </div>
+    </div>
+
+    <!-- Non-Harian Terakhir Dikerjakan -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <div style="font-size:18px">📌</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Non-Harian Terakhir Dikerjakan</div>
+          <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-event-sub">Bulan ini</div>
+        </div>
+        <button onclick="loadHomeEvent()" style="background:rgba(217,119,6,.1);color:var(--orange);border:1px solid rgba(217,119,6,.3);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">⟳ Muat</button>
+      </div>
+      <div id="home-event-body" style="padding:14px 16px">
+        <div style="color:var(--hint);font-size:12px;text-align:center">Tekan "Muat" untuk melihat aktivitas non-harian</div>
+      </div>
+    </div>
+
+    <!-- % Kinerja Bulan Ini -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <div style="font-size:18px">📊</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">% Kinerja Bulan Ini</div>
+          <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-rekap-sub">Rata-rata penyelesaian tugas per kategori</div>
+        </div>
+        <button onclick="loadHomeRekap()" style="background:rgba(22,163,74,.1);color:var(--green);border:1px solid rgba(22,163,74,.25);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">⟳ Muat</button>
+      </div>
+      <div id="home-rekap-body" style="padding:14px 16px">
+        <div style="color:var(--hint);font-size:12px;text-align:center">Tekan "Muat" untuk melihat kinerja bulan ini</div>
       </div>
     </div>
 
@@ -1810,7 +1840,7 @@ function switchTab(name,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
-  if(name==='home'){loadHomeLoc();loadHomeKiriman();loadHomeLog();loadHomeHarian();}
+  if(name==='home'){loadHomeKiriman();loadHomeLog();loadHomeHarian();loadHomeJamKerja();loadHomeEvent();loadHomeRekap();}
   if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();}
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
   if(name==='cash'){if(cashData.length===0)loadCashData();}
@@ -3598,6 +3628,214 @@ function renderHomeLog(rows){
       +'</div></div>';
   });
   list.innerHTML=html;
+}
+
+// ── Rekap Jam Kerja Bulan Ini ──
+function loadHomeJamKerja(){
+  if(userRole!=='admin') return;
+  var body = document.getElementById('home-jam-body');
+  var sub  = document.getElementById('home-jam-sub');
+  if(!scriptUrl){body.innerHTML='<div style="color:var(--hint);font-size:12px">URL belum dikonfigurasi</div>';return;}
+  body.innerHTML='<div style="text-align:center"><span class="spinner"></span> Memuat...</div>';
+  var bulan = todayValue.substring(0,7);
+  if(sub) sub.textContent = 'Target: 4 jam/hari · '+bulan;
+  fetch(scriptUrl+'?type=jamkerja&bulan='+bulan+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var hari=(d&&d.hari)?d.hari:[];
+      var target=(d&&d.targetHari)?d.targetHari:240;
+      if(!hari.length){
+        body.innerHTML='<div style="color:var(--hint);font-size:12px;text-align:center;padding:8px 0">Belum ada data jam kerja bulan ini</div>';
+        return;
+      }
+      var totalMenit=0, hariCukup=0;
+      hari.forEach(function(h){totalMenit+=h.menit;if(h.menit>=target)hariCukup++;});
+      var hariKurang=hari.length-hariCukup;
+      var totalJam=Math.floor(totalMenit/60), totalSisa=Math.round(totalMenit%60);
+      var pctCukup=hari.length?Math.round(hariCukup/hari.length*100):0;
+      var barColor=pctCukup>=80?'var(--green)':pctCukup>=50?'var(--orange)':'var(--red)';
+      // Ringkasan 3 angka
+      var html='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">'
+        +'<div style="text-align:center;background:var(--surface);border-radius:10px;padding:12px 8px"><div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--text)">'+hari.length+'</div><div style="font-size:10px;color:var(--muted);margin-top:4px">hari kerja</div></div>'
+        +'<div style="text-align:center;background:var(--surface);border-radius:10px;padding:12px 8px"><div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--green)">'+hariCukup+'</div><div style="font-size:10px;color:var(--muted);margin-top:4px">hari ≥4 jam</div></div>'
+        +'<div style="text-align:center;background:var(--surface);border-radius:10px;padding:12px 8px"><div style="font-family:var(--mono);font-size:22px;font-weight:500;color:'+(hariKurang?'var(--red)':'var(--green)')+'">'+hariKurang+'</div><div style="font-size:10px;color:var(--muted);margin-top:4px">hari kurang</div></div>'
+        +'</div>';
+      // Total jam & bar
+      html+='<div style="background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.15);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--accent)">'
+        +'Total jam kerja: <b>'+totalJam+' jam '+totalSisa+' menit</b>'
+        +'<span style="float:right;font-family:var(--mono);font-weight:700;color:'+barColor+'">'+pctCukup+'% hari memenuhi target</span>'
+        +'</div>';
+      // Bar progress
+      html+='<div style="background:var(--surface);border-radius:4px;height:8px;overflow:hidden;margin-bottom:14px">'
+        +'<div style="height:100%;border-radius:4px;background:'+barColor+';width:'+pctCukup+'%;transition:width .4s ease"></div>'
+        +'</div>';
+      // 5 hari terakhir
+      var recent=hari.slice(-5).reverse();
+      html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">5 Hari Terakhir</div>';
+      recent.forEach(function(h){
+        var p=h.tgl.split('-'),dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+        var namaHari=['Min','Sen','Sel','Rab','Kam','Jum','Sab'][dt.getDay()];
+        var tglTxt=parseInt(p[2])+'/'+String(parseInt(p[1])).padStart(2,'0');
+        var cukup=h.menit>=target;
+        var hj=Math.floor(h.menit/60),mj=Math.round(h.menit%60);
+        var durTxt=hj+'j '+mj+'m';
+        var warna=cukup?'var(--green)':'var(--red)';
+        var selisih=h.selisih||0;
+        var selTxt=selisih>=0?'+'+Math.floor(selisih/60)+'j'+Math.round(selisih%60)+'m':'-'+Math.floor((-selisih)/60)+'j'+Math.round((-selisih)%60)+'m';
+        html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:'+(cukup?'rgba(22,163,74,.05)':'rgba(220,38,38,.05)')+';border:1px solid '+(cukup?'rgba(22,163,74,.15)':'rgba(220,38,38,.12)')+';margin-bottom:4px">'
+          +'<div style="font-family:var(--mono);font-size:11px;color:var(--muted);min-width:48px">'+namaHari+' '+tglTxt+'</div>'
+          +'<div style="flex:1;height:6px;background:var(--surface);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;background:'+warna+';width:'+Math.min(100,Math.round(h.menit/target*100))+'%"></div></div>'
+          +'<div style="font-family:var(--mono);font-size:12px;font-weight:700;color:'+warna+';min-width:52px;text-align:right">'+durTxt+'</div>'
+          +'<div style="font-size:10px;color:var(--hint);min-width:36px;text-align:right">'+selTxt+'</div>'
+          +'</div>';
+      });
+      body.innerHTML=html;
+    })
+    .catch(function(){body.innerHTML='<div style="color:var(--red);font-size:12px">⚠ Gagal memuat data jam kerja</div>';});
+}
+
+// ── Non-Harian Terakhir Dikerjakan ──
+function loadHomeEvent(){
+  if(userRole!=='admin') return;
+  var body = document.getElementById('home-event-body');
+  var sub  = document.getElementById('home-event-sub');
+  if(!scriptUrl){body.innerHTML='<div style="color:var(--hint);font-size:12px">URL belum dikonfigurasi</div>';return;}
+  body.innerHTML='<div style="text-align:center"><span class="spinner"></span> Memuat...</div>';
+  var bulan=todayValue.substring(0,7);
+  if(sub) sub.textContent='Bulan '+bulan;
+  fetch(scriptUrl+'?type=event&bulan='+bulan+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var rows=(d&&d.rows)?d.rows:[];
+      // Cari terakhir ada event berstatus ✓
+      var done=rows.filter(function(r){return String(r[6]||'').trim()==='✓';});
+      var now=new Date(); now.setHours(0,0,0,0);
+      var lastDone=null;
+      done.forEach(function(r){
+        var dt=new Date(r[1]);if(!isNaN(dt)){dt.setHours(0,0,0,0);if(!lastDone||dt>lastDone)lastDone=dt;}
+      });
+      var hariSejak=lastDone?Math.floor((now-lastDone)/86400000):null;
+      // Banner status hari sejak terakhir
+      var bannerColor,bannerBg,bannerIcon,bannerTxt;
+      if(hariSejak===null){
+        bannerColor='var(--red)';bannerBg='rgba(220,38,38,.07)';bannerIcon='⚠️';
+        bannerTxt='Bulan ini <b>belum ada</b> tugas Non-Harian yang dikerjakan!';
+      } else if(hariSejak===0){
+        bannerColor='var(--green)';bannerBg='rgba(22,163,74,.07)';bannerIcon='✅';
+        bannerTxt='Terakhir dikerjakan <b>hari ini</b>';
+      } else if(hariSejak<=2){
+        bannerColor='var(--accent)';bannerBg='rgba(37,99,235,.07)';bannerIcon='✓';
+        bannerTxt='Terakhir dikerjakan <b>'+hariSejak+' hari lalu</b>';
+      } else if(hariSejak<=5){
+        bannerColor='var(--orange)';bannerBg='rgba(217,119,6,.07)';bannerIcon='⚠';
+        bannerTxt='Sudah <b>'+hariSejak+' hari</b> tidak ada tugas non-harian dikerjakan';
+      } else {
+        bannerColor='var(--red)';bannerBg='rgba(220,38,38,.07)';bannerIcon='🚨';
+        bannerTxt='<b>'+hariSejak+' hari</b> tidak ada tugas non-harian — segera cek!';
+      }
+      var html='<div style="background:'+bannerBg+';border:1px solid '+bannerColor+';border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">'
+        +'<span style="font-size:18px">'+bannerIcon+'</span>'
+        +'<span style="font-size:13px;color:'+bannerColor+'">'+bannerTxt+'</span>'
+        +'</div>';
+      if(!rows.length){
+        body.innerHTML=html+'<div style="color:var(--hint);font-size:12px;text-align:center;padding:6px 0">Belum ada data non-harian bulan ini</div>';
+        return;
+      }
+      // 5 event terakhir (terbaru dulu)
+      var sorted=rows.slice().sort(function(a,b){return String(b[1]||'').localeCompare(String(a[1]||''));}).slice(0,5);
+      html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">5 Terakhir Bulan Ini</div>';
+      sorted.forEach(function(r){
+        var tgl=r[1]?new Date(r[1]):null;
+        var tglTxt=tgl&&!isNaN(tgl)?tgl.getDate()+'/'+String(tgl.getMonth()+1).padStart(2,'0'):'—';
+        var namaEv=r[3]||r[2]||'—';
+        var status=String(r[6]||'').trim();
+        var ok=status==='✓';
+        var catatan=r[7]||r[8]||'';
+        html+='<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:8px;background:'+(ok?'rgba(22,163,74,.05)':'rgba(220,38,38,.05)')+';border:1px solid '+(ok?'rgba(22,163,74,.15)':'rgba(220,38,38,.12)')+';margin-bottom:5px">'
+          +'<div style="font-family:var(--mono);font-size:11px;color:var(--muted);min-width:40px;padding-top:1px">'+tglTxt+'</div>'
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:12px;font-weight:600;color:var(--text)">'+escH(namaEv)+'</div>'
+          +(catatan?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+escH(String(catatan).slice(0,60))+'</div>':'')
+          +'</div>'
+          +'<div style="font-size:13px;font-weight:700;color:'+(ok?'var(--green)':'var(--red)')+'">'+status+'</div>'
+          +'</div>';
+      });
+      body.innerHTML=html;
+    })
+    .catch(function(){body.innerHTML='<div style="color:var(--red);font-size:12px">⚠ Gagal memuat data non-harian</div>';});
+}
+
+// ── % Kinerja Bulan Ini (Rekap per kategori) ──
+function loadHomeRekap(){
+  if(userRole!=='admin') return;
+  var body=document.getElementById('home-rekap-body');
+  var sub =document.getElementById('home-rekap-sub');
+  if(!scriptUrl){body.innerHTML='<div style="color:var(--hint);font-size:12px">URL belum dikonfigurasi</div>';return;}
+  body.innerHTML='<div style="text-align:center"><span class="spinner"></span> Memuat...</div>';
+  var bulan=todayValue.substring(0,7);
+  if(sub) sub.textContent='Rata-rata penyelesaian tugas · '+bulan;
+  fetch(scriptUrl+'?type=rekap&bulan='+bulan+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var tasks=(d&&d.tasks)?d.tasks:[];
+      if(!tasks.length){
+        body.innerHTML='<div style="color:var(--hint);font-size:12px;text-align:center;padding:8px 0">Belum ada data rekap bulan ini</div>';
+        return;
+      }
+      // Hitung rata-rata per prioritas
+      var grup={Wajib:[],Penting:[],Pendukung:[]};
+      tasks.forEach(function(t){
+        var pri=t.prioritas||'Lainnya';
+        if(!grup[pri])grup[pri]=[];
+        if(t.pct!=null)grup[pri].push(t.pct);
+      });
+      // Rata-rata keseluruhan
+      var allPct=tasks.filter(function(t){return t.pct!=null;}).map(function(t){return t.pct;});
+      var avgAll=allPct.length?Math.round(allPct.reduce(function(a,b){return a+b;},0)/allPct.length):null;
+      var barColor=avgAll>=90?'var(--green)':avgAll>=70?'var(--orange)':'var(--red)';
+      var html='';
+      // Angka besar rata-rata keseluruhan
+      if(avgAll!=null){
+        html+='<div style="text-align:center;padding:14px 0 16px">'
+          +'<div style="font-family:var(--mono);font-size:42px;font-weight:500;color:'+barColor+'">'+avgAll+'%</div>'
+          +'<div style="font-size:11px;color:var(--muted);margin-top:4px">rata-rata semua tugas bulan ini</div>'
+          +'</div>';
+        html+='<div style="background:var(--surface);border-radius:4px;height:10px;overflow:hidden;margin-bottom:18px">'
+          +'<div style="height:100%;border-radius:4px;background:'+barColor+';width:'+avgAll+'%;transition:width .4s ease"></div>'
+          +'</div>';
+      }
+      // Per prioritas
+      [{key:'Wajib',label:'🔴 Wajib',color:'var(--red)'},{key:'Penting',label:'🟡 Penting',color:'var(--orange)'},{key:'Pendukung',label:'🟢 Pendukung',color:'var(--blue)'}].forEach(function(g){
+        var arr=grup[g.key];
+        if(!arr||!arr.length)return;
+        var avg=Math.round(arr.reduce(function(a,b){return a+b;},0)/arr.length);
+        var bc=avg>=90?'var(--green)':avg>=70?'var(--orange)':'var(--red)';
+        html+='<div style="margin-bottom:10px">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+          +'<span style="font-size:12px;font-weight:600;color:var(--text)">'+g.label+'</span>'
+          +'<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:'+bc+'">'+avg+'%</span>'
+          +'</div>'
+          +'<div style="background:var(--surface);border-radius:4px;height:7px;overflow:hidden">'
+          +'<div style="height:100%;border-radius:4px;background:'+bc+';width:'+avg+'%;transition:width .4s ease"></div>'
+          +'</div>'
+          +'</div>';
+      });
+      // Tugas paling bermasalah (pct < 70)
+      var masalah=tasks.filter(function(t){return t.pct!=null&&t.pct<70;}).sort(function(a,b){return a.pct-b.pct;}).slice(0,5);
+      if(masalah.length){
+        html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:14px 0 7px;text-transform:uppercase;letter-spacing:.06em">⚠ Tugas Perlu Perhatian (&lt;70%)</div>';
+        masalah.forEach(function(t){
+          var bc=t.pct>=50?'var(--orange)':'var(--red)';
+          html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:rgba(220,38,38,.04);border:1px solid rgba(220,38,38,.12);margin-bottom:4px">'
+            +'<span style="font-family:var(--mono);font-size:10px;color:var(--hint);min-width:32px">'+escH(t.kode||'')+'</span>'
+            +'<span style="flex:1;font-size:12px;color:var(--text)">'+escH(t.nama||'')+'</span>'
+            +'<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:'+bc+'">'+t.pct+'%</span>'
+            +'</div>';
+        });
+      }
+      body.innerHTML=html;
+    })
+    .catch(function(){body.innerHTML='<div style="color:var(--red);font-size:12px">⚠ Gagal memuat data rekap</div>';});
 }
 
 // ── Progress Tugas Harian Manager (hari ini) ──
