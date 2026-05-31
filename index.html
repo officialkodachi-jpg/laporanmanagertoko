@@ -102,32 +102,72 @@ body.role-admin .admin-only{display:inline-flex}
 .subtab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .subview{display:none}.subview.active{display:block}
 .subview-cap{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5}
-.d01-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:6px;transition:border-color .2s}
-.d01-card.d01-done{border-color:rgba(22,163,74,.35);background:rgba(22,163,74,.05)}
-.d01-card.d01-warn{border-color:rgba(217,119,6,.35);background:rgba(217,119,6,.04)}
-.d01-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.d01-check{width:26px;height:26px;min-width:26px;border-radius:50%;border:2px solid var(--hint);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#fff;transition:all .3s}
-.d01-check.done{background:var(--green);border-color:var(--green)}
+/* ── D01 Card — redesign ── */
+.d01-swipe-outer{overflow:hidden;border-radius:var(--r);margin-bottom:6px}
+.d01-swipe-track{display:flex;transition:transform .36s cubic-bezier(.4,0,.2,1);will-change:transform}
+.d01-swipe-slide{min-width:100%;flex-shrink:0}
+.d01-dots{display:flex;justify-content:center;gap:5px;margin:6px 0 10px}
+.d01-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:background .2s,transform .2s;cursor:pointer;border:none;padding:0}
+.d01-dot.active{background:var(--accent);transform:scale(1.35)}
+.d01-card{background:var(--card);border:1.5px solid var(--border);border-left:4px solid var(--hint);border-radius:var(--r);padding:14px 16px;transition:border-color .2s}
+.d01-card.d01-done{border-color:rgba(22,163,74,.35);border-left-color:var(--green);background:rgba(22,163,74,.04)}
+.d01-card.d01-warn{border-color:rgba(217,119,6,.3);border-left-color:var(--orange);background:rgba(217,119,6,.03)}
+.d01-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.d01-check{width:28px;height:28px;min-width:28px;border-radius:50%;border:2px solid var(--hint);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#fff;transition:all .3s}
+.d01-check.done{background:var(--green);border-color:var(--green);box-shadow:0 0 0 4px rgba(22,163,74,.15)}
 .d01-check.warn{background:var(--orange);border-color:var(--orange)}
 .d01-check.empty{background:transparent;color:transparent;border-color:var(--hint)}
-.d01-title{font-size:13px;font-weight:500;flex:1;line-height:1.4}
-.d01-badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:20px;flex-shrink:0}
+.d01-title{font-size:13px;font-weight:600;flex:1;line-height:1.4}
+.d01-badge{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:20px;flex-shrink:0;font-weight:600}
 .d01-badge.done{background:rgba(22,163,74,.12);color:var(--green)}
 .d01-badge.warn{background:rgba(217,119,6,.12);color:var(--orange)}
 .d01-badge.empty{background:var(--surface);color:var(--hint)}
-.d01-dur-row{display:flex;gap:8px;align-items:stretch;margin-bottom:10px}
-.d01-dur-box{flex:1;background:var(--surface);border-radius:10px;padding:10px 12px;text-align:center}
-.d01-dur-val{font-family:var(--mono);font-size:20px;font-weight:500;line-height:1}
+.d01-dur-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.d01-dur-box{background:var(--surface);border-radius:10px;padding:12px 14px;text-align:left}
+.d01-dur-val{font-family:var(--mono);font-size:22px;font-weight:500;line-height:1}
 .d01-dur-val.green{color:var(--green)}.d01-dur-val.orange{color:var(--orange)}.d01-dur-val.muted{color:var(--muted)}
-.d01-prog-track{height:6px;background:var(--surface);border-radius:3px;overflow:hidden;margin-bottom:6px}
-.d01-prog-fill{height:100%;border-radius:3px;transition:width .5s ease,background .3s}
+.d01-dur-label{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:.03em}
+.d01-prog-track{height:8px;background:var(--surface);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.d01-prog-fill{height:100%;border-radius:4px;transition:width .5s ease,background .3s}
 .d01-prog-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--hint);font-family:var(--mono)}
-.d01-caption{font-size:11px;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:6px}
-.d01-caption .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.d01-caption{font-size:11px;color:var(--muted);margin-top:10px;display:flex;align-items:center;gap:6px}
+.d01-caption .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .d01-caption .dot.green{background:var(--green);animation:blink 1.5s infinite}
 .d01-caption .dot.orange{background:var(--orange)}.d01-caption .dot.grey{background:var(--hint)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.task-auto-tag{font-size:10px;color:var(--accent);background:rgba(37,99,235,.08);padding:2px 8px;border-radius:20px;display:inline-block;margin-top:4px}
+.task-auto-tag{font-size:10px;color:var(--accent);background:rgba(37,99,235,.08);padding:2px 8px;border-radius:20px;display:inline-block;margin-top:8px}
+.d01-swipe-hint{display:flex;align-items:center;justify-content:flex-end;gap:3px;margin-top:10px;font-size:10px;color:var(--hint)}
+.d01-streak-card{background:var(--card);border:1.5px solid var(--border);border-left:4px solid var(--green);border-radius:var(--r);padding:14px 16px}
+.d01-streak-hdr{display:flex;align-items:center;gap:7px;margin-bottom:14px}
+.d01-streak-hdr-label{font-size:13px;font-weight:600;flex:1}
+.d01-streak-hdr-month{font-family:var(--mono);font-size:10px;color:var(--hint)}
+.d01-streak-nums{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.d01-streak-big{background:var(--surface);border-radius:10px;padding:12px 14px;text-align:center}
+.d01-streak-big-val{font-family:var(--mono);font-size:38px;font-weight:500;line-height:1}
+.d01-streak-big-label{font-size:10px;color:var(--muted);margin-top:4px}
+.d01-streak-big-tag{font-size:11px;font-weight:600;margin-top:4px}
+.d01-streak-side{display:flex;flex-direction:column;gap:8px}
+.d01-streak-mini{background:var(--surface);border-radius:10px;padding:10px 12px;flex:1;display:flex;align-items:center;justify-content:space-between}
+.d01-streak-mini-label{font-size:10px;color:var(--muted)}
+.d01-streak-mini-val{font-family:var(--mono);font-size:18px;font-weight:500}
+.d01-streak-bar-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px}
+.d01-streak-bar-track{height:8px;background:var(--surface);border-radius:4px;overflow:hidden;display:flex;margin-bottom:10px}
+.d01-streak-bar-masuk{height:100%;background:var(--green);border-radius:4px 0 0 4px;transition:width .4s ease}
+.d01-streak-bar-absen{height:100%;background:var(--orange);border-radius:0 4px 4px 0;transition:width .4s ease}
+.d01-streak-cal-hdr{font-size:9px;color:var(--hint);letter-spacing:.05em;margin-bottom:5px}
+.d01-streak-cal{display:flex;flex-wrap:wrap;gap:3px}
+.d01-day{width:28px;height:28px;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:600}
+.d01-day.hadir-full{background:var(--green);color:#fff}
+.d01-day.hadir-ok{background:rgba(22,163,74,.35);color:var(--green)}
+.d01-day.hadir-low{background:rgba(22,163,74,.15);color:var(--green)}
+.d01-day.no-gps{background:rgba(217,119,6,.12);color:var(--orange)}
+.d01-day.absen{background:rgba(220,38,38,.1);color:var(--red)}
+.d01-day.today{outline:2px solid var(--accent);outline-offset:-2px}
+.d01-day.future{background:var(--surface);color:var(--hint)}
+.d01-streak-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.d01-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)}
+.d01-legend-dot{width:9px;height:9px;border-radius:2px}
+.d01-swipe-hint-left{display:flex;align-items:center;gap:3px;margin-top:10px;font-size:10px;color:var(--hint)}
 .tabs-wrap{max-width:680px;margin:0 auto;padding:0 20px;position:sticky;top:0;z-index:50;background:var(--bg)}
 .tabs-scroll-outer{position:relative}
 .tabs-scroll-btn{position:absolute;bottom:0;top:14px;width:36px;display:flex;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;padding:0;z-index:3;transition:opacity .25s}
@@ -1412,6 +1452,149 @@ function fmtDur(m){const h=Math.floor(m/60),n=Math.floor(m%60);return h>0?h+'j '
 function updateTimerDisplay(){const t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60),p=Math.min(100,t/TARGET_MENIT*100);document.getElementById('loc-timer').textContent=h+':'+String(m).padStart(2,'0');document.getElementById('loc-timer').className='loc-timer'+(p>=100?' done':p>=50?' warn':'');const f=document.getElementById('time-bar-fill');f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');document.getElementById('time-bar-left').textContent=t>=60?h+' jam '+m+' menit di toko':Math.floor(t)+' menit di toko';document.getElementById('loc-total-today').textContent=h+'j '+m+'m';updateD01Card();}
 function updateD01Card(){const t=getCurrentTotalMinutes(),p=Math.min(100,t/TARGET_MENIT*100),done=t>=TARGET_MENIT,h=Math.floor(t/60),m=Math.floor(t%60);const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),dv=document.getElementById('d01-dur-val'),pf=document.getElementById('d01-prog-fill'),dot=document.getElementById('d01-caption-dot'),cap=document.getElementById('d01-caption-text');if(!card)return;card.className='d01-card '+(done?'d01-done':t>0?'d01-warn':'');if(t>0){chk.className='d01-check '+(done?'done':'warn');chk.textContent='✓';}else{chk.className='d01-check empty';chk.textContent='';}badge.textContent=t===0?'GPS aktif':done?'≥ 4 jam ✓':'< 4 jam';badge.className='d01-badge '+(t===0?'empty':done?'done':'warn');dv.textContent=h+'j '+m+'m';dv.className='d01-dur-val '+(t===0?'muted':done?'green':'orange');pf.style.width=p+'%';pf.style.background=done?'var(--green)':t>0?'var(--orange)':'var(--hint)';if(isAtStore){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}else if(t>0){dot.className='dot orange';cap.textContent=done?'Target tercapai':'Durasi '+fmtDur(t)+' tercatat';}else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}notes['D01']=t>0?'GPS: '+h+'j '+m+'m di toko'+(done?'':' (< target 4j)')+' · '+(isAtStore?'Sedang di toko':'Sudah keluar toko'):'';if(t>0&&!checked['D01']){checked['D01']=true;updateStats();}}
 
+// ════ D01 SWIPE ════
+function _initD01Swipe(){
+  var outer=document.getElementById('d01-swipe-outer');
+  var track=document.getElementById('d01-swipe-track');
+  if(!outer||!track)return;
+  var cur=0,total=2,startX=0,isDrag=false;
+  // dots
+  var dotsWrap=document.createElement('div');dotsWrap.className='d01-dots';
+  for(var i=0;i<total;i++){
+    var d=document.createElement('button');d.className='d01-dot'+(i===0?' active':'');
+    d.setAttribute('aria-label','Slide '+(i+1));
+    (function(idx){d.addEventListener('click',function(){goTo(idx);});})(i);
+    dotsWrap.appendChild(d);
+  }
+  outer.insertAdjacentElement('afterend',dotsWrap);
+  function getDots(){return dotsWrap.querySelectorAll('.d01-dot');}
+  function goTo(idx){
+    cur=Math.max(0,Math.min(total-1,idx));
+    track.style.transform='translateX(-'+(cur*100)+'%)';
+    getDots().forEach(function(d,i){d.classList.toggle('active',i===cur);});
+    if(cur===1&&userRole==='manager'&&scriptUrl) loadStreakHarian();
+  }
+  outer.addEventListener('touchstart',function(e){startX=e.touches[0].clientX;isDrag=true;},{passive:true});
+  outer.addEventListener('touchend',function(e){
+    if(!isDrag)return;isDrag=false;
+    var dx=e.changedTouches[0].clientX-startX;
+    if(Math.abs(dx)>40)goTo(dx<0?cur+1:cur-1);
+  });
+  outer.addEventListener('mousedown',function(e){startX=e.clientX;isDrag=true;e.preventDefault();});
+  window.addEventListener('mouseup',function(e){
+    if(!isDrag)return;isDrag=false;
+    var dx=e.clientX-startX;
+    if(Math.abs(dx)>40)goTo(dx<0?cur+1:cur-1);
+  });
+}
+
+// ════ STREAK HARIAN (manager) ════
+var _streakHarianLoaded=false;
+function loadStreakHarian(){
+  if(userRole!=='manager')return;
+  if(!scriptUrl)return;
+  var content=document.getElementById('streak-content');
+  var monthLabel=document.getElementById('streak-month-label');
+  if(!content)return;
+  var bulan=todayValue.substring(0,7);
+  if(monthLabel) monthLabel.textContent=bulan;
+  content.innerHTML='<div style="text-align:center;padding:16px 0;color:var(--hint);font-size:12px"><span class="spinner"></span> Memuat...</div>';
+  fetch(scriptUrl+'?type=jamkerja&bulan='+bulan+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var hari=(d&&d.hari)?d.hari:[];
+      var hadir={};
+      hari.forEach(function(h){if(h.tgl)hadir[h.tgl]=h.menit||0;});
+      var p=bulan.split('-'),yr=parseInt(p[0]),mo=parseInt(p[1]);
+      var today=new Date(todayValue);
+      var dim=new Date(yr,mo,0).getDate();
+      var hariKerja=[],hariAbsen=[];
+      for(var d2=1;d2<=dim;d2++){
+        var dt=new Date(yr,mo-1,d2);
+        if(dt>today)break;
+        if(dt.getDay()===0)continue;
+        var tglStr=yr+'-'+String(mo).padStart(2,'0')+'-'+String(d2).padStart(2,'0');
+        hariKerja.push(tglStr);
+        if(!hadir[tglStr])hariAbsen.push(tglStr);
+      }
+      // streak saat ini
+      var streakSaatIni=0;
+      for(var si=hariKerja.length-1;si>=0;si--){
+        if(hadir[hariKerja[si]])streakSaatIni++;
+        else break;
+      }
+      var totalKerja=hariKerja.length;
+      var totalHadir=Object.keys(hadir).filter(function(t){return hariKerja.indexOf(t)>=0;}).length;
+      var totalAbsen=hariAbsen.length;
+      var masukPct=totalKerja?Math.round(totalHadir/totalKerja*100):0;
+      var absenPct=totalKerja?Math.round(totalAbsen/totalKerja*100):0;
+      var streakColor=streakSaatIni>=5?'var(--green)':streakSaatIni>=2?'var(--orange)':'var(--red)';
+      var streakLabel=streakSaatIni>=5?'🔥 Bagus!':streakSaatIni>=3?'👍 Lumayan':streakSaatIni===0?'😴 Kosong':'⚠ Jaga terus';
+      var tanpaGPSColor=totalAbsen===0?'var(--green)':totalAbsen<=3?'var(--orange)':'var(--red)';
+      var HARI_PENDEK=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+      var html='';
+      // angka utama
+      html+='<div class="d01-streak-nums">'
+        +'<div class="d01-streak-big">'
+        +'<div class="d01-streak-big-val" style="color:'+streakColor+'">'+streakSaatIni+'</div>'
+        +'<div class="d01-streak-big-label">hari berturut-turut</div>'
+        +'<div class="d01-streak-big-tag" style="color:'+streakColor+'">'+streakLabel+'</div>'
+        +'</div>'
+        +'<div class="d01-streak-side">'
+        +'<div class="d01-streak-mini"><span class="d01-streak-mini-label">Masuk toko</span><span class="d01-streak-mini-val" style="color:var(--green)">'+totalHadir+'</span></div>'
+        +'<div class="d01-streak-mini"><span class="d01-streak-mini-label">Tanpa GPS</span><span class="d01-streak-mini-val" style="color:'+tanpaGPSColor+'">'+totalAbsen+'</span></div>'
+        +'</div>'
+        +'</div>';
+      // bar masuk vs tanpa GPS
+      html+='<div class="d01-streak-bar-labels"><span>Masuk <b style="color:var(--green)">'+masukPct+'%</b></span><span>Tanpa GPS <b style="color:'+tanpaGPSColor+'">'+absenPct+'%</b></span></div>'
+        +'<div class="d01-streak-bar-track">'
+        +'<div class="d01-streak-bar-masuk" style="width:'+masukPct+'%"></div>'
+        +'<div class="d01-streak-bar-absen" style="width:'+absenPct+'%;background:'+tanpaGPSColor+'"></div>'
+        +'</div>';
+      // kalender mini
+      html+='<div class="d01-streak-cal-hdr">SEN · SEL · RAB · KAM · JUM · SAB</div>';
+      html+='<div class="d01-streak-cal">';
+      var firstDay=new Date(yr,mo-1,1).getDay();
+      var offset=firstDay===0?5:firstDay-1;
+      for(var o=0;o<offset;o++)html+='<div style="width:28px;height:28px"></div>';
+      for(var d3=1;d3<=dim;d3++){
+        var dt2=new Date(yr,mo-1,d3);
+        var tS=yr+'-'+String(mo).padStart(2,'0')+'-'+String(d3).padStart(2,'0');
+        if(dt2.getDay()===0)continue;
+        var isFuture=dt2>today;
+        var isTodayDate=(tS===todayValue);
+        var mnt=hadir[tS]||0;
+        var cls='d01-day ';
+        if(isFuture)cls+='future';
+        else if(mnt>=240)cls+='hadir-full';
+        else if(mnt>=120)cls+='hadir-ok';
+        else if(mnt>0)cls+='hadir-low';
+        else if(hariKerja.indexOf(tS)>=0)cls+='absen';
+        else cls+='future';
+        if(isTodayDate)cls+=' today';
+        var hj=Math.floor(mnt/60),mj=mnt%60;
+        var durLabel=mnt>0?(hj>0?hj+'j':''+(mj?mj+'m':'')):'';
+        html+='<div class="'+cls+'" title="'+tS+(durLabel?' · '+durLabel:'')+'">'
+          +'<span>'+d3+'</span>'
+          +(durLabel&&!isFuture?'<span style="font-size:7px;opacity:.8">'+durLabel+'</span>':'')
+          +'</div>';
+      }
+      html+='</div>';
+      // legenda
+      html+='<div class="d01-streak-legend">'
+        +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:var(--green)"></div>≥4j</div>'
+        +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:rgba(22,163,74,.35)"></div>2–4j</div>'
+        +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:rgba(22,163,74,.15)"></div>&lt;2j</div>'
+        +'<div class="d01-legend-item"><div class="d01-legend-dot" style="background:rgba(220,38,38,.2)"></div>Tanpa GPS</div>'
+        +'</div>';
+      content.innerHTML=html;
+    })
+    .catch(function(){
+      var c=document.getElementById('streak-content');
+      if(c)c.innerHTML='<div style="color:var(--red);font-size:12px;text-align:center;padding:12px">⚠ Gagal memuat data kehadiran</div>';
+    });
+}
+
 // ════ GUDANG IN/OUT ════
 function igAddRow(){var id=Date.now()+Math.floor(Math.random()*999);igRows.push({id:id,tanggal:igToday,nama:'',size:'',tipe:'',jumlah:1,inout:'OUT',ket:'Bawa Ke Toko'});igRenderTable();setTimeout(()=>{var inp=document.querySelector('tr[data-id="'+id+'"] .ac-input');if(inp)inp.focus();},50);}
 function igDelRow(id){igRows=igRows.filter(r=>r.id!==id);igRenderTable();igUpdateSummary();}
@@ -2188,8 +2371,55 @@ function renderHarian(){
     tasks.forEach(t=>{
       if(t.autoTrack){
         var el=document.createElement('div');
-        el.innerHTML='<div class="d01-card" id="d01-card"><div class="d01-header"><div class="d01-check empty" id="d01-check"></div><div class="d01-title">'+t.nama+'</div><div class="d01-badge empty" id="d01-badge">GPS aktif</div></div><div class="d01-dur-row"><div class="d01-dur-box"><div class="d01-dur-val muted" id="d01-dur-val">0j 0m</div><div class="d01-dur-label">Durasi di toko</div></div><div class="d01-dur-box" style="flex:0 0 auto;min-width:80px"><div class="d01-dur-val muted" style="font-size:14px">4j 0m</div><div class="d01-dur-label">Target</div></div></div><div class="d01-prog-track"><div class="d01-prog-fill" id="d01-prog-fill" style="width:0%;background:var(--hint)"></div></div><div class="d01-prog-labels"><span>0</span><span>1j</span><span>2j</span><span>3j</span><span>4j</span></div><div class="d01-caption"><span class="dot grey" id="d01-caption-dot"></span><span id="d01-caption-text">Menunggu sinyal GPS...</span></div><div style="margin-top:8px"><span class="task-auto-tag">📍 Otomatis dari GPS · D01</span></div></div>';
-        list.appendChild(el);setTimeout(updateD01Card,50);
+        el.innerHTML=
+          // ── Swipe outer ──
+          '<div class="d01-swipe-outer" id="d01-swipe-outer">'
+          +'<div class="d01-swipe-track" id="d01-swipe-track">'
+
+          // ── Slide 1: Kehadiran Efektif ──
+          +'<div class="d01-swipe-slide">'
+          +'<div class="d01-card" id="d01-card">'
+          +'<div class="d01-header">'
+          +'<div class="d01-check empty" id="d01-check"></div>'
+          +'<div class="d01-title">'+t.nama+'</div>'
+          +'<div class="d01-badge empty" id="d01-badge">GPS aktif</div>'
+          +'</div>'
+          +'<div class="d01-dur-row">'
+          +'<div class="d01-dur-box"><div class="d01-dur-val muted" id="d01-dur-val">0j 0m</div><div class="d01-dur-label">Durasi di toko</div></div>'
+          +'<div class="d01-dur-box"><div class="d01-dur-val muted" style="font-size:18px">4j 0m</div><div class="d01-dur-label">Target harian</div></div>'
+          +'</div>'
+          +'<div class="d01-prog-track"><div class="d01-prog-fill" id="d01-prog-fill" style="width:0%;background:var(--hint)"></div></div>'
+          +'<div class="d01-prog-labels"><span>0</span><span>1j</span><span>2j</span><span>3j</span><span>4j</span></div>'
+          +'<div class="d01-caption"><span class="dot grey" id="d01-caption-dot"></span><span id="d01-caption-text">Menunggu sinyal GPS...</span></div>'
+          +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">'
+          +'<span class="task-auto-tag">📍 Otomatis dari GPS · D01</span>'
+          +'<div class="d01-swipe-hint" id="d01-swipe-hint-r">Streak ›</div>'
+          +'</div>'
+          +'</div>'
+          +'</div>'
+
+          // ── Slide 2: Streak Kehadiran ──
+          +'<div class="d01-swipe-slide">'
+          +'<div class="d01-streak-card">'
+          +'<div class="d01-streak-hdr">'
+          +'<span style="font-size:15px">🔥</span>'
+          +'<span class="d01-streak-hdr-label">Streak Kehadiran</span>'
+          +'<span class="d01-streak-hdr-month" id="streak-month-label">Memuat...</span>'
+          +'</div>'
+          +'<div id="streak-content"><div style="text-align:center;padding:20px 0;color:var(--hint);font-size:12px">Memuat data kehadiran...</div></div>'
+          +'<div class="d01-swipe-hint-left"><span>‹ Kembali</span></div>'
+          +'</div>'
+          +'</div>'
+
+          +'</div>'// end track
+          +'</div>';// end outer
+
+        list.appendChild(el);
+        setTimeout(updateD01Card,50);
+        // init swipe
+        _initD01Swipe();
+        // load streak (manager only)
+        if(userRole==='manager') setTimeout(loadStreakHarian,800);
       }else{
         var el=document.createElement('div');
         var priCls='pri-'+pri.toLowerCase();
