@@ -1456,6 +1456,23 @@ function updateTimerDisplay(){const t=getCurrentTotalMinutes(),h=Math.floor(t/60
 function updateD01Card(){const t=getCurrentTotalMinutes(),p=Math.min(100,t/TARGET_MENIT*100),done=t>=TARGET_MENIT,h=Math.floor(t/60),m=Math.floor(t%60);const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),dv=document.getElementById('d01-dur-val'),pf=document.getElementById('d01-prog-fill'),dot=document.getElementById('d01-caption-dot'),cap=document.getElementById('d01-caption-text');if(!card)return;card.className='d01-card '+(done?'d01-done':t>0?'d01-warn':'');if(t>0){const col=done?'%2316a34a':'%23d97706';chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='"+col+"' stroke='"+col+"' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-size='13' font-weight='700' fill='white'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";}else{chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='none' stroke='%23adb5bd' stroke-width='2'/%3E%3C/svg%3E";}if(t===0){badge.innerHTML='<span class="d01-badge-dot"></span>GPS aktif';badge.className='d01-badge empty';}else if(done){badge.innerHTML='≥ 4 jam ✓';badge.className='d01-badge done';}else{badge.innerHTML='< 4 jam';badge.className='d01-badge warn';}dv.textContent=h+'j '+m+'m';dv.className='d01-dur-val '+(t===0?'muted':done?'green':'orange');pf.style.width=p+'%';pf.style.background=done?'var(--green)':t>0?'var(--orange)':'var(--hint)';if(isAtStore){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}else if(t>0){dot.className='dot orange';cap.textContent=done?'Target tercapai':'Durasi '+fmtDur(t)+' tercatat';}else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}notes['D01']=t>0?'GPS: '+h+'j '+m+'m di toko'+(done?'':' (< target 4j)')+' · '+(isAtStore?'Sedang di toko':'Sudah keluar toko'):'';if(t>0&&!checked['D01']){checked['D01']=true;updateStats();}}
 
 // ════ D01 SWIPE ════
+function fixD01SwipeHeight(){
+  // dipanggil saat tab Harian dibuka — saat dibangun di tab tersembunyi tingginya bisa 0
+  function go(retry){
+    var outer=document.getElementById('d01-swipe-outer');
+    var track=outer&&outer.querySelector('.d01-swipe-track');
+    if(!outer||!track){if((retry||0)<12)setTimeout(function(){go((retry||0)+1);},120);return;}
+    var slides=track.querySelectorAll('.d01-swipe-slide');
+    var idx=0;var m=track.style.transform.match(/-(\d+)%/);if(m)idx=Math.round(parseInt(m[1])/100);
+    var s=slides[idx]||slides[0];
+    if(s){
+      var h=s.scrollHeight;
+      if(h>10)outer.style.height=h+'px';
+      else if((retry||0)<12){setTimeout(function(){go((retry||0)+1);},120);}
+    }
+  }
+  requestAnimationFrame(function(){go(0);});
+}
 function _initD01Swipe(){
   var outer=document.getElementById('d01-swipe-outer');
   var track=document.getElementById('d01-swipe-track');
@@ -2081,6 +2098,7 @@ function switchTab(name,btn){
   if(name==='cash'){if(cashData.length===0)loadCashData();}
   if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
   if(name==='laporan'&&userRole==='admin')loadLog();
+  if(name==='harian'){fixD01SwipeHeight();if(scriptUrl)loadStreakHarian();}
   var tabNama={home:'Home',harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link'};
   logActivity('Buka tab',tabNama[name]||name);
 }
@@ -3399,6 +3417,8 @@ function applyRole(){
   // muat kiriman & stok di awal agar banner notifikasi tampil tanpa harus buka tab
   if(typeof kmLoad==='function')kmLoad();
   if(typeof loadStok==='function')loadStok();
+  // muat ulang streak kehadiran setelah login (admin sering login setelah render awal)
+  setTimeout(function(){loadStreakHarian();},300);
 }
 function logout(){
   if(!confirm('Keluar dari akun?'))return;
