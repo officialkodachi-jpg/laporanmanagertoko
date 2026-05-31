@@ -403,6 +403,8 @@ body.role-manager .logout-btn{display:none!important}
 .pw-role-btn.sel{border-color:var(--accent);background:rgba(37,99,235,.08);color:var(--accent)}
 .admin-note{font-size:10px;color:var(--orange);margin-top:6px;font-style:italic}
 .admin-refresh{margin-top:10px;width:100%;padding:9px;background:rgba(217,119,6,.1);color:var(--orange);border:1px solid rgba(217,119,6,.3);border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
+.admin-refresh.loading{opacity:.75;cursor:wait}
+.admin-refresh .spinner{border-top-color:var(--orange);border-color:rgba(217,119,6,.3);border-top-color:var(--orange)}
 /* Admin: sembunyikan semua kontrol edit & input — hanya memantau */
 body.role-admin .save-btn,
 body.role-admin #event-detail,
@@ -1180,8 +1182,9 @@ function pushManagerLoc(){
 // ── ADMIN: ambil posisi manager dari server ──
 function loadManagerLoc(manual){
   if(userRole!=='admin')return;
+  var btn=document.getElementById('admin-loc-refresh');
   var url=scriptUrl;if(!url||!url.startsWith('http')){renderManagerLoc(null);return;}
-  if(manual)showToast('Memuat posisi Manager...','');
+  if(manual&&btn){btn.disabled=true;btn.classList.add('loading');btn.innerHTML='<span class="spinner"></span> Memuat posisi Manager...';}
   fetch(url+'?type=loc&tanggal='+todayValue+'&_='+Date.now())
     .then(r=>r.json()).then(d=>{
       renderManagerLoc(d);
@@ -1189,7 +1192,8 @@ function loadManagerLoc(manual){
         if(d&&(d.lat||d.menit||d.inStore!==undefined))showToast('✓ Posisi Manager diperbarui','ok');
         else showToast('Belum ada data posisi Manager hari ini','');
       }
-    }).catch(()=>{renderManagerLoc(null);if(manual)showToast('Gagal memuat posisi','err');});
+    }).catch(()=>{renderManagerLoc(null);if(manual)showToast('Gagal memuat posisi','err');})
+    .finally(()=>{if(manual&&btn){btn.disabled=false;btn.classList.remove('loading');btn.innerHTML='🔄 Perbarui posisi Manager';}});
 }
 function renderManagerLoc(d){
   var i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),
