@@ -1661,7 +1661,7 @@ function kmOpenDetail(row){
   }else{
     html+='<button class="reset" onclick="kmReset('+r.row+')">↩ Kembalikan ke \'Dikirim\'</button>';
   }
-  html+='<button class="del" onclick="kmDelete('+r.row+')">🗑 Hapus kiriman</button>';
+  if(userRole==='admin')html+='<button class="del" onclick="kmDelete('+r.row+')">🗑 Hapus kiriman</button>';
   html+='</div>';
   document.getElementById('km-d-body').innerHTML=html;
   document.getElementById('km-detail-bg').classList.add('open');
@@ -1675,6 +1675,7 @@ function kmReset(row){
     .catch(function(){showToast('Gagal','err');});
 }
 function kmDelete(row){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa menghapus kiriman','err');return;}
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   if(!confirm('Hapus kiriman ini permanen?'))return;
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'kiriman_delete',row:row})})
