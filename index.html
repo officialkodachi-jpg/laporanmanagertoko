@@ -1473,13 +1473,14 @@ function renderNotifStack(){
     var isi=escH(String(r.isi||'').slice(0,50));
     var tgl=r.tglKirim?kmFmtTgl(r.tglKirim):'';
     cards.push(
-      '<div class="notif-banner" style="border-color:rgba(217,119,6,.4);background:rgba(217,119,6,.1)">'
+      '<div class="notif-banner" style="border-color:rgba(217,119,6,.4);background:rgba(217,119,6,.1);cursor:pointer" onclick="kmOpenDetail('+r.row+')">'
       +'<div style="font-size:20px">🚚</div>'
       +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:12px;font-weight:800;color:var(--orange)">Kiriman belum sampai — '+jasa+'</div>'
       +'<div style="font-size:11px;color:var(--text);margin-top:2px;line-height:1.4">'+(isi||'(tanpa rincian)')+(tgl?(' · dikirim '+escH(tgl)):'')+'</div>'
+      +'<div style="font-size:10px;color:var(--orange);margin-top:3px;font-weight:600">👆 Tap untuk lihat detail</div>'
       +'</div>'
-      +'<button onclick="dismissNotif(\''+key+'\')" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px">×</button>'
+      +'<button onclick="event.stopPropagation();dismissNotif(\''+key+'\')" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px">×</button>'
       +'</div>'
     );
   });
