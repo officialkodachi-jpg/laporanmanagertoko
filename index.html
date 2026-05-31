@@ -668,6 +668,14 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
     <div class="subview" id="subview-log">
       <div class="subview-cap">Catatan semua aktivitas akun manager: login, buka tab, isi tugas, simpan data, dll.</div>
       <div class="grid-controls"><button class="load-btn" onclick="loadLog()">🔄 Muat Log Terbaru</button></div>
+      <div class="grid-controls" id="log-filter-row" style="display:none;gap:8px;margin-top:8px">
+        <select class="month-select" id="log-email-filter" style="flex:1" onchange="renderLog(_logRows)"></select>
+        <select class="month-select" id="log-sort" style="flex:1" onchange="renderLog(_logRows)">
+          <option value="baru">Terbaru dulu</option>
+          <option value="lama">Terlama dulu</option>
+          <option value="email">Urut email (A→Z)</option>
+        </select>
+      </div>
       <div id="log-container"><div class="empty"><div class="empty-icon">📜</div><div class="empty-text">Klik untuk memuat log aktivitas</div></div></div>
     </div>
   </div>
@@ -1659,18 +1667,47 @@ function switchLaporanView(v,btn){
   if(v==='jam')loadJamKerja();
 }
 // Muat log aktivitas (admin)
+var _logRows=[];
 function loadLog(){
   if(!scriptUrl)return;
   var c=document.getElementById('log-container');
   c.innerHTML='<div class="empty"><span class="spinner"></span> Memuat log...</div>';
-  fetch(scriptUrl+'?type=log&limit=150&_='+Date.now())
+  fetch(scriptUrl+'?type=log&limit=300&_='+Date.now())
     .then(function(r){return r.json();})
-    .then(function(d){renderLog((d&&d.rows)?d.rows:[]);})
+    .then(function(d){_logRows=(d&&d.rows)?d.rows:[];_buildLogEmailFilter();renderLog(_logRows);})
     .catch(function(){c.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Gagal memuat log</div></div>';});
+}
+function _buildLogEmailFilter(){
+  var sel=document.getElementById('log-email-filter');if(!sel)return;
+  var emails={};_logRows.forEach(function(r){if(r.email)emails[r.email]=(emails[r.email]||0)+1;});
+  var keys=Object.keys(emails).sort();
+  var cur=sel.value||'__all__';
+  var opt='<option value="__all__">Semua email ('+_logRows.length+')</option>';
+  keys.forEach(function(e){opt+='<option value="'+escH(e)+'">'+escH(e)+' ('+emails[e]+')</option>';});
+  sel.innerHTML=opt;
+  // pertahankan pilihan kalau masih ada
+  if(cur&&(cur==='__all__'||keys.indexOf(cur)>=0))sel.value=cur;
+  document.getElementById('log-filter-row').style.display=keys.length?'flex':'none';
 }
 function renderLog(rows){
   var c=document.getElementById('log-container');
-  if(!rows.length){c.innerHTML='<div class="empty"><div class="empty-icon">📜</div><div class="empty-text">Belum ada aktivitas tercatat</div></div>';return;}
+  rows=rows||[];
+  // filter email + sort sesuai pilihan
+  var selEl=document.getElementById('log-email-filter');
+  var sortEl=document.getElementById('log-sort');
+  var femail=selEl?selEl.value:'__all__';
+  var sortMode=sortEl?sortEl.value:'baru';
+  var view=rows.slice();
+  if(femail&&femail!=='__all__')view=view.filter(function(r){return r.email===femail;});
+  // data dari server sudah terbaru-dulu. atur ulang sesuai mode:
+  if(sortMode==='lama')view.reverse();
+  else if(sortMode==='email')view.sort(function(a,b){
+    var ea=(a.email||'').toLowerCase(),eb=(b.email||'').toLowerCase();
+    if(ea<eb)return -1;if(ea>eb)return 1;
+    return String(b.waktu||'').localeCompare(String(a.waktu||'')); // dalam email sama, terbaru dulu
+  });
+  var showDateHdr=(sortMode==='baru'||sortMode==='lama');
+  if(!view.length){c.innerHTML='<div class="empty"><div class="empty-icon">📜</div><div class="empty-text">Belum ada aktivitas</div></div>';return;}
   var aksiIcon={'Login':'🔓','Logout':'🔒','Sesi berakhir':'⏰','Buka aplikasi':'📱','Buka tab':'📂','Tiba di toko':'📍','Keluar toko':'🚪','Simpan tugas Harian':'✅','Catat Non-Harian':'📌','Simpan Gudang IN/OUT':'📦','Tambah kiriman stok':'🚚','Tandai kiriman sampai':'✓','Reset kiriman':'↩','Hapus kiriman':'🗑','Simpan Uang Cash':'💵','Tindak pelanggaran':'⚖️'};
   // Warna border per kategori aksi
   var aksiColor={
@@ -1683,17 +1720,14 @@ function renderLog(rows){
   };
   var html='';
   var lastDate='';
-  var totalHari=0,totalAksi=rows.length;
-  rows.forEach(function(r){
-    // Waktu: ambil dari kolom waktu server (simpan detik juga kalau ada)
-    var w=String(r.waktu||''
-    );
-    // Coba parse detik: format bisa "2025-05-31 14:23:45" atau "2025-05-31T14:23:45"
+  view.forEach(function(r){
+    // Waktu: ambil dari kolom waktu server (sampai detik)
+    var w=String(r.waktu||'');
     var tgl=w.substring(0,10);
-    var jamPart=w.replace('T',' ').substring(11,19); // HH:MM:SS kalau ada, else HH:MM
-    var jam=jamPart||'--:--';
-    if(tgl!==lastDate){
-      lastDate=tgl;totalHari++;
+    var jamPart=w.replace('T',' ').substring(11,19); // HH:MM:SS
+    var jam=jamPart||'--:--:--';
+    if(showDateHdr&&tgl!==lastDate){
+      lastDate=tgl;
       html+='<div class="section-hdr" style="margin-top:14px"><span class="section-hdr-label">'+logFmtTgl(tgl)+'</span><div class="section-hdr-line"></div></div>';
     }
     var ic=aksiIcon[r.aksi]||'•';
@@ -1701,8 +1735,9 @@ function renderLog(rows){
     var peranLabel=r.peran==='admin'
       ?'<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(217,119,6,.12);color:var(--orange);font-weight:700">👑 admin</span>'
       :'<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(37,99,235,.1);color:var(--accent);font-weight:700">👔 manager</span>';
-    var emailTxt=r.email?'<span style="font-family:var(--mono);font-size:10px;color:var(--hint)">'+escH(r.email)+'</span>':''
-    ;
+    // tanggal singkat ditampilkan di baris waktu kalau sedang sort email (karena tak ada header tanggal)
+    var tglKecil=(!showDateHdr&&tgl)?('<span style="font-size:10px;color:var(--hint);font-family:var(--mono);margin-left:6px">'+escH(tgl)+'</span>'):'';
+    var emailTxt=r.email?'<div style="font-family:var(--mono);font-size:11px;color:var(--accent);margin-top:2px;word-break:break-all">'+escH(r.email)+'</div>':'';
     var detailHtml=r.detail
       ?'<div style="font-size:11px;color:var(--text);background:var(--surface);border-radius:6px;padding:5px 8px;margin-top:5px;line-height:1.5;word-break:break-word">'+escH(r.detail)+'</div>'
       :'';
@@ -1725,17 +1760,18 @@ function renderLog(rows){
     var langHtml=langBits.length
       ?'<div style="font-size:10px;color:var(--hint);margin-top:3px;font-family:var(--mono)">'+langBits.join(' · ')+'</div>'
       :'';
-    // waktu HP lokal (sampai milidetik) kalau ada, tampil sebagai info tambahan
     var waktuHp=r.waktuLokal?'<div style="font-size:10px;color:var(--hint);margin-top:3px;font-family:var(--mono)">⏱ HP: '+escH(r.waktuLokal)+'</div>':'';
     html+='<div class="stok-item" style="border-left-color:'+borderColor+';align-items:flex-start;padding:11px 14px">'
       +'<div style="font-size:20px;min-width:30px;text-align:center;padding-top:1px">'+ic+'</div>'
       +'<div class="stok-item-body" style="min-width:0">'
-      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">'
-      +'<span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);letter-spacing:.03em">'+jam+'</span>'
-      +peranLabel
-      +emailTxt
+      // BARIS WAKTU sendiri, jelas, tidak ketutupan
+      +'<div style="display:flex;align-items:center;flex-wrap:wrap;margin-bottom:3px">'
+      +'<span style="font-family:var(--mono);font-size:15px;font-weight:800;color:var(--text);letter-spacing:.04em">🕐 '+jam+'</span>'
+      +tglKecil
       +'</div>'
+      +'<div style="margin-bottom:2px">'+peranLabel+'</div>'
       +'<div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.35">'+escH(r.aksi||'')+'</div>'
+      +emailTxt
       +detailHtml
       +devHtml
       +langHtml
