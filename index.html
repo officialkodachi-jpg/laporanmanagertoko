@@ -303,6 +303,8 @@ body.role-admin .admin-only{display:inline-flex}
 .stok-stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
 .stok-stat{border-radius:var(--r);padding:14px 8px;text-align:center;border:1px solid var(--border)}
 .stok-stat.red{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.25)}
+.stok-stat.minus{background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.3)}
+.stok-stat.minus .stok-stat-val{color:#7c3aed}
 .stok-stat.yellow{background:rgba(217,119,6,.07);border-color:rgba(217,119,6,.25)}
 .stok-stat.blue{background:rgba(37,99,235,.07);border-color:rgba(37,99,235,.25)}
 .stok-stat-val{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1}
@@ -320,6 +322,7 @@ body.role-admin .admin-only{display:inline-flex}
 .stok-group-hdr .gh-count{font-family:var(--mono);font-size:11px;padding:2px 9px;border-radius:20px}
 .stok-item{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;border-left-width:4px}
 .stok-item.red{border-left-color:var(--red)}.stok-item.yellow{border-left-color:var(--orange)}.stok-item.blue{border-left-color:var(--blue)}
+.stok-item.minus{border-left-color:#7c3aed;background:rgba(124,58,237,.05)}
 .stok-item-body{flex:1;min-width:0}.stok-item-name{font-size:13px;font-weight:600;line-height:1.35}
 .stok-item-sub{font-size:11px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
 .stok-size-pill{flex-shrink:0;min-width:46px;text-align:center;font-family:var(--mono);font-size:15px;font-weight:600;padding:8px 6px;border-radius:10px;background:var(--surface)}
@@ -765,17 +768,20 @@ body.role-admin #admin-mgrlog{display:none!important}
       </div>
       <div class="stok-updated" id="stok-updated">Belum dimuat</div>
       <div class="stok-stats-row">
+        <div class="stok-stat minus"><div class="stok-stat-val" id="stok-c-minus">0</div><div class="stok-stat-label">Minus<br>(negatif)</div></div>
         <div class="stok-stat red"><div class="stok-stat-val" id="stok-c-red">0</div><div class="stok-stat-label">Merah<br>(toko kosong)</div></div>
         <div class="stok-stat yellow"><div class="stok-stat-val" id="stok-c-yellow">0</div><div class="stok-stat-label">Kuning<br>(sisa 1)</div></div>
         <div class="stok-stat blue"><div class="stok-stat-val" id="stok-c-blue">0</div><div class="stok-stat-label">Biru<br>(menipis)</div></div>
       </div>
       <div class="stok-legend">
+        <div><span class="lg-dot" style="background:#7c3aed"></span><b>Minus</b> — stok toko atau gudang negatif · <b>⚠️ kemungkinan selisih/salah input, segera cek</b></div>
         <div><span class="lg-dot" style="background:var(--red)"></span><b>Merah</b> — stok toko 0, gudang > 0 · <b>🕐 dicatat kapan mulai kosong</b></div>
         <div><span class="lg-dot" style="background:var(--orange)"></span><b>Kuning</b> — stok toko 1, gudang > 1</div>
         <div><span class="lg-dot" style="background:var(--blue)"></span><b>Biru</b> — stok toko &lt; 3, gudang > 3</div>
       </div>
       <div class="stok-filter-row" id="stok-filter-row">
         <button class="stok-chip active" onclick="setStokFilter('all',this)">Semua</button>
+        <button class="stok-chip" onclick="setStokFilter('minus',this)">🟣 Minus</button>
         <button class="stok-chip" onclick="setStokFilter('red',this)">🔴 Merah</button>
         <button class="stok-chip" onclick="setStokFilter('yellow',this)">🟡 Kuning</button>
         <button class="stok-chip" onclick="setStokFilter('blue',this)">🔵 Biru</button>
@@ -1222,7 +1228,7 @@ let scriptUrl=localStorage.getItem('mtg_url')||DEFAULT_URL;
 // Koreksi otomatis kalau localStorage menyimpan URL lama yang rusak
 if(scriptUrl.indexOf('xFQgBZjQgFE_')>=0 || !scriptUrl.startsWith('http')){scriptUrl=DEFAULT_URL;localStorage.setItem('mtg_url',DEFAULT_URL);}
 let selectedEvent=null,selectedStatus=null;
-let stokData={red:[],yellow:[],blue:[]},stokFilter='all';
+let stokData={minus:[],red:[],yellow:[],blue:[]},stokFilter='all';
 let stokLoadedOnce=false,_stokAudioCtx=null,_stokRefreshTimer=null;
 // Alarm: default ON setiap sesi (session-scoped), tidak tersimpan ke localStorage
 let alarmMuted=false; // hanya berlaku sampai refresh
@@ -1282,7 +1288,7 @@ function startAlarm(){
   if(_alarmInterval)return;
   _playAlarmSound(3);
   _alarmInterval=setInterval(()=>{
-    if(!alarmMuted&&stokData.red.length>0)_playAlarmSound(2);
+    if(!alarmMuted&&(stokData.red.length>0||(stokData.minus&&stokData.minus.length>0)))_playAlarmSound(2);
   },8000);
 }
 function stopAlarm(){
@@ -1344,15 +1350,17 @@ function muteShiftAlarm(){
   showToast('🔕 Alarm shift dibisukan untuk sesi ini. Refresh = bunyi lagi.','');
 }
 function triggerAlarmIfNeeded(){
-  if(stokData.red.length>0&&!alarmMuted){
+  var nMinus=(stokData.minus?stokData.minus.length:0);
+  var nAlert=stokData.red.length+nMinus;
+  if(nAlert>0&&!alarmMuted){
     var banner=document.getElementById('alarm-banner');
     if(banner)banner.classList.add('show');
     var cnt=document.getElementById('alarm-banner-count');
-    if(cnt)cnt.textContent=stokData.red.length+' ';
+    if(cnt)cnt.textContent=nAlert+' ';
     var sb=document.getElementById('stok-sound-btn');
     if(sb){sb.className='stok-sound-btn ringing';sb.textContent='🔔 ALARM — Tap Mute';}
     startAlarm();
-  }else if(stokData.red.length===0){
+  }else if(nAlert===0){
     var banner=document.getElementById('alarm-banner');
     if(banner)banner.classList.remove('show');
     var sb=document.getElementById('stok-sound-btn');
@@ -1834,8 +1842,8 @@ async function loadStok(silent){
   if(!silent){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Memuat...';list.innerHTML='<div class="empty"><span class="spinner"></span> Memeriksa stok...</div>';}
   try{
     var r=await fetch(scriptUrl+'?type=stok'),d=await r.json();
-    if(d&&(d.red||d.yellow||d.blue)){
-      stokData={red:d.red||[],yellow:d.yellow||[],blue:d.blue||[]};
+    if(d&&(d.minus||d.red||d.yellow||d.blue)){
+      stokData={minus:d.minus||[],red:d.red||[],yellow:d.yellow||[],blue:d.blue||[]};
       stokLoadedOnce=true;
       // Catat empty-since untuk item merah, bersihkan yang sudah tidak merah
       recordEmptySince(stokData.red);
@@ -1854,12 +1862,14 @@ async function loadStok(silent){
 
 function renderStokList(){
   var list=document.getElementById('stok-list');
+  var mEl=document.getElementById('stok-c-minus');if(mEl)mEl.textContent=(stokData.minus?stokData.minus.length:0);
   document.getElementById('stok-c-red').textContent=stokData.red.length;
   document.getElementById('stok-c-yellow').textContent=stokData.yellow.length;
   document.getElementById('stok-c-blue').textContent=stokData.blue.length;
-  var tot=stokData.red.length+stokData.yellow.length+stokData.blue.length;
+  var tot=(stokData.minus?stokData.minus.length:0)+stokData.red.length+stokData.yellow.length+stokData.blue.length;
   if(!tot){list.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-text"><b>Semua stok aman</b><br>Tidak ada item yang perlu perhatian</div></div>';return;}
   var gs=[
+    {key:'minus',label:'🟣 MINUS — Stok negatif, cek selisih/input!',color:'#7c3aed',bg:'rgba(124,58,237,.12)'},
     {key:'red',label:'🔴 MERAH — Kosong di toko, gudang ada',color:'var(--red)',bg:'rgba(220,38,38,.12)'},
     {key:'yellow',label:'🟡 KUNING — Sisa 1',color:'var(--orange)',bg:'rgba(217,119,6,.12)'},
     {key:'blue',label:'🔵 BIRU — Menipis',color:'var(--blue)',bg:'rgba(37,99,235,.12)'}
@@ -1872,6 +1882,9 @@ function renderStokList(){
     html+='<div class="stok-group-hdr"><span class="gh-label" style="color:'+g.color+'">'+g.label+'</span><span class="gh-line"></span><span class="gh-count" style="background:'+g.bg+';color:'+g.color+'">'+items.length+'</span></div>';
     items.forEach(it=>{
       var emptySinceHtml=(g.key==='red')?emptySinceBadgeHTML(it.nama,it.size):'';
+      var tk=(it.toko||0), gd=(it.gudang||0);
+      var tkHtml=(tk<0)?'<span class="q-toko" style="color:var(--red);font-weight:800">'+tk+'</span>':'<span class="q-toko">'+tk+'</span>';
+      var gdHtml=(gd<0)?'<span class="q-gud" style="color:var(--red);font-weight:800">'+gd+'</span>':'<span class="q-gud">'+gd+'</span>';
       html+='<div class="stok-item '+g.key+'">'
         +'<div class="stok-size-pill">'+(it.size||'-')+'</div>'
         +'<div class="stok-item-body">'
@@ -1879,7 +1892,7 @@ function renderStokList(){
         +'<div class="stok-item-sub">Ukuran '+(it.size||'-')+'</div>'
         +emptySinceHtml
         +'</div>'
-        +'<div class="stok-qty"><div>Toko: <span class="q-toko">'+(it.toko||0)+'</span></div><div>Gudang: <span class="q-gud">'+(it.gudang||0)+'</span></div></div>'
+        +'<div class="stok-qty"><div>Toko: '+tkHtml+'</div><div>Gudang: '+gdHtml+'</div></div>'
         +'</div>';
     });
   });
@@ -3520,7 +3533,7 @@ var _toastTimer;function showToast(msg,type){var t=document.getElementById('toas
 // ════ GOOGLE SIGN-IN & ROLE ════
 const GOOGLE_CLIENT_ID='1077904025393-sopu3mb62k66u3acngco0ppg4huvbbbm.apps.googleusercontent.com';
 // Daftar email yang diizinkan (huruf kecil semua)
-const EMAIL_MANAGER=['fahdryifih@gmail.com','akwalsadida@gmail.com'];
+const EMAIL_MANAGER=['fahdryifih@gmail.com','akwalsadida@gmail.com','kusumaharani12@gmail.com'];
 const EMAIL_ADMIN  =['officialkodachi@gmail.com'];
 
 const SESSION_MAX_MS = 8*60*60*1000;   // sesi login berlaku 8 jam, lalu wajib login lagi
