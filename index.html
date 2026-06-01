@@ -1231,7 +1231,7 @@ const EVENTS=[
 ];
 const BULAN_NAMES=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const DAY_SHORT=['Min','Sen','Sel','Rab','Kam','Jum','Sab'],DAY_FULL=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-const TOKO={lat:-7.761695,lng:110.369454,radius:400},TARGET_MENIT=240;
+const TOKO={lat:-7.761684,lng:110.369448,radius:120},TARGET_MENIT=240;
 const DEFAULT_URL='https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBEBZjQgFE_/exec';
 const SHEET_URL='https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=0#gid=0';
 const GUDANG_SHEET_URL='https://docs.google.com/spreadsheets/d/13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk/edit';
@@ -1255,6 +1255,16 @@ let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locati
 var ACC_MAX = 150;                 // akurasi lebih buruk dari ini (meter) tidak dipakai ubah status
 var LEAVE_GRACE_MS = 3*60*1000;    // harus terbaca di luar selama ini baru dianggap keluar
 var _outSince = null;              // kapan pertama kali terbaca di luar toko
+// WiFi toko (tambahan, GPS tetap utama): kalau IP publik HP = IP toko, anggap hadir
+var IP_TOKO = ['']; // <-- isi IP publik toko di sini, mis: ['114.122.10.5']. Boleh lebih dari satu.
+var _diWifiToko = false;           // hasil cek terakhir: apakah HP sedang di WiFi toko
+function cekWifiToko(){
+  if(userRole!=='manager') return;
+  if(!IP_TOKO.length || !IP_TOKO[0]) return; // belum diisi → lewati
+  fetch('https://api.ipify.org?format=json').then(function(r){return r.json();}).then(function(d){
+    _diWifiToko = IP_TOKO.indexOf(String(d.ip||'').trim()) >= 0;
+  }).catch(function(){ _diWifiToko=false; });
+}
 var _adminLocTimer=null,_mgrPushTimer=null;
 let _timerInterval=null,_retryTimer=null,_retryCount=0,_gpsStarted=false;
 
@@ -1538,16 +1548,23 @@ function onLocOk(pos){
   // LAPIS 1: akurasi buruk (mis. di dalam toko, GPS buta) → JANGAN ubah status.
   // Timer tetap jalan kalau sedang di toko, supaya jam kerja tidak salah berhenti.
   if(accuracy > ACC_MAX){
-    if(isAtStore){saveLocData();updateLocBanner('in');}
+    // ...kecuali WiFi toko terdeteksi → anggap hadir walau GPS buta
+    if(_diWifiToko && !isAtStore){
+      isAtStore=true;sessionStart=Date.now();
+      locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist:dist,cara:'wifi'});
+      saveLocData();updateLocBanner('in');logActivity('Tiba di toko','via WiFi toko');pushManagerLoc();
+    } else if(isAtStore){saveLocData();updateLocBanner('in');}
     else updateLocBanner('out');
     var dd=document.getElementById('loc-detail');
-    if(dd&&userRole==='manager') dd.textContent='Sinyal GPS lemah (±'+Math.round(accuracy)+'m) — posisi diabaikan sementara';
+    if(dd&&userRole==='manager') dd.textContent = _diWifiToko
+      ? 'Terhubung WiFi toko — dihitung hadir'
+      : 'Sinyal GPS lemah (±'+Math.round(accuracy)+'m) — posisi diabaikan sementara';
     updateD01Card();
     return;
   }
 
-  // LAPIS 2: jarak efektif — toleransi sebesar akurasi (lingkaran akurasi menyentuh toko = dianggap di dalam)
-  var inS = (dist - accuracy) <= TOKO.radius;
+  // LAPIS 2: jarak efektif — toleransi sebesar akurasi. WiFi toko = otomatis dianggap di dalam.
+  var inS = _diWifiToko || ((dist - accuracy) <= TOKO.radius);
 
   if(inS&&!isAtStore){
     _outSince=null;
@@ -3983,6 +4000,7 @@ function applyRole(){
     if(badge){badge.style.display='';badge.className='role-badge manager';badge.textContent='👔 MANAGER';}
     if(lo)lo.style.display='';
     loadLocData();updateTimerDisplay();startGps();
+    cekWifiToko();setInterval(cekWifiToko,60000);
     _mgrPushTimer=setInterval(pushManagerLoc,60000);
     startAutoPush();
     var amg2=document.getElementById('admin-mgrlog');if(amg2)amg2.style.display='none';
