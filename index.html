@@ -3050,7 +3050,12 @@ function loadPartimer(){
   row.innerHTML='<div class="empty" style="padding:10px"><span class="spinner"></span> Memuat nama...</div>';
   fetch(scriptUrl+'?type=partimer&_='+Date.now())
     .then(function(r){return r.json();})
-    .then(function(d){pgNames=(d&&d.nama)?d.nama:[];_pgLoadedOnce=true;pgRenderTabs();pgUpdateMainBadge();})
+    .then(function(d){pgNames=(d&&d.nama)?d.nama:[];
+      // Nama tetap khusus admin — selalu muncul walau tidak ada di jadwal shift.
+      // Ganti ejaan nama di sini kalau perlu:
+      var NAMA_TETAP_ADMIN=['Rifyh'];
+      if(userRole==='admin'){NAMA_TETAP_ADMIN.forEach(function(nm){if(pgNames.indexOf(nm)<0)pgNames.unshift(nm);});}
+      _pgLoadedOnce=true;pgRenderTabs();pgUpdateMainBadge();})
     .catch(function(){row.innerHTML='<div class="empty"><div class="empty-text">Gagal memuat nama partimer</div></div>';});
 }
 function pgRenderTabs(){
