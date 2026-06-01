@@ -3248,7 +3248,13 @@ function loadPartimer(){
       // Nama tetap khusus admin — selalu muncul walau tidak ada di jadwal shift.
       // Ganti ejaan nama di sini kalau perlu:
       var NAMA_TETAP_ADMIN=['Rifyh'];
-      if(userRole==='admin'){NAMA_TETAP_ADMIN.forEach(function(nm){if(pgNames.indexOf(nm)<0)pgNames.unshift(nm);});}
+      if(userRole==='admin'){
+        NAMA_TETAP_ADMIN.forEach(function(nm){if(pgNames.indexOf(nm)<0)pgNames.unshift(nm);});
+      }else{
+        // Sembunyikan nama khusus admin dari manager (cocokkan tanpa peduli huruf besar/kecil)
+        var _hide=NAMA_TETAP_ADMIN.map(function(n){return String(n).toLowerCase();});
+        pgNames=pgNames.filter(function(n){return _hide.indexOf(String(n).toLowerCase())<0;});
+      }
       _pgLoadedOnce=true;pgRenderTabs();pgUpdateMainBadge();})
     .catch(function(){row.innerHTML='<div class="empty"><div class="empty-text">Gagal memuat nama partimer</div></div>';});
 }
