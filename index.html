@@ -3242,7 +3242,7 @@ function loadPartimer(){
   if(!scriptUrl)return;
   var row=document.getElementById('pegawai-tabrow');
   row.innerHTML='<div class="empty" style="padding:10px"><span class="spinner"></span> Memuat nama...</div>';
-  fetch(scriptUrl+'?type=partimer&_='+Date.now())
+  fetch(scriptUrl+'?type=partimer&email='+encodeURIComponent(userEmail||'')+'&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){pgNames=(d&&d.nama)?d.nama:[];
       // Nama tetap khusus admin — selalu muncul walau tidak ada di jadwal shift.
@@ -3268,7 +3268,7 @@ pgSelect(pgNames[0],document.getElementById('pgtab-0'));
   // prefetch badge semua partimer lain di background
   pgNames.forEach(function(nama,i){
     if(i===0) return; // partimer pertama sudah diload oleh pgSelect
-    fetch(scriptUrl+'?type=pegawai&nama='+encodeURIComponent(nama)+'&_='+Date.now())
+    fetch(scriptUrl+'?type=pegawai&nama='+encodeURIComponent(nama)+'&email='+encodeURIComponent(userEmail||'')+'&_='+Date.now())
       .then(function(r){return r.json();})
       .then(function(d){
         var belum=(d.rows||[]).filter(function(r){return (r.status||'').indexOf('Belum')>=0;}).length;
@@ -3348,7 +3348,7 @@ function pgLoadCatatan(){
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   var list=document.getElementById('pg-list');if(!list)return;
   list.innerHTML='<div class="empty"><span class="spinner"></span> Memuat...</div>';
-  fetch(url+'?type=pegawai&nama='+encodeURIComponent(pgActive)+'&_='+Date.now())
+  fetch(url+'?type=pegawai&nama='+encodeURIComponent(pgActive)+'&email='+encodeURIComponent(userEmail||'')+'&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){pgData=(d&&d.rows)?d.rows:[];pgRenderList();})
     .catch(function(){list.innerHTML='<div class="empty"><div class="empty-text">Gagal memuat</div></div>';});
@@ -3484,7 +3484,7 @@ function pgUpdateMainBadge(){
   if(!pgNames.length||!scriptUrl) return;
   var total=0,done=0;
   pgNames.forEach(function(nama){
-    fetch(scriptUrl+'?type=pegawai&nama='+encodeURIComponent(nama)+'&_='+Date.now())
+    fetch(scriptUrl+'?type=pegawai&nama='+encodeURIComponent(nama)+'&email='+encodeURIComponent(userEmail||'')+'&_='+Date.now())
       .then(function(r){return r.json();})
       .then(function(d){
         (d.rows||[]).forEach(function(r){if((r.status||'').indexOf('Belum')>=0)total++;});
