@@ -1251,7 +1251,7 @@ let alarmMuted=false; // hanya berlaku sampai refresh
 let _alarmInterval=null;
 let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locationLog=[],lastPos=null;
 // Anti GPS-ngaco: abaikan fix berakurasi buruk, beri toleransi & grace period saat keluar
-var ACC_MAX = 150;                 // akurasi lebih buruk dari ini (meter) tidak dipakai ubah status
+var ACC_MAX = 250;                 // akurasi lebih buruk dari ini (meter) tidak dipakai ubah status
 var LEAVE_GRACE_MS = 3*60*1000;    // harus terbaca di luar selama ini baru dianggap keluar
 var _outSince = null;              // kapan pertama kali terbaca di luar toko
 var _adminLocTimer=null,_mgrPushTimer=null;
