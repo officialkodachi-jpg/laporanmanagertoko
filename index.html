@@ -1250,6 +1250,10 @@ let stokLoadedOnce=false,_stokAudioCtx=null,_stokRefreshTimer=null;
 let alarmMuted=false; // hanya berlaku sampai refresh
 let _alarmInterval=null;
 let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locationLog=[],lastPos=null;
+// Anti GPS-ngaco: abaikan fix berakurasi buruk, beri toleransi & grace period saat keluar
+var ACC_MAX = 150;                 // akurasi lebih buruk dari ini (meter) tidak dipakai ubah status
+var LEAVE_GRACE_MS = 3*60*1000;    // harus terbaca di luar selama ini baru dianggap keluar
+var _outSince = null;              // kapan pertama kali terbaca di luar toko
 var _adminLocTimer=null,_mgrPushTimer=null;
 let _timerInterval=null,_retryTimer=null,_retryCount=0,_gpsStarted=false;
 
@@ -1525,24 +1529,47 @@ function onLocOk(pos){
   _gpsWarmupDone = true;
 
   lastPos={lat,lng,accuracy};
-  var dist=Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng)), inS=dist<=TOKO.radius;
+  var dist=Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng));
   document.getElementById('loc-distance').textContent=dist+'m';
   document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';
   document.getElementById('loc-retry-btn').classList.remove('show');
 
+  // LAPIS 1: akurasi buruk (mis. di dalam toko, GPS buta) → JANGAN ubah status.
+  // Timer tetap jalan kalau sedang di toko, supaya jam kerja tidak salah berhenti.
+  if(accuracy > ACC_MAX){
+    if(isAtStore){saveLocData();updateLocBanner('in');}
+    else updateLocBanner('out');
+    var dd=document.getElementById('loc-detail');
+    if(dd&&userRole==='manager') dd.textContent='Sinyal GPS lemah (±'+Math.round(accuracy)+'m) — posisi diabaikan sementara';
+    updateD01Card();
+    return;
+  }
+
+  // LAPIS 2: jarak efektif — toleransi sebesar akurasi (lingkaran akurasi menyentuh toko = dianggap di dalam)
+  var inS = (dist - accuracy) <= TOKO.radius;
+
   if(inS&&!isAtStore){
+    _outSince=null;
     isAtStore=true;sessionStart=Date.now();
     locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});
     saveLocData();updateLocBanner('in');
     showToast('✓ Kamu tiba di Kodachi Shop!','ok');
     logActivity('Tiba di toko','Jarak '+dist+'m');pushManagerLoc();
   }else if(!inS&&isAtStore){
-    isAtStore=false;
-    if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}
-    locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist});
-    saveLocData();updateLocBanner('out');
-    logActivity('Keluar toko','Jarak '+dist+'m');pushManagerLoc();
+    // LAPIS 3: jangan langsung keluar — tunggu terbaca di luar selama grace period
+    if(_outSince===null) _outSince=Date.now();
+    if(Date.now()-_outSince >= LEAVE_GRACE_MS){
+      isAtStore=false;_outSince=null;
+      if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}
+      locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist});
+      saveLocData();updateLocBanner('out');
+      logActivity('Keluar toko','Jarak '+dist+'m');pushManagerLoc();
+    }else{
+      // masih dalam masa tenggang → tetap dianggap di toko, timer lanjut
+      saveLocData();updateLocBanner('in');
+    }
   }else{
+    _outSince=null;
     if(isAtStore)saveLocData();
     updateLocBanner(isAtStore?'in':'out');
   }
