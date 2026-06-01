@@ -10,6 +10,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Kodachi Mgr">
 <link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='30' fill='%232563eb'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='110' font-family='sans-serif'%3E%F0%9F%8F%AA%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -537,6 +539,20 @@ body.role-admin #admin-mgrlog{display:none!important}
   </div>
   <div class="loc-timer" id="loc-timer">0:00</div>
 </div></div>
+
+<div id="mgr-map-card" style="display:none;max-width:680px;margin:0 auto 14px;padding:0 20px">
+  <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
+    <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
+      <span style="font-size:18px">🗺️</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:800;color:var(--text)">Posisi Manager di peta</div>
+        <div style="font-size:10px;color:var(--hint)">Relatif terhadap toko · untuk cek akurasi GPS</div>
+      </div>
+    </div>
+    <div id="mgr-map" style="width:100%;height:220px;background:#e5e7eb"></div>
+    <div id="mgr-map-coords" style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:9px 14px;line-height:1.5">—</div>
+  </div>
+</div>
 
 <div id="notif-stack" style="max-width:680px;margin:0 auto;padding:0 20px"></div>
 
@@ -1461,6 +1477,7 @@ var GPS_OPTS_FALLBACK = {enableHighAccuracy:true, maximumAge: _isIOS ? 10000 : 5
 var GPS_POLL_MS       = _isIOS ? 20000 : 15000; // iOS throttles lebih agresif, pakai 20 detik
 
 function startGps(){
+  if(userRole==='admin')return;   // admin TIDAK di-track oleh aplikasi ini
   if(!('geolocation' in navigator)){updateLocBanner('unsupported');return;}
   if(_gpsStarted)return;
   _gpsStarted=true;
@@ -1615,7 +1632,7 @@ function pushManagerLoc(silent){
   var t=getCurrentTotalMinutes();
   var payload={type:'loc',tanggal:todayValue,lat:lastPos.lat,lng:lastPos.lng,accuracy:Math.round(lastPos.accuracy||0),
     dist:Math.round(haversine(lastPos.lat,lastPos.lng,TOKO.lat,TOKO.lng)),inStore:isAtStore?1:0,
-    menit:Math.round(t),waktu:Date.now()};
+    menit:Math.round(t),waktu:Date.now(),email:userEmail};
   try{
     fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
     if(!silent) updatePushStatusBadge('ok');
@@ -1681,6 +1698,7 @@ function loadManagerLoc(manual){
     .finally(()=>{if(manual&&btn){btn.classList.remove('loading');}});
 }
 function renderManagerLoc(d){
+  try{updateMgrMap(d);}catch(e){}
   var i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),
       det=document.getElementById('loc-detail'),tm=document.getElementById('loc-timer');
   if(!d||(!d.lat&&!d.menit&&d.inStore===undefined)){
@@ -1701,6 +1719,34 @@ function renderManagerLoc(d){
   tm.className='loc-timer'+(p>=100?' done':p>=50?' warn':'');
   var f=document.getElementById('time-bar-fill');if(f){f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');}
   document.getElementById('time-bar-left').textContent=h+' jam '+m+' menit (Manager)';
+}
+// ── ADMIN: peta posisi manager relatif terhadap toko ──
+var _mgrMap=null,_mgrManagerMarker=null,_mgrAccCircle=null,_mgrLink=null;
+function initMgrMap(){
+  if(_mgrMap||typeof L==='undefined')return;
+  var el=document.getElementById('mgr-map');if(!el)return;
+  _mgrMap=L.map('mgr-map',{zoomControl:true,attributionControl:false}).setView([TOKO.lat,TOKO.lng],16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(_mgrMap);
+  L.circleMarker([TOKO.lat,TOKO.lng],{radius:8,color:'#fff',weight:2,fillColor:'#16a34a',fillOpacity:1}).addTo(_mgrMap).bindTooltip('Toko');
+  L.circle([TOKO.lat,TOKO.lng],{radius:TOKO.radius,color:'#16a34a',weight:1,fillOpacity:.06,dashArray:'4 4'}).addTo(_mgrMap);
+  setTimeout(function(){if(_mgrMap)_mgrMap.invalidateSize();},200);
+}
+function updateMgrMap(d){
+  if(typeof L==='undefined')return;
+  initMgrMap();
+  if(!_mgrMap)return;
+  setTimeout(function(){if(_mgrMap)_mgrMap.invalidateSize();},50);
+  var raw=document.getElementById('mgr-map-coords');
+  if(!d||!d.lat||!d.lng){if(raw)raw.textContent='Belum ada posisi manager hari ini';return;}
+  var lat=Number(d.lat),lng=Number(d.lng),acc=Number(d.accuracy)||0;
+  if(_mgrManagerMarker)_mgrMap.removeLayer(_mgrManagerMarker);
+  if(_mgrAccCircle)_mgrMap.removeLayer(_mgrAccCircle);
+  if(_mgrLink)_mgrMap.removeLayer(_mgrLink);
+  _mgrManagerMarker=L.circleMarker([lat,lng],{radius:8,color:'#fff',weight:2,fillColor:'#d97706',fillOpacity:1}).addTo(_mgrMap).bindTooltip('Manager');
+  if(acc>0)_mgrAccCircle=L.circle([lat,lng],{radius:acc,color:'#d97706',weight:1,fillOpacity:.1}).addTo(_mgrMap);
+  _mgrLink=L.polyline([[TOKO.lat,TOKO.lng],[lat,lng]],{color:'#d97706',weight:2,dashArray:'6 5',opacity:.7}).addTo(_mgrMap);
+  try{_mgrMap.fitBounds(L.latLngBounds([[TOKO.lat,TOKO.lng],[lat,lng]]).pad(.4));}catch(e){}
+  if(raw)raw.innerHTML='<b>'+lat.toFixed(5)+', '+lng.toFixed(5)+'</b> · akurasi \u00b1'+Math.round(acc)+'m · jarak '+(d.dist!=null?d.dist:'?')+'m dari toko';
 }
 function updateLocBanner(s){const i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),d=document.getElementById('loc-detail');if(s==='in'){i.textContent='🟢';i.className='loc-icon active';st.textContent='✓ Di dalam toko';st.className='loc-status in';d.textContent='Kodachi Shop Monjali · GPS aktif';}else if(s==='out'){i.textContent='📍';i.className='loc-icon inactive';st.textContent='✗ Di luar toko';st.className='loc-status out';d.textContent='Jarak: '+(document.getElementById('loc-distance').textContent||'?')+'m dari toko';}else if(s==='waiting'){i.textContent='🔄';i.className='loc-icon';st.textContent='Mencari sinyal GPS...';st.className='loc-status waiting';d.textContent='Mohon tunggu...';}else if(s==='denied'){i.textContent='🔒';i.className='loc-icon inactive';st.textContent='Izin lokasi ditolak';st.className='loc-status out';d.textContent='Buka pengaturan browser → izinkan lokasi';}else{i.textContent='❌';i.className='loc-icon inactive';st.textContent='GPS tidak didukung';st.className='loc-status out';d.textContent='Browser tidak mendukung geolocation';}}
 function getCurrentTotalMinutes(){let t=totalMinutesToday;if(isAtStore&&sessionStart)t+=(Date.now()-sessionStart)/60000;return t;}
@@ -3887,6 +3933,8 @@ function applyRole(){
     if(lo)lo.style.display='';
     stopGpsTracking();
     var ar=document.getElementById('admin-loc-refresh');if(ar)ar.style.display='block';
+    var mc=document.getElementById('mgr-map-card');if(mc)mc.style.display='block';
+    setTimeout(initMgrMap,300);
     var amg=document.getElementById('admin-mgrlog');if(amg)amg.style.display='block';
     loadManagerLoc();
     _adminLocTimer=setInterval(loadManagerLoc,60000);
