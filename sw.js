@@ -1,7 +1,8 @@
 // Service Worker — Kodachi Shop Manager PWA
-const CACHE_NAME = 'kodachi-mgr-v1';
+// Ganti versi ini setiap upload file baru ke GitHub → PWA otomatis update
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = 'kodachi-mgr-' + CACHE_VERSION;
 
-// File yang di-cache saat install (app shell)
 const SHELL_ASSETS = [
   './index.html',
   './manifest.json',
@@ -10,13 +11,14 @@ const SHELL_ASSETS = [
 
 // ── Install: cache app shell ──────────────────────────────────
 self.addEventListener('install', event => {
+  // JANGAN skipWaiting dulu — tunggu user konfirmasi update
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      // Cache satu per satu agar font gagal tidak batalkan semua
       return Promise.allSettled(
         SHELL_ASSETS.map(url => cache.add(url).catch(() => {}))
       );
-    }).then(() => self.skipWaiting())
+    })
+    // skipWaiting dipanggil manual setelah user tap "Update"
   );
 });
 
@@ -29,6 +31,13 @@ self.addEventListener('activate', event => {
       )
     ).then(() => self.clients.claim())
   );
+});
+
+// ── Message: terima perintah dari halaman ─────────────────────
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // ── Fetch: Network-first untuk API GAS, Cache-first untuk aset ─
