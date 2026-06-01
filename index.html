@@ -1603,15 +1603,64 @@ window.addEventListener('pageshow', function(e){
 function stopGpsTracking(){_gpsStarted=true;if(geoWatchId!==null){try{navigator.geolocation.clearWatch(geoWatchId);}catch(e){}geoWatchId=null;}if(_timerInterval){clearInterval(_timerInterval);_timerInterval=null;}}
 
 // ── MANAGER: kirim posisi terakhir ke server (agar admin bisa lihat) ──
-function pushManagerLoc(){
+var _autoPushInterval = null;
+var _lastPushTime = 0;
+var AUTO_PUSH_MS = 2 * 60 * 1000; // 2 menit
+
+function pushManagerLoc(silent){
   if(userRole!=='manager')return;
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   if(!lastPos)return;
+  _lastPushTime = Date.now();
   var t=getCurrentTotalMinutes();
   var payload={type:'loc',tanggal:todayValue,lat:lastPos.lat,lng:lastPos.lng,accuracy:Math.round(lastPos.accuracy||0),
     dist:Math.round(haversine(lastPos.lat,lastPos.lng,TOKO.lat,TOKO.lng)),inStore:isAtStore?1:0,
     menit:Math.round(t),waktu:Date.now()};
-  try{fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});}catch(e){}
+  try{
+    fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+    if(!silent) updatePushStatusBadge('ok');
+  }catch(e){ if(!silent) updatePushStatusBadge('err'); }
+}
+
+// Badge kecil di loc-detail untuk tunjukkan kapan terakhir sync
+function updatePushStatusBadge(status){
+  var d = document.getElementById('loc-detail');
+  if(!d || userRole!=='manager') return;
+  var now = new Date();
+  var jam = now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  var base = isAtStore ? 'Kodachi Shop Monjali · GPS aktif' : 'Jarak: '+(document.getElementById('loc-distance').textContent||'?')+'m dari toko';
+  if(status==='ok') d.textContent = base + ' · sync ' + jam;
+  else if(status==='err') d.textContent = base + ' · ⚠ gagal sync';
+}
+
+// Auto-push tiap 2 menit selama app aktif & ada posisi
+function startAutoPush(){
+  if(_autoPushInterval) clearInterval(_autoPushInterval);
+  _autoPushInterval = setInterval(function(){
+    if(document.visibilityState !== 'visible') return;
+    if(!lastPos) return;
+    if(Date.now() - _lastPushTime < 90000) return; // skip kalau baru push <90 detik lalu
+    pushManagerLoc(true);
+  }, AUTO_PUSH_MS);
+}
+
+// Saat kembali foreground, langsung push posisi terbaru
+function pushOnResume(){
+  if(document.visibilityState === 'visible' && userRole === 'manager' && lastPos){
+    setTimeout(function(){ pushManagerLoc(true); }, 2000);
+  }
+}
+document.addEventListener('visibilitychange', pushOnResume);
+
+// Auto-refresh posisi manager di sisi admin tiap 2 menit
+var _adminRefreshInterval = null;
+function startAdminAutoRefresh(){
+  if(userRole !== 'admin') return;
+  if(_adminRefreshInterval) clearInterval(_adminRefreshInterval);
+  _adminRefreshInterval = setInterval(function(){
+    if(document.visibilityState !== 'visible') return;
+    loadManagerLoc(false);
+  }, AUTO_PUSH_MS);
 }
 
 // ── ADMIN: ambil posisi manager dari server ──
@@ -3835,6 +3884,7 @@ function applyRole(){
     var amg=document.getElementById('admin-mgrlog');if(amg)amg.style.display='block';
     loadManagerLoc();
     _adminLocTimer=setInterval(loadManagerLoc,60000);
+    startAdminAutoRefresh();
     loadAdminNote();
     if(_adminNoteTimer)clearInterval(_adminNoteTimer);
     _adminNoteTimer=setInterval(loadAdminNote,60000);
@@ -3849,6 +3899,7 @@ function applyRole(){
     if(lo)lo.style.display='';
     loadLocData();updateTimerDisplay();startGps();
     _mgrPushTimer=setInterval(pushManagerLoc,60000);
+    startAutoPush();
     var amg2=document.getElementById('admin-mgrlog');if(amg2)amg2.style.display='none';
     loadManagerNote();
     if(_mgrNoteTimer)clearInterval(_mgrNoteTimer);
