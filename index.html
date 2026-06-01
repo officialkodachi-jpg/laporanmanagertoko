@@ -1214,7 +1214,7 @@ const EVENTS=[
 ];
 const BULAN_NAMES=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const DAY_SHORT=['Min','Sen','Sel','Rab','Kam','Jum','Sab'],DAY_FULL=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-const TOKO={lat:-7.7448,lng:110.3716,radius:200},TARGET_MENIT=240;
+const TOKO={lat:-7.7448,lng:110.3716,radius:400},TARGET_MENIT=240;
 const DEFAULT_URL='https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBEBZjQgFE_/exec';
 const SHEET_URL='https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=0#gid=0';
 const GUDANG_SHEET_URL='https://docs.google.com/spreadsheets/d/13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk/edit';
@@ -1449,23 +1449,155 @@ function saveLocData(){localStorage.setItem('loc_'+TODAY_KEY(),JSON.stringify({t
 function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_KEY())||'null');if(!d)return;totalMinutesToday=d.totalMinutes||0;sessionStart=d.sessionStart||null;locationLog=d.log||[];if(sessionStart){isAtStore=true;}}catch(e){}}
 function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 
-// ════ GPS ════
-function startGps(){if(!('geolocation' in navigator)){updateLocBanner('unsupported');return;}if(_gpsStarted)return;_gpsStarted=true;updateLocBanner('waiting');geoWatchId=navigator.geolocation.watchPosition(onLocOk,onLocErr,{enableHighAccuracy:true,maximumAge:0,timeout:30000});navigator.geolocation.getCurrentPosition(onLocOk,onLocErr,{enableHighAccuracy:true,maximumAge:0,timeout:30000});setInterval(()=>navigator.geolocation.getCurrentPosition(onLocOk,()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:20000}),15000);_timerInterval=setInterval(updateTimerDisplay,1000);}
+// ════ GPS — iOS-optimized ════
+var _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+var _gpsWarmupDone = false;
+var _pollInterval = null;
+var _bgPauseTime = null;
+
+// iOS butuh maximumAge sedikit lebih longgar agar tidak terus-menerus timeout
+var GPS_OPTS_PRECISE  = {enableHighAccuracy:true, maximumAge: _isIOS ? 3000  : 0,     timeout: _isIOS ? 20000 : 30000};
+var GPS_OPTS_FALLBACK = {enableHighAccuracy:true, maximumAge: _isIOS ? 10000 : 5000,  timeout: _isIOS ? 15000 : 20000};
+var GPS_POLL_MS       = _isIOS ? 20000 : 15000; // iOS throttles lebih agresif, pakai 20 detik
+
+function startGps(){
+  if(!('geolocation' in navigator)){updateLocBanner('unsupported');return;}
+  if(_gpsStarted)return;
+  _gpsStarted=true;
+  updateLocBanner('waiting');
+
+  // 1) watchPosition sebagai primary listener
+  geoWatchId = navigator.geolocation.watchPosition(onLocOk, onLocErr, GPS_OPTS_PRECISE);
+
+  // 2) Satu getPosition segera untuk kick-start (tidak tunggu watchPosition yang bisa lambat di iOS)
+  navigator.geolocation.getCurrentPosition(onLocOk, onLocErr, GPS_OPTS_PRECISE);
+
+  // 3) Polling periodik — iOS sering "diam" saat watchPosition di background
+  if(_pollInterval) clearInterval(_pollInterval);
+  _pollInterval = setInterval(function(){
+    if(document.visibilityState !== 'visible') return; // jangan poll saat di background
+    navigator.geolocation.getCurrentPosition(onLocOk, function(){}, GPS_OPTS_FALLBACK);
+  }, GPS_POLL_MS);
+
+  _timerInterval = setInterval(updateTimerDisplay, 1000);
+}
+
 function retryGps(){
   var btn=document.getElementById('loc-retry-btn');
   if(btn){btn.classList.add('loading');btn.classList.remove('pinging');void btn.offsetWidth;btn.classList.add('pinging');}
-  _gpsStarted=false;_retryCount=0;
-  if(geoWatchId!==null){navigator.geolocation.clearWatch(geoWatchId);geoWatchId=null;}
+  _gpsStarted=false;_retryCount=0;_gpsWarmupDone=false;
+  if(geoWatchId!==null){try{navigator.geolocation.clearWatch(geoWatchId);}catch(e){}geoWatchId=null;}
+  if(_pollInterval){clearInterval(_pollInterval);_pollInterval=null;}
   startGps();showToast('Mencoba ulang GPS...','');
   setTimeout(function(){if(btn)btn.classList.remove('loading');},4000);
 }
-function onLocOk(pos){clearTimeout(_retryTimer);_retryCount=0;const{latitude:lat,longitude:lng,accuracy}=pos.coords;lastPos={lat,lng,accuracy};const dist=Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng)),inS=dist<=TOKO.radius;document.getElementById('loc-distance').textContent=dist+'m';document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';document.getElementById('loc-retry-btn').classList.remove('show');if(inS&&!isAtStore){isAtStore=true;sessionStart=Date.now();locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});saveLocData();updateLocBanner('in');showToast('✓ Kamu tiba di Kodachi Shop!','ok');logActivity('Tiba di toko','Jarak '+dist+'m');pushManagerLoc();}else if(!inS&&isAtStore){isAtStore=false;if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist});saveLocData();updateLocBanner('out');logActivity('Keluar toko','Jarak '+dist+'m');pushManagerLoc();}else{if(isAtStore)saveLocData();updateLocBanner(isAtStore?'in':'out');}updateD01Card();}
-function onLocErr(err){if(err.code===1){updateLocBanner('denied');document.getElementById('loc-retry-btn').classList.add('show');}else{_retryCount++;updateLocBanner('waiting');if(_retryCount<=10)_retryTimer=setTimeout(()=>navigator.geolocation.getCurrentPosition(onLocOk,onLocErr,{enableHighAccuracy:true,maximumAge:0,timeout:25000}),Math.min(5000*_retryCount,30000));else document.getElementById('loc-retry-btn').classList.add('show');}}
-// Saat app dibuka kembali / kembali ke foreground: minta lokasi langsung supaya durasi terkoreksi
-function resumeGps(){if(document.visibilityState==='visible'){if('geolocation' in navigator){navigator.geolocation.getCurrentPosition(onLocOk,()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:25000});}updateTimerDisplay();}}
-document.addEventListener('visibilitychange',resumeGps);
-window.addEventListener('focus',resumeGps);
-window.addEventListener('pageshow',resumeGps);
+
+function onLocOk(pos){
+  clearTimeout(_retryTimer);_retryCount=0;
+  var lat=pos.coords.latitude, lng=pos.coords.longitude, accuracy=pos.coords.accuracy;
+
+  // iOS kadang kirim akurasi sangat buruk (>500m) saat baru warm-up — filter dulu
+  if(!_gpsWarmupDone && accuracy > 200){
+    document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';
+    // Tunggu lebih: minta ulang setelah 2 detik dengan fallback options
+    setTimeout(function(){
+      navigator.geolocation.getCurrentPosition(onLocOk, onLocErr, GPS_OPTS_FALLBACK);
+    }, 2000);
+    return;
+  }
+  _gpsWarmupDone = true;
+
+  lastPos={lat,lng,accuracy};
+  var dist=Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng)), inS=dist<=TOKO.radius;
+  document.getElementById('loc-distance').textContent=dist+'m';
+  document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';
+  document.getElementById('loc-retry-btn').classList.remove('show');
+
+  if(inS&&!isAtStore){
+    isAtStore=true;sessionStart=Date.now();
+    locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});
+    saveLocData();updateLocBanner('in');
+    showToast('✓ Kamu tiba di Kodachi Shop!','ok');
+    logActivity('Tiba di toko','Jarak '+dist+'m');pushManagerLoc();
+  }else if(!inS&&isAtStore){
+    isAtStore=false;
+    if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}
+    locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist});
+    saveLocData();updateLocBanner('out');
+    logActivity('Keluar toko','Jarak '+dist+'m');pushManagerLoc();
+  }else{
+    if(isAtStore)saveLocData();
+    updateLocBanner(isAtStore?'in':'out');
+  }
+  updateD01Card();
+}
+
+function onLocErr(err){
+  if(err.code===1){
+    updateLocBanner('denied');
+    document.getElementById('loc-retry-btn').classList.add('show');
+    // iOS: tampilkan panduan buka Settings jika denied
+    if(_isIOS){
+      var d=document.getElementById('loc-detail');
+      if(d) d.textContent='Buka Settings → Privacy → Location Services → Safari/App → While Using';
+    }
+  }else{
+    _retryCount++;
+    updateLocBanner('waiting');
+    // iOS: gunakan delay lebih panjang dan fallback options agar tidak spam request
+    var delay = _isIOS
+      ? Math.min(8000 * _retryCount, 40000)
+      : Math.min(5000 * _retryCount, 30000);
+    if(_retryCount<=10){
+      _retryTimer=setTimeout(function(){
+        navigator.geolocation.getCurrentPosition(onLocOk, onLocErr,
+          _retryCount<=3 ? GPS_OPTS_PRECISE : GPS_OPTS_FALLBACK);
+      }, delay);
+    }else{
+      document.getElementById('loc-retry-btn').classList.add('show');
+    }
+  }
+}
+
+// Saat app kembali ke foreground: restart watch & minta posisi sekarang
+// iOS membunuh watchPosition saat di background — perlu restart
+function resumeGps(){
+  if(document.visibilityState!=='visible') return;
+
+  // Hitung menit yang mungkin terlewat saat background (iOS)
+  if(_bgPauseTime && isAtStore && sessionStart){
+    // sessionStart tetap valid, waktu akan otomatis terhitung
+  }
+  _bgPauseTime = null;
+
+  if(!_gpsStarted) return;
+  if('geolocation' in navigator){
+    // Restart watchPosition karena iOS sering matikan saat background
+    if(geoWatchId!==null){try{navigator.geolocation.clearWatch(geoWatchId);}catch(e){}geoWatchId=null;}
+    geoWatchId = navigator.geolocation.watchPosition(onLocOk, onLocErr, GPS_OPTS_PRECISE);
+    // Langsung minta posisi sekarang
+    navigator.geolocation.getCurrentPosition(onLocOk, function(){
+      // Fallback jika precise gagal
+      navigator.geolocation.getCurrentPosition(onLocOk,function(){},GPS_OPTS_FALLBACK);
+    }, GPS_OPTS_PRECISE);
+  }
+  updateTimerDisplay();
+}
+
+function pauseGps(){
+  // Catat waktu mulai background (iOS)
+  _bgPauseTime = Date.now();
+}
+
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState==='visible') resumeGps();
+  else pauseGps();
+});
+window.addEventListener('focus', resumeGps);
+window.addEventListener('pageshow', function(e){
+  // iOS PWA: pageshow fired saat kembali dari background
+  if(e.persisted || _isIOS) resumeGps();
+});
 
 // ── ADMIN: hentikan tracking GPS milik sendiri ──
 function stopGpsTracking(){_gpsStarted=true;if(geoWatchId!==null){try{navigator.geolocation.clearWatch(geoWatchId);}catch(e){}geoWatchId=null;}if(_timerInterval){clearInterval(_timerInterval);_timerInterval=null;}}
