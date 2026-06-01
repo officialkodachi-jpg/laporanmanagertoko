@@ -4953,7 +4953,7 @@ function showUpdateBanner(swWaiting) {
   banner.innerHTML = '<span>🔄 <b>Ada pembaruan tersedia!</b> Tap untuk update</span>'
     + '<div style="display:flex;gap:8px;flex-shrink:0">'
     + '<button id="pwa-update-btn" style="padding:7px 14px;background:#fff;color:#0f766e;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">Update Sekarang</button>'
-    + '<button onclick="document.getElementById('pwa-update-banner').remove()" style="padding:7px 10px;background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer">Nanti</button>'
+    + '<button onclick="document.getElementById(\'pwa-update-banner\').remove()" style="padding:7px 10px;background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer">Nanti</button>'
     + '</div>';
   document.body.appendChild(banner);
   document.getElementById('pwa-update-btn').addEventListener('click', () => {
