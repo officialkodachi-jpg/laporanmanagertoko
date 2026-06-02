@@ -505,6 +505,12 @@ body.role-admin #admin-mgrlog{display:none!important}
   <span class="mute-hint" onclick="event.stopPropagation();muteShiftAlarm()">👆 Tap untuk lihat · 🔕 bisukan</span>
 </div>
 
+<!-- STOK MINUS BANNER — ungu -->
+<div class="alarm-banner" id="minus-alarm-banner" onclick="gotoData('minus')" style="background:#7c3aed">
+  <span>🟣 STOK MINUS — <span id="minus-alarm-count"></span>item bernilai negatif, cek selisih/input!</span>
+  <span class="mute-hint" onclick="event.stopPropagation();muteMinusAlarm()">👆 Tap untuk lihat · 🔕 bisukan</span>
+</div>
+
 <!-- NOTE URGENT BANNER — pesan penting dari admin, merah, hanya tampil di HP Manager -->
 <div class="alarm-banner" id="note-alarm-banner" onclick="muteNoteAlarm()" style="background:#b91c1c">
   <span>📌 PESAN PENTING DARI ADMIN — <span id="note-alarm-text"></span></span>
@@ -1249,6 +1255,7 @@ let stokData={minus:[],red:[],yellow:[],blue:[]},stokFilter='all';
 let stokLoadedOnce=false,_stokAudioCtx=null,_stokRefreshTimer=null;
 // Alarm: default ON setiap sesi (session-scoped), tidak tersimpan ke localStorage
 let alarmMuted=false; // hanya berlaku sampai refresh
+let minusMuted=false; // bisukan banner stok minus (sampai refresh)
 let _alarmInterval=null;
 let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locationLog=[],lastPos=null;
 // Anti GPS-ngaco: abaikan fix berakurasi buruk, beri toleransi & grace period saat keluar
@@ -1402,22 +1409,42 @@ function muteShiftAlarm(){
   if(banner)banner.classList.remove('show');
   showToast('🔕 Alarm shift dibisukan untuk sesi ini. Refresh = bunyi lagi.','');
 }
+function muteMinusAlarm(){
+  minusMuted=true;
+  var banner=document.getElementById('minus-alarm-banner');
+  if(banner)banner.classList.remove('show');
+  showToast('🔕 Banner stok minus disembunyikan untuk sesi ini. Refresh = muncul lagi.','');
+}
 function triggerAlarmIfNeeded(){
   var nMinus=(stokData.minus?stokData.minus.length:0);
-  var nAlert=stokData.red.length+nMinus;
-  if(nAlert>0&&!alarmMuted){
-    var banner=document.getElementById('alarm-banner');
+  var nKosong=stokData.red.length;
+  var nAlert=nKosong+nMinus;
+  // Banner STOK KOSONG (merah) — hanya item kosong
+  var banner=document.getElementById('alarm-banner');
+  var cnt=document.getElementById('alarm-banner-count');
+  if(nKosong>0&&!alarmMuted){
     if(banner)banner.classList.add('show');
-    var cnt=document.getElementById('alarm-banner-count');
-    if(cnt)cnt.textContent=nAlert+' ';
+    if(cnt)cnt.textContent=nKosong+' ';
+  }else{
+    if(banner)banner.classList.remove('show');
+  }
+  // Banner STOK MINUS (ungu) — hanya item minus
+  var mb=document.getElementById('minus-alarm-banner');
+  var mc=document.getElementById('minus-alarm-count');
+  if(nMinus>0&&!minusMuted){
+    if(mb)mb.classList.add('show');
+    if(mc)mc.textContent=nMinus+' ';
+  }else{
+    if(mb)mb.classList.remove('show');
+  }
+  // Tombol suara & alarm bunyi mengikuti total
+  if(nAlert>0&&!alarmMuted){
     var sb=document.getElementById('stok-sound-btn');
     if(sb){sb.className='stok-sound-btn ringing';sb.textContent='🔔 ALARM — Tap Mute';}
     startAlarm();
   }else if(nAlert===0){
-    var banner=document.getElementById('alarm-banner');
-    if(banner)banner.classList.remove('show');
-    var sb=document.getElementById('stok-sound-btn');
-    if(sb){sb.className='stok-sound-btn muted';sb.style.background='rgba(22,163,74,.12)';sb.style.color='var(--green)';sb.style.border='2px solid rgba(22,163,74,.3)';sb.style.animation='none';sb.textContent='✅ Semua Aman';}
+    var sb2=document.getElementById('stok-sound-btn');
+    if(sb2){sb2.className='stok-sound-btn muted';sb2.style.background='rgba(22,163,74,.12)';sb2.style.color='var(--green)';sb2.style.border='2px solid rgba(22,163,74,.3)';sb2.style.animation='none';sb2.textContent='✅ Semua Aman';}
     stopAlarm();
   }
 }
@@ -3591,6 +3618,7 @@ function pgMarkDone(row,nama){
 }
 function pgMark(row,status){
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  logActivity('Ubah status pelanggaran','baris '+row+' → '+status);
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'pegawai_update',row:row,status:status})})
     .then(function(){showToast('✓ Status diperbarui','ok');pgCloseDetail();setTimeout(pgLoadCatatan,1500);})
     .catch(function(){showToast('Gagal','err');});
@@ -3599,6 +3627,7 @@ function pgDelete(row){
   if(userRole!=='admin'){showToast('Hanya admin yang bisa menghapus catatan','err');return;}
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   if(!confirm('Hapus catatan ini permanen?'))return;
+  logActivity('Hapus catatan pelanggaran','baris '+row);
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'pegawai_delete',row:row})})
     .then(function(){showToast('✓ Dihapus','ok');pgCloseDetail();setTimeout(pgLoadCatatan,1500);})
     .catch(function(){showToast('Gagal','err');});
