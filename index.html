@@ -2054,15 +2054,25 @@ function cekActionBtnHTML(jenis,row){
     return '<button type="button" class="cek-act-btn" data-cek-kunci="'+escH(kunci)+'" data-cek-done="0" style="font-size:11px;padding:7px 12px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">↩ Batal cek</button>';
   return '<button type="button" class="cek-act-btn" data-cek-kunci="'+escH(kunci)+'" data-cek-done="1" style="font-size:11px;padding:7px 12px;border:none;background:var(--green);color:#fff;border-radius:7px;cursor:pointer;font-weight:700">✓ Tandai sudah dicek</button>';
 }
-// Delegasi global: tangani SEMUA tombol .cek-act-btn di mana pun (kiriman, pelanggaran, note, panel pusat)
-document.addEventListener('click',function(e){
-  var btn=e.target&&e.target.closest?e.target.closest('.cek-act-btn'):null;
+// Delegasi global: tangani SEMUA tombol .cek-act-btn di mana pun.
+// Tangani 'click' DAN 'pointerup' (sebagian WebView tidak mem-fire click pada
+// <button> yang baru di-appendChild bila ada handler parent). Guard anti double-fire.
+var _cekLastFire=0;
+function _cekDelegateHandler(e){
+  var t=e.target;
+  var btn=(t&&t.closest)?t.closest('.cek-act-btn'):null;
   if(!btn)return;
-  e.stopPropagation(); e.preventDefault();
+  e.stopPropagation();
+  if(e.cancelable)e.preventDefault();
+  var now=Date.now();
+  if(now-_cekLastFire<400)return; // cegah click+pointerup memicu dua kali
+  _cekLastFire=now;
   var kunci=btn.getAttribute('data-cek-kunci');
   var done=btn.getAttribute('data-cek-done')==='1';
   if(kunci)cekSrcToggle(kunci,done);
-},true); // capture phase → menang sebelum onclick kartu
+}
+document.addEventListener('click',_cekDelegateHandler,true);
+document.addEventListener('pointerup',_cekDelegateHandler,true);
 // Tandai/batal dari kartu SUMBER. Update LOKAL dulu (instan), kirim ke server di belakang,
 // lalu re-render ringan dari cache — TANPA fetch berat berulang.
 function cekSrcToggle(kunci,done){
