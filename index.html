@@ -1758,8 +1758,18 @@ function renderManagerLoc(d){
   st.textContent=inStore?'✓ Manager di dalam toko':'✗ Manager di luar toko';
   st.className='loc-status '+(inStore?'in':'out');
   var jamUpd=d.waktu?new Date(d.waktu).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'?';
-  det.innerHTML='Jarak '+(d.dist!=null?d.dist:'?')+'m dari toko · update '+jamUpd
-    +'<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
+  var menitLalu=d.waktu?Math.round((Date.now()-d.waktu)/60000):999;
+  var ket='Jarak '+(d.dist!=null?d.dist:'?')+'m dari toko · update '+jamUpd;
+  if(menitLalu>=10){
+    // Posisi belum update >10 menit: jelaskan ini BUKAN berarti manager keluar
+    ket+=' <span style="color:#b45309">('+menitLalu+' mnt lalu)</span>'
+      +'<div class="admin-note" style="color:#92400e">Posisi terverifikasi terakhir '+jamUpd
+      +'. App manager kemungkinan di background / HP terkunci — bukan berarti keluar toko. '
+      +'Posisi & jam kerja akan tersegarkan saat manager membuka app lagi.</div>';
+  }else{
+    ket+='<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
+  }
+  det.innerHTML=ket;
   tm.textContent=h+':'+String(m).padStart(2,'0');
   tm.className='loc-timer'+(p>=100?' done':p>=50?' warn':'');
   var f=document.getElementById('time-bar-fill');if(f){f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');}
