@@ -575,20 +575,6 @@ body.role-admin #admin-mgrlog{display:none!important}
   </div>
 </div>
 
-<div id="cek-panel" style="display:none;max-width:680px;margin:0 auto 14px;padding:0 20px">
-  <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
-    <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
-      <span style="font-size:18px">📸</span>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:800;color:var(--text)">Pekerjaan berfoto — perlu dicek</div>
-        <div style="font-size:10px;color:var(--hint)" id="cek-sub">Memuat…</div>
-      </div>
-      <button id="cek-toggle" onclick="cekToggleMode()" style="font-size:10px;padding:5px 9px;border:1px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;color:var(--muted)">Lihat semua</button>
-    </div>
-    <div id="cek-list" style="padding:10px 12px;max-height:420px;overflow-y:auto"></div>
-  </div>
-</div>
-
 <div id="notif-stack" style="max-width:680px;margin:0 auto;padding:0 20px"></div>
 
 <div id="mgr-activity-banner" class="admin-only" style="display:none;margin:0 16px 12px;background:rgba(124,58,237,.1);border:1.5px solid rgba(124,58,237,.4);border-radius:var(--r);padding:12px 14px">
@@ -782,6 +768,21 @@ body.role-admin #admin-mgrlog{display:none!important}
       </div>
       <div id="home-harian-body" style="padding:14px 16px">
         <div style="color:var(--hint);font-size:12px;text-align:center">Tekan "Muat" untuk melihat progress tugas</div>
+      </div>
+    </div>
+
+    <!-- 📸 Pekerjaan berfoto perlu dicek — DI BAWAH Home -->
+    <div id="cek-panel" style="margin-top:4px">
+      <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
+        <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
+          <span style="font-size:18px">📸</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:800;color:var(--text)">Pekerjaan berfoto — perlu dicek</div>
+            <div style="font-size:10px;color:var(--hint)" id="cek-sub">Memuat…</div>
+          </div>
+          <button id="cek-toggle" onclick="cekToggleMode()" style="font-size:10px;padding:5px 9px;border:1px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;color:var(--muted)">Lihat semua</button>
+        </div>
+        <div id="cek-list" style="padding:10px 12px;max-height:420px;overflow-y:auto"></div>
       </div>
     </div>
   </div>
@@ -2044,14 +2045,24 @@ function cekMarkHTML(jenis,row){
   if(!isCekDone(jenis,row))return'';
   return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px">✓ sudah dicek</span>';
 }
-// Tombol aksi cek di kartu sumber (hanya admin)
+// Tombol aksi cek (string) untuk kartu yang masih pakai innerHTML.
+// Memakai data-atribut + delegasi global (lihat listener di bawah) supaya andal di WebView.
 function cekActionBtnHTML(jenis,row){
   if(userRole!=='admin')return'';
   var kunci=jenis+'#'+row;
   if(isCekDone(jenis,row))
-    return '<button type="button" onclick="event.stopPropagation();cekSrcToggle(\''+escH(kunci)+'\',false)" style="font-size:11px;padding:6px 10px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">↩ Batal cek</button>';
-  return '<button type="button" onclick="event.stopPropagation();cekSrcToggle(\''+escH(kunci)+'\',true)" style="font-size:11px;padding:6px 10px;border:none;background:var(--green);color:#fff;border-radius:7px;cursor:pointer;font-weight:700">✓ Tandai sudah dicek</button>';
+    return '<button type="button" class="cek-act-btn" data-cek-kunci="'+escH(kunci)+'" data-cek-done="0" style="font-size:11px;padding:7px 12px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">↩ Batal cek</button>';
+  return '<button type="button" class="cek-act-btn" data-cek-kunci="'+escH(kunci)+'" data-cek-done="1" style="font-size:11px;padding:7px 12px;border:none;background:var(--green);color:#fff;border-radius:7px;cursor:pointer;font-weight:700">✓ Tandai sudah dicek</button>';
 }
+// Delegasi global: tangani SEMUA tombol .cek-act-btn di mana pun (kiriman, pelanggaran, note, panel pusat)
+document.addEventListener('click',function(e){
+  var btn=e.target&&e.target.closest?e.target.closest('.cek-act-btn'):null;
+  if(!btn)return;
+  e.stopPropagation(); e.preventDefault();
+  var kunci=btn.getAttribute('data-cek-kunci');
+  var done=btn.getAttribute('data-cek-done')==='1';
+  if(kunci)cekSrcToggle(kunci,done);
+},true); // capture phase → menang sebelum onclick kartu
 // Tandai/batal dari kartu SUMBER. Update LOKAL dulu (instan), kirim ke server di belakang,
 // lalu re-render ringan dari cache — TANPA fetch berat berulang.
 function cekSrcToggle(kunci,done){
@@ -4058,21 +4069,49 @@ function _annotateEventCardsRender(allItems){
       var it=byKode[ev.kode]; if(!it)return;
       var strip=document.createElement('div'); strip.className='ev-cek-strip';
       strip.style.cssText='margin-top:7px;display:flex;align-items:center;gap:7px;flex-wrap:wrap';
-      var html='';
+      // cegah klik strip menjalankan selectEvent (buka form)
+      strip.addEventListener('click',function(e){e.stopPropagation();});
       if(it.dicek){
-        html+=cekMarkHTML('nonharian',it.row);
-        html+=cekActionBtnHTML('nonharian',it.row); // admin bisa batal cek
+        if(isCekDone('nonharian',it.row)){
+          var mark=document.createElement('span');
+          mark.style.cssText='display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px';
+          mark.textContent='✓ sudah dicek';
+          strip.appendChild(mark);
+        }
+        if(userRole==='admin') strip.appendChild(_cekBtnEl('nonharian',it.row,false));
       }else{
         (it.fotos||[]).slice(0,3).forEach(function(u){
-          html+='<a href="'+escH(u)+'" target="_blank" onclick="event.stopPropagation()" style="display:inline-block"><img src="'+escH(kmFotoImgUrl(u))+'" loading="lazy" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"></a>';
+          var a=document.createElement('a'); a.href=u; a.target='_blank'; a.style.display='inline-block';
+          a.addEventListener('click',function(e){e.stopPropagation();});
+          var img=document.createElement('img'); img.src=kmFotoImgUrl(u); img.loading='lazy';
+          img.style.cssText='width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border)';
+          a.appendChild(img); strip.appendChild(a);
         });
-        html+='<span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek</span>';
-        html+=cekActionBtnHTML('nonharian',it.row);
+        var lbl=document.createElement('span');
+        lbl.style.cssText='font-size:10px;font-weight:700;color:var(--red)';
+        lbl.textContent='● foto perlu dicek';
+        strip.appendChild(lbl);
+        if(userRole==='admin') strip.appendChild(_cekBtnEl('nonharian',it.row,true));
         card.classList.add('ev-has-cek');
       }
-      strip.innerHTML=html;
       body.appendChild(strip);
     });
+}
+// Buat elemen tombol cek dengan listener eksplisit (andal di WebView mobile)
+function _cekBtnEl(jenis,row,markDone){
+  var b=document.createElement('button'); b.type='button';
+  if(markDone){
+    b.textContent='✓ Tandai sudah dicek';
+    b.style.cssText='font-size:11px;padding:7px 12px;border:none;background:var(--green);color:#fff;border-radius:7px;cursor:pointer;font-weight:700';
+  }else{
+    b.textContent='↩ Batal cek';
+    b.style.cssText='font-size:11px;padding:7px 12px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)';
+  }
+  b.addEventListener('click',function(e){
+    e.stopPropagation(); e.preventDefault();
+    cekSrcToggle(jenis+'#'+row, markDone);
+  });
+  return b;
 }
 function selectEvent(ev){selectedEvent=ev;selectedStatus=null;eventFotoBase64='';document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));var card=document.getElementById('ev-'+ev.kode);card.classList.add('selected');document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';document.getElementById('event-note').value='';var fw=document.getElementById('event-foto-wrap');if(fw)fw.style.display='none';var fp=document.getElementById('event-foto-prev');if(fp)fp.innerHTML='';var fi=document.getElementById('event-foto');if(fi)fi.value='';var det=document.getElementById('event-detail');det.style.display='block';card.insertAdjacentElement('afterend',det);/* pindahkan form ke BAWAH kartu yang ditekan (upload per-kartu) */det.scrollIntoView({behavior:'smooth',block:'nearest'});}
 function setStatus(s){
