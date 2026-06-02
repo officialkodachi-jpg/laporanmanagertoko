@@ -494,15 +494,15 @@ body.role-admin #admin-mgrlog{display:none!important}
 </div>
 
 <!-- ALARM BANNER — stok kosong merah -->
-<div class="alarm-banner" id="alarm-banner" onclick="muteAlarm()">
+<div class="alarm-banner" id="alarm-banner" onclick="gotoData('stok')">
   <span>🚨 STOK KOSONG DI TOKO — <span id="alarm-banner-count"></span>item butuh perhatian!</span>
-  <span class="mute-hint">Tap di sini untuk bisukan</span>
+  <span class="mute-hint" onclick="event.stopPropagation();muteAlarm()">👆 Tap untuk lihat · 🔕 bisukan</span>
 </div>
 
 <!-- SHIFT KOSONG BANNER — orange, di bawah banner stok -->
-<div class="alarm-banner" id="shift-alarm-banner" onclick="muteShiftAlarm()" style="background:#d97706;animation-name:shiftBannerPulse">
+<div class="alarm-banner" id="shift-alarm-banner" onclick="gotoData('shift')" style="background:#d97706;animation-name:shiftBannerPulse">
   <span>📅 SHIFT KOSONG — <span id="shift-alarm-count"></span>slot belum terisi bulan ini!</span>
-  <span class="mute-hint">Tap di sini untuk bisukan</span>
+  <span class="mute-hint" onclick="event.stopPropagation();muteShiftAlarm()">👆 Tap untuk lihat · 🔕 bisukan</span>
 </div>
 
 <!-- NOTE URGENT BANNER — pesan penting dari admin, merah, hanya tampil di HP Manager -->
@@ -1324,6 +1324,28 @@ function startAlarm(){
 }
 function stopAlarm(){
   if(_alarmInterval){clearInterval(_alarmInterval);_alarmInterval=null;}
+}
+// Buka tab tujuan + scroll ke elemen datanya + highlight sekejap
+function gotoData(tujuan){
+  try{
+    var map={
+      stok:   {tab:'gudang', gview:'monitor', el:'stok-list'},
+      minus:  {tab:'gudang', gview:'monitor', el:'stok-minus-warn'},
+      shift:  {tab:'shift',  gview:null,      el:'shift-list'}
+    };
+    var t=map[tujuan]; if(!t) return;
+    var tabBtn=document.querySelector(".tab[onclick*=\"switchTab('"+t.tab+"'\"]");
+    if(tabBtn) switchTab(t.tab, tabBtn); else { var p=document.getElementById('panel-'+t.tab); if(p){document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});p.classList.add('active');} }
+    if(t.gview){ var gb=document.getElementById('gtab-'+t.gview); if(gb) switchGudangView(t.gview, gb); }
+    setTimeout(function(){
+      var el=document.getElementById(t.el); if(!el) return;
+      if(el.style.display==='none'){ /* elemen tersembunyi: scroll ke kontainernya saja */ el=document.getElementById('panel-'+t.tab)||el; }
+      el.scrollIntoView({behavior:'smooth', block:'center'});
+      var old=el.style.boxShadow;
+      el.style.transition='box-shadow .3s'; el.style.boxShadow='0 0 0 3px var(--orange)';
+      setTimeout(function(){ el.style.boxShadow=old||''; }, 1600);
+    }, 350);
+  }catch(e){}
 }
 function muteAlarm(){
   alarmMuted=true;
