@@ -493,6 +493,10 @@ body.role-admin .loc-retry-inline,
 body.role-admin #mt-edit-box{display:none!important}
 body.role-admin .task-item{cursor:default;pointer-events:none}
 body.role-admin .event-card{cursor:default;pointer-events:none}
+/* TAPI tombol cek "sudah dicek" + strip-nya tetap bisa ditekan admin (admin tetap dilarang isi tugas) */
+body.role-admin .event-card .ev-cek-strip,
+body.role-admin .event-card .ev-cek-strip *{pointer-events:auto}
+body.role-admin .event-card .ev-cek-strip .cek-act-btn{cursor:pointer}
 /* Admin: sembunyikan notif kiriman & mgrlog di atas tabs — sudah ada di tab Home */
 body.role-admin #notif-stack,
 body.role-admin #admin-mgrlog{display:none!important}
