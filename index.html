@@ -190,6 +190,17 @@ body.role-admin .admin-only{display:inline-flex}
 .tab-badge{position:absolute;top:6px;right:4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;padding:0 4px;border-radius:8px;display:none;align-items:center;justify-content:center}
 .tab-badge.show{display:flex}.tab-badge.pulse{animation:badgePulse 1.4s infinite}
 @keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+/* ── Panel "Cek Admin": kartu bisa ditekan + badge + dot belum dicek ── */
+.cek-card{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
+.cek-card:hover{border-color:var(--accent)}
+.cek-card:active{transform:scale(.985)}
+.cek-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;animation:badgePulse 1.4s infinite}
+.cek-count-badge{background:var(--red);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;padding:0 6px;border-radius:9px;display:none;align-items:center;justify-content:center;line-height:1}
+.cek-count-badge.show{display:inline-flex}
+.cek-count-badge.pulse{animation:badgePulse 1.4s infinite}
+/* Sorotan kartu sumber saat dibuka dari panel cek */
+@keyframes srcFlash{0%{box-shadow:0 0 0 0 rgba(37,99,235,.0);background:transparent}15%{box-shadow:0 0 0 3px rgba(37,99,235,.45);background:rgba(37,99,235,.08)}100%{box-shadow:0 0 0 0 rgba(37,99,235,0);background:transparent}}
+.src-highlight{animation:srcFlash 2.4s ease;border-radius:12px}
 .tabs-line{height:1px;background:var(--border);margin-bottom:20px}
 .content{max-width:680px;margin:0 auto;padding:0 20px 60px}
 .panel{display:none}.panel.active{display:block}
@@ -552,7 +563,7 @@ body.role-admin #admin-mgrlog{display:none!important}
     <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
       <span style="font-size:18px">📸</span>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:800;color:var(--text)">Pekerjaan berfoto — perlu dicek</div>
+        <div style="font-size:13px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px">Pekerjaan berfoto — perlu dicek<span class="cek-count-badge" id="cek-badge">0</span></div>
         <div style="font-size:10px;color:var(--hint)" id="cek-sub">Memuat…</div>
       </div>
       <button id="cek-toggle" onclick="cekToggleMode()" style="font-size:10px;padding:5px 9px;border:1px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;color:var(--muted)">Lihat semua</button>
@@ -727,7 +738,7 @@ body.role-admin #admin-mgrlog{display:none!important}
     </div>
 
     <!-- Non-Harian Terakhir Dikerjakan -->
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+    <div id="home-event-card" style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
         <div style="font-size:18px">📌</div>
         <div style="flex:1;min-width:0">
@@ -1855,7 +1866,7 @@ function cekLoad(){
     _cekData=d.items||[];
     var sub=document.getElementById('cek-sub');
     if(sub)sub.textContent=(d.belum||0)+' belum dicek · '+(d.total||0)+' total berfoto';
-    cekRender();
+    cekRender();updateCekCount();
   }).catch(function(){var s=document.getElementById('cek-sub');if(s)s.textContent='Gagal memuat';});
 }
 function _cekJenisLabel(j){
@@ -1880,21 +1891,22 @@ function cekRender(){
   var html='';
   list.forEach(function(it){
     var thumbs='';
-    it.fotos.forEach(function(u){ thumbs+='<a href="'+escH(u)+'" target="_blank" style="display:inline-block"><img src="'+escH(kmFotoImgUrl(u))+'" style="width:54px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"></a>'; });
-    html+='<div style="border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;'+(it.dicek?'opacity:.55':'')+'">'
+    it.fotos.forEach(function(u){ thumbs+='<a href="'+escH(u)+'" target="_blank" onclick="event.stopPropagation()" style="display:inline-block"><img src="'+escH(kmFotoImgUrl(u))+'" style="width:54px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"></a>'; });
+    html+='<div class="cek-card" onclick="cekGoto(\''+it.jenis+'\','+it.row+')" title="Tap untuk buka sumber pekerjaan" style="border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;'+(it.dicek?'opacity:.55':'')+'">'
       +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
+        +(it.dicek?'':'<span class="cek-dot"></span>')
         +'<span style="font-size:11px;font-weight:700">'+_cekJenisLabel(it.jenis)+'</span>'
         +'<span style="font-size:10px;color:var(--hint)">'+escH(it.tgl)+'</span>'
-        +(it.dicek?'<span style="margin-left:auto;font-size:10px;color:var(--green)">✓ dicek '+escH(it.cekInfo)+'</span>':'')
+        +(it.dicek?'<span style="margin-left:auto;font-size:10px;color:var(--green)">✓ dicek '+escH(it.cekInfo)+'</span>':'<span style="margin-left:auto;font-size:10px;color:var(--red);font-weight:700">belum dicek</span>')
       +'</div>'
       +'<div style="font-size:12px;font-weight:600;color:var(--text)">'+escH(_cekJudul(it))+'</div>'
       +(it.detail?'<div style="font-size:11px;color:var(--muted);margin:2px 0 6px">'+escH(it.detail)+'</div>':'<div style="height:6px"></div>')
       +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+thumbs+'</div>'
       +'<div style="display:flex;gap:6px">'
-        +'<button onclick="cekGoto(\''+it.jenis+'\','+it.row+')" style="flex:1;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">🔗 Buka sumber</button>'
+        +'<button onclick="event.stopPropagation();cekGoto(\''+it.jenis+'\','+it.row+')" style="flex:1;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">🔗 Buka sumber</button>'
         +(it.dicek
-          ?'<button onclick="cekUndo(\''+escH(it.kunci)+'\')" style="flex:1;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">↩ Batal cek</button>'
-          :'<button onclick="cekDone(\''+escH(it.kunci)+'\')" style="flex:1;font-size:11px;padding:6px;border:none;background:var(--green);color:#fff;border-radius:7px;cursor:pointer;font-weight:700">✓ Sudah dicek</button>')
+          ?'<button onclick="event.stopPropagation();cekUndo(\''+escH(it.kunci)+'\')" style="flex:1;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">↩ Batal cek</button>'
+          :'<button onclick="event.stopPropagation();cekDone(\''+escH(it.kunci)+'\')" style="flex:1;font-size:11px;padding:6px;border:none;background:var(--green);color:#fff;border-radius:7px;cursor:pointer;font-weight:700">✓ Sudah dicek</button>')
       +'</div>'
     +'</div>';
   });
@@ -1910,8 +1922,8 @@ function cekGoto(jenis,row){
     return;
   }
   if(jenis==='pelanggaran'){
-    var b2=document.querySelector(".tab[onclick*=\"switchTab('kepegawaian'\"]");
-    if(b2)switchTab('kepegawaian',b2);
+    var b2=document.querySelector(".tab[onclick*=\"switchTab('pegawai'\"]");
+    if(b2)switchTab('pegawai',b2);
     // cari nama item dari data panel
     var it=_cekData.find(function(x){return x.jenis==='pelanggaran'&&x.row===row;});
     var nm=it&&it.nama?it.nama:'';
@@ -1923,8 +1935,45 @@ function cekGoto(jenis,row){
     _cekAfterLoad(function(){return (typeof pgData!=='undefined'&&pgFindRow(row));}, function(){pgOpenDetail(row);}, function(){});
     return;
   }
-  if(jenis==='nonharian'){ switchTab('home'); showToast('Lihat catatan Non-Harian di tab Home','' ); return; }
-  if(jenis==='note_bukti'){ switchTab('home'); showToast('Lihat bukti note di Home','' ); return; }
+  if(jenis==='nonharian'){
+    var ht=document.getElementById('tab-home');
+    if(ht)switchTab('home',ht); else switchTab('home');
+    // bangun kunci kode|tanggal dari item cek, lalu sorot baris non-harian yang cocok di Home
+    var itn=_cekData.find(function(x){return x.jenis==='nonharian'&&x.row===row;});
+    var key='';
+    if(itn){ var m=String(itn.judul||'').match(/E\d{2}/i); if(m) key=m[0].toUpperCase()+'|'+String(itn.tgl||''); }
+    loadHomeEvent();
+    _cekHighlightWhenReady(key?'[data-ev-key="'+key+'"]':null,'home-event-card');
+    return;
+  }
+  if(jenis==='note_bukti'){
+    var ht2=document.getElementById('tab-home');
+    if(ht2)switchTab('home',ht2); else switchTab('home');
+    loadNoteBukti(); // panel ini tidak otomatis termuat saat buka Home
+    _cekHighlightWhenReady('[data-bukti-row="'+row+'"]','note-bukti-list');
+    return;
+  }
+}
+// Tunggu elemen sumber muncul (data async), lalu scroll + sorot. Jika tak ketemu, sorot kartu fallback.
+function _cekHighlightWhenReady(selector,fallbackId){
+  var tries=0;
+  var iv=setInterval(function(){
+    tries++;
+    var el=selector?document.querySelector(selector):null;
+    if(el){ clearInterval(iv); _cekScrollFlash(el); }
+    else if(tries>20){
+      clearInterval(iv);
+      var fb=fallbackId?document.getElementById(fallbackId):null;
+      if(fb){ _cekScrollFlash(fb); showToast('Foto ditampilkan di kartu sumbernya','' ); }
+    }
+  },150);
+}
+function _cekScrollFlash(el){
+  try{ el.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){ try{el.scrollIntoView();}catch(e2){} }
+  el.classList.remove('src-highlight');
+  void el.offsetWidth; // reset animasi
+  el.classList.add('src-highlight');
+  setTimeout(function(){ el.classList.remove('src-highlight'); },2600);
 }
 // Tunggu data ter-load (maks ~5 detik), lalu jalankan aksi. Boleh memicu loader.
 function _cekAfterLoad(ready, action, trigger){
@@ -1963,6 +2012,11 @@ function updateCekCount(){
   var belum=_cekData.filter(function(x){return !x.dicek;}).length;
   var sub=document.getElementById('cek-sub');
   if(sub)sub.textContent=belum+' belum dicek · '+_cekData.length+' total berfoto';
+  var bdg=document.getElementById('cek-badge');
+  if(bdg){
+    if(belum>0){bdg.textContent=belum>99?'99+':belum;bdg.classList.add('show','pulse');}
+    else{bdg.classList.remove('show','pulse');}
+  }
 }
 // ── ADMIN: peta posisi manager relatif terhadap toko ──
 var _mgrMap=null,_mgrManagerMarker=null,_mgrAccCircle=null,_mgrLink=null;
@@ -5122,15 +5176,20 @@ function loadHomeEvent(){
       sorted.forEach(function(r){
         var tgl=r[1]?new Date(r[1]):null;
         var tglTxt=tgl&&!isNaN(tgl)?tgl.getDate()+'/'+String(tgl.getMonth()+1).padStart(2,'0'):'—';
+        var ymd=tgl&&!isNaN(tgl)?(tgl.getFullYear()+'-'+String(tgl.getMonth()+1).padStart(2,'0')+'-'+String(tgl.getDate()).padStart(2,'0')):'';
+        var kode=String(r[2]||'').toUpperCase();
         var namaEv=r[3]||r[2]||'—';
         var status=String(r[6]||'').trim();
         var ok=status==='✓';
         var catatan=r[7]||r[8]||'';
-        html+='<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:8px;background:'+(ok?'rgba(22,163,74,.05)':'rgba(220,38,38,.05)')+';border:1px solid '+(ok?'rgba(22,163,74,.15)':'rgba(220,38,38,.12)')+';margin-bottom:5px">'
+        var foto=r[9]||'';
+        var fotoHtml=foto?('<div style="margin-top:6px"><a href="'+escH(foto)+'" target="_blank" style="display:inline-block"><img src="'+escH(kmFotoImgUrl(foto))+'" alt="foto bukti" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"></a></div>'):'';
+        html+='<div data-ev-key="'+escH(kode+'|'+ymd)+'" style="display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:8px;background:'+(ok?'rgba(22,163,74,.05)':'rgba(220,38,38,.05)')+';border:1px solid '+(ok?'rgba(22,163,74,.15)':'rgba(220,38,38,.12)')+';margin-bottom:5px">'
           +'<div style="font-family:var(--mono);font-size:11px;color:var(--muted);min-width:40px;padding-top:1px">'+tglTxt+'</div>'
           +'<div style="flex:1;min-width:0">'
           +'<div style="font-size:12px;font-weight:600;color:var(--text)">'+escH(namaEv)+'</div>'
           +(catatan?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+escH(String(catatan).slice(0,60))+'</div>':'')
+          +fotoHtml
           +'</div>'
           +'<div style="font-size:13px;font-weight:700;color:'+(ok?'var(--green)':'var(--red)')+'">'+status+'</div>'
           +'</div>';
