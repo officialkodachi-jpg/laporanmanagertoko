@@ -201,6 +201,9 @@ body.role-admin .admin-only{display:inline-flex}
 /* Sorotan kartu sumber saat dibuka dari panel cek */
 @keyframes srcFlash{0%{box-shadow:0 0 0 0 rgba(37,99,235,.0);background:transparent}15%{box-shadow:0 0 0 3px rgba(37,99,235,.45);background:rgba(37,99,235,.08)}100%{box-shadow:0 0 0 0 rgba(37,99,235,0);background:transparent}}
 .src-highlight{animation:srcFlash 2.4s ease;border-radius:12px}
+/* Dot notifikasi "perlu dicek" di kartu sumber Non-Harian */
+.event-card{position:relative}
+.event-card.ev-has-cek::after{content:'';position:absolute;top:8px;right:24px;width:9px;height:9px;border-radius:50%;background:var(--red);animation:badgePulse 1.4s infinite}
 .tabs-line{height:1px;background:var(--border);margin-bottom:20px}
 .content{max-width:680px;margin:0 auto;padding:0 20px 60px}
 .panel{display:none}.panel.active{display:block}
@@ -563,7 +566,7 @@ body.role-admin #admin-mgrlog{display:none!important}
     <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
       <span style="font-size:18px">📸</span>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px">Pekerjaan berfoto — perlu dicek<span class="cek-count-badge" id="cek-badge">0</span></div>
+        <div style="font-size:13px;font-weight:800;color:var(--text)">Pekerjaan berfoto — perlu dicek</div>
         <div style="font-size:10px;color:var(--hint)" id="cek-sub">Memuat…</div>
       </div>
       <button id="cek-toggle" onclick="cekToggleMode()" style="font-size:10px;padding:5px 9px;border:1px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;color:var(--muted)">Lihat semua</button>
@@ -2012,11 +2015,59 @@ function updateCekCount(){
   var belum=_cekData.filter(function(x){return !x.dicek;}).length;
   var sub=document.getElementById('cek-sub');
   if(sub)sub.textContent=belum+' belum dicek · '+_cekData.length+' total berfoto';
-  var bdg=document.getElementById('cek-badge');
-  if(bdg){
-    if(belum>0){bdg.textContent=belum>99?'99+':belum;bdg.classList.add('show','pulse');}
-    else{bdg.classList.remove('show','pulse');}
-  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  STATUS "SUDAH DICEK" TERPUSAT — dibaca Admin & Manager
+//  Sumber: sheet "Cek Admin" (lewat ?type=cek_list). Record di
+//  spreadsheet TIDAK pernah dihapus; foto hanya disembunyikan dari
+//  tampilan setelah dicek, lalu muncul tanda "✓ sudah dicek".
+// ════════════════════════════════════════════════════════════
+var _cekKeys={};          // {"jenis#row": "waktu · oleh"}  → hanya yang SUDAH dicek
+function cekKeysLoad(cb){
+  var url=scriptUrl;if(!url||!url.startsWith('http')){if(cb)cb();return;}
+  fetch(url+'?type=cek_list&_='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    var map={};
+    (d.items||[]).forEach(function(it){ if(it.dicek) map[it.kunci]=it.cekInfo||'sudah dicek'; });
+    _cekKeys=map; if(cb)cb();
+  }).catch(function(){ if(cb)cb(); });
+}
+function isCekDone(jenis,row){ return _cekKeys[jenis+'#'+row]!==undefined; }
+function cekInfoOf(jenis,row){ return _cekKeys[jenis+'#'+row]||''; }
+// Tanda "✓ sudah dicek" yang dilihat Admin & Manager
+function cekMarkHTML(jenis,row){
+  if(!isCekDone(jenis,row))return'';
+  var info=escH(cekInfoOf(jenis,row));
+  return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px">✓ sudah dicek admin'+(info?' · '+info:'')+'</span>';
+}
+// Tombol aksi cek di kartu sumber (hanya admin)
+function cekActionBtnHTML(jenis,row){
+  if(userRole!=='admin')return'';
+  var kunci=jenis+'#'+row;
+  if(isCekDone(jenis,row))
+    return '<button onclick="event.stopPropagation();cekSrcToggle(\''+escH(kunci)+'\',false)" style="font-size:11px;padding:6px 10px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">↩ Batal cek</button>';
+  return '<button onclick="event.stopPropagation();cekSrcToggle(\''+escH(kunci)+'\',true)" style="font-size:11px;padding:6px 10px;border:none;background:var(--green);color:#fff;border-radius:7px;cursor:pointer;font-weight:700">✓ Tandai sudah dicek</button>';
+}
+// Tandai/batal dari kartu SUMBER (bukan dari panel pusat). Lalu segarkan semua tampilan.
+function cekSrcToggle(kunci,done){
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  if(done) _cekKeys[kunci]='baru saja'; else delete _cekKeys[kunci];
+  var type=done?'cek_done':'cek_undo';
+  var body=done?{type:type,kunci:kunci,oleh:userEmail||''}:{type:type,kunci:kunci};
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(body)})
+    .then(function(){ logActivity(done?'Tandai pekerjaan dicek':'Batal cek',kunci); setTimeout(cekRefreshAll,1200); })
+    .catch(function(){ showToast('Gagal simpan','err'); });
+  cekRefreshAll();
+}
+// Segarkan semua tampilan yang menampilkan foto + tanda dicek
+function cekRefreshAll(){
+  cekKeysLoad(function(){
+    if(typeof annotateEventCards==='function')annotateEventCards();
+    if(typeof loadHomeEvent==='function'&&userRole==='admin')loadHomeEvent();
+    if(typeof kmRender==='function'&&typeof kmData!=='undefined'&&kmData.length)kmRender();
+    if(typeof loadNoteBukti==='function'&&userRole==='admin')loadNoteBukti();
+    if(userRole==='admin'&&typeof cekLoad==='function')cekLoad();
+  });
 }
 // ── ADMIN: peta posisi manager relatif terhadap toko ──
 var _mgrMap=null,_mgrManagerMarker=null,_mgrAccCircle=null,_mgrLink=null;
@@ -2634,8 +2685,16 @@ function loadNoteBukti(){
   fetch(url+'?type=note_bukti&limit=30&_='+Date.now()).then(function(r){return r.json();}).then(function(d){
     var rows=(d&&d.rows)||[];
     if(!rows.length){if(box)box.innerHTML='<div style="font-size:11px;color:var(--hint);padding:6px 2px">Belum ada bukti dari Manager</div>';return;}
+    cekKeysLoad(function(){
     var html='';
     rows.forEach(function(r){
+      var done=isCekDone('note_bukti',r.row);
+      var fotoBlok = r.foto
+        ? (done?'':'<a href="'+escH(r.foto)+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:12px;color:var(--accent);text-decoration:none">📷 Lihat foto bukti</a>')
+        : '<div style="font-size:11px;color:var(--hint);margin-top:6px">tanpa foto</div>';
+      var cekBlok = r.foto
+        ? '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+(done?cekMarkHTML('note_bukti',r.row):'<span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek</span>')+cekActionBtnHTML('note_bukti',r.row)+'</div>'
+        : '';
       html+='<div data-bukti-row="'+r.row+'" style="border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--card2)">'
         +'<div style="display:flex;align-items:flex-start;gap:8px">'
         +'<div style="flex:1;min-width:0;font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap"><b>Note:</b> '+escH(r.teks||'-')+'</div>'
@@ -2643,10 +2702,11 @@ function loadNoteBukti(){
         +'</div>'
         +(r.catatan?'<div style="font-size:11px;color:var(--muted);margin-top:4px"><b>Catatan:</b> '+escH(r.catatan)+'</div>':'')
         +'<div style="font-size:10px;color:var(--hint);font-family:var(--mono);margin-top:5px">'+escH(String(r.waktu||''))+(r.oleh?(' · '+escH(r.oleh)):'')+'</div>'
-        +(r.foto?'<a href="'+escH(r.foto)+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:12px;color:var(--accent);text-decoration:none">📷 Lihat foto bukti</a>':'<div style="font-size:11px;color:var(--hint);margin-top:6px">tanpa foto</div>')
+        +fotoBlok+cekBlok
         +'</div>';
     });
     if(box)box.innerHTML=html;
+    });
   }).catch(function(){if(box)box.innerHTML='<div style="font-size:11px;color:var(--red);padding:6px 2px">Gagal memuat</div>';});
 }
 function noteBuktiDelete(row){
@@ -2796,7 +2856,7 @@ function kmLoad(){
   var list=document.getElementById('km-list');
   list.innerHTML='<div class="empty"><span class="spinner"></span> Memuat...</div>';
   fetch(url+'?type=kiriman&_='+Date.now()).then(function(r){return r.json();})
-    .then(function(d){kmData=(d&&d.rows)?d.rows:[];_kmLoadedOnce=true;kmRender();})
+    .then(function(d){kmData=(d&&d.rows)?d.rows:[];_kmLoadedOnce=true;cekKeysLoad(function(){kmRender();});})
     .catch(function(){list.innerHTML='<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Gagal memuat</div></div>';});
 }
 function kmIsSampai(r){return (r&&(r.status==='Sampai'||r.status==='Sampai+SS'));}
@@ -2833,6 +2893,16 @@ function kmRender(){
     fotos+=r.foto?'<a class="km-foto-link" href="'+escH(r.foto)+'" target="_blank" onclick="event.stopPropagation()">📷 Foto nota</a>':'<span style="font-size:12px;color:var(--hint)">tanpa nota</span>';
     fotos+='</div>';
     var note=(s.cls==='masalah'&&r.catatan)?'<div class="km-note">⚠ '+escH(r.catatan)+'</div>':'';
+    // Strip status cek admin (foto perlu dicek → sembunyi setelah dicek, ganti tanda ✓)
+    var cekStrip='';
+    var punyaFoto=!!(r.foto||r.fotoResi||r.fotoSurat||r.fotoSS);
+    if(punyaFoto){
+      if(isCekDone('kiriman',r.row)){
+        cekStrip='<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+cekMarkHTML('kiriman',r.row)+cekActionBtnHTML('kiriman',r.row)+'</div>';
+      }else{
+        cekStrip='<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek admin</span>'+cekActionBtnHTML('kiriman',r.row)+'</div>';
+      }
+    }
     var actions='';
     if(!kmIsSampai(r)){
       actions='<div class="km-actions">'
@@ -2841,10 +2911,11 @@ function kmRender(){
         +'<button class="km-act-btn no" onclick="event.stopPropagation();kmMark('+r.row+',\'Tidak\')">✗ Tak sesuai</button>'
         +'</div>';
     }
+    var fotosVisible=isCekDone('kiriman',r.row)?'':fotos; // foto hilang dari tampilan setelah dicek (record tetap di sheet)
     return '<div class="km-card '+s.cls+'" onclick="kmOpenDetail('+r.row+')">'
       +'<div class="km-card-top"><span class="km-resi">'+hdrTxt+'</span><span class="km-badge '+s.cls+'">'+s.badge+'</span></div>'
       +'<div class="km-isi">Isi: '+escH(r.isi||'-')+'</div>'
-      +fotos+note+actions
+      +fotosVisible+cekStrip+note+actions
       +'</div>';
   }).join('');
 }
@@ -2999,6 +3070,7 @@ function switchTab(name,btn){
   if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
   if(name==='laporan'&&userRole==='admin')loadLog();
   if(name==='harian'){fixD01SwipeHeight();if(scriptUrl)loadStreakHarian();}
+  if(name==='event'){annotateEventCards();}
   var tabNama={home:'Home',harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link'};
   logActivity('Buka tab',tabNama[name]||name);
 }
@@ -3786,7 +3858,7 @@ function pgLoadCatatan(){
   list.innerHTML='<div class="empty"><span class="spinner"></span> Memuat...</div>';
   fetch(url+'?type=pegawai&nama='+encodeURIComponent(pgActive)+'&email='+encodeURIComponent(userEmail||'')+'&_='+Date.now())
     .then(function(r){return r.json();})
-    .then(function(d){pgData=(d&&d.rows)?d.rows:[];pgRenderList();})
+    .then(function(d){pgData=(d&&d.rows)?d.rows:[];cekKeysLoad(function(){pgRenderList();});})
     .catch(function(){list.innerHTML='<div class="empty"><div class="empty-text">Gagal memuat</div></div>';});
 }
 function pgStatusCls(s){return String(s).toLowerCase().indexOf('sudah')>=0?'sampai':'masalah';}
@@ -3802,12 +3874,19 @@ function pgRenderList(){
     var cls=pgStatusCls(r.status);
     var p=(r.tgl||'').split('-');var tglTxt=p.length===3?(parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1]):r.tgl;
     var fotoList=r.foto?String(r.foto).split('\n').filter(function(x){return x.trim();}):[];
-    var foto=fotoList.length?('🖼 '+fotoList.length+' foto'):'tanpa foto';
+    var ftList=r.fotoTindakan?String(r.fotoTindakan).split('\n').filter(function(x){return x.trim();}):[];
+    var adaFoto=fotoList.length||ftList.length;
+    var done=isCekDone('pelanggaran',r.row);
+    var foto=adaFoto?(done?'foto disembunyikan (sudah dicek)':('🖼 '+(fotoList.length+ftList.length)+' foto')):'tanpa foto';
     var olehTxt=r.oleh?(' · ✍ '+escH(pgOlehLabel(r.oleh))):'';
+    var cekBlok = adaFoto
+      ? '<div style="margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()">'+(done?cekMarkHTML('pelanggaran',r.row):'<span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek</span>')+cekActionBtnHTML('pelanggaran',r.row)+'</div>'
+      : '';
     return '<div class="km-card '+cls+'" onclick="pgOpenDetail('+r.row+')">'
       +'<div class="km-card-top"><span class="km-resi">'+escH(r.jenis||'-')+'</span><span class="km-badge '+cls+'">'+escH(r.status)+'</span></div>'
       +'<div class="km-meta">📅 '+tglTxt+' · '+foto+olehTxt+'</div>'
       +'<div class="km-isi">'+escH(r.keterangan||'-')+'</div>'
+      +cekBlok
       +'</div>';
   }).join('');
 }
@@ -3944,8 +4023,49 @@ async function saveHarian(){
 
 // ════ EVENTS ════
 var EV_ICONS={E01:'📥',E02:'💵',E03:'📊',E04:'⚠️',E05:'🚚',E06:'⚡',E07:'🔄',E08:'🎓',E09:'📢'};
-function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHTML='';EVENTS.forEach(ev=>{var el=document.createElement('div');var priCls='pri-'+ev.prioritas.toLowerCase();el.className='event-card '+priCls;el.id='ev-'+ev.kode;el.innerHTML='<div class="ev-icon">'+(EV_ICONS[ev.kode]||'📌')+'</div><div class="ev-body"><div class="event-nama">'+ev.nama+'</div><div class="event-meta">'+ev.kode+' · '+ev.frekuensi+' · <b>'+ev.prioritas+'</b></div></div><div class="ev-arrow">›</div>';el.onclick=()=>selectEvent(ev);g.appendChild(el);});}
-function selectEvent(ev){selectedEvent=ev;selectedStatus=null;eventFotoBase64='';document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));document.getElementById('ev-'+ev.kode).classList.add('selected');document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';document.getElementById('event-note').value='';var fw=document.getElementById('event-foto-wrap');if(fw)fw.style.display='none';var fp=document.getElementById('event-foto-prev');if(fp)fp.innerHTML='';var fi=document.getElementById('event-foto');if(fi)fi.value='';document.getElementById('event-detail').style.display='block';document.getElementById('event-detail').scrollIntoView({behavior:'smooth',block:'nearest'});}
+function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHTML='';EVENTS.forEach(ev=>{var el=document.createElement('div');var priCls='pri-'+ev.prioritas.toLowerCase();el.className='event-card '+priCls;el.id='ev-'+ev.kode;el.innerHTML='<div class="ev-icon">'+(EV_ICONS[ev.kode]||'📌')+'</div><div class="ev-body"><div class="event-nama">'+ev.nama+'</div><div class="event-meta">'+ev.kode+' · '+ev.frekuensi+' · <b>'+ev.prioritas+'</b></div></div><div class="ev-arrow">›</div>';el.onclick=()=>selectEvent(ev);g.appendChild(el);});annotateEventCards();}
+// Tampilkan foto bukti + tanda "sudah dicek" + dot notifikasi di tiap kartu Non-Harian (sumber pekerjaan).
+// Sumber data: ?type=cek_list (berisi item berfoto + status dicek). Bisa dibaca admin & manager.
+function annotateEventCards(){
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  fetch(url+'?type=cek_list&_='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    var allItems=d.items||[];
+    // segarkan peta status dicek terpusat
+    var km={}; allItems.forEach(function(it){ if(it.dicek) km[it.kunci]=it.cekInfo||'sudah dicek'; }); _cekKeys=km;
+    var byKode={};
+    allItems.filter(function(x){return x.jenis==='nonharian';}).forEach(function(it){
+      var m=String(it.judul||'').match(/E\d{2}/i); if(!m)return; var kode=m[0].toUpperCase();
+      var cur=byKode[kode];
+      if(!cur){byKode[kode]=it;return;}
+      if(cur.dicek&&!it.dicek)byKode[kode]=it;                                   // utamakan yang belum dicek
+      else if(cur.dicek===it.dicek && String(it.tgl||'')>String(cur.tgl||''))byKode[kode]=it; // lalu yang terbaru
+    });
+    EVENTS.forEach(function(ev){
+      var card=document.getElementById('ev-'+ev.kode); if(!card)return;
+      var body=card.querySelector('.ev-body'); if(!body)return;
+      var old=body.querySelector('.ev-cek-strip'); if(old)old.remove();
+      card.classList.remove('ev-has-cek');
+      var it=byKode[ev.kode]; if(!it)return;
+      var strip=document.createElement('div'); strip.className='ev-cek-strip';
+      strip.style.cssText='margin-top:7px;display:flex;align-items:center;gap:7px;flex-wrap:wrap';
+      var html='';
+      if(it.dicek){
+        html+=cekMarkHTML('nonharian',it.row);
+        html+=cekActionBtnHTML('nonharian',it.row); // admin bisa batal cek
+      }else{
+        (it.fotos||[]).slice(0,3).forEach(function(u){
+          html+='<a href="'+escH(u)+'" target="_blank" onclick="event.stopPropagation()" style="display:inline-block"><img src="'+escH(kmFotoImgUrl(u))+'" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"></a>';
+        });
+        html+='<span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek</span>';
+        html+=cekActionBtnHTML('nonharian',it.row);
+        card.classList.add('ev-has-cek');
+      }
+      strip.innerHTML=html;
+      body.appendChild(strip);
+    });
+  }).catch(function(){});
+}
+function selectEvent(ev){selectedEvent=ev;selectedStatus=null;eventFotoBase64='';document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));var card=document.getElementById('ev-'+ev.kode);card.classList.add('selected');document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';document.getElementById('event-note').value='';var fw=document.getElementById('event-foto-wrap');if(fw)fw.style.display='none';var fp=document.getElementById('event-foto-prev');if(fp)fp.innerHTML='';var fi=document.getElementById('event-foto');if(fi)fi.value='';var det=document.getElementById('event-detail');det.style.display='block';card.insertAdjacentElement('afterend',det);/* pindahkan form ke BAWAH kartu yang ditekan (upload per-kartu) */det.scrollIntoView({behavior:'smooth',block:'nearest'});}
 function setStatus(s){
   selectedStatus=s;
   document.getElementById('sbtn-ok').className='status-btn'+(s==='✓'?' sel-ok':'');
@@ -3974,7 +4094,7 @@ async function saveEvent(){
   var ok=false;
   try{await fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});ok=true;}
   catch(err1){try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)});var d=await r.json();ok=(d.status==='ok');if(!ok)showToast('Gagal: '+(d.message||'error'),'err');}catch(err2){showToast('Gagal terhubung ke server','err');}}
-  if(ok){showToast('✓ Non-Harian tercatat!','ok');logActivity('Catat Non-Harian',(selectedEvent?selectedEvent.nama:'')+' — '+selectedStatus);document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;eventFotoBase64='';document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));setTimeout(checkEventBadge,2500);}
+  if(ok){showToast('✓ Non-Harian tercatat!','ok');logActivity('Catat Non-Harian',(selectedEvent?selectedEvent.nama:'')+' — '+selectedStatus);document.getElementById('event-detail').style.display='none';selectedEvent=null;selectedStatus=null;eventFotoBase64='';document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));setTimeout(checkEventBadge,2500);setTimeout(annotateEventCards,2600);}
   if(btn){btn.disabled=false;btn.textContent='Catat →';}
 }
 
