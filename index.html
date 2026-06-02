@@ -1861,6 +1861,18 @@ function cekLoad(){
 function _cekJenisLabel(j){
   return ({nonharian:'📋 Non-Harian',kiriman:'📦 Kiriman',pelanggaran:'⚠️ Pelanggaran',note_bukti:'📝 Bukti Note'})[j]||j;
 }
+// Lengkapi judul non-harian: ubah "Non-Harian: E05" → "Non-Harian: E05 — <nama tugas>"
+function _cekJudul(it){
+  var j=it.judul||'';
+  if(it.jenis==='nonharian'){
+    var m=j.match(/E\d{2}/i);
+    if(m){
+      var def=(typeof EVENTS!=='undefined')?EVENTS.find(function(e){return e.kode===m[0].toUpperCase();}):null;
+      if(def) return 'Non-Harian: '+m[0].toUpperCase()+' — '+def.nama;
+    }
+  }
+  return j;
+}
 function cekRender(){
   var box=document.getElementById('cek-list');if(!box)return;
   var list=_cekShowAll?_cekData:_cekData.filter(function(x){return !x.dicek;});
@@ -1875,11 +1887,11 @@ function cekRender(){
         +'<span style="font-size:10px;color:var(--hint)">'+escH(it.tgl)+'</span>'
         +(it.dicek?'<span style="margin-left:auto;font-size:10px;color:var(--green)">✓ dicek '+escH(it.cekInfo)+'</span>':'')
       +'</div>'
-      +'<div style="font-size:12px;font-weight:600;color:var(--text)">'+escH(it.judul)+'</div>'
+      +'<div style="font-size:12px;font-weight:600;color:var(--text)">'+escH(_cekJudul(it))+'</div>'
       +(it.detail?'<div style="font-size:11px;color:var(--muted);margin:2px 0 6px">'+escH(it.detail)+'</div>':'<div style="height:6px"></div>')
       +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+thumbs+'</div>'
       +'<div style="display:flex;gap:6px">'
-        +'<button onclick="cekGoto(\''+it.tab+'\')" style="flex:1;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">🔗 Buka sumber</button>'
+        +'<button onclick="cekGoto(\''+it.jenis+'\','+it.row+')" style="flex:1;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">🔗 Buka sumber</button>'
         +(it.dicek
           ?'<button onclick="cekUndo(\''+escH(it.kunci)+'\')" style="flex:1;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">↩ Batal cek</button>'
           :'<button onclick="cekDone(\''+escH(it.kunci)+'\')" style="flex:1;font-size:11px;padding:6px;border:none;background:var(--green);color:#fff;border-radius:7px;cursor:pointer;font-weight:700">✓ Sudah dicek</button>')
@@ -1888,7 +1900,44 @@ function cekRender(){
   });
   box.innerHTML=html;
 }
-function cekGoto(tab){
+function cekGoto(jenis,row){
+  // Buka sumber spesifik per jenis: pindah tab, muat data, lalu buka detail item itu.
+  if(jenis==='kiriman'){
+    var btn=document.querySelector(".tab[onclick*=\"switchTab('gudang'\"]");
+    if(btn)switchTab('gudang',btn);
+    var gb=document.getElementById('gtab-monitor'); // pastikan sub-view yg memuat kiriman aktif bila perlu
+    _cekAfterLoad(function(){return (typeof kmData!=='undefined'&&kmFindRow(row));}, function(){kmOpenDetail(row);}, function(){if(typeof kmLoad==='function')kmLoad();});
+    return;
+  }
+  if(jenis==='pelanggaran'){
+    var b2=document.querySelector(".tab[onclick*=\"switchTab('kepegawaian'\"]");
+    if(b2)switchTab('kepegawaian',b2);
+    // cari nama item dari data panel
+    var it=_cekData.find(function(x){return x.jenis==='pelanggaran'&&x.row===row;});
+    var nm=it&&it.nama?it.nama:'';
+    if(nm){
+      // pilih nama (tombol subtab-nya kalau ada), lalu buka detail saat data siap
+      var sbtn=Array.prototype.slice.call(document.querySelectorAll('.subtab')).find(function(b){return b.textContent.replace(/\d+$/,'').trim()===nm;});
+      try{ pgSelect(nm, sbtn||null); }catch(e){}
+    }
+    _cekAfterLoad(function(){return (typeof pgData!=='undefined'&&pgFindRow(row));}, function(){pgOpenDetail(row);}, function(){});
+    return;
+  }
+  if(jenis==='nonharian'){ switchTab('home'); showToast('Lihat catatan Non-Harian di tab Home','' ); return; }
+  if(jenis==='note_bukti'){ switchTab('home'); showToast('Lihat bukti note di Home','' ); return; }
+}
+// Tunggu data ter-load (maks ~5 detik), lalu jalankan aksi. Boleh memicu loader.
+function _cekAfterLoad(ready, action, trigger){
+  if(ready()){ action(); return; }
+  if(trigger)trigger();
+  var tries=0;
+  var iv=setInterval(function(){
+    tries++;
+    if(ready()){ clearInterval(iv); action(); }
+    else if(tries>25){ clearInterval(iv); showToast('Data sumber belum termuat, coba buka tab-nya manual','err'); }
+  },200);
+}
+function cekGotoTab(tab){ // fallback lama (tak dipakai langsung)
   if(tab==='nonharian'||tab==='home'){switchTab('home');return;}
   var btn=document.querySelector(".tab[onclick*=\"switchTab('"+tab+"'\"]");
   if(btn)switchTab(tab,btn);
@@ -2661,7 +2710,7 @@ function kmSave(){
   var btn=document.getElementById('km-save-btn');btn.disabled=true;
   var adaFoto=!!_kmFotoBase64,adaResi=!!_kmResiBase64,adaSurat=!!_kmSuratBase64;
   btn.innerHTML='<span class="spinner"></span>'+((adaFoto||adaResi||adaSurat)?'Mengirim + upload foto...':'Mengirim...');
-  var payload={type:'kiriman_add',tglKirim:tgl,jasa:jasa,resi:'',isi:isi,foto:_kmFotoBase64||'',fotoResi:_kmResiBase64||'',fotoSurat:_kmSuratBase64||''};
+  var payload={type:'kiriman_add',tglKirim:tgl,jasa:jasa,resi:'',isi:isi,foto:_kmFotoBase64||'',fotoResi:_kmResiBase64||'',fotoSurat:_kmSuratBase64||'',oleh:userRole,olehEmail:userEmail||''};
   function resetForm(){
     document.getElementById('km-isi').value='';
     document.getElementById('km-foto').value='';_kmFotoBase64='';document.getElementById('km-foto-prev').innerHTML='';
@@ -3867,7 +3916,7 @@ async function saveEvent(){
   if(selectedStatus==='✓'&&userRole==='manager'&&!eventFotoBase64){showToast('Upload foto bukti dari kamera dulu','err');return;}
   var btn=document.getElementById('event-send-btn');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>'+(eventFotoBase64?'Mengirim + foto...':'Menyimpan...');}
-  var payload={type:'event',tanggal:todayValue,kode:selectedEvent.kode,nama:selectedEvent.nama,kategori:selectedEvent.kategori,frekuensi:selectedEvent.frekuensi,prioritas:selectedEvent.prioritas,status:selectedStatus,catatan:document.getElementById('event-note').value||'',foto:eventFotoBase64||''};
+  var payload={type:'event',tanggal:todayValue,kode:selectedEvent.kode,nama:selectedEvent.nama,kategori:selectedEvent.kategori,frekuensi:selectedEvent.frekuensi,prioritas:selectedEvent.prioritas,status:selectedStatus,catatan:document.getElementById('event-note').value||'',foto:eventFotoBase64||'',oleh:userRole,olehEmail:userEmail||''};
   var ok=false;
   try{await fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});ok=true;}
   catch(err1){try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)});var d=await r.json();ok=(d.status==='ok');if(!ok)showToast('Gagal: '+(d.message||'error'),'err');}catch(err2){showToast('Gagal terhubung ke server','err');}}
