@@ -2062,6 +2062,7 @@ function cekActionBtnHTML(jenis,row){
 // Tangani 'click' DAN 'pointerup' (sebagian WebView tidak mem-fire click pada
 // <button> yang baru di-appendChild bila ada handler parent). Guard anti double-fire.
 var _cekLastFire=0;
+var _cekLastKey='';   // kunci terakhir yang ditandai/dibatalkan → diprioritaskan saat render
 function _cekDelegateHandler(e){
   var t=e.target;
   var btn=(t&&t.closest)?t.closest('.cek-act-btn'):null;
@@ -2081,6 +2082,7 @@ document.addEventListener('pointerup',_cekDelegateHandler,true);
 // lalu re-render ringan dari cache — TANPA fetch berat berulang.
 function cekSrcToggle(kunci,done){
   var url=scriptUrl;if(!url||!url.startsWith('http')){showToast('URL belum diatur','err');return;}
+  _cekLastKey=kunci;
   if(done) _cekKeys[kunci]=true; else delete _cekKeys[kunci];
   // sinkronkan flag di cache item & data panel pusat
   _cekItems.forEach(function(it){ if(it.kunci===kunci) it.dicek=done; });
@@ -4083,8 +4085,11 @@ function _annotateEventCardsRender(allItems){
       var m=String(it.judul||'').match(/E\d{2}/i); if(!m)return; var kode=m[0].toUpperCase();
       var cur=byKode[kode];
       if(!cur){byKode[kode]=it;return;}
-      if(cur.dicek&&!it.dicek)byKode[kode]=it;                                   // utamakan yang belum dicek
-      else if(cur.dicek===it.dicek && String(it.tgl||'')>String(cur.tgl||''))byKode[kode]=it; // lalu yang terbaru
+      // item yang BARU SAJA ditandai/dibatalkan selalu menang → feedback instan
+      if(it.kunci===_cekLastKey){byKode[kode]=it;return;}
+      if(cur.kunci===_cekLastKey)return;
+      // selain itu, tampilkan entri TERBARU per tugas
+      if(String(it.tgl||'')>=String(cur.tgl||''))byKode[kode]=it;
     });
     EVENTS.forEach(function(ev){
       var card=document.getElementById('ev-'+ev.kode); if(!card)return;
