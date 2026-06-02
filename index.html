@@ -547,6 +547,20 @@ body.role-admin #admin-mgrlog{display:none!important}
   <div class="loc-timer" id="loc-timer">0:00</div>
 </div></div>
 
+<div id="cek-panel" style="display:none;max-width:680px;margin:0 auto 14px;padding:0 20px">
+  <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
+    <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
+      <span style="font-size:18px">📸</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:800;color:var(--text)">Pekerjaan berfoto — perlu dicek</div>
+        <div style="font-size:10px;color:var(--hint)" id="cek-sub">Memuat…</div>
+      </div>
+      <button id="cek-toggle" onclick="cekToggleMode()" style="font-size:10px;padding:5px 9px;border:1px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;color:var(--muted)">Lihat semua</button>
+    </div>
+    <div id="cek-list" style="padding:10px 12px;max-height:420px;overflow-y:auto"></div>
+  </div>
+</div>
+
 <div id="mgr-map-card" style="display:none;max-width:680px;margin:0 auto 14px;padding:0 20px">
   <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
     <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
@@ -1827,6 +1841,79 @@ function renderManagerLoc(d){
   tm.className='loc-timer'+(p>=100?' done':p>=50?' warn':'');
   var f=document.getElementById('time-bar-fill');if(f){f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');}
   document.getElementById('time-bar-left').textContent=h+' jam '+m+' menit (Manager)';
+}
+// ── ADMIN: panel pekerjaan berfoto yang perlu dicek ──
+var _cekData=[], _cekShowAll=false;
+function cekToggleMode(){ _cekShowAll=!_cekShowAll;
+  document.getElementById('cek-toggle').textContent=_cekShowAll?'Yang belum saja':'Lihat semua';
+  cekRender();
+}
+function cekLoad(){
+  if(userRole!=='admin')return;
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  fetch(url+'?type=cek_list&_='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    _cekData=d.items||[];
+    var sub=document.getElementById('cek-sub');
+    if(sub)sub.textContent=(d.belum||0)+' belum dicek · '+(d.total||0)+' total berfoto';
+    cekRender();
+  }).catch(function(){var s=document.getElementById('cek-sub');if(s)s.textContent='Gagal memuat';});
+}
+function _cekJenisLabel(j){
+  return ({nonharian:'📋 Non-Harian',kiriman:'📦 Kiriman',pelanggaran:'⚠️ Pelanggaran',note_bukti:'📝 Bukti Note'})[j]||j;
+}
+function cekRender(){
+  var box=document.getElementById('cek-list');if(!box)return;
+  var list=_cekShowAll?_cekData:_cekData.filter(function(x){return !x.dicek;});
+  if(!list.length){box.innerHTML='<div style="text-align:center;color:var(--hint);font-size:12px;padding:18px">'+(_cekShowAll?'Belum ada pekerjaan berfoto':'✅ Semua sudah dicek')+'</div>';return;}
+  var html='';
+  list.forEach(function(it){
+    var thumbs='';
+    it.fotos.forEach(function(u){ thumbs+='<a href="'+escH(u)+'" target="_blank" style="display:inline-block"><img src="'+escH(kmFotoImgUrl(u))+'" style="width:54px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"></a>'; });
+    html+='<div style="border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;'+(it.dicek?'opacity:.55':'')+'">'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
+        +'<span style="font-size:11px;font-weight:700">'+_cekJenisLabel(it.jenis)+'</span>'
+        +'<span style="font-size:10px;color:var(--hint)">'+escH(it.tgl)+'</span>'
+        +(it.dicek?'<span style="margin-left:auto;font-size:10px;color:var(--green)">✓ dicek '+escH(it.cekInfo)+'</span>':'')
+      +'</div>'
+      +'<div style="font-size:12px;font-weight:600;color:var(--text)">'+escH(it.judul)+'</div>'
+      +(it.detail?'<div style="font-size:11px;color:var(--muted);margin:2px 0 6px">'+escH(it.detail)+'</div>':'<div style="height:6px"></div>')
+      +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+thumbs+'</div>'
+      +'<div style="display:flex;gap:6px">'
+        +'<button onclick="cekGoto(\''+it.tab+'\')" style="flex:1;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">🔗 Buka sumber</button>'
+        +(it.dicek
+          ?'<button onclick="cekUndo(\''+escH(it.kunci)+'\')" style="flex:1;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">↩ Batal cek</button>'
+          :'<button onclick="cekDone(\''+escH(it.kunci)+'\')" style="flex:1;font-size:11px;padding:6px;border:none;background:var(--green);color:#fff;border-radius:7px;cursor:pointer;font-weight:700">✓ Sudah dicek</button>')
+      +'</div>'
+    +'</div>';
+  });
+  box.innerHTML=html;
+}
+function cekGoto(tab){
+  if(tab==='nonharian'||tab==='home'){switchTab('home');return;}
+  var btn=document.querySelector(".tab[onclick*=\"switchTab('"+tab+"'\"]");
+  if(btn)switchTab(tab,btn);
+}
+function cekDone(kunci){
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  // optimistik: tandai lokal dulu
+  _cekData.forEach(function(x){if(x.kunci===kunci){x.dicek=true;x.cekInfo='baru saja';}});
+  cekRender();updateCekCount();
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'cek_done',kunci:kunci,oleh:userEmail||''})})
+    .then(function(){logActivity('Tandai pekerjaan dicek',kunci);setTimeout(cekLoad,1500);})
+    .catch(function(){showToast('Gagal simpan cek','err');});
+}
+function cekUndo(kunci){
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  _cekData.forEach(function(x){if(x.kunci===kunci){x.dicek=false;x.cekInfo='';}});
+  cekRender();updateCekCount();
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'cek_undo',kunci:kunci})})
+    .then(function(){setTimeout(cekLoad,1500);})
+    .catch(function(){showToast('Gagal batal cek','err');});
+}
+function updateCekCount(){
+  var belum=_cekData.filter(function(x){return !x.dicek;}).length;
+  var sub=document.getElementById('cek-sub');
+  if(sub)sub.textContent=belum+' belum dicek · '+_cekData.length+' total berfoto';
 }
 // ── ADMIN: peta posisi manager relatif terhadap toko ──
 var _mgrMap=null,_mgrManagerMarker=null,_mgrAccCircle=null,_mgrLink=null;
@@ -4137,6 +4224,8 @@ function applyRole(){
     var ar=document.getElementById('admin-loc-refresh');if(ar)ar.style.display='block';
     var mc=document.getElementById('mgr-map-card');if(mc)mc.style.display='block';
     setTimeout(initMgrMap,300);
+    var cp=document.getElementById('cek-panel');if(cp)cp.style.display='block';
+    cekLoad();
     var amg=document.getElementById('admin-mgrlog');if(amg)amg.style.display='block';
     loadManagerLoc();
     _adminLocTimer=setInterval(loadManagerLoc,60000);
