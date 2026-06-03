@@ -4006,6 +4006,15 @@ function setupGmapsShareSafe(){
   try{
     if(userRole==='manager'){ _autoTrack=true; acquireWakeLock(); }
   }catch(e){}
+  try{ enforceCashCameraOnly(); }catch(e){}
+}
+// Foto di tab Uang Cash: MANAGER wajib kamera (tidak boleh galeri); ADMIN bebas (boleh galeri).
+function enforceCashCameraOnly(){
+  ['cash-foto','cash-receh-foto','kbl-foto'].forEach(function(id){
+    var el=document.getElementById(id); if(!el)return;
+    if(userRole==='manager'){ el.setAttribute('capture','environment'); }
+    else { el.removeAttribute('capture'); }
+  });
 }
 function toggleNote(e,k){e.stopPropagation();var ta=document.getElementById('note-'+k);ta.style.display=ta.style.display==='none'?'block':'none';}
 function updateStats(){var done=Object.values(checked).filter(Boolean).length,tot=HARIAN.length,skip=tot-done,pct=Math.round(done/tot*100);document.getElementById('stat-done').textContent=done;document.getElementById('stat-skip').textContent=skip;document.getElementById('stat-pct').textContent=pct+'%';document.getElementById('stat-pct').style.color=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';document.getElementById('prog-pct').textContent=pct+'%';var f=document.getElementById('prog-fill');f.style.width=pct+'%';f.className='prog-fill'+(pct>=90?'':pct>=70?' mid':' low');}
