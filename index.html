@@ -1325,15 +1325,144 @@ let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locati
 var ACC_MAX = 150;                 // akurasi lebih buruk dari ini (meter) tidak dipakai ubah status
 var LEAVE_GRACE_MS = 3*60*1000;    // harus terbaca di luar selama ini baru dianggap keluar
 var _outSince = null;              // kapan pertama kali terbaca di luar toko
-// WiFi toko (tambahan, GPS tetap utama): kalau IP publik HP = IP toko, anggap hadir
-var IP_TOKO = ['']; // <-- isi IP publik toko di sini, mis: ['114.122.10.5']. Boleh lebih dari satu.
-var _diWifiToko = false;           // hasil cek terakhir: apakah HP sedang di WiFi toko
-function cekWifiToko(){
-  if(userRole!=='manager') return;
-  if(!IP_TOKO.length || !IP_TOKO[0]) return; // belum diisi → lewati
-  fetch('https://api.ipify.org?format=json').then(function(r){return r.json();}).then(function(d){
-    _diWifiToko = IP_TOKO.indexOf(String(d.ip||'').trim()) >= 0;
-  }).catch(function(){ _diWifiToko=false; });
+// ══════════════════════════════════════════════════════════════════
+//  DETEKSI "DI TOKO" — 3 LAPIS (tanpa GPS)
+//  LAPIS A: Nama WiFi (SSID) — paling andal, iPhone Safari support terbatas
+//  LAPIS B: Router beacon — ping IP router toko, aktif selama WiFi toko hidup
+//  LAPIS C: IP Publik — fallback lama, tetap dipakai kalau A & B tidak tersedia
+// ══════════════════════════════════════════════════════════════════
+
+// ── KONFIGURASI — sesuaikan dengan kondisi toko ──────────────────
+var WIFI_SSID_TOKO = 'NamaWiFiToko'; // ← tidak dipakai di iOS, boleh dikosongkan
+var LAPTOP_IP      = '192.168.1.1';  // ← IP router/modem toko (cek: CMD → ipconfig → Default Gateway)
+var LAPTOP_PORT    = 80;             // router biasanya buka port 80
+var IP_TOKO        = [''];           // ← IP publik toko (opsional, fallback terakhir)
+// ─────────────────────────────────────────────────────────────────
+
+var _diWifiToko    = false;  // hasil gabungan 3 lapis
+var _wifiMethod    = '';     // cara deteksi terakhir yang berhasil ('ssid'/'beacon'/'ip'/'')
+
+// LAPIS A: Cek SSID via Network Information API
+// Catatan: iOS Safari tidak ekspos SSID langsung — metode ini bekerja di Android & beberapa browser.
+// Di iOS akan selalu return null → otomatis fallback ke lapis B/C.
+function _cekSSID() {
+  return new Promise(function(resolve) {
+    try {
+      // Chrome Android 61+ mendukung navigator.connection (tapi bukan SSID)
+      // SSID tidak tersedia di browser standar — kita deteksi via trick WebRTC local candidate
+      // Teknik: buat RTCPeerConnection tanpa server, baca candidate IP → cocokkan subnet laptop
+      if (!window.RTCPeerConnection) { resolve(false); return; }
+      var pc = new RTCPeerConnection({ iceServers: [] });
+      var found = false;
+      pc.createDataChannel('');
+      pc.createOffer().then(function(o){ return pc.setLocalDescription(o); });
+      pc.onicecandidate = function(e) {
+        if (!e || !e.candidate || !e.candidate.candidate) {
+          if (!found) resolve(false);
+          try { pc.close(); } catch(x) {}
+          return;
+        }
+        // Ambil IP dari candidate string: "... <ip> ..."
+        var m = e.candidate.candidate.match(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g);
+        if (m) {
+          m.forEach(function(ip) {
+            // Cocokkan subnet dengan laptop — kalau 3 oktet pertama sama = 1 jaringan = toko
+            if (LAPTOP_IP && !found) {
+              var subLaptop = LAPTOP_IP.split('.').slice(0,3).join('.');
+              var subHP     = ip.split('.').slice(0,3).join('.');
+              if (subLaptop && subHP === subLaptop && ip !== '127.0.0.1') {
+                found = true;
+                resolve(true);
+                try { pc.close(); } catch(x) {}
+              }
+            }
+          });
+        }
+      };
+      // Timeout 3 detik — kalau tidak ada candidate yang cocok, anggap bukan di toko
+      setTimeout(function() { if (!found) resolve(false); try { pc.close(); } catch(x) {} }, 3000);
+    } catch(err) { resolve(false); }
+  });
+}
+
+// LAPIS B: Router beacon — fetch ke IP router/modem toko
+// Router selalu nyala selama WiFi toko hidup, tidak perlu jalankan apapun di laptop.
+// Cara cek IP router: buka CMD di laptop → ketik ipconfig → lihat Default Gateway.
+function _cekBeaconLaptop() {
+  return new Promise(function(resolve) {
+    if (!LAPTOP_IP) { resolve(false); return; }
+    var url = 'http://' + LAPTOP_IP + ':' + LAPTOP_PORT + '/';
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var tid = setTimeout(function() {
+      if (ctrl) ctrl.abort();
+      resolve(false);
+    }, 2500);
+    fetch(url, {
+      method: 'HEAD',
+      mode: 'no-cors',
+      cache: 'no-store',
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function() {
+      clearTimeout(tid);
+      resolve(true);
+    }).catch(function() {
+      clearTimeout(tid);
+      resolve(false);
+    });
+  });
+}
+
+// LAPIS C: IP Publik (cara lama — fallback)
+function _cekIPPublik() {
+  return new Promise(function(resolve) {
+    if (!IP_TOKO.length || !IP_TOKO[0]) { resolve(false); return; }
+    fetch('https://api.ipify.org?format=json', { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        resolve(IP_TOKO.indexOf(String(d.ip||'').trim()) >= 0);
+      })
+      .catch(function() { resolve(false); });
+  });
+}
+
+// Gabungkan 3 lapis — ROUTER PERTAMA, lalu lapis lain paralel
+// cb (opsional): dipanggil dengan true/false setelah deteksi selesai
+function cekWifiToko(cb) {
+  if (userRole !== 'manager') { if(cb) cb(false); return; }
+  // Router dijalankan duluan — paling cepat & andal, tidak butuh GPS
+  _cekBeaconLaptop().then(function(beacon) {
+    if (beacon) {
+      _diWifiToko = true; _wifiMethod = 'beacon';
+      _updateWifiBanner();
+      if (cb) cb(true);
+      // Tetap cek lapis lain di background (tidak blokir)
+      Promise.all([_cekSSID(), _cekIPPublik()]).catch(function(){});
+      return;
+    }
+    // Router tidak nyambung → coba lapis lain
+    Promise.all([_cekSSID(), _cekIPPublik()])
+      .then(function(res) {
+        var ssid = res[0], ip = res[1];
+        _diWifiToko = ssid || ip;
+        _wifiMethod = ssid ? 'subnet' : ip ? 'ip' : '';
+        _updateWifiBanner();
+        if (cb) cb(_diWifiToko);
+      })
+      .catch(function() { _diWifiToko = false; _wifiMethod = ''; if(cb) cb(false); });
+  }).catch(function() {
+    _diWifiToko = false; _wifiMethod = '';
+    if (cb) cb(false);
+  });
+}
+
+function _updateWifiBanner() {
+  var dd = document.getElementById('loc-detail');
+  if (dd && _diWifiToko) {
+    var cara = _wifiMethod === 'subnet' ? '📶 Jaringan lokal toko terdeteksi'
+             : _wifiMethod === 'beacon' ? '📡 Router toko terdeteksi'
+             : '🌐 IP jaringan toko cocok';
+    dd.textContent = cara + ' — dihitung hadir';
+  }
 }
 var _adminLocTimer=null,_mgrPushTimer=null;
 let _timerInterval=null,_retryTimer=null,_retryCount=0,_gpsStarted=false;
@@ -1699,6 +1828,21 @@ function startGps(){
   _gpsStarted=true;
   updateLocBanner('waiting');
 
+  // ── DETEKSI PERTAMA: router ping sebelum GPS warming up ──
+  // Langsung cek router toko — hasilnya tersedia dalam ~1 detik
+  // GPS di dalam ruangan bisa butuh 10-30 detik, router lebih cepat
+  cekWifiToko(function(hadir){
+    if(hadir && !isAtStore){
+      isAtStore=true; sessionStart=Date.now();
+      locationLog.push({type:'masuk',time:Date.now(),lat:0,lng:0,dist:0,cara:'router'});
+      saveLocData(); updateLocBanner('in');
+      logActivity('Tiba di toko','via router toko (sebelum GPS)');
+      pushManagerLoc();
+    } else if(!hadir){
+      updateLocBanner('waiting'); // GPS masih loading
+    }
+  });
+
   // 1) watchPosition sebagai primary listener
   geoWatchId = navigator.geolocation.watchPosition(onLocOk, onLocErr, GPS_OPTS_PRECISE);
 
@@ -1757,9 +1901,15 @@ function onLocOk(pos){
     } else if(isAtStore){saveLocData();updateLocBanner('in');}
     else updateLocBanner('out');
     var dd=document.getElementById('loc-detail');
-    if(dd&&userRole==='manager') dd.textContent = _diWifiToko
-      ? 'Terhubung WiFi toko — dihitung hadir'
-      : 'Sinyal GPS lemah (±'+Math.round(accuracy)+'m) — posisi diabaikan sementara';
+    if(dd&&userRole==='manager'){
+      if(_diWifiToko){
+        dd.textContent = _wifiMethod==='subnet' ? '📶 Jaringan lokal toko terdeteksi — dihitung hadir'
+                       : _wifiMethod==='beacon' ? '📡 Router toko terdeteksi — dihitung hadir'
+                       : '🌐 IP jaringan toko cocok — dihitung hadir';
+      } else {
+        dd.textContent = 'Sinyal GPS lemah (±'+Math.round(accuracy)+'m) — mendeteksi jaringan toko...';
+      }
+    }
     updateD01Card();
     return;
   }
@@ -5895,22 +6045,41 @@ function loadHomeHarian(){
   setTimeout(updateArrows, 200);
 })();
 
-// ── PWA: Service Worker Registration + Auto-Update ────────────
+// ── PWA: Service Worker Registration + Auto-Update + Background Sync ──
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').then(reg => {
       console.log('SW registered:', reg.scope);
-
-      // Cek update saat pertama load
       reg.update();
-
-      // Cek update tiap 5 menit (kalau app dibuka lama)
       setInterval(() => reg.update(), 5 * 60 * 1000);
 
-      // Ada SW baru menunggu → tampilkan banner update
-      function checkWaiting(r) {
-        if (r.waiting) showUpdateBanner(r.waiting);
+      // ── Background Sync: minta SW kirim sinyal tiap ~1 menit ──
+      // iOS PWA bisa terima pesan dari SW walau app di background (terbatas ~30 dtk per siklus)
+      // Trik: daftarkan periodic sync kalau browser support, fallback ke postMessage interval
+      if ('periodicSync' in reg) {
+        reg.periodicSync.register('loc-keepalive', { minInterval: 60 * 1000 })
+          .catch(function() {}); // permission mungkin ditolak — tidak masalah
       }
+
+      // Terima pesan dari SW → trigger cek router + push lokasi
+      navigator.serviceWorker.addEventListener('message', function(ev) {
+        if (ev.data && ev.data.type === 'bg-ping' && userRole === 'manager') {
+          // App masih hidup di background (iOS ~30 dtk window) → cek router & push
+          cekWifiToko(function(hadir) {
+            if (hadir && !isAtStore) {
+              isAtStore = true; sessionStart = sessionStart || Date.now();
+              saveLocData(); updateLocBanner('in'); pushManagerLoc(true);
+            } else if (!hadir && isAtStore) {
+              // Jangan langsung matikan — biarkan grace period GPS yang putuskan
+            } else {
+              pushManagerLoc(true);
+            }
+          });
+        }
+      });
+
+      // Ada SW baru menunggu → tampilkan banner update
+      function checkWaiting(r) { if (r.waiting) showUpdateBanner(r.waiting); }
       checkWaiting(reg);
       reg.addEventListener('updatefound', () => {
         var newSW = reg.installing;
@@ -5922,13 +6091,27 @@ if ('serviceWorker' in navigator) {
       });
     }).catch(err => console.warn('SW registration failed:', err));
 
-    // Saat SW baru aktif → reload otomatis
     var refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (!refreshing) { refreshing = true; window.location.reload(); }
     });
   });
 }
+
+// ── Keepalive agresif saat app VISIBLE: cek router tiap 30 detik ──
+// Ini backup kalau periodic sync tidak tersedia / ditolak iOS
+setInterval(function() {
+  if (userRole !== 'manager') return;
+  if (document.visibilityState !== 'visible') return;
+  cekWifiToko(function(hadir) {
+    if (hadir && !isAtStore) {
+      isAtStore = true; sessionStart = sessionStart || Date.now();
+      saveLocData(); updateLocBanner('in');
+      logActivity('Tiba di toko', 'via router (keepalive)');
+      pushManagerLoc(true);
+    }
+  });
+}, 30 * 1000);
 
 function showUpdateBanner(swWaiting) {
   if (document.getElementById('pwa-update-banner')) return;
