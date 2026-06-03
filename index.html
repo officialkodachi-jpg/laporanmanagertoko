@@ -1409,10 +1409,15 @@ let _alarmInterval=null;
 let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locationLog=[],lastPos=null;
 // Anti GPS-ngaco: abaikan fix berakurasi buruk, beri toleransi & grace period saat keluar
 var ACC_MAX = 150;                 // akurasi lebih buruk dari ini (meter) tidak dipakai ubah status
+var ACC_GOOD = 40;                 // fix dianggap sangat akurat bila <=40m
 var LEAVE_GRACE_MS = 3*60*1000;    // harus terbaca di luar selama ini baru dianggap keluar
 var _outSince = null;              // kapan pertama kali terbaca di luar toko
 var _gpsConfirmed = false;         // true HANYA bila GPS akurat pernah memastikan di dalam toko.
                                    // Masuk lewat router/WiFi = provisional → langsung dikoreksi GPS bila ternyata di luar.
+var _fixBuf = [];                  // buffer fix akurat 25 detik terakhir → haluskan posisi (anti loncat)
+var _lastFixTime = 0;              // kapan fix terakhir masuk (untuk watchdog)
+var _gpsWatchdog = null;           // timer pendeteksi GPS "diam"
+var _permWatched = false;          // sudah pasang listener izin lokasi?
 // ══════════════════════════════════════════════════════════════════
 //  DETEKSI "DI TOKO" — 3 LAPIS (tanpa GPS)
 //  LAPIS A: Nama WiFi (SSID) — paling andal, iPhone Safari support terbatas
@@ -1909,9 +1914,10 @@ var _gpsWarmupDone = false;
 var _pollInterval = null;
 var _bgPauseTime = null;
 
-// iOS butuh maximumAge sedikit lebih longgar agar tidak terus-menerus timeout
-var GPS_OPTS_PRECISE  = {enableHighAccuracy:true, maximumAge: _isIOS ? 3000  : 0,     timeout: _isIOS ? 20000 : 30000};
-var GPS_OPTS_FALLBACK = {enableHighAccuracy:true, maximumAge: _isIOS ? 10000 : 5000,  timeout: _isIOS ? 15000 : 20000};
+// iOS butuh maximumAge sedikit lebih longgar agar tidak terus-menerus timeout.
+// Android: maximumAge kecil (bukan 0) → boleh pakai fix <2 detik → kurangi timeout di dalam ruangan.
+var GPS_OPTS_PRECISE  = {enableHighAccuracy:true, maximumAge: _isIOS ? 3000  : 2000,  timeout: _isIOS ? 20000 : 27000};
+var GPS_OPTS_FALLBACK = {enableHighAccuracy:true, maximumAge: _isIOS ? 10000 : 8000,  timeout: _isIOS ? 15000 : 20000};
 var GPS_POLL_MS       = _isIOS ? 20000 : 15000; // iOS throttles lebih agresif, pakai 20 detik
 
 function startGps(){
@@ -1920,6 +1926,18 @@ function startGps(){
   if(_gpsStarted)return;
   _gpsStarted=true;
   updateLocBanner('waiting');
+
+  // ── Cek izin lokasi lebih awal ──
+  // granted → lanjut normal · denied → tampilkan panduan · auto-mulai begitu user mengizinkan.
+  if(!_permWatched && navigator.permissions && navigator.permissions.query){
+    _permWatched=true;
+    try{
+      navigator.permissions.query({name:'geolocation'}).then(function(st){
+        if(st.state==='denied'){ updateLocBanner('denied'); var rb=document.getElementById('loc-retry-btn'); if(rb)rb.classList.add('show'); }
+        st.onchange=function(){ if(st.state==='granted'){ retryGps(); } };
+      }).catch(function(){ _permWatched=false; });
+    }catch(e){ _permWatched=false; }
+  }
 
   // ── DETEKSI PERTAMA: router ping sebelum GPS warming up ──
   // Langsung cek router toko — hasilnya tersedia dalam ~1 detik
@@ -1950,6 +1968,7 @@ function startGps(){
   }, GPS_POLL_MS);
 
   _timerInterval = setInterval(updateTimerDisplay, 1000);
+  _startWatchdog();
 }
 
 function retryGps(){
@@ -1977,6 +1996,7 @@ function onLocOk(pos){
     return;
   }
   _gpsWarmupDone = true;
+  _lastFixTime = Date.now();
 
   lastPos={lat,lng,accuracy};
   var dist=Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng));
@@ -2009,6 +2029,10 @@ function onLocOk(pos){
   }
 
   // ── GPS AKURAT → GPS yang menentukan kehadiran (router cuma bantu saat GPS buta) ──
+  // Haluskan dulu: pakai rata-rata berbobot fix akurat 25 detik terakhir → posisi stabil, tidak loncat.
+  _pushFix(lat,lng,accuracy);
+  var _sm=_smoothedFix();
+  if(_sm){ lat=_sm.lat; lng=_sm.lng; dist=_sm.dist; lastPos={lat:lat,lng:lng,accuracy:accuracy}; document.getElementById('loc-distance').textContent=dist+'m'; }
   // Anti positif-palsu: kalau GPS jelas DI LUAR, manager dianggap keluar walau router toko
   // sempat terdeteksi. (Gateway umum 192.168.x.x bisa cocok juga di rumah = positif palsu,
   // itulah kenapa sebelumnya "lokasi manager di toko terus".)
@@ -2125,7 +2149,36 @@ window.addEventListener('pageshow', function(e){
 });
 
 // ── ADMIN: hentikan tracking GPS milik sendiri ──
-function stopGpsTracking(){_gpsStarted=true;if(geoWatchId!==null){try{navigator.geolocation.clearWatch(geoWatchId);}catch(e){}geoWatchId=null;}if(_timerInterval){clearInterval(_timerInterval);_timerInterval=null;}}
+function stopGpsTracking(){_gpsStarted=true;if(geoWatchId!==null){try{navigator.geolocation.clearWatch(geoWatchId);}catch(e){}geoWatchId=null;}if(_timerInterval){clearInterval(_timerInterval);_timerInterval=null;}if(_gpsWatchdog){clearInterval(_gpsWatchdog);_gpsWatchdog=null;}}
+
+// ── Haluskan posisi: rata-rata berbobot fix akurat 25 detik terakhir (kurangi GPS loncat-loncat) ──
+// Bobot = 1/akurasi → fix yang lebih akurat lebih berpengaruh.
+function _pushFix(lat,lng,accuracy){
+  var now=Date.now();
+  _fixBuf.push({lat:lat,lng:lng,acc:accuracy,t:now});
+  _fixBuf=_fixBuf.filter(function(f){return now-f.t<=25000;});
+}
+function _smoothedFix(){
+  if(!_fixBuf.length)return null;
+  var sw=0,slat=0,slng=0,best=999999;
+  _fixBuf.forEach(function(f){ var w=1/Math.max(f.acc,5); sw+=w; slat+=f.lat*w; slng+=f.lng*w; if(f.acc<best)best=f.acc; });
+  if(sw<=0)return null;
+  var lat=slat/sw,lng=slng/sw;
+  return {lat:lat,lng:lng,acc:best,dist:Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng))};
+}
+// ── Watchdog: kalau GPS diam >60 detik (saat app di depan), restart watchPosition otomatis ──
+function _startWatchdog(){
+  if(_gpsWatchdog)clearInterval(_gpsWatchdog);
+  _gpsWatchdog=setInterval(function(){
+    if(document.visibilityState!=='visible')return;
+    if(!_gpsStarted||userRole!=='manager')return;
+    if(_lastFixTime && (Date.now()-_lastFixTime)>60000){
+      try{ if(geoWatchId!==null)navigator.geolocation.clearWatch(geoWatchId); }catch(e){}
+      geoWatchId=navigator.geolocation.watchPosition(onLocOk,onLocErr,GPS_OPTS_PRECISE);
+      navigator.geolocation.getCurrentPosition(onLocOk,function(){},GPS_OPTS_FALLBACK);
+    }
+  },30000);
+}
 
 // ── MANAGER: kirim posisi terakhir ke server (agar admin bisa lihat) ──
 var _autoPushInterval = null;
