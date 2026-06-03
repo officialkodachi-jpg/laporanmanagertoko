@@ -2183,7 +2183,7 @@ function _startWatchdog(){
 // ── MANAGER: kirim posisi terakhir ke server (agar admin bisa lihat) ──
 var _autoPushInterval = null;
 var _lastPushTime = 0;
-var AUTO_PUSH_MS = 2 * 60 * 1000; // 2 menit
+var AUTO_PUSH_MS = 60 * 1000; // 1 menit (manager push & admin refresh)
 
 function pushManagerLoc(silent){
   if(userRole!=='manager')return;
@@ -2217,7 +2217,7 @@ function startAutoPush(){
   _autoPushInterval = setInterval(function(){
     if(document.visibilityState !== 'visible') return;
     if(!lastPos) return;
-    if(Date.now() - _lastPushTime < 90000) return; // skip kalau baru push <90 detik lalu
+    if(Date.now() - _lastPushTime < 45000) return; // skip kalau baru push <45 detik lalu
     pushManagerLoc(true);
   }, AUTO_PUSH_MS);
 }
