@@ -1895,7 +1895,8 @@ function _cekJudul(it){
 }
 function cekRender(){
   var box=document.getElementById('cek-list');if(!box)return;
-  var list=_cekShowAll?_cekData:_cekData.filter(function(x){return !x.dicek;});
+  var base=_cekData.filter(function(x){return !isCekArsipKey(x.kunci);}); // sembunyikan yang diarsip
+  var list=_cekShowAll?base:base.filter(function(x){return !x.dicek;});
   if(!list.length){box.innerHTML='<div style="text-align:center;color:var(--hint);font-size:12px;padding:18px">'+(_cekShowAll?'Belum ada pekerjaan berfoto':'✅ Semua sudah dicek')+'</div>';return;}
   var html='';
   list.forEach(function(it){
@@ -2026,6 +2027,40 @@ var _cekCacheTime=0;        // kapan terakhir di-fetch
 var _cekFetching=null;      // promise in-flight (hindari fetch ganda paralel)
 var CEK_CACHE_MS=60000;     // cache berlaku 60 detik
 
+// ── ARSIP foto pekerjaan (sisi aplikasi) ──────────────────────
+// Foto yang sudah DICEK boleh diarsipkan admin agar kartu bersih.
+// Arsip = sembunyikan dari semua tampilan. Record & link foto TETAP
+// utuh di spreadsheet (tidak ada perubahan Apps Script). Disimpan di
+// localStorage sebagai set kunci "jenis#row".
+var _cekArsip={};
+function _cekArsipLoad(){
+  try{ var raw=localStorage.getItem('mtg_cek_arsip'); _cekArsip=raw?JSON.parse(raw):{}; }
+  catch(e){ _cekArsip={}; }
+}
+function _cekArsipSave(){
+  try{ localStorage.setItem('mtg_cek_arsip',JSON.stringify(_cekArsip)); }catch(e){}
+}
+function isCekArsip(jenis,row){ return _cekArsip[jenis+'#'+row]===true; }
+function isCekArsipKey(kunci){ return _cekArsip[kunci]===true; }
+// Arsipkan / batal arsip sebuah kunci → segarkan semua tampilan
+function cekArsipToggle(kunci,arsip){
+  if(arsip) _cekArsip[kunci]=true; else delete _cekArsip[kunci];
+  _cekArsipSave();
+  showToast(arsip?'🗂 Foto diarsipkan (data tetap di spreadsheet)':'↩ Arsip dibatalkan','ok');
+  try{ logActivity(arsip?'Arsipkan foto pekerjaan':'Batal arsip foto',kunci); }catch(e){}
+  cekRerenderLight();
+}
+_cekArsipLoad();
+// Tombol arsip (muncul hanya untuk item yang SUDAH dicek). String, ditangani delegasi global.
+function cekArsipBtnHTML(jenis,row){
+  if(userRole!=='admin')return'';
+  if(!isCekDone(jenis,row))return''; // hanya setelah dicek
+  var kunci=jenis+'#'+row;
+  if(isCekArsipKey(kunci))
+    return '<button type="button" class="cek-arsip-btn" data-arsip-kunci="'+escH(kunci)+'" data-arsip="0" style="font-size:11px;padding:7px 12px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">📂 Tampilkan lagi</button>';
+  return '<button type="button" class="cek-arsip-btn" data-arsip-kunci="'+escH(kunci)+'" data-arsip="1" style="font-size:11px;padding:7px 12px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">🗂 Arsipkan</button>';
+}
+
 // Ambil cek_list dengan cache. force=true untuk paksa segar.
 function cekKeysLoad(cb,force){
   var url=scriptUrl;
@@ -2038,6 +2073,13 @@ function cekKeysLoad(cb,force){
     .then(function(d){
       _cekItems=d.items||[];
       var map={}; _cekItems.forEach(function(it){ if(it.dicek) map[it.kunci]=true; });
+      // Pertahankan keputusan lokal yang BARU SAJA di-toggle (<12 dtk), supaya tidak
+      // "balik lagi" gara-gara server belum selesai menyimpan saat sinkron.
+      if(_cekLastKey && (Date.now()-_cekLastTS)<12000){
+        var lk=_cekLastKey, lv=_cekKeys[lk]===true;
+        if(lv) map[lk]=true; else delete map[lk];
+        _cekItems.forEach(function(it){ if(it.kunci===lk) it.dicek=lv; });
+      }
       _cekKeys=map; _cekCacheTime=Date.now(); _cekFetching=null;
       if(cb)cb(_cekItems);
     })
@@ -2063,26 +2105,37 @@ function cekActionBtnHTML(jenis,row){
 // <button> yang baru di-appendChild bila ada handler parent). Guard anti double-fire.
 var _cekLastFire=0;
 var _cekLastKey='';   // kunci terakhir yang ditandai/dibatalkan → diprioritaskan saat render
+var _cekLastTS=0;     // waktu toggle terakhir (untuk pertahankan keputusan lokal saat sinkron)
 function _cekDelegateHandler(e){
   var t=e.target;
+  // tombol ARSIP
+  var ab=(t&&t.closest)?t.closest('.cek-arsip-btn'):null;
+  if(ab){
+    e.stopPropagation(); if(e.cancelable)e.preventDefault();
+    var now2=Date.now(); if(now2-_cekLastFire<400)return; _cekLastFire=now2;
+    var ak=ab.getAttribute('data-arsip-kunci');
+    var doArsip=ab.getAttribute('data-arsip')==='1';
+    if(ak)cekArsipToggle(ak,doArsip);
+    return;
+  }
+  // tombol CEK
   var btn=(t&&t.closest)?t.closest('.cek-act-btn'):null;
   if(!btn)return;
   e.stopPropagation();
   if(e.cancelable)e.preventDefault();
   var now=Date.now();
-  if(now-_cekLastFire<400)return; // cegah click+pointerup memicu dua kali
+  if(now-_cekLastFire<400)return; // cegah double-fire
   _cekLastFire=now;
   var kunci=btn.getAttribute('data-cek-kunci');
   var done=btn.getAttribute('data-cek-done')==='1';
   if(kunci)cekSrcToggle(kunci,done);
 }
 document.addEventListener('click',_cekDelegateHandler,true);
-document.addEventListener('pointerup',_cekDelegateHandler,true);
 // Tandai/batal dari kartu SUMBER. Update LOKAL dulu (instan), kirim ke server di belakang,
 // lalu re-render ringan dari cache — TANPA fetch berat berulang.
 function cekSrcToggle(kunci,done){
   var url=scriptUrl;if(!url||!url.startsWith('http')){showToast('URL belum diatur','err');return;}
-  _cekLastKey=kunci;
+  _cekLastKey=kunci; _cekLastTS=Date.now();
   if(done) _cekKeys[kunci]=true; else delete _cekKeys[kunci];
   // sinkronkan flag di cache item & data panel pusat
   _cekItems.forEach(function(it){ if(it.kunci===kunci) it.dicek=done; });
@@ -2092,8 +2145,12 @@ function cekSrcToggle(kunci,done){
     .then(function(){ logActivity(done?'Tandai pekerjaan dicek':'Batal cek',kunci); })
     .catch(function(){ showToast('Gagal simpan ke server','err'); });
   showToast(done?'✓ Ditandai sudah dicek':'↩ Dibatalkan','ok');
-  cekRerenderLight(); // render ulang dari cache lokal, tanpa fetch
+  cekRerenderLight(); // render ulang dari cache lokal, tanpa fetch (instan)
+  // sinkronkan dari server di belakang layar (jaga konsisten bila ada perangkat lain)
+  clearTimeout(_cekSyncTimer);
+  _cekSyncTimer=setTimeout(function(){ cekKeysLoad(function(){ cekRerenderLight(); }, true); },1800);
 }
+var _cekSyncTimer=null;
 // Render ulang ringan SEMUA tampilan dari cache lokal (tanpa fetch jaringan)
 function cekRerenderLight(){
   try{ if(typeof cekRender==='function'&&document.getElementById('cek-list')){ var sub=document.getElementById('cek-sub'); if(sub){var belum=_cekData.filter(function(x){return !x.dicek;}).length;sub.textContent=belum+' belum dicek · '+_cekData.length+' total berfoto';} cekRender(); } }catch(e){}
@@ -2727,12 +2784,17 @@ function _loadNoteBuktiRender(){
     var html='';
     rows.forEach(function(r){
       var done=isCekDone('note_bukti',r.row);
+      var nbArsip=isCekArsip('note_bukti',r.row);
       var fotoBlok = r.foto
-        ? (done?'':'<a href="'+escH(r.foto)+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:12px;color:var(--accent);text-decoration:none">📷 Lihat foto bukti</a>')
+        ? ((done)?'':'<a href="'+escH(r.foto)+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:12px;color:var(--accent);text-decoration:none">📷 Lihat foto bukti</a>')
         : '<div style="font-size:11px;color:var(--hint);margin-top:6px">tanpa foto</div>';
-      var cekBlok = r.foto
-        ? '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+(done?cekMarkHTML('note_bukti',r.row):'<span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek</span>')+cekActionBtnHTML('note_bukti',r.row)+'</div>'
-        : '';
+      var cekBlok;
+      if(!r.foto){ cekBlok=''; }
+      else if(done&&nbArsip){
+        cekBlok='<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>'+cekArsipBtnHTML('note_bukti',r.row)+'</div>';
+      } else {
+        cekBlok='<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+(done?cekMarkHTML('note_bukti',r.row):'<span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek</span>')+cekActionBtnHTML('note_bukti',r.row)+cekArsipBtnHTML('note_bukti',r.row)+'</div>';
+      }
       html+='<div data-bukti-row="'+r.row+'" style="border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--card2)">'
         +'<div style="display:flex;align-items:flex-start;gap:8px">'
         +'<div style="flex:1;min-width:0;font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap"><b>Note:</b> '+escH(r.teks||'-')+'</div>'
@@ -2934,7 +2996,11 @@ function kmRender(){
     var punyaFoto=!!(r.foto||r.fotoResi||r.fotoSurat||r.fotoSS);
     if(punyaFoto){
       if(isCekDone('kiriman',r.row)){
-        cekStrip='<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+cekMarkHTML('kiriman',r.row)+cekActionBtnHTML('kiriman',r.row)+'</div>';
+        if(isCekArsip('kiriman',r.row)){
+          cekStrip='<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>'+cekArsipBtnHTML('kiriman',r.row)+'</div>';
+        }else{
+          cekStrip='<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+cekMarkHTML('kiriman',r.row)+cekActionBtnHTML('kiriman',r.row)+cekArsipBtnHTML('kiriman',r.row)+'</div>';
+        }
       }else{
         cekStrip='<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek admin</span>'+cekActionBtnHTML('kiriman',r.row)+'</div>';
       }
@@ -3913,11 +3979,16 @@ function pgRenderList(){
     var ftList=r.fotoTindakan?String(r.fotoTindakan).split('\n').filter(function(x){return x.trim();}):[];
     var adaFoto=fotoList.length||ftList.length;
     var done=isCekDone('pelanggaran',r.row);
-    var foto=adaFoto?(done?'foto disembunyikan (sudah dicek)':('🖼 '+(fotoList.length+ftList.length)+' foto')):'tanpa foto';
+    var pgArsip=isCekArsip('pelanggaran',r.row);
+    var foto=adaFoto?((done&&pgArsip)?'foto diarsipkan':(done?'foto disembunyikan (sudah dicek)':('🖼 '+(fotoList.length+ftList.length)+' foto'))):'tanpa foto';
     var olehTxt=r.oleh?(' · ✍ '+escH(pgOlehLabel(r.oleh))):'';
-    var cekBlok = adaFoto
-      ? '<div style="margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()">'+(done?cekMarkHTML('pelanggaran',r.row):'<span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek</span>')+cekActionBtnHTML('pelanggaran',r.row)+'</div>'
-      : '';
+    var cekBlok;
+    if(!adaFoto){ cekBlok=''; }
+    else if(done&&pgArsip){
+      cekBlok='<div style="margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()"><span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>'+cekArsipBtnHTML('pelanggaran',r.row)+'</div>';
+    } else {
+      cekBlok='<div style="margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()">'+(done?cekMarkHTML('pelanggaran',r.row):'<span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek</span>')+cekActionBtnHTML('pelanggaran',r.row)+cekArsipBtnHTML('pelanggaran',r.row)+'</div>';
+    }
     return '<div class="km-card '+cls+'" onclick="pgOpenDetail('+r.row+')">'
       +'<div class="km-card-top"><span class="km-resi">'+escH(r.jenis||'-')+'</span><span class="km-badge '+cls+'">'+escH(r.status)+'</span></div>'
       +'<div class="km-meta">📅 '+tglTxt+' · '+foto+olehTxt+'</div>'
@@ -4083,6 +4154,7 @@ function _annotateEventCardsRender(allItems){
     var byKode={};
     allItems.filter(function(x){return x.jenis==='nonharian';}).forEach(function(it){
       var m=String(it.judul||'').match(/E\d{2}/i); if(!m)return; var kode=m[0].toUpperCase();
+      if(isCekArsipKey(it.kunci) && it.kunci!==_cekLastKey) return; // foto diarsip → jangan tampilkan
       var cur=byKode[kode];
       if(!cur){byKode[kode]=it;return;}
       // item yang BARU SAJA ditandai/dibatalkan selalu menang → feedback instan
@@ -4108,6 +4180,7 @@ function _annotateEventCardsRender(allItems){
           strip.appendChild(mark);
         }
         if(userRole==='admin') strip.appendChild(_cekBtnEl('nonharian',it.row,false));
+        if(userRole==='admin') strip.appendChild(_cekArsipBtnEl('nonharian',it.row));
       }else{
         (it.fotos||[]).slice(0,3).forEach(function(u){
           var a=document.createElement('a'); a.href=u; a.target='_blank'; a.style.display='inline-block';
@@ -4140,6 +4213,17 @@ function _cekBtnEl(jenis,row,markDone){
     b.textContent='↩ Batal cek';
     b.style.cssText='font-size:11px;padding:7px 12px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)';
   }
+  return b;
+}
+// Tombol arsip (DOM) untuk kartu Non-Harian — hanya muncul kalau sudah dicek
+function _cekArsipBtnEl(jenis,row){
+  if(!isCekDone(jenis,row))return document.createComment('');
+  var kunci=jenis+'#'+row, arsip=isCekArsipKey(kunci);
+  var b=document.createElement('button'); b.type='button'; b.className='cek-arsip-btn';
+  b.setAttribute('data-arsip-kunci',kunci);
+  b.setAttribute('data-arsip',arsip?'0':'1');
+  b.textContent=arsip?'📂 Tampilkan lagi':'🗂 Arsipkan';
+  b.style.cssText='font-size:11px;padding:7px 12px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)';
   return b;
 }
 function selectEvent(ev){selectedEvent=ev;selectedStatus=null;eventFotoBase64='';document.querySelectorAll('.event-card').forEach(c=>c.classList.remove('selected'));var card=document.getElementById('ev-'+ev.kode);card.classList.add('selected');document.getElementById('sbtn-ok').className='status-btn';document.getElementById('sbtn-no').className='status-btn';document.getElementById('event-note').value='';var fw=document.getElementById('event-foto-wrap');if(fw)fw.style.display='none';var fp=document.getElementById('event-foto-prev');if(fp)fp.innerHTML='';var fi=document.getElementById('event-foto');if(fi)fi.value='';var det=document.getElementById('event-detail');det.style.display='block';card.insertAdjacentElement('afterend',det);/* pindahkan form ke BAWAH kartu yang ditekan (upload per-kartu) */det.scrollIntoView({behavior:'smooth',block:'nearest'});}
