@@ -1738,7 +1738,12 @@ const TODAY_KEY=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getM
 const todayValue=TODAY_KEY();
 function formatTodayDisplay(){const d=new Date();return`${DAY_FULL[d.getDay()]}, ${d.getDate()} ${BULAN_NAMES[d.getMonth()]} ${d.getFullYear()}`;}
 function saveLocData(){localStorage.setItem('loc_'+TODAY_KEY(),JSON.stringify({totalMinutes:totalMinutesToday,sessionStart,log:locationLog}));}
-function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_KEY())||'null');if(!d)return;totalMinutesToday=d.totalMinutes||0;sessionStart=d.sessionStart||null;locationLog=d.log||[];if(sessionStart){isAtStore=true;}}catch(e){}}
+function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_KEY())||'null');if(!d)return;totalMinutesToday=d.totalMinutes||0;
+  // Jangan restore sessionStart dari localStorage — kalau manager buka app lagi,
+  // deteksi router/GPS yang tentukan apakah sedang di toko, bukan sisa sesi lama.
+  // Ini mencegah jam kerja nyambung dari sesi sebelumnya padahal sudah keluar toko.
+  sessionStart=null; isAtStore=false;
+  locationLog=d.log||[];}catch(e){}}
 
 // ════ KUNCI HARIAN — manager hanya bisa kirim 1× per hari ════
 // Setelah dikirim, centangan tetap terlihat & terkunci. Reset otomatis bila:
@@ -6067,7 +6072,7 @@ if ('serviceWorker' in navigator) {
           // App masih hidup di background (iOS ~30 dtk window) → cek router & push
           cekWifiToko(function(hadir) {
             if (hadir && !isAtStore) {
-              isAtStore = true; sessionStart = sessionStart || Date.now();
+              isAtStore = true; sessionStart = Date.now();
               saveLocData(); updateLocBanner('in'); pushManagerLoc(true);
             } else if (!hadir && isAtStore) {
               // Jangan langsung matikan — biarkan grace period GPS yang putuskan
@@ -6105,7 +6110,7 @@ setInterval(function() {
   if (document.visibilityState !== 'visible') return;
   cekWifiToko(function(hadir) {
     if (hadir && !isAtStore) {
-      isAtStore = true; sessionStart = sessionStart || Date.now();
+      isAtStore = true; sessionStart = Date.now();
       saveLocData(); updateLocBanner('in');
       logActivity('Tiba di toko', 'via router (keepalive)');
       pushManagerLoc(true);
