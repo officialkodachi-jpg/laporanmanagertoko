@@ -564,6 +564,9 @@ body.role-admin #admin-mgrlog{display:none!important}
 </div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="role-badge manager" id="role-badge" style="display:none">MANAGER</span><button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">🚪 Logout</button></div></div></div>
 
 <div class="loc-banner"><div class="loc-card" id="loc-card">
+  <button id="loc-share-btn" onclick="shareLokasiBuka()" title="Bagikan lokasi ke Google Maps" aria-label="Bagikan lokasi ke Google Maps" style="display:none;width:46px;height:46px;flex:0 0 auto;padding:0;border:none;border-radius:12px;background:rgba(37,99,235,.12);color:var(--accent);cursor:pointer;align-items:center;justify-content:center">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2.5"/></svg>
+  </button>
   <div class="loc-icon" id="loc-icon">📍</div>
   <div class="loc-info">
     <div class="loc-status waiting" id="loc-status">Memulai GPS...</div>
@@ -661,6 +664,7 @@ body.role-admin #admin-mgrlog{display:none!important}
         </div>
       </div>
       <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px">
+        <button id="adm-mapshare-toggle" onclick="admToggleMapShare()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">📍 Aktifkan tombol Bagikan Lokasi (Manager)</button>
         <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">🙈 Sembunyikan tab Kepegawaian (Manager)</button>
       </div>
     </div>
@@ -1873,6 +1877,21 @@ function applyAppConfig(){
   if(aHide) aHide.textContent = hideKep ? '👁 Tampilkan tab Kepegawaian (Manager)' : '🙈 Sembunyikan tab Kepegawaian (Manager)';
   // 2) (Aturan reset harian lama tidak relevan lagi — kunci sekarang berbasis jam 10:00)
   if(document.getElementById('panel-harian')) applyHarianLock();
+  // 3) Tombol Bagikan Lokasi (Google Maps) untuk Manager — diaktifkan oleh Admin
+  var shareOn = String(_appCfg.mapShareOn||'')==='1';
+  var shareBtn=document.getElementById('loc-share-btn');
+  var locIcon=document.getElementById('loc-icon');
+  if(shareBtn){
+    if(userRole==='manager' && shareOn){
+      shareBtn.style.display='flex';
+      if(locIcon) locIcon.style.display='none';
+    }else{
+      shareBtn.style.display='none';
+      if(locIcon) locIcon.style.display='';
+    }
+  }
+  var aShare=document.getElementById('adm-mapshare-toggle');
+  if(aShare) aShare.textContent = shareOn ? '🙈 Sembunyikan tombol Bagikan Lokasi (Manager)' : '📍 Aktifkan tombol Bagikan Lokasi (Manager)';
 }
 function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 
@@ -3920,7 +3939,7 @@ function renderHarian(){
           strukHtml='<div class="d04-struk" onclick="event.stopPropagation()" style="margin-top:8px">'
             +'<div style="font-size:10px;color:var(--accent);margin-bottom:5px">💵 Terhubung dengan tab <b>Uang Cash</b> — isi transaksi di sana, D04 tercentang otomatis.</div>'
             +'<input type="file" accept="image/*" id="d04-foto" style="display:none" onchange="d04FotoChange()">'
-            +'<button type="button" onclick="document.getElementById(\'d04-foto\').click()" style="font-size:11px;padding:6px 10px;border:1px dashed var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">📷 Lampirkan foto struk </button>'
+            +'<button type="button" onclick="document.getElementById(\'d04-foto\').click()" style="font-size:11px;padding:6px 10px;border:1px dashed var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">📷 Lampirkan foto struk (opsional)</button>'
             +'<div id="d04-foto-prev" style="margin-top:6px"></div>'
             +'</div>';
         }
@@ -5277,6 +5296,23 @@ function admToggleKepegawaian(){
   applyAppConfig();
   showToast(next==='1'?'🙈 Tab Kepegawaian disembunyikan untuk Manager':'👁 Tab Kepegawaian ditampilkan untuk Manager','ok');
   logActivity('Toggle tab Kepegawaian Manager',next==='1'?'hide':'show');
+}
+// Admin: aktifkan/sembunyikan tombol Bagikan Lokasi (Google Maps) di akun Manager
+function admToggleMapShare(){
+  if(userRole!=='admin')return;
+  var cur=String(_appCfg.mapShareOn||'')==='1';
+  var next=cur?'0':'1';
+  appConfigSet('mapShareOn',next,function(){});
+  _appCfg.mapShareOn=next;
+  applyAppConfig();
+  showToast(next==='1'?'📍 Tombol Bagikan Lokasi diaktifkan untuk Manager':'🙈 Tombol Bagikan Lokasi disembunyikan','ok');
+  logActivity('Toggle tombol Bagikan Lokasi Manager',next==='1'?'on':'off');
+}
+// Manager menekan pin → buka Google Maps untuk bagikan lokasi
+function shareLokasiBuka(){
+  try{ window.open('https://www.google.com/maps','_blank'); }catch(e){ location.href='https://www.google.com/maps'; }
+  showToast('Buka menu profil → Bagikan lokasi → kirim ke email admin','');
+  try{ logActivity('Buka Bagikan Lokasi (Maps)','manager'); }catch(e){}
 }
 function logout(){
   if(!confirm('Keluar dari akun?'))return;
