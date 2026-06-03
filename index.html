@@ -46,6 +46,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .time-bar-label{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);font-family:var(--mono)}
 .loc-retry-inline{margin-top:10px;width:100%;padding:8px;background:rgba(217,119,6,.1);color:var(--orange);border:1px solid rgba(217,119,6,.3);border-radius:var(--r);font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer;display:none}
 .loc-retry-inline.show{display:block}
+.loc-activate-btn{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:rgba(37,99,235,.10);color:var(--accent);border:1px solid rgba(37,99,235,.30);border-radius:10px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
+.loc-activate-btn svg{width:15px;height:15px}
+.loc-activate-btn.glow{background:var(--accent);color:#fff;border-color:var(--accent);animation:locActPulse 1.4s ease-in-out infinite}
+@keyframes locActPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
 .subtab-row{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
 .km-add-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px}
 .km-add-title{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px}
@@ -577,6 +581,7 @@ body.role-admin #admin-mgrlog{display:none!important}
     <div class="loc-status waiting" id="loc-status">Memulai GPS...</div>
     <div class="loc-detail" id="loc-detail">Mendeteksi posisi kamu</div>
     <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span>Target: 4 jam</span></div></div>
+    <button class="loc-activate-btn btn-press" id="loc-activate-btn" style="display:none" onclick="aktifkanLokasi()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg> Aktifkan lokasi</button>
     <button class="loc-retry-inline btn-press" id="loc-retry-btn" onclick="retryGps()"><span class="spin-ico" id="loc-retry-ico">⟳</span> Coba ulang deteksi lokasi</button>
     <button class="admin-refresh btn-press" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc(true)"><span class="spin-ico" id="admin-loc-ico">⟳</span> Perbarui posisi Manager</button>
   </div>
@@ -1418,6 +1423,8 @@ var _fixBuf = [];                  // buffer fix akurat 25 detik terakhir → ha
 var _lastFixTime = 0;              // kapan fix terakhir masuk (untuk watchdog)
 var _gpsWatchdog = null;           // timer pendeteksi GPS "diam"
 var _permWatched = false;          // sudah pasang listener izin lokasi?
+var _locWaitTimer = null;          // timer 15 detik: kalau belum dapat fix → "lokasi belum aktif"
+var _locTimedOut = false;          // sudah lewat 15 detik tanpa fix?
 // ══════════════════════════════════════════════════════════════════
 //  DETEKSI "DI TOKO" — 3 LAPIS (tanpa GPS)
 //  LAPIS A: Nama WiFi (SSID) — paling andal, iPhone Safari support terbatas
@@ -1969,6 +1976,7 @@ function startGps(){
 
   _timerInterval = setInterval(updateTimerDisplay, 1000);
   _startWatchdog();
+  _armLocTimeout();
 }
 
 function retryGps(){
@@ -1997,6 +2005,7 @@ function onLocOk(pos){
   }
   _gpsWarmupDone = true;
   _lastFixTime = Date.now();
+  _clearLocTimeout();
 
   lastPos={lat,lng,accuracy};
   var dist=Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng));
@@ -2178,6 +2187,42 @@ function _startWatchdog(){
       navigator.geolocation.getCurrentPosition(onLocOk,function(){},GPS_OPTS_FALLBACK);
     }
   },30000);
+}
+
+// ── Tombol "Aktifkan lokasi" (biru) + status "belum aktif" setelah 15 detik ──
+// Tap = gesture user → prompt izin lokasi muncul andal (penting di iOS/Android).
+function aktifkanLokasi(){
+  _clearLocTimeout();
+  retryGps();
+  if('geolocation' in navigator){
+    try{ navigator.geolocation.getCurrentPosition(onLocOk, onLocErr, GPS_OPTS_PRECISE); }catch(e){}
+  }
+}
+function _syncActivateBtn(s){
+  var b=document.getElementById('loc-activate-btn'); if(!b)return;
+  if(userRole!=='manager'){ b.style.display='none'; return; }
+  if(s==='in'){ b.style.display='none'; b.classList.remove('glow'); return; }
+  b.style.display='';                          // waiting/out/denied/unsupported → tampil (kecil)
+  b.classList.toggle('glow', _locTimedOut===true);
+}
+function _armLocTimeout(){
+  if(_locWaitTimer)clearTimeout(_locWaitTimer);
+  _locTimedOut=false;
+  _locWaitTimer=setTimeout(function(){
+    if(userRole!=='manager')return;
+    if(lastPos || isAtStore)return;            // sudah dapat posisi → tidak usah
+    _locTimedOut=true;
+    var i=document.getElementById('loc-icon'), st=document.getElementById('loc-status'), d=document.getElementById('loc-detail');
+    if(i){ i.textContent='📍'; i.className='loc-icon inactive'; }
+    if(st){ st.textContent='Lokasi belum aktif'; st.className='loc-status waiting'; }
+    if(d){ d.textContent="Tap \u201CAktifkan lokasi\u201D untuk bagikan posisi"; }
+    _syncActivateBtn('waiting');               // tampil + berdenyut
+  }, 15000);
+}
+function _clearLocTimeout(){
+  if(_locWaitTimer){clearTimeout(_locWaitTimer);_locWaitTimer=null;}
+  _locTimedOut=false;
+  var b=document.getElementById('loc-activate-btn'); if(b)b.classList.remove('glow');
 }
 
 // ── MANAGER: kirim posisi terakhir ke server (agar admin bisa lihat) ──
@@ -2644,7 +2689,7 @@ function updateMgrMap(d){
   try{_mgrMap.fitBounds(L.latLngBounds([[TOKO.lat,TOKO.lng],[lat,lng]]).pad(.4));}catch(e){}
   if(raw)raw.innerHTML='<b>'+lat.toFixed(5)+', '+lng.toFixed(5)+'</b> · akurasi \u00b1'+Math.round(acc)+'m · jarak '+(d.dist!=null?d.dist:'?')+'m dari toko';
 }
-function updateLocBanner(s){const i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),d=document.getElementById('loc-detail');if(s==='in'){i.textContent='🟢';i.className='loc-icon active';st.textContent='✓ Di dalam toko';st.className='loc-status in';d.textContent='Kodachi Shop Monjali · GPS aktif';}else if(s==='out'){i.textContent='📍';i.className='loc-icon inactive';st.textContent='✗ Di luar toko';st.className='loc-status out';d.textContent='Jarak: '+(document.getElementById('loc-distance').textContent||'?')+'m dari toko';}else if(s==='waiting'){i.textContent='🔄';i.className='loc-icon';st.textContent='Mencari sinyal GPS...';st.className='loc-status waiting';d.textContent='Mohon tunggu...';}else if(s==='denied'){i.textContent='🔒';i.className='loc-icon inactive';st.textContent='Izin lokasi ditolak';st.className='loc-status out';d.textContent='Buka pengaturan browser → izinkan lokasi';}else{i.textContent='❌';i.className='loc-icon inactive';st.textContent='GPS tidak didukung';st.className='loc-status out';d.textContent='Browser tidak mendukung geolocation';}}
+function updateLocBanner(s){const i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),d=document.getElementById('loc-detail');if(s==='in'){i.textContent='🟢';i.className='loc-icon active';st.textContent='✓ Di dalam toko';st.className='loc-status in';d.textContent='Kodachi Shop Monjali · GPS aktif';}else if(s==='out'){i.textContent='📍';i.className='loc-icon inactive';st.textContent='✗ Di luar toko';st.className='loc-status out';d.textContent='Jarak: '+(document.getElementById('loc-distance').textContent||'?')+'m dari toko';}else if(s==='waiting'){i.textContent='🔄';i.className='loc-icon';st.textContent='Mencari sinyal GPS...';st.className='loc-status waiting';d.textContent='Mohon tunggu...';}else if(s==='denied'){i.textContent='🔒';i.className='loc-icon inactive';st.textContent='Izin lokasi ditolak';st.className='loc-status out';d.textContent='Buka pengaturan browser → izinkan lokasi';}else{i.textContent='❌';i.className='loc-icon inactive';st.textContent='GPS tidak didukung';st.className='loc-status out';d.textContent='Browser tidak mendukung geolocation';}_syncActivateBtn(s);}
 function getCurrentTotalMinutes(){let t=totalMinutesToday;if(isAtStore&&sessionStart)t+=(Date.now()-sessionStart)/60000;return t;}
 function fmtDur(m){const h=Math.floor(m/60),n=Math.floor(m%60);return h>0?h+'j '+n+'m':n+'m';}
 function updateTimerDisplay(){const t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60),p=Math.min(100,t/TARGET_MENIT*100);document.getElementById('loc-timer').textContent=h+':'+String(m).padStart(2,'0');document.getElementById('loc-timer').className='loc-timer'+(p>=100?' done':p>=50?' warn':'');const f=document.getElementById('time-bar-fill');f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');document.getElementById('time-bar-left').textContent=t>=60?h+' jam '+m+' menit di toko':Math.floor(t)+' menit di toko';document.getElementById('loc-total-today').textContent=h+'j '+m+'m';updateD01Card();}
