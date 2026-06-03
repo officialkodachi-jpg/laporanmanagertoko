@@ -661,7 +661,6 @@ body.role-admin #admin-mgrlog{display:none!important}
         </div>
       </div>
       <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px">
-        <button id="adm-reset-harian" onclick="admResetHarian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--muted);border-radius:9px;cursor:pointer">ℹ️ Info aturan input Harian (batas jam 10:00)</button>
         <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">🙈 Sembunyikan tab Kepegawaian (Manager)</button>
       </div>
     </div>
@@ -1794,16 +1793,12 @@ function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_
 // Setelah dikirim, centangan tetap terlihat & terkunci. Reset otomatis bila:
 //  (a) ganti tanggal, atau (b) sudah lewat jam 22:00 hari itu.
 // Admin juga bisa reset paksa dari Home.
-// Aturan lama "1× kirim per hari" DICABUT. Sekarang: manager boleh isi & kirim
-// sebebasnya, TAPI hanya sampai batas jam 10:00. Lewat jam 10:00 → terkunci hari itu.
-const HARIAN_CUTOFF_HOUR=10;   // batas input tugas harian (jam HP manager)
+// Tidak ada batas/kunci pengisian harian. Manager bebas isi & kirim kapan saja, berkali-kali.
+const HARIAN_CUTOFF_HOUR=22;   // batas input tugas harian: jam 22:00 (10 malam)
 function _harianLockKey(){ return 'mtg_harian_lock_'+TODAY_KEY(); }
-function harianGetLock(){ return null; } // tidak dipakai lagi (no-op, jaga kompatibilitas)
-function harianIsLocked(){
-  if(userRole!=='manager') return false;   // admin tidak pernah dikunci
-  return (new Date()).getHours() >= HARIAN_CUTOFF_HOUR; // jam 10:00 ke atas = terkunci
-}
-function harianSaveLock(){}   // no-op (tidak ada lagi kunci setelah kirim)
+function harianGetLock(){ return null; }
+function harianIsLocked(){ return false; }   // selalu boleh input
+function harianSaveLock(){}
 function harianClearLock(){ try{ localStorage.removeItem(_harianLockKey()); }catch(e){} }
 
 // ════ CONFIG GLOBAL (lintas-perangkat, via Apps Script ?type=appconfig) ════
@@ -1900,6 +1895,7 @@ function retryGps(){
 }
 
 function onLocOk(pos){
+  if(userRole==='admin')return; // admin tidak di-track; kartu dipakai untuk status manager
   clearTimeout(_retryTimer);_retryCount=0;
   var lat=pos.coords.latitude, lng=pos.coords.longitude, accuracy=pos.coords.accuracy;
 
@@ -1993,6 +1989,7 @@ function onLocOk(pos){
 }
 
 function onLocErr(err){
+  if(userRole==='admin')return; // jangan timpa kartu status manager dengan error GPS admin
   if(err.code===1){
     updateLocBanner('denied');
     document.getElementById('loc-retry-btn').classList.add('show');
@@ -2150,20 +2147,26 @@ function renderManagerLoc(d){
     tm.textContent='—:—';return;
   }
   var inStore=(d.inStore==1||d.inStore===true);
-  var menit=d.menit||0,h=Math.floor(menit/60),m=Math.floor(menit%60);
-  var p=Math.min(100,menit/TARGET_MENIT*100);
-  i.textContent=inStore?'🟢':'📍';i.className='loc-icon '+(inStore?'active':'inactive');
-  st.textContent=inStore?'✓ Manager di dalam toko':'✗ Manager di luar toko';
-  st.className='loc-status '+(inStore?'in':'out');
   var jamUpd=d.waktu?new Date(d.waktu).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'?';
   var menitLalu=d.waktu?Math.round((Date.now()-d.waktu)/60000):999;
+  var stale = (d.stale===true) || (menitLalu>=12); // posisi lama / app manager ditutup
+  var menit=d.menit||0,h=Math.floor(menit/60),m=Math.floor(menit%60);
+  var p=Math.min(100,menit/TARGET_MENIT*100);
+  if(stale){
+    // Tidak ada update terbaru → JANGAN klaim "di dalam toko". Tampilkan posisi terakhir saja.
+    i.textContent='🕓';i.className='loc-icon inactive';
+    st.textContent='Posisi lama — Manager tidak terpantau';st.className='loc-status waiting';
+  }else{
+    i.textContent=inStore?'🟢':'📍';i.className='loc-icon '+(inStore?'active':'inactive');
+    st.textContent=inStore?'✓ Manager di dalam toko':'✗ Manager di luar toko';
+    st.className='loc-status '+(inStore?'in':'out');
+  }
   var ket='Jarak '+(d.dist!=null?d.dist:'?')+'m dari toko · update '+jamUpd;
-  if(menitLalu>=10){
-    // Posisi belum update >10 menit: jelaskan ini BUKAN berarti manager keluar
-    ket+=' <span style="color:#b45309">('+menitLalu+' mnt lalu)</span>'
-      +'<div class="admin-note" style="color:#92400e">Posisi terverifikasi terakhir '+jamUpd
-      +'. App manager kemungkinan di background / HP terkunci — bukan berarti keluar toko. '
-      +'Posisi & jam kerja akan tersegarkan saat manager membuka app lagi.</div>';
+  if(stale){
+    ket+=' <span style="color:#b45309">('+(menitLalu>=999?'lama sekali':menitLalu+' mnt lalu')+')</span>'
+      +'<div class="admin-note" style="color:#92400e">⚠ Ini posisi TERAKHIR yang dikirim HP Manager (jam '+jamUpd+'), bukan posisi sekarang. '
+      +'App Manager kemungkinan ditutup/terkunci. Titik di peta = lokasi terakhir, belum tentu masih di sana. '
+      +'Akan tersegarkan saat Manager membuka app lagi.</div>';
   }else{
     ket+='<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
   }
@@ -3891,23 +3894,12 @@ function applyHarianLock(){
   var info=document.getElementById('harian-lock-info');
   if(locked){
     if(list)list.classList.add('harian-locked');
-    if(btn){btn.disabled=true;btn.textContent='🔒 Lewat batas jam '+HARIAN_CUTOFF_HOUR+':00';btn.style.opacity='.6';btn.style.cursor='not-allowed';}
-    if(info){
-      info.style.display='block';
-      info.innerHTML='🔒 Batas input tugas harian pukul '+HARIAN_CUTOFF_HOUR+':00 sudah lewat. Tidak bisa diisi/diubah lagi hari ini.';
-    }
+    if(btn){btn.disabled=true;btn.textContent='🔒 Sudah lewat batas hari ini';btn.style.opacity='.6';btn.style.cursor='not-allowed';}
+    if(info){info.style.display='block';info.innerHTML='🔒 Batas input tugas harian sudah lewat. Tidak bisa diisi/diubah lagi hari ini.';}
   }else{
     if(list)list.classList.remove('harian-locked');
     if(btn){btn.disabled=false;btn.textContent='Simpan ke Google Sheets';btn.style.opacity='';btn.style.cursor='';}
-    if(info){
-      if(userRole==='manager'){
-        info.style.display='block';
-        info.style.background='rgba(217,119,6,.08)';info.style.borderColor='rgba(217,119,6,.3)';info.style.color='var(--orange)';
-        info.innerHTML='⏰ Tugas harian bisa diisi & dikirim berkali-kali, batas terakhir pukul '+HARIAN_CUTOFF_HOUR+':00.';
-      }else{
-        info.style.display='none';
-      }
-    }
+    if(info)info.style.display='none';
   }
 }
 var d04FotoBase64='';
@@ -3922,7 +3914,7 @@ function d04FotoChange(){
   });
 }
 function toggleCheck(k){
-  if(userRole==='manager'&&harianIsLocked()){showToast('Lewat batas jam '+HARIAN_CUTOFF_HOUR+':00 — tidak bisa diubah','');return;}
+  if(userRole==='manager'&&harianIsLocked()){showToast('Sudah lewat batas — tidak bisa diubah hari ini','');return;}
   // D04 (setor uang) wajib ada foto struk sebelum boleh dicentang
   if(k==='D04' && !checked[k] && !d04FotoBase64){
     showToast('📷 Foto struk setoran wajib sebelum mencentang setor uang','err');
@@ -4487,7 +4479,7 @@ function pgUpdateMainBadge(){
 }
 async function saveHarian(){
   if(!scriptUrl){openModal();return;}
-  if(userRole==='manager'&&harianIsLocked()){showToast('Lewat batas jam '+HARIAN_CUTOFF_HOUR+':00 — tidak bisa kirim lagi hari ini','err');return;}
+  if(userRole==='manager'&&harianIsLocked()){showToast('Sudah lewat batas — tidak bisa kirim lagi hari ini','err');return;}
   // D04 dicentang wajib ada foto struk
   if(checked['D04'] && !d04FotoBase64){
     showToast('📷 Foto struk setoran wajib karena setor uang dicentang','err');
@@ -5070,7 +5062,7 @@ var _harianCutoffTimer=null;
 // Admin: reset tugas harian manager (lintas perangkat) → set harianResetTS = sekarang
 function admResetHarian(){
   if(userRole!=='admin')return;
-  showToast('ℹ️ Aturan "1× kirim" sudah dicabut — Manager bebas isi/kirim sampai jam '+HARIAN_CUTOFF_HOUR+':00','');
+  showToast('ℹ️ Manager bebas isi & kirim tugas harian, batas terakhir jam 10 malam','');
 }
 // ════ KOREKSI JAM DATANG MANAGER (admin) ════
 // Menimpa jam kerja GPS hari itu. Dukung 2 sesi (pagi+sore).
