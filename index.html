@@ -501,6 +501,11 @@ body.role-admin .event-card{cursor:default;pointer-events:none}
 body.role-admin .event-card .ev-cek-strip,
 body.role-admin .event-card .ev-cek-strip *{pointer-events:auto}
 body.role-admin .event-card .ev-cek-strip .cek-act-btn{cursor:pointer}
+/* Sama untuk kartu HARIAN (D04 — Uang Cash): strip cek + tombolnya tetap bisa ditekan admin */
+body.role-admin .task-item .d04-cek-strip,
+body.role-admin .task-item .d04-cek-strip *{pointer-events:auto}
+body.role-admin .task-item .d04-cek-strip .cek-act-btn,
+body.role-admin .task-item .d04-cek-strip .cek-arsip-btn{cursor:pointer}
 /* Admin: sembunyikan notif kiriman & mgrlog di atas tabs — sudah ada di tab Home */
 body.role-admin #notif-stack,
 body.role-admin #admin-mgrlog{display:none!important}
