@@ -661,8 +661,42 @@ body.role-admin #admin-mgrlog{display:none!important}
         </div>
       </div>
       <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px">
-        <button id="adm-reset-harian" onclick="admResetHarian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid rgba(220,38,38,.3);background:rgba(220,38,38,.06);color:var(--red);border-radius:9px;cursor:pointer">🔄 Reset tugas Harian Manager (buka kunci agar bisa isi lagi)</button>
+        <button id="adm-reset-harian" onclick="admResetHarian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--muted);border-radius:9px;cursor:pointer">ℹ️ Info aturan input Harian (batas jam 10:00)</button>
         <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">🙈 Sembunyikan tab Kepegawaian (Manager)</button>
+      </div>
+    </div>
+
+    <!-- ⏱ KOREKSI JAM MASUK MANAGER (admin) -->
+    <div id="koreksi-jam-card" class="adm-only-block" style="margin-bottom:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
+        <span style="font-size:18px">⏱</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Koreksi Jam Datang Manager</div>
+          <div style="font-size:10px;color:var(--hint)">Benahi jam masuk asli bila GPS salah / dimanipulasi. Bisa 2 sesi (pagi & sore).</div>
+        </div>
+      </div>
+      <div style="padding:12px 14px">
+        <div class="km-field" style="margin-bottom:10px">
+          <label class="field-label">Tanggal</label>
+          <input type="date" class="it" id="kjk-tgl" onchange="kjkLoad()">
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--accent);margin:4px 0 6px">🌅 Sesi Pagi</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div><label class="field-label">Masuk</label><input type="time" class="it" id="kjk-pagi-masuk" oninput="kjkHitung()"></div>
+          <div><label class="field-label">Keluar</label><input type="time" class="it" id="kjk-pagi-keluar" oninput="kjkHitung()"></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--orange);margin:4px 0 6px">🌇 Sesi Sore (opsional)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div><label class="field-label">Masuk</label><input type="time" class="it" id="kjk-sore-masuk" oninput="kjkHitung()"></div>
+          <div><label class="field-label">Keluar</label><input type="time" class="it" id="kjk-sore-keluar" oninput="kjkHitung()"></div>
+        </div>
+        <div id="kjk-total" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);background:var(--surface);border-radius:8px;padding:9px 12px;margin-bottom:10px;text-align:center">Total: 0j 0m</div>
+        <div id="kjk-saved" style="font-size:11px;color:var(--hint);font-family:var(--mono);margin-bottom:10px;text-align:center"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-press" id="kjk-save-btn" onclick="kjkSave()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans)">💾 Simpan koreksi</button>
+          <button class="btn-press" onclick="kjkClear()" style="background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.3);border-radius:10px;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans)">🗑 Hapus</button>
+        </div>
+        <div style="font-size:10px;color:var(--hint);margin-top:8px;line-height:1.5">Contoh: pagi 10:00–12:00 lalu sore 16:00–18:00 → tercatat 4 jam. Hasil koreksi menimpa jam kerja GPS hari itu di Rekap Jam Kerja.</div>
       </div>
     </div>
 
@@ -1325,6 +1359,8 @@ let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locati
 var ACC_MAX = 150;                 // akurasi lebih buruk dari ini (meter) tidak dipakai ubah status
 var LEAVE_GRACE_MS = 3*60*1000;    // harus terbaca di luar selama ini baru dianggap keluar
 var _outSince = null;              // kapan pertama kali terbaca di luar toko
+var _gpsConfirmed = false;         // true HANYA bila GPS akurat pernah memastikan di dalam toko.
+                                   // Masuk lewat router/WiFi = provisional → langsung dikoreksi GPS bila ternyata di luar.
 // ══════════════════════════════════════════════════════════════════
 //  DETEKSI "DI TOKO" — 3 LAPIS (tanpa GPS)
 //  LAPIS A: Nama WiFi (SSID) — paling andal, iPhone Safari support terbatas
@@ -1758,29 +1794,16 @@ function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_
 // Setelah dikirim, centangan tetap terlihat & terkunci. Reset otomatis bila:
 //  (a) ganti tanggal, atau (b) sudah lewat jam 22:00 hari itu.
 // Admin juga bisa reset paksa dari Home.
-const HARIAN_RESET_HOUR=22;
+// Aturan lama "1× kirim per hari" DICABUT. Sekarang: manager boleh isi & kirim
+// sebebasnya, TAPI hanya sampai batas jam 10:00. Lewat jam 10:00 → terkunci hari itu.
+const HARIAN_CUTOFF_HOUR=10;   // batas input tugas harian (jam HP manager)
 function _harianLockKey(){ return 'mtg_harian_lock_'+TODAY_KEY(); }
-function harianGetLock(){
-  try{ return JSON.parse(localStorage.getItem(_harianLockKey())||'null'); }catch(e){ return null; }
-}
+function harianGetLock(){ return null; } // tidak dipakai lagi (no-op, jaga kompatibilitas)
 function harianIsLocked(){
-  var L=harianGetLock();
-  if(!L||!L.submittedAt) return false;
-  // reset otomatis bila sekarang sudah ≥ jam 22:00 DAN submit-nya sebelum jam 22:00 hari ini
-  var now=new Date();
-  var subAt=new Date(L.submittedAt);
-  var batas=new Date(); batas.setHours(HARIAN_RESET_HOUR,0,0,0);
-  if(now>=batas && subAt<batas){ return false; } // lewat jam 22 → boleh isi lagi (sesi baru)
-  return true;
+  if(userRole!=='manager') return false;   // admin tidak pernah dikunci
+  return (new Date()).getHours() >= HARIAN_CUTOFF_HOUR; // jam 10:00 ke atas = terkunci
 }
-function harianSaveLock(){
-  try{
-    localStorage.setItem(_harianLockKey(), JSON.stringify({
-      submittedAt: new Date().toISOString(),
-      checked: checked, notes: notes
-    }));
-  }catch(e){}
-}
+function harianSaveLock(){}   // no-op (tidak ada lagi kunci setelah kirim)
 function harianClearLock(){ try{ localStorage.removeItem(_harianLockKey()); }catch(e){} }
 
 // ════ CONFIG GLOBAL (lintas-perangkat, via Apps Script ?type=appconfig) ════
@@ -1812,15 +1835,8 @@ function applyAppConfig(){
   // refleksikan status tombol admin (kalau ada)
   var aHide=document.getElementById('adm-kep-toggle');
   if(aHide) aHide.textContent = hideKep ? '👁 Tampilkan tab Kepegawaian (Manager)' : '🙈 Sembunyikan tab Kepegawaian (Manager)';
-  // 2) Reset harian global: bila lock dibuat sebelum harianResetTS → anggap belum submit
-  var rs=Number(_appCfg.harianResetTS||0);
-  if(rs>0){
-    var L=harianGetLock();
-    if(L&&L.submittedAt&&(new Date(L.submittedAt).getTime()<rs)){
-      harianClearLock();
-      if(document.getElementById('panel-harian')) applyHarianLock();
-    }
-  }
+  // 2) (Aturan reset harian lama tidak relevan lagi — kunci sekarang berbasis jam 10:00)
+  if(document.getElementById('panel-harian')) applyHarianLock();
 }
 function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 
@@ -1847,10 +1863,10 @@ function startGps(){
   // GPS di dalam ruangan bisa butuh 10-30 detik, router lebih cepat
   cekWifiToko(function(hadir){
     if(hadir && !isAtStore){
-      isAtStore=true; sessionStart=Date.now();
+      isAtStore=true; sessionStart=Date.now(); _gpsConfirmed=false; // provisional — nunggu GPS konfirmasi
       locationLog.push({type:'masuk',time:Date.now(),lat:0,lng:0,dist:0,cara:'router'});
       saveLocData(); updateLocBanner('in');
-      logActivity('Tiba di toko','via router toko (sebelum GPS)');
+      logActivity('Tiba di toko','via router toko (sebelum GPS, menunggu konfirmasi)');
       pushManagerLoc();
     } else if(!hadir){
       updateLocBanner('waiting'); // GPS masih loading
@@ -1909,7 +1925,7 @@ function onLocOk(pos){
   if(accuracy > ACC_MAX){
     // ...kecuali WiFi toko terdeteksi → anggap hadir walau GPS buta
     if(_diWifiToko && !isAtStore){
-      isAtStore=true;sessionStart=Date.now();
+      isAtStore=true;sessionStart=Date.now();_gpsConfirmed=false; // provisional
       locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist:dist,cara:'wifi'});
       saveLocData();updateLocBanner('in');logActivity('Tiba di toko','via WiFi toko');pushManagerLoc();
     } else if(isAtStore){saveLocData();updateLocBanner('in');}
@@ -1928,33 +1944,50 @@ function onLocOk(pos){
     return;
   }
 
-  // LAPIS 2: jarak efektif — toleransi sebesar akurasi. WiFi toko = otomatis dianggap di dalam.
-  var inS = _diWifiToko || ((dist - accuracy) <= TOKO.radius);
+  // ── GPS AKURAT → GPS yang menentukan kehadiran (router cuma bantu saat GPS buta) ──
+  // Anti positif-palsu: kalau GPS jelas DI LUAR, manager dianggap keluar walau router toko
+  // sempat terdeteksi. (Gateway umum 192.168.x.x bisa cocok juga di rumah = positif palsu,
+  // itulah kenapa sebelumnya "lokasi manager di toko terus".)
+  var inGps = (dist - accuracy) <= TOKO.radius;   // tepi terdekat masih dalam radius?
 
-  if(inS&&!isAtStore){
+  if(inGps){
+    // GPS mengonfirmasi DI DALAM toko
     _outSince=null;
-    isAtStore=true;sessionStart=Date.now();
-    locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});
-    saveLocData();updateLocBanner('in');
-    showToast('✓ Kamu tiba di Kodachi Shop!','ok');
-    logActivity('Tiba di toko','Jarak '+dist+'m');pushManagerLoc();
-  }else if(!inS&&isAtStore){
-    // LAPIS 3: jangan langsung keluar — tunggu terbaca di luar selama grace period
-    if(_outSince===null) _outSince=Date.now();
-    if(Date.now()-_outSince >= LEAVE_GRACE_MS){
-      isAtStore=false;_outSince=null;
-      if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}
-      locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist});
-      saveLocData();updateLocBanner('out');
-      logActivity('Keluar toko','Jarak '+dist+'m');pushManagerLoc();
-    }else{
-      // masih dalam masa tenggang → tetap dianggap di toko, timer lanjut
+    if(!isAtStore){
+      isAtStore=true;sessionStart=Date.now();_gpsConfirmed=true;
+      locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});
       saveLocData();updateLocBanner('in');
+      showToast('✓ Kamu tiba di Kodachi Shop!','ok');
+      logActivity('Tiba di toko','Jarak '+dist+'m (GPS)');pushManagerLoc();
+    }else{
+      _gpsConfirmed=true;saveLocData();updateLocBanner('in');
     }
   }else{
-    _outSince=null;
-    if(isAtStore)saveLocData();
-    updateLocBanner(isAtStore?'in':'out');
+    // GPS bilang DI LUAR toko
+    if(isAtStore){
+      if(!_gpsConfirmed){
+        // Tadi masuk cuma lewat router/WiFi & belum pernah dikonfirmasi GPS → koreksi: langsung keluar.
+        // Sesi router yang ternyata salah TIDAK dihitung sebagai jam kerja.
+        isAtStore=false;_outSince=null;sessionStart=null;
+        locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist,cara:'gps-koreksi'});
+        saveLocData();updateLocBanner('out');
+        logActivity('Keluar toko','GPS koreksi — ternyata '+dist+'m dari toko');pushManagerLoc();
+      }else{
+        // Pernah benar-benar di dalam (dikonfirmasi GPS) → pakai grace period dulu sebelum keluar
+        if(_outSince===null) _outSince=Date.now();
+        if(Date.now()-_outSince >= LEAVE_GRACE_MS){
+          isAtStore=false;_outSince=null;
+          if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}
+          locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist});
+          saveLocData();updateLocBanner('out');
+          logActivity('Keluar toko','Jarak '+dist+'m');pushManagerLoc();
+        }else{
+          saveLocData();updateLocBanner('in');
+        }
+      }
+    }else{
+      _outSince=null;updateLocBanner('out');
+    }
   }
   updateD01Card();
 }
@@ -3857,32 +3890,24 @@ function applyHarianLock(){
   var btn=document.getElementById('save-harian-btn');
   var info=document.getElementById('harian-lock-info');
   if(locked){
-    var L=harianGetLock();
-    if(L){ // pulihkan centangan & catatan tersimpan
-      if(L.checked) checked=L.checked;
-      if(L.notes) notes=L.notes;
-      // refleksikan ke kartu
-      HARIAN.forEach(function(t){
-        if(t.autoTrack)return;
-        var el=document.getElementById('task-'+t.kode);
-        if(el)el.classList.toggle('done',!!checked[t.kode]);
-        var ta=document.getElementById('note-'+t.kode);
-        if(ta&&notes[t.kode]){ta.value=notes[t.kode];}
-      });
-      updateStats();
-    }
     if(list)list.classList.add('harian-locked');
-    if(btn){btn.disabled=true;btn.textContent='✓ Sudah dikirim hari ini';btn.style.opacity='.6';btn.style.cursor='not-allowed';}
+    if(btn){btn.disabled=true;btn.textContent='🔒 Lewat batas jam '+HARIAN_CUTOFF_HOUR+':00';btn.style.opacity='.6';btn.style.cursor='not-allowed';}
     if(info){
-      var subAt=L&&L.submittedAt?new Date(L.submittedAt):null;
-      var jam=subAt?(String(subAt.getHours()).padStart(2,'0')+':'+String(subAt.getMinutes()).padStart(2,'0')):'';
       info.style.display='block';
-      info.innerHTML='🔒 Tugas harian sudah dikirim'+(jam?(' pukul '+jam):'')+'. Tidak bisa diisi lagi sampai reset (otomatis jam 22:00 atau oleh admin).';
+      info.innerHTML='🔒 Batas input tugas harian pukul '+HARIAN_CUTOFF_HOUR+':00 sudah lewat. Tidak bisa diisi/diubah lagi hari ini.';
     }
   }else{
     if(list)list.classList.remove('harian-locked');
     if(btn){btn.disabled=false;btn.textContent='Simpan ke Google Sheets';btn.style.opacity='';btn.style.cursor='';}
-    if(info)info.style.display='none';
+    if(info){
+      if(userRole==='manager'){
+        info.style.display='block';
+        info.style.background='rgba(217,119,6,.08)';info.style.borderColor='rgba(217,119,6,.3)';info.style.color='var(--orange)';
+        info.innerHTML='⏰ Tugas harian bisa diisi & dikirim berkali-kali, batas terakhir pukul '+HARIAN_CUTOFF_HOUR+':00.';
+      }else{
+        info.style.display='none';
+      }
+    }
   }
 }
 var d04FotoBase64='';
@@ -3897,7 +3922,7 @@ function d04FotoChange(){
   });
 }
 function toggleCheck(k){
-  if(userRole==='manager'&&harianIsLocked()){showToast('Sudah dikirim hari ini — tidak bisa diubah','');return;}
+  if(userRole==='manager'&&harianIsLocked()){showToast('Lewat batas jam '+HARIAN_CUTOFF_HOUR+':00 — tidak bisa diubah','');return;}
   // D04 (setor uang) wajib ada foto struk sebelum boleh dicentang
   if(k==='D04' && !checked[k] && !d04FotoBase64){
     showToast('📷 Foto struk setoran wajib sebelum mencentang setor uang','err');
@@ -4462,7 +4487,7 @@ function pgUpdateMainBadge(){
 }
 async function saveHarian(){
   if(!scriptUrl){openModal();return;}
-  if(userRole==='manager'&&harianIsLocked()){showToast('Tugas harian sudah dikirim hari ini','');return;}
+  if(userRole==='manager'&&harianIsLocked()){showToast('Lewat batas jam '+HARIAN_CUTOFF_HOUR+':00 — tidak bisa kirim lagi hari ini','err');return;}
   // D04 dicentang wajib ada foto struk
   if(checked['D04'] && !d04FotoBase64){
     showToast('📷 Foto struk setoran wajib karena setor uang dicentang','err');
@@ -4992,6 +5017,9 @@ function applyRole(){
     setTimeout(initMgrMap,300);
     var cp=document.getElementById('cek-panel');if(cp)cp.style.display='block';
     cekLoad();
+    // Koreksi jam datang manager — set tanggal hari ini & muat data
+    var kjt=document.getElementById('kjk-tgl');
+    if(kjt){ if(!kjt.value)kjt.value=todayValue; kjkLoad(); }
     var amg=document.getElementById('admin-mgrlog');if(amg)amg.style.display='block';
     loadManagerLoc();
     _adminLocTimer=setInterval(loadManagerLoc,60000);
@@ -5019,6 +5047,10 @@ function applyRole(){
     loadManagerNote();
     if(_mgrNoteTimer)clearInterval(_mgrNoteTimer);
     _mgrNoteTimer=setInterval(loadManagerNote,60000);
+    // Cek batas jam 10:00 tiap menit → kunci otomatis saat lewat batas
+    if(_harianCutoffTimer)clearInterval(_harianCutoffTimer);
+    _harianCutoffTimer=setInterval(function(){ if(document.getElementById('panel-harian')) applyHarianLock(); },60000);
+    setTimeout(applyHarianLock,200); // terapkan status batas jam 10:00 segera setelah login
   }
   // loadShift dipanggil di sini (bukan di DOMContentLoaded)
   // supaya isAdmin sudah ter-set saat renderShift() berjalan
@@ -5034,17 +5066,106 @@ function applyRole(){
   _appCfgTimer=setInterval(function(){ appConfigLoad(function(){ applyAppConfig(); }); }, 60000);
 }
 var _appCfgTimer=null;
+var _harianCutoffTimer=null;
 // Admin: reset tugas harian manager (lintas perangkat) → set harianResetTS = sekarang
 function admResetHarian(){
   if(userRole!=='admin')return;
-  if(!confirm('Reset tugas Harian Manager hari ini? Manager akan bisa mengisi & mengirim ulang.'))return;
-  var ts=Date.now();
-  appConfigSet('harianResetTS',ts,function(){});
-  harianClearLock(); // reset juga di perangkat ini
-  if(document.getElementById('panel-harian'))applyHarianLock();
-  showToast('✓ Tugas harian Manager direset','ok');
-  logActivity('Reset harian Manager','TS '+ts);
+  showToast('ℹ️ Aturan "1× kirim" sudah dicabut — Manager bebas isi/kirim sampai jam '+HARIAN_CUTOFF_HOUR+':00','');
 }
+// ════ KOREKSI JAM DATANG MANAGER (admin) ════
+// Menimpa jam kerja GPS hari itu. Dukung 2 sesi (pagi+sore).
+function kjkMenitFromTimes(masuk,keluar){
+  if(!masuk||!keluar)return 0;
+  var a=masuk.split(':'),b=keluar.split(':');
+  if(a.length<2||b.length<2)return 0;
+  var m1=parseInt(a[0],10)*60+parseInt(a[1],10);
+  var m2=parseInt(b[0],10)*60+parseInt(b[1],10);
+  var diff=m2-m1;
+  return diff>0?diff:0; // keluar harus setelah masuk
+}
+function kjkFmt(menit){var h=Math.floor(menit/60),m=Math.round(menit%60);return h+'j '+m+'m';}
+function kjkHitung(){
+  var pm=document.getElementById('kjk-pagi-masuk').value, pk=document.getElementById('kjk-pagi-keluar').value;
+  var sm=document.getElementById('kjk-sore-masuk').value, sk=document.getElementById('kjk-sore-keluar').value;
+  var total=kjkMenitFromTimes(pm,pk)+kjkMenitFromTimes(sm,sk);
+  var el=document.getElementById('kjk-total');
+  if(el){
+    var ket=total>=240?' ✓ (≥4 jam)':total>0?' (kurang dari 4 jam)':'';
+    el.textContent='Total: '+kjkFmt(total)+ket;
+    el.style.color=total>=240?'var(--green)':total>0?'var(--orange)':'var(--text)';
+  }
+  return total;
+}
+function kjkLoad(){
+  if(userRole!=='admin')return;
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  var tgl=document.getElementById('kjk-tgl').value;if(!tgl)return;
+  var saved=document.getElementById('kjk-saved');if(saved)saved.textContent='Memuat…';
+  fetch(url+'?type=loc&tanggal='+tgl+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var s=null;
+      try{ s=(d&&d.sesi)?(typeof d.sesi==='string'?JSON.parse(d.sesi):d.sesi):null; }catch(e){ s=null; }
+      document.getElementById('kjk-pagi-masuk').value = s&&s.pagi?s.pagi.in||'':'';
+      document.getElementById('kjk-pagi-keluar').value= s&&s.pagi?s.pagi.out||'':'';
+      document.getElementById('kjk-sore-masuk').value = s&&s.sore?s.sore.in||'':'';
+      document.getElementById('kjk-sore-keluar').value= s&&s.sore?s.sore.out||'':'';
+      kjkHitung();
+      if(saved){
+        var menit=d&&d.menit?Number(d.menit):0;
+        if(s) saved.innerHTML='✓ Koreksi tersimpan: <b>'+kjkFmt(menit)+'</b>';
+        else if(menit>0) saved.innerHTML='Jam kerja GPS tercatat: <b>'+kjkFmt(menit)+'</b> (belum dikoreksi)';
+        else saved.textContent='Belum ada data untuk tanggal ini.';
+      }
+    })
+    .catch(function(){ if(saved)saved.textContent='Gagal memuat data tanggal ini.'; });
+}
+function kjkSave(){
+  if(userRole!=='admin'){showToast('Hanya admin','err');return;}
+  var url=scriptUrl;if(!url||!url.startsWith('http')){showToast('URL belum dikonfigurasi','err');return;}
+  var tgl=document.getElementById('kjk-tgl').value;if(!tgl){showToast('Pilih tanggal dulu','err');return;}
+  var pm=document.getElementById('kjk-pagi-masuk').value, pk=document.getElementById('kjk-pagi-keluar').value;
+  var sm=document.getElementById('kjk-sore-masuk').value, sk=document.getElementById('kjk-sore-keluar').value;
+  var total=kjkHitung();
+  if(total<=0){showToast('Isi minimal satu sesi (masuk & keluar) yang valid','err');return;}
+  var sesi={};
+  if(kjkMenitFromTimes(pm,pk)>0) sesi.pagi={in:pm,out:pk};
+  if(kjkMenitFromTimes(sm,sk)>0) sesi.sore={in:sm,out:sk};
+  // teks keterangan jam berapa-jam berapa
+  var bagian=[];
+  if(sesi.pagi) bagian.push('pagi '+pm+'–'+pk);
+  if(sesi.sore) bagian.push('sore '+sm+'–'+sk);
+  var ketSesi=bagian.join(' & ');
+  var btn=document.getElementById('kjk-save-btn');if(btn){btn.disabled=true;btn.textContent='Menyimpan…';}
+  var payload={type:'loc_koreksi',tanggal:tgl,menit:total,sesi:JSON.stringify(sesi),
+               jamMasuk:(sesi.pagi?pm:(sesi.sore?sm:'')),jamKeluar:(sesi.sore?sk:(sesi.pagi?pk:'')),
+               ketSesi:ketSesi,adminEmail:(userEmail||'admin'),waktu:Date.now()};
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
+    .then(function(){
+      showToast('✓ Koreksi tersimpan ('+kjkFmt(total)+')','ok');
+      logActivity('Koreksi jam masuk Manager',tgl+' → '+ketSesi+' = '+kjkFmt(total));
+      setTimeout(kjkLoad,1500);
+    })
+    .catch(function(){showToast('Gagal menyimpan koreksi','err');})
+    .finally(function(){if(btn){btn.disabled=false;btn.textContent='💾 Simpan koreksi';}});
+}
+function kjkClear(){
+  if(userRole!=='admin')return;
+  var url=scriptUrl;if(!url||!url.startsWith('http'))return;
+  var tgl=document.getElementById('kjk-tgl').value;if(!tgl){showToast('Pilih tanggal dulu','err');return;}
+  if(!confirm('Hapus koreksi untuk '+tgl+'? Jam kerja akan kembali mengikuti GPS.'))return;
+  var payload={type:'loc_koreksi',tanggal:tgl,menit:0,sesi:'',clear:1,adminEmail:(userEmail||'admin'),waktu:Date.now()};
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
+    .then(function(){
+      ['kjk-pagi-masuk','kjk-pagi-keluar','kjk-sore-masuk','kjk-sore-keluar'].forEach(function(id){document.getElementById(id).value='';});
+      kjkHitung();
+      showToast('✓ Koreksi dihapus','ok');
+      logActivity('Hapus koreksi jam Manager',tgl);
+      setTimeout(kjkLoad,1500);
+    })
+    .catch(function(){showToast('Gagal menghapus','err');});
+}
+
 // Admin: hide/unhide tab Kepegawaian di akun Manager (lintas perangkat)
 function admToggleKepegawaian(){
   if(userRole!=='admin')return;
