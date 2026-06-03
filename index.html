@@ -3996,13 +3996,18 @@ function toggleCheck(k){
   checked[k]=!checked[k];var el=document.getElementById('task-'+k);if(el)el.classList.toggle('done',checked[k]);updateStats();
 }
 // Dipanggil setelah manager menyimpan transaksi di tab Uang Cash → centang D04 otomatis.
+// Kirim status 1 tugas harian ke spreadsheet (tanpa harus tekan Simpan) — agar tahan refresh
+function kirimHarianAuto(kode){
+  if(!scriptUrl||!scriptUrl.startsWith('http'))return;
+  try{ fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'harian',entries:[{tanggal:todayValue,kode:kode,status:'✓'}]})}); }catch(e){}
+}
 function markD04Done(){
-  if(checked['D04'])return;
   checked['D04']=true;
   var el=document.getElementById('task-D04');if(el)el.classList.add('done');
   if(!notes['D04']) notes['D04']='Terisi via tab Uang Cash';
-  updateStats();
-  showToast('✓ D04 (catatan uang) tercentang otomatis','ok');
+  try{ updateStats(); }catch(e){}
+  kirimHarianAuto('D04'); // simpan ke spreadsheet supaya centang D04 tetap ada walau refresh/close
+  showToast('✓ D04 (catatan uang) tercentang & tersimpan','ok');
 }
 // ════ PANTAU LOKASI OTOMATIS (tanpa tombol, tanpa setting) ════
 // Lokasi terdeteksi otomatis begitu app dibuka manager (startGps sudah jalan di applyRole).
