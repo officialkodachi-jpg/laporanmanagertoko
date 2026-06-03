@@ -1146,6 +1146,14 @@ body.role-admin #admin-mgrlog{display:none!important}
             style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:15px;background:var(--surface);color:var(--text);outline:none">
         </div>
 
+        <!-- Bukti foto pekerjaan (wajib) -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">📷 Foto bukti pekerjaan <span style="color:var(--red)">*</span></div>
+          <input type="file" accept="image/*" id="cash-foto" style="display:none" onchange="cashFotoChange()">
+          <button type="button" onclick="document.getElementById('cash-foto').click()" style="width:100%;padding:10px;border:1px dashed var(--border2);background:var(--surface);border-radius:var(--r);cursor:pointer;color:var(--accent);font-size:12px;font-weight:600">📷 Ambil/pilih foto bukti</button>
+          <div id="cash-foto-prev" style="margin-top:6px"></div>
+        </div>
+
         <!-- Badge nama manager — klik untuk simpan -->
         <button id="cash-btn-b" onclick="simpanCashData()" style="width:100%;padding:15px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;font-family:var(--sans);font-size:15px;font-weight:700;text-align:center;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.25)">💾 Simpan — <span id="cash-btn-b-label">Manager</span> → Kolom B</button>
         <div id="cash-simpan-status" style="text-align:center;font-size:12px;margin-bottom:4px;min-height:14px;font-family:var(--mono)"></div>
@@ -1173,6 +1181,12 @@ body.role-admin #admin-mgrlog{display:none!important}
               style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--mono);font-size:14px;background:var(--surface);color:var(--text);outline:none">
           </div>
           <div id="cash-receh-info" style="display:none;font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:10px;padding:6px 10px;background:var(--surface);border-radius:8px"></div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">📷 Foto bukti receh <span style="color:var(--red)">*</span></div>
+            <input type="file" accept="image/*" id="cash-receh-foto" style="display:none" onchange="cashRecehFotoChange()">
+            <button type="button" onclick="document.getElementById('cash-receh-foto').click()" style="width:100%;padding:9px;border:1px dashed var(--border2);background:var(--surface);border-radius:var(--r);cursor:pointer;color:var(--orange);font-size:12px;font-weight:600">📷 Ambil/pilih foto bukti</button>
+            <div id="cash-receh-foto-prev" style="margin-top:6px"></div>
+          </div>
           <button id="cash-simpan-receh-btn" onclick="simpanRecehData()" style="width:100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer">Simpan Receh →</button>
           <div id="cash-simpan-receh-status" style="text-align:center;font-size:12px;margin-top:8px;min-height:14px;font-family:var(--mono)"></div>
         </div>
@@ -2195,7 +2209,7 @@ function cekLoad(useCache){
   },!useCache);
 }
 function _cekJenisLabel(j){
-  return ({nonharian:'📋 Non-Harian',kiriman:'📦 Kiriman',pelanggaran:'⚠️ Pelanggaran',note_bukti:'📝 Bukti Note'})[j]||j;
+  return ({nonharian:'📋 Non-Harian',kiriman:'📦 Kiriman',pelanggaran:'⚠️ Pelanggaran',note_bukti:'📝 Bukti Note',uang:'💵 Uang Cash (D04)'})[j]||j;
 }
 // Lengkapi judul non-harian: ubah "Non-Harian: E05" → "Non-Harian: E05 — <nama tugas>"
 function _cekJudul(it){
@@ -2273,6 +2287,11 @@ function cekGoto(jenis,row){
       var el=kode?document.getElementById('ev-'+kode):null;
       if(el)_cekScrollFlash(el);
     },120);
+    return;
+  }
+  if(jenis==='uang'){
+    var cb3=document.querySelector(".tab[onclick*=\"switchTab('cash'\"]");
+    if(cb3)switchTab('cash',cb3); else switchTab('cash');
     return;
   }
   if(jenis==='note_bukti'){
@@ -5434,6 +5453,37 @@ function cashOnRecehKetChange(){
 
 function cashOnRecehChange(){ /* preview live bisa ditambah kalau perlu */ }
 
+// ── Foto bukti pekerjaan Uang Cash ──
+var cashFotoBase64='', cashRecehFotoBase64='';
+function cashFotoChange(){
+  var f=document.getElementById('cash-foto').files[0]; cashFotoBase64='';
+  var p=document.getElementById('cash-foto-prev'); if(p)p.innerHTML='';
+  if(!f)return;
+  _kmCompress(f,function(b64){ cashFotoBase64=b64;
+    if(p)p.innerHTML='<img src="'+b64+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green);margin-top:3px">✓ Foto siap</div>';
+    showToast('✓ Foto bukti siap','ok');
+  });
+}
+function cashRecehFotoChange(){
+  var f=document.getElementById('cash-receh-foto').files[0]; cashRecehFotoBase64='';
+  var p=document.getElementById('cash-receh-foto-prev'); if(p)p.innerHTML='';
+  if(!f)return;
+  _kmCompress(f,function(b64){ cashRecehFotoBase64=b64;
+    if(p)p.innerHTML='<img src="'+b64+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green);margin-top:3px">✓ Foto siap</div>';
+    showToast('✓ Foto bukti siap','ok');
+  });
+}
+// Kirim bukti foto + ringkasan transaksi ke backend UTAMA → muncul di panel Cek admin & terhubung D04
+function kirimCashBukti(jenis,nominal,catatan,fotoB64){
+  try{
+    var url=scriptUrl; if(!url||!url.startsWith('http')||!fotoB64) return;
+    var payload={type:'cash_bukti',tanggal:new Date().toISOString().split('T')[0],
+      jenis:jenis,nominal:nominal,catatan:catatan||'',foto:fotoB64,
+      oleh:((typeof userEmail!=='undefined'&&userEmail)?userEmail:'Manager'),olehEmail:(typeof userEmail!=='undefined'?userEmail:''),waktu:Date.now()};
+    fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+  }catch(e){}
+}
+
 function updateCashPreview(){
   var el  = document.getElementById('cash-preview-nominal');
   if(!el) return;
@@ -5468,6 +5518,7 @@ async function simpanCashData(){
 
   if(!ket){ showToast('Pilih keterangan: Ambil atau Setor','err'); return; }
   if(!nom || nom <= 0){ showToast('Isi Jumlah','err'); return; }
+  if(!cashFotoBase64){ showToast('📷 Foto bukti pekerjaan wajib sebelum menyimpan','err'); var fp=document.getElementById('cash-foto-prev'); if(fp)fp.scrollIntoView({behavior:'smooth',block:'center'}); return; }
 
   var finalNom = ket === 'Setor' ? -nom : nom;
 
@@ -5484,7 +5535,10 @@ async function simpanCashData(){
     if(data.status === 'ok'){
       if(sta){sta.style.color='var(--green)'; sta.textContent='✓ Tersimpan!';}
       showToast('✓ Data tersimpan','ok');
+      kirimCashBukti(ket, finalNom, document.getElementById('cash-inp-ket').value, cashFotoBase64);
       try{ markD04Done(); }catch(e){}
+      cashFotoBase64=''; var cfp=document.getElementById('cash-foto-prev'); if(cfp)cfp.innerHTML='';
+      var cfi=document.getElementById('cash-foto'); if(cfi)cfi.value='';
       logActivity('Simpan Uang Cash','Rp '+finalNom+(ket?' — '+ket:''));
       document.getElementById('cash-inp-nominal').value='';
       document.getElementById('cash-inp-ket').value='';
@@ -5510,6 +5564,7 @@ async function simpanRecehData(){
 
   if(!ket){ showToast('Pilih jenis: Tukar Receh atau Masuk Toko','err'); return; }
   if(!receh || receh <= 0){ showToast('Isi jumlah receh','err'); return; }
+  if(!cashRecehFotoBase64){ showToast('📷 Foto bukti receh wajib sebelum menyimpan','err'); var rfp=document.getElementById('cash-receh-foto-prev'); if(rfp)rfp.scrollIntoView({behavior:'smooth',block:'center'}); return; }
 
   // Tukar Receh  → kolom B kosong, kolom E positif
   // Masuk Toko   → kolom B negatif, kolom E negatif
@@ -5529,7 +5584,10 @@ async function simpanRecehData(){
     if(data.status === 'ok'){
       sta.style.color='var(--green)'; sta.textContent='✓ Tersimpan!';
       showToast('✓ Receh tersimpan','ok');
+      kirimCashBukti('Receh — '+ket, finalReceh, 'Receh '+ket, cashRecehFotoBase64);
       try{ markD04Done(); }catch(e){}
+      cashRecehFotoBase64=''; var rfpv=document.getElementById('cash-receh-foto-prev'); if(rfpv)rfpv.innerHTML='';
+      var rfi=document.getElementById('cash-receh-foto'); if(rfi)rfi.value='';
       document.getElementById('cash-inp-receh').value='';
       document.getElementById('cash-inp-ket-receh').value='';
       document.getElementById('cash-receh-info').style.display='none';
