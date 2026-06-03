@@ -2,7 +2,6 @@
 // Ganti versi ini setiap upload file baru ke GitHub → PWA otomatis update
 const CACHE_VERSION = 'v2';
 const CACHE_NAME = 'kodachi-mgr-' + CACHE_VERSION;
-
 const SHELL_ASSETS = [
   './index.html',
   './manifest.json',
@@ -11,7 +10,6 @@ const SHELL_ASSETS = [
 
 // ── Install: cache app shell ──────────────────────────────────
 self.addEventListener('install', event => {
-  // JANGAN skipWaiting dulu — tunggu user konfirmasi update
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return Promise.allSettled(
@@ -43,7 +41,6 @@ self.addEventListener('message', event => {
 // ── Fetch: Network-first untuk API GAS, Cache-first untuk aset ─
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-
   // Google Apps Script & API calls → selalu network, jangan cache
   if (
     url.hostname.includes('script.google.com') ||
@@ -58,7 +55,6 @@ self.addEventListener('fetch', event => {
     ));
     return;
   }
-
   // Font Google → cache-first
   if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
     event.respondWith(
@@ -70,7 +66,6 @@ self.addEventListener('fetch', event => {
     );
     return;
   }
-
   // App shell (HTML, manifest, dsb) → Network-first, fallback cache
   event.respondWith(
     fetch(event.request).then(res => {
@@ -81,4 +76,34 @@ self.addEventListener('fetch', event => {
       return res;
     }).catch(() => caches.match(event.request))
   );
+});
+
+// ── Background Keepalive: kirim ping ke app tiap 60 detik ─────
+// Tujuan: walau app di-minimize (PWA iOS/Android), SW masih hidup
+// dan bisa membangunkan app untuk cek router toko & push lokasi.
+// iOS memberi SW window ~30 detik per siklus background — cukup untuk ping.
+function bgPing() {
+  self.clients.matchAll({ includeUncontrolled: true, type: 'window' })
+    .then(clients => {
+      clients.forEach(client => {
+        client.postMessage({ type: 'bg-ping', ts: Date.now() });
+      });
+    });
+}
+
+// Mulai 10 detik setelah SW aktif, lalu looping tiap 60 detik
+setTimeout(function loop() {
+  bgPing();
+  setTimeout(loop, 60 * 1000);
+}, 10 * 1000);
+
+// ── Periodic Background Sync (Chrome Android) ─────────────────
+// Kalau browser support, ini lebih andal dari setTimeout di atas
+self.addEventListener('periodicsync', event => {
+  if (event.tag === 'loc-keepalive') {
+    event.waitUntil(
+      self.clients.matchAll({ includeUncontrolled: true, type: 'window' })
+        .then(clients => clients.forEach(c => c.postMessage({ type: 'bg-ping', ts: Date.now() })))
+    );
+  }
 });
