@@ -1201,7 +1201,7 @@ body.role-admin #admin-mgrlog{display:none!important}
         <span style="font-size:18px">💰</span>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Uang Kembalian Cukup?</div>
-          <div style="font-size:10px;color:var(--hint)">Pastikan stok uang kembalian aman (tugas harian D05)</div>
+          <div style="font-size:10px;color:var(--hint)">Pastikan stok uang kembalian aman (bagian tugas harian D04)</div>
         </div>
       </div>
       <div style="padding:12px 14px">
@@ -1349,11 +1349,11 @@ const HARIAN=[
   {kode:'D01',nama:'Kehadiran efektif di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Min. 4 jam/hari',autoTrack:true,icon:'📍'},
   {kode:'D02',nama:'Paket terkirim ke semua ekspedisi (J&T, SPX, dll)',kategori:'Operasional',prioritas:'Wajib',kpi:'0 komplain pengiriman',icon:'📦'},
   {kode:'D03',nama:'Stok sepatu, kaos kaki & tali tersedia di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Tidak ada kehabisan mendadak',icon:'👟'},
-  {kode:'D04',nama:'Catatan uang diambil, setor & kembalian terisi',kategori:'Keuangan',prioritas:'Wajib',kpi:'Catatan lengkap tanpa selisih',icon:'💰'},
-  {kode:'D05',nama:'Uang kembalian cukup di toko',kategori:'Operasional',prioritas:'Penting',kpi:'0 transaksi gagal karena uang receh',icon:'🪙'},
+  {kode:'D04',nama:'Catatan uang (ambil, setor, kembalian) terisi & kembalian cukup',kategori:'Keuangan',prioritas:'Wajib',kpi:'Catatan lengkap tanpa selisih & kembalian aman',icon:'💰'},
+  {kode:'D05',nama:'Air minum & kebutuhan dasar operasional tersedia (sabun, sikat, dll)',kategori:'Inventaris',prioritas:'Penting',kpi:'Kebutuhan dasar toko tidak pernah habis',icon:'🧴'},
   {kode:'D06',nama:'Partimer datang & pulang tepat waktu',kategori:'SDM',prioritas:'Penting',kpi:'Ketepatan waktu partimer',icon:'⏰'},
   {kode:'D07',nama:'Inventaris toko tersedia (plastik, lakban dll)',kategori:'Inventaris',prioritas:'Penting',kpi:'Tidak ada kehabisan bahan',icon:'📋'},
-  {kode:'D08',nama:'Toko bersih dan rapi (cek buka & tutup)',kategori:'Visual',prioritas:'Penting',kpi:'Kondisi bersih tiap hari',icon:'🧹'},
+  {kode:'D08',nama:'Toko bersih dan rapi',kategori:'Visual',prioritas:'Penting',kpi:'Kondisi bersih tiap hari',icon:'🧹'},
   {kode:'D09',nama:'Produk terdisplay rapi — tidak ada rak kosong',kategori:'Visual',prioritas:'Penting',kpi:'Tidak ada rak kosong',icon:'🏪'},
   {kode:'D10',nama:'Chat WA & Instagram dibalas',kategori:'Layanan',prioritas:'Penting',kpi:'Response time ≤ 1 jam',icon:'💬'},
   {kode:'D11',nama:'Partimer melayani customer dengan baik',kategori:'Layanan',prioritas:'Penting',kpi:'0 komplain',icon:'🤝'},
@@ -5554,12 +5554,10 @@ function kblFotoChange(){
     showToast('✓ Foto bukti siap','ok');
   });
 }
-function markD05Done(){
-  if(checked['D05'])return;
-  checked['D05']=true;
-  var el=document.getElementById('task-D05'); if(el)el.classList.add('done');
-  if(!notes['D05']) notes['D05']='Kembalian cukup — dikonfirmasi via tab Uang Cash';
-  try{ updateStats(); }catch(e){}
+// ── Konfirmasi uang kembalian cukup (bagian tugas harian D04) ──
+function markKembalianDone(){
+  // kembalian cukup kini bagian dari D04 (catatan uang + kembalian)
+  try{ markD04Done(); }catch(e){}
 }
 function simpanKembalianCukup(){
   if(!kblFotoBase64){ showToast('📷 Foto uang kembalian wajib','err'); var p=document.getElementById('kbl-foto-prev'); if(p)p.scrollIntoView({behavior:'smooth',block:'center'}); return; }
@@ -5569,10 +5567,10 @@ function simpanKembalianCukup(){
   if(sta){sta.style.color='var(--muted)';sta.textContent='Mengirim bukti...';}
   try{
     kirimCashBukti('Kembalian cukup', '', ket, kblFotoBase64);
-    markD05Done();
-    if(sta){sta.style.color='var(--green)';sta.textContent='✓ Tersimpan & D05 tercentang';}
-    showToast('✓ Kembalian cukup dikonfirmasi (D05)','ok');
-    try{ logActivity('Konfirmasi kembalian cukup','D05 — '+ket); }catch(e){}
+    markKembalianDone();
+    if(sta){sta.style.color='var(--green)';sta.textContent='✓ Tersimpan & D04 tercentang';}
+    showToast('✓ Kembalian cukup dikonfirmasi (D04)','ok');
+    try{ logActivity('Konfirmasi kembalian cukup','D04 — '+ket); }catch(e){}
     kblFotoBase64=''; var p2=document.getElementById('kbl-foto-prev'); if(p2)p2.innerHTML='';
     var fi=document.getElementById('kbl-foto'); if(fi)fi.value='';
     document.getElementById('kbl-ket').value='';
