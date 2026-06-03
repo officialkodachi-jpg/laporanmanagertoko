@@ -495,7 +495,7 @@ body.role-admin #event-detail,
 body.role-admin .ig-toolbar,
 body.role-admin #panel-event .alert.info,
 body.role-admin #panel-harian .alert.info,
-body.role-admin .loc-retry-inline,
+body.role-admin .loc-activate-btn,
 body.role-admin #mt-edit-box{display:none!important}
 body.role-admin .task-item{cursor:default;pointer-events:none}
 .harian-locked .task-item{pointer-events:none;opacity:.92}
@@ -582,7 +582,6 @@ body.role-admin #admin-mgrlog{display:none!important}
     <div class="loc-detail" id="loc-detail">Mendeteksi posisi kamu</div>
     <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span>Target: 4 jam</span></div></div>
     <button class="loc-activate-btn btn-press" id="loc-activate-btn" style="display:none" onclick="aktifkanLokasi()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg> Aktifkan lokasi</button>
-    <button class="loc-retry-inline btn-press" id="loc-retry-btn" onclick="retryGps()"><span class="spin-ico" id="loc-retry-ico">⟳</span> Coba ulang deteksi lokasi</button>
     <button class="admin-refresh btn-press" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc(true)"><span class="spin-ico" id="admin-loc-ico">⟳</span> Perbarui posisi Manager</button>
   </div>
   <div class="loc-timer" id="loc-timer">0:00</div>
@@ -1940,7 +1939,7 @@ function startGps(){
     _permWatched=true;
     try{
       navigator.permissions.query({name:'geolocation'}).then(function(st){
-        if(st.state==='denied'){ updateLocBanner('denied'); var rb=document.getElementById('loc-retry-btn'); if(rb)rb.classList.add('show'); }
+        if(st.state==='denied'){ updateLocBanner('denied'); _locTimedOut=true; _syncActivateBtn('denied'); }
         st.onchange=function(){ if(st.state==='granted'){ retryGps(); } };
       }).catch(function(){ _permWatched=false; });
     }catch(e){ _permWatched=false; }
@@ -2011,7 +2010,6 @@ function onLocOk(pos){
   var dist=Math.round(haversine(lat,lng,TOKO.lat,TOKO.lng));
   document.getElementById('loc-distance').textContent=dist+'m';
   document.getElementById('loc-accuracy').textContent=Math.round(accuracy)+'m';
-  document.getElementById('loc-retry-btn').classList.remove('show');
 
   // LAPIS 1: akurasi buruk (mis. di dalam toko, GPS buta) → JANGAN ubah status.
   // Timer tetap jalan kalau sedang di toko, supaya jam kerja tidak salah berhenti.
@@ -2093,7 +2091,7 @@ function onLocErr(err){
   if(userRole==='admin')return; // jangan timpa kartu status manager dengan error GPS admin
   if(err.code===1){
     updateLocBanner('denied');
-    document.getElementById('loc-retry-btn').classList.add('show');
+    _locTimedOut=true; _syncActivateBtn('denied');
     // iOS: tampilkan panduan buka Settings jika denied
     if(_isIOS){
       var d=document.getElementById('loc-detail');
@@ -2112,7 +2110,7 @@ function onLocErr(err){
           _retryCount<=3 ? GPS_OPTS_PRECISE : GPS_OPTS_FALLBACK);
       }, delay);
     }else{
-      document.getElementById('loc-retry-btn').classList.add('show');
+      _locTimedOut=true; _syncActivateBtn('waiting');
     }
   }
 }
