@@ -571,19 +571,6 @@ body.role-admin #admin-mgrlog{display:none!important}
     <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span>Target: 4 jam</span></div></div>
     <button class="loc-retry-inline btn-press" id="loc-retry-btn" onclick="retryGps()"><span class="spin-ico" id="loc-retry-ico">⟳</span> Coba ulang deteksi lokasi</button>
     <button class="admin-refresh btn-press" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc(true)"><span class="spin-ico" id="admin-loc-ico">⟳</span> Perbarui posisi Manager</button>
-    <!-- KOREKSI JAM KERJA (admin only) -->
-    <div id="admin-koreksi-box" style="display:none;margin-top:12px;background:rgba(217,119,6,.07);border:1px solid rgba(217,119,6,.35);border-radius:10px;padding:12px 14px">
-      <div style="font-size:11px;font-weight:800;color:var(--orange);margin-bottom:10px;letter-spacing:.04em">✏️ KOREKSI JAM MASUK HARI INI</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5">Input jam masuk yang sebenarnya → sistem hitung sendiri berapa menit sampai sekarang → tersimpan sebagai baris baru di Sheets (tidak hapus data sebelumnya).</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <input type="time" id="koreksi-jam-masuk" style="flex:1;padding:9px 11px;border:1.5px solid rgba(217,119,6,.5);border-radius:8px;font-family:var(--mono);font-size:16px;background:var(--card);color:var(--text);outline:none;color-scheme:light" placeholder="HH:MM">
-        <div style="font-size:11px;color:var(--muted)">→ sekarang</div>
-        <div id="koreksi-preview-menit" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--orange);min-width:50px;text-align:right">— mnt</div>
-      </div>
-      <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:10px" id="koreksi-preview-detail">Masukkan jam di atas untuk lihat preview</div>
-      <button onclick="adminKirimKoreksi()" id="koreksi-submit-btn" style="width:100%;padding:10px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer">💾 Simpan Koreksi ke Sheets</button>
-      <div id="koreksi-status" style="font-size:11px;font-family:var(--mono);margin-top:7px;min-height:14px;text-align:center"></div>
-    </div>
   </div>
   <div class="loc-timer" id="loc-timer">0:00</div>
 </div></div>
@@ -1752,10 +1739,17 @@ const todayValue=TODAY_KEY();
 function formatTodayDisplay(){const d=new Date();return`${DAY_FULL[d.getDay()]}, ${d.getDate()} ${BULAN_NAMES[d.getMonth()]} ${d.getFullYear()}`;}
 function saveLocData(){localStorage.setItem('loc_'+TODAY_KEY(),JSON.stringify({totalMinutes:totalMinutesToday,sessionStart,log:locationLog,lastSave:Date.now()}));}
 function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_KEY())||'null');if(!d)return;
-  // Menit yang sudah terkumpul sebelumnya SELALU disimpan, berapapun gapnya.
-  // Gap > 1 jam hanya berarti sesi baru mulai dari nol tambahan — bukan hapus yang sudah ada.
-  totalMinutesToday = d.totalMinutes || 0;
-  locationLog = d.log || [];
+  // Cek gap sejak terakhir terdeteksi — kalau lebih dari 1 jam, reset total menit
+  // (dianggap app/HP mati terlalu lama, sesi tidak valid dilanjutkan)
+  const GAP_RESET_MS = 60 * 60 * 1000; // 1 jam
+  const gap = d.lastSave ? (Date.now() - d.lastSave) : 0;
+  if(gap > GAP_RESET_MS){
+    totalMinutesToday = 0;
+    locationLog = [];
+  } else {
+    totalMinutesToday = d.totalMinutes || 0;
+    locationLog = d.log || [];
+  }
   // sessionStart dan isAtStore selalu mulai dari nol — deteksi router/GPS yang tentukan
   sessionStart = null; isAtStore = false;
   }catch(e){}}
@@ -4994,8 +4988,6 @@ function applyRole(){
     if(lo)lo.style.display='';
     stopGpsTracking();
     var ar=document.getElementById('admin-loc-refresh');if(ar)ar.style.display='block';
-    var kb=document.getElementById('admin-koreksi-box');if(kb){kb.style.display='block';}
-    var ki=document.getElementById('koreksi-jam-masuk');if(ki)ki.addEventListener('input',previewKoreksi);
     var mc=document.getElementById('mgr-map-card');if(mc)mc.style.display='block';
     setTimeout(initMgrMap,300);
     var cp=document.getElementById('cek-panel');if(cp)cp.style.display='block';
@@ -6118,72 +6110,6 @@ if ('serviceWorker' in navigator) {
       if (!refreshing) { refreshing = true; window.location.reload(); }
     });
   });
-}
-
-// ════ ADMIN: KOREKSI JAM KERJA MANAGER ════
-// Hitung menit dari jam masuk yang diinput sampai sekarang
-function _hitungMenitKoreksi(jamMasuk){
-  if(!jamMasuk)return null;
-  var now=new Date();
-  var parts=jamMasuk.split(':');
-  var masuk=new Date();
-  masuk.setHours(parseInt(parts[0],10),parseInt(parts[1],10),0,0);
-  var selisih=Math.round((now-masuk)/60000);
-  if(selisih<=0||selisih>720)return null; // tidak masuk akal (>12 jam atau minus)
-  return selisih;
-}
-
-function previewKoreksi(){
-  var inp=document.getElementById('koreksi-jam-masuk');
-  var prevMnt=document.getElementById('koreksi-preview-menit');
-  var prevDet=document.getElementById('koreksi-preview-detail');
-  if(!inp||!prevMnt||!prevDet)return;
-  var val=inp.value;
-  var mnt=_hitungMenitKoreksi(val);
-  if(!mnt){
-    prevMnt.textContent='— mnt';
-    prevDet.textContent=val?'Jam tidak valid atau lebih dari 12 jam':'Masukkan jam di atas untuk lihat preview';
-    return;
-  }
-  var h=Math.floor(mnt/60),m=mnt%60;
-  prevMnt.textContent=mnt+' mnt';
-  var nowStr=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-  prevDet.textContent='Masuk '+val+' → sekarang '+nowStr+' = '+h+' jam '+m+' menit ('+mnt+' mnt)';
-}
-
-async function adminKirimKoreksi(){
-  if(userRole!=='admin'){showToast('Hanya admin yang bisa koreksi','err');return;}
-  var inp=document.getElementById('koreksi-jam-masuk');
-  var statusEl=document.getElementById('koreksi-status');
-  var btn=document.getElementById('koreksi-submit-btn');
-  if(!inp||!inp.value){showToast('Masukkan jam masuk terlebih dahulu','err');return;}
-  var mnt=_hitungMenitKoreksi(inp.value);
-  if(!mnt){showToast('Jam tidak valid atau tidak masuk akal (>12 jam)','err');return;}
-  var url=scriptUrl;if(!url||!url.startsWith('http')){showToast('URL Script belum diisi','err');return;}
-  var nowStr=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-  var payload={
-    type:'loc_koreksi',
-    tanggal:todayValue,
-    jamMasuk:inp.value,
-    jamKeluar:nowStr,
-    menit:mnt,
-    adminEmail:userEmail,
-    waktu:Date.now()
-  };
-  btn.disabled=true;btn.textContent='Menyimpan...';
-  if(statusEl)statusEl.textContent='Mengirim ke Sheets...';
-  try{
-    await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
-    if(statusEl){statusEl.style.color='var(--green)';statusEl.textContent='✓ Tersimpan! '+inp.value+' → '+nowStr+' = '+mnt+' menit';}
-    showToast('✓ Koreksi '+mnt+' menit tersimpan ke Sheets','ok');
-    logActivity('Koreksi jam kerja manager','Masuk '+inp.value+' → '+nowStr+' = '+mnt+' mnt (oleh admin)');
-    inp.value='';
-    previewKoreksi();
-  }catch(e){
-    if(statusEl){statusEl.style.color='var(--red)';statusEl.textContent='Gagal: '+String(e.message||'error').slice(0,50);}
-    showToast('Gagal menyimpan koreksi','err');
-  }
-  btn.disabled=false;btn.textContent='💾 Simpan Koreksi ke Sheets';
 }
 
 // ── Keepalive agresif saat app VISIBLE: cek router tiap 30 detik ──
