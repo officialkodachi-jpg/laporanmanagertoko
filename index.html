@@ -1156,6 +1156,7 @@ body.role-admin #admin-mgrlog{display:none!important}
           <input type="file" accept="image/*" id="cash-foto" style="display:none" onchange="cashFotoChange()">
           <button type="button" onclick="document.getElementById('cash-foto').click()" style="width:100%;padding:10px;border:1px dashed var(--border2);background:var(--surface);border-radius:var(--r);cursor:pointer;color:var(--accent);font-size:12px;font-weight:600">📷 Ambil/pilih foto bukti</button>
           <div id="cash-foto-prev" style="margin-top:6px"></div>
+          <div id="cash-pending" style="margin-top:6px"></div>
         </div>
 
         <!-- Badge nama manager — klik untuk simpan -->
@@ -1190,6 +1191,7 @@ body.role-admin #admin-mgrlog{display:none!important}
             <input type="file" accept="image/*" id="cash-receh-foto" style="display:none" onchange="cashRecehFotoChange()">
             <button type="button" onclick="document.getElementById('cash-receh-foto').click()" style="width:100%;padding:9px;border:1px dashed var(--border2);background:var(--surface);border-radius:var(--r);cursor:pointer;color:var(--orange);font-size:12px;font-weight:600">📷 Ambil/pilih foto bukti</button>
             <div id="cash-receh-foto-prev" style="margin-top:6px"></div>
+            <div id="cash-receh-pending" style="margin-top:6px"></div>
           </div>
           <button id="cash-simpan-receh-btn" onclick="simpanRecehData()" style="width:100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer">Simpan Receh →</button>
           <div id="cash-simpan-receh-status" style="text-align:center;font-size:12px;margin-top:8px;min-height:14px;font-family:var(--mono)"></div>
@@ -1214,6 +1216,7 @@ body.role-admin #admin-mgrlog{display:none!important}
           <input type="file" accept="image/*" id="kbl-foto" style="display:none" onchange="kblFotoChange()">
           <button type="button" onclick="document.getElementById('kbl-foto').click()" style="width:100%;padding:10px;border:1px dashed var(--border2);background:var(--surface);border-radius:var(--r);cursor:pointer;color:var(--green);font-size:12px;font-weight:600">📷 Ambil/pilih foto bukti</button>
           <div id="kbl-foto-prev" style="margin-top:6px"></div>
+          <div id="kbl-pending" style="margin-top:6px"></div>
         </div>
         <div style="margin-bottom:10px">
           <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">Catatan (opsional)</div>
@@ -2511,6 +2514,11 @@ function _cekDelegateHandler(e){
   if(kunci)cekSrcToggle(kunci,done);
 }
 document.addEventListener('click',_cekDelegateHandler,true);
+// Sebagian WebView HP tidak mem-fire 'click' pada tombol yang baru di-appendChild
+// (mis. tombol cek di kartu D04). Tangani juga 'pointerup' & 'touchend'. Guard 400ms
+// di dalam handler mencegah aksi dobel bila beberapa event ikut terpicu.
+document.addEventListener('pointerup',_cekDelegateHandler,true);
+document.addEventListener('touchend',_cekDelegateHandler,true);
 // Tandai/batal dari kartu SUMBER. Update LOKAL dulu (instan), kirim ke server di belakang,
 // lalu re-render ringan dari cache — TANPA fetch berat berulang.
 function cekSrcToggle(kunci,done){
@@ -2536,6 +2544,7 @@ function cekRerenderLight(){
   try{ if(typeof cekRender==='function'&&document.getElementById('cek-list')){ var sub=document.getElementById('cek-sub'); if(sub){var belum=_cekData.filter(function(x){return !x.dicek;}).length;sub.textContent=belum+' belum dicek · '+_cekData.length+' total berfoto';} cekRender(); } }catch(e){}
   try{ if(typeof annotateEventCards==='function'&&document.getElementById('event-grid')) _annotateEventCardsRender(_cekItems); }catch(e){}
   try{ if(typeof _annotateD04Render==='function'&&document.getElementById('d04-cek-strip')) _annotateD04Render(_cekItems); }catch(e){}
+  try{ if(typeof _annotateCashRender==='function'&&document.getElementById('kbl-pending')) _annotateCashRender(_cekItems); }catch(e){}
   try{ if(typeof kmRender==='function'&&typeof kmData!=='undefined'&&kmData.length) kmRender(); }catch(e){}
   try{ if(userRole==='admin'&&typeof _loadNoteBuktiRender==='function') _loadNoteBuktiRender(); }catch(e){}
 }
@@ -3528,6 +3537,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   renderHarian();renderEventGrid();checkTodayFilled();checkLaporanBadge();checkEventBadge();
   restoreHarianHariIni();restoreD04FotoBekas();
   annotateD04Card();
+  annotateCashForms();
   igAddRow();igAddRow();igAddRow();
   acInit();initStokUI();
   var kt=document.getElementById('km-tgl');if(kt)kt.value=todayValue;
@@ -3551,7 +3561,7 @@ function switchTab(name,btn){
   if(name==='home'){loadHomeKiriman();loadHomeLog();loadHomeHarian();loadHomeJamKerja();loadHomeEvent();loadHomeRekap();loadHomeStreak();}
   if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();}
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
-  if(name==='cash'){if(cashData.length===0)loadCashData();}
+  if(name==='cash'){if(cashData.length===0)loadCashData();annotateCashForms();}
   if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
   if(name==='laporan'&&userRole==='admin')loadLog();
   if(name==='harian'){fixD01SwipeHeight();if(scriptUrl)loadStreakHarian();annotateD04Card();}
@@ -4013,8 +4023,42 @@ function markD04Done(){
   kirimHarianAuto('D04'); // simpan ke spreadsheet supaya centang D04 tetap ada walau refresh/close
   showToast('✓ D04 (catatan uang) tercentang & tersimpan','ok');
   setTimeout(function(){ try{annotateD04Card(true);}catch(e){} },1600);
+  setTimeout(function(){ try{annotateCashForms(true);}catch(e){} },1800);
 }
-// Strip "foto perlu dicek / sudah dicek" di kartu D04 — sumber: item Cek jenis 'uang'
+// Bukti foto Uang Cash tersimpan PER FORM (dari server). Bertahan walau refresh,
+// dan hilang otomatis dari form begitu admin menandai "sudah dicek".
+function annotateCashForms(force){ cekKeysLoad(function(items){ _annotateCashRender(items); }, force?true:false); }
+function _annotateCashRender(allItems){
+  allItems=allItems||_cekItems||[];
+  var groups={ 'cash-pending':[], 'cash-receh-pending':[], 'kbl-pending':[] };
+  allItems.filter(function(x){return x.jenis==='uang' && !x.dicek;}).forEach(function(it){
+    if(isCekArsipKey(it.kunci)) return;
+    var j=String(it.judul||'');
+    var tgt = /Kembalian/i.test(j) ? 'kbl-pending' : (/Receh/i.test(j) ? 'cash-receh-pending' : 'cash-pending');
+    groups[tgt].push(it);
+  });
+  Object.keys(groups).forEach(function(id){
+    var el=document.getElementById(id); if(!el)return;
+    el.innerHTML='';
+    var arr=groups[id]; if(!arr.length) return;
+    arr.sort(function(a,b){return String(b.tgl||'').localeCompare(String(a.tgl||''));});
+    var wrap=document.createElement('div'); wrap.style.cssText='display:flex;align-items:center;gap:6px;flex-wrap:wrap';
+    arr.slice(0,4).forEach(function(it){
+      (it.fotos||[]).slice(0,1).forEach(function(u){
+        var a=document.createElement('a'); a.href=u; a.target='_blank'; a.style.display='inline-block';
+        a.addEventListener('click',function(e){e.stopPropagation();});
+        var img=document.createElement('img'); img.src=kmFotoImgUrl(u); img.loading='lazy';
+        img.style.cssText='width:46px;height:46px;object-fit:cover;border-radius:6px;border:1px solid var(--border)';
+        a.appendChild(img); wrap.appendChild(a);
+      });
+    });
+    el.appendChild(wrap);
+    var lbl=document.createElement('div');
+    lbl.style.cssText='font-size:10px;font-weight:700;color:var(--accent);margin-top:4px';
+    lbl.textContent='● bukti tersimpan — menunggu dicek admin';
+    el.appendChild(lbl);
+  });
+}
 function annotateD04Card(force){ cekKeysLoad(function(items){ _annotateD04Render(items); }, force?true:false); }
 function _annotateD04Render(allItems){
   allItems=allItems||_cekItems||[];
@@ -4803,6 +4847,15 @@ function _cekBtnEl(jenis,row,markDone){
     b.textContent='↩ Batal cek';
     b.style.cssText='font-size:11px;padding:7px 12px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)';
   }
+  // Handler LANGSUNG pada tombol (fallback) — jalan walau delegasi global tak menangkap tap.
+  // Pakai _cekLastFire (guard 400ms) yang sama → tidak akan dobel dengan delegasi global.
+  var _fire=function(e){
+    if(e){ e.stopPropagation(); if(e.cancelable&&e.preventDefault)e.preventDefault(); }
+    var now=Date.now(); if(now-_cekLastFire<400)return; _cekLastFire=now;
+    cekSrcToggle(b.getAttribute('data-cek-kunci'), b.getAttribute('data-cek-done')==='1');
+  };
+  b.addEventListener('click',_fire);
+  b.addEventListener('pointerup',_fire);
   return b;
 }
 // Tombol arsip (DOM) untuk kartu Non-Harian — hanya muncul kalau sudah dicek
