@@ -571,19 +571,6 @@ body.role-admin #admin-mgrlog{display:none!important}
     <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span>Target: 4 jam</span></div></div>
     <button class="loc-retry-inline btn-press" id="loc-retry-btn" onclick="retryGps()"><span class="spin-ico" id="loc-retry-ico">⟳</span> Coba ulang deteksi lokasi</button>
     <button class="admin-refresh btn-press" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc(true)"><span class="spin-ico" id="admin-loc-ico">⟳</span> Perbarui posisi Manager</button>
-    <!-- KOREKSI JAM KERJA (admin only) -->
-    <div id="admin-koreksi-box" style="display:none;margin-top:12px;background:rgba(217,119,6,.07);border:1px solid rgba(217,119,6,.35);border-radius:10px;padding:12px 14px">
-      <div style="font-size:11px;font-weight:800;color:var(--orange);margin-bottom:10px;letter-spacing:.04em">✏️ KOREKSI JAM MASUK HARI INI</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5">Input jam masuk yang sebenarnya → sistem hitung sendiri berapa menit sampai sekarang → tersimpan sebagai baris baru di Sheets (tidak hapus data sebelumnya).</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <input type="time" id="koreksi-jam-masuk" style="flex:1;padding:9px 11px;border:1.5px solid rgba(217,119,6,.5);border-radius:8px;font-family:var(--mono);font-size:16px;background:var(--card);color:var(--text);outline:none;color-scheme:light" placeholder="HH:MM">
-        <div style="font-size:11px;color:var(--muted)">→ sekarang</div>
-        <div id="koreksi-preview-menit" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--orange);min-width:50px;text-align:right">— mnt</div>
-      </div>
-      <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:10px" id="koreksi-preview-detail">Masukkan jam di atas untuk lihat preview</div>
-      <button onclick="adminKirimKoreksi()" id="koreksi-submit-btn" style="width:100%;padding:10px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer">💾 Simpan Koreksi ke Sheets</button>
-      <div id="koreksi-status" style="font-size:11px;font-family:var(--mono);margin-top:7px;min-height:14px;text-align:center"></div>
-    </div>
   </div>
   <div class="loc-timer" id="loc-timer">0:00</div>
 </div></div>
@@ -599,6 +586,29 @@ body.role-admin #admin-mgrlog{display:none!important}
     </div>
     <div id="mgr-map" style="width:100%;height:220px;background:#e5e7eb"></div>
     <div id="mgr-map-coords" style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:9px 14px;line-height:1.5">—</div>
+  </div>
+</div>
+
+<!-- KOREKSI JAM KERJA (admin only) — tampil di bawah peta -->
+<div id="admin-koreksi-box" style="display:none;max-width:680px;margin:0 auto 14px;padding:0 20px">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+    <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid rgba(217,119,6,.25);background:rgba(217,119,6,.06)">
+      <span style="font-size:18px">✏️</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:800;color:var(--orange)">Koreksi Jam Masuk Hari Ini</div>
+        <div style="font-size:10px;color:var(--muted)">Input jam masuk → sistem hitung otomatis durasi sampai sekarang</div>
+      </div>
+    </div>
+    <div style="padding:14px 16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <input type="time" id="koreksi-jam-masuk" style="flex:1;padding:10px 12px;border:1.5px solid rgba(217,119,6,.45);border-radius:10px;font-family:var(--mono);font-size:17px;background:var(--bg);color:var(--text);outline:none;color-scheme:light">
+        <div style="color:var(--muted);font-size:13px;flex-shrink:0">→ sekarang</div>
+        <div id="koreksi-preview-menit" style="font-family:var(--mono);font-size:17px;font-weight:700;color:var(--orange);min-width:56px;text-align:right">— mnt</div>
+      </div>
+      <div id="koreksi-preview-detail" style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:12px;min-height:14px">Masukkan jam di atas untuk lihat preview</div>
+      <button onclick="adminKirimKoreksi()" id="koreksi-submit-btn" style="width:100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer">💾 Simpan Koreksi ke Sheets</button>
+      <div id="koreksi-status" style="font-size:11px;font-family:var(--mono);margin-top:8px;min-height:14px;text-align:center"></div>
+    </div>
   </div>
 </div>
 
@@ -6179,8 +6189,6 @@ async function adminKirimKoreksi(){
     logActivity('Koreksi jam kerja manager','Masuk '+inp.value+' → '+nowStr+' = '+mnt+' mnt (oleh admin)');
     // ── Fix: update timer lokal supaya progress bar langsung berjalan ──
     totalMinutesToday = mnt;
-    // Kalau manager masih di toko, sessionStart tetap berjalan dari sekarang
-    // supaya menit terus bertambah secara live — jangan double-count yang lama
     sessionStart = isAtStore ? Date.now() : null;
     saveLocData();
     updateTimerDisplay();
