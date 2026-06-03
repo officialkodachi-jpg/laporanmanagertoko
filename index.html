@@ -6177,6 +6177,13 @@ async function adminKirimKoreksi(){
     if(statusEl){statusEl.style.color='var(--green)';statusEl.textContent='✓ Tersimpan! '+inp.value+' → '+nowStr+' = '+mnt+' menit';}
     showToast('✓ Koreksi '+mnt+' menit tersimpan ke Sheets','ok');
     logActivity('Koreksi jam kerja manager','Masuk '+inp.value+' → '+nowStr+' = '+mnt+' mnt (oleh admin)');
+    // ── Fix: update timer lokal supaya progress bar langsung berjalan ──
+    totalMinutesToday = mnt;
+    // Kalau manager masih di toko, sessionStart tetap berjalan dari sekarang
+    // supaya menit terus bertambah secara live — jangan double-count yang lama
+    sessionStart = isAtStore ? Date.now() : null;
+    saveLocData();
+    updateTimerDisplay();
     inp.value='';
     previewKoreksi();
   }catch(e){
