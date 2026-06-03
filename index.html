@@ -2278,8 +2278,11 @@ function _cekJudul(it){
 }
 function cekRender(){
   var box=document.getElementById('cek-list');if(!box)return;
-  var base=_cekData.filter(function(x){return !isCekArsipKey(x.kunci);}); // sembunyikan yang diarsip
-  var list=_cekShowAll?base:base.filter(function(x){return !x.dicek;});
+  // Mode "belum saja": sembunyikan yang sudah dicek & yang diarsip.
+  // Mode "lihat semua": tampilkan SEMUA termasuk yang diarsip (agar bisa dibatalkan arsipnya).
+  var list=_cekShowAll
+    ? _cekData.slice()
+    : _cekData.filter(function(x){return !x.dicek && !isCekArsipKey(x.kunci);});
   if(!list.length){box.innerHTML='<div style="text-align:center;color:var(--hint);font-size:12px;padding:18px">'+(_cekShowAll?'Belum ada pekerjaan berfoto':'✅ Semua sudah dicek')+'</div>';return;}
   var html='';
   list.forEach(function(it){
@@ -2290,16 +2293,17 @@ function cekRender(){
         +(it.dicek?'':'<span class="cek-dot"></span>')
         +'<span style="font-size:11px;font-weight:700">'+_cekJenisLabel(it.jenis)+'</span>'
         +'<span style="font-size:10px;color:var(--hint)">'+escH(it.tgl)+'</span>'
-        +(it.dicek?'<span style="margin-left:auto;font-size:10px;color:var(--green)">✓ dicek '+escH(it.cekInfo)+'</span>':'<span style="margin-left:auto;font-size:10px;color:var(--red);font-weight:700">belum dicek</span>')
+        +(it.dicek?'<span style="margin-left:auto;font-size:10px;color:var(--green)">✓ dicek '+escH(it.cekInfo)+(isCekArsipKey(it.kunci)?' · 🗂 diarsipkan':'')+'</span>':'<span style="margin-left:auto;font-size:10px;color:var(--red);font-weight:700">belum dicek</span>')
       +'</div>'
       +'<div style="font-size:12px;font-weight:600;color:var(--text)">'+escH(_cekJudul(it))+'</div>'
       +(it.detail?'<div style="font-size:11px;color:var(--muted);margin:2px 0 6px">'+escH(it.detail)+'</div>':'<div style="height:6px"></div>')
       +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+thumbs+'</div>'
-      +'<div style="display:flex;gap:6px">'
-        +'<button onclick="event.stopPropagation();cekGoto(\''+it.jenis+'\','+it.row+')" style="flex:1;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">🔗 Buka sumber</button>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+        +'<button onclick="event.stopPropagation();cekGoto(\''+it.jenis+'\','+it.row+')" style="flex:1;min-width:90px;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">🔗 Buka sumber</button>'
         +(it.dicek
-          ?'<button onclick="event.stopPropagation();cekUndo(\''+escH(it.kunci)+'\')" style="flex:1;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">↩ Batal cek</button>'
-          :'<button onclick="event.stopPropagation();cekDone(\''+escH(it.kunci)+'\')" style="flex:1;font-size:11px;padding:6px;border:none;background:var(--green);color:#fff;border-radius:7px;cursor:pointer;font-weight:700">✓ Sudah dicek</button>')
+          ?'<button onclick="event.stopPropagation();cekUndo(\''+escH(it.kunci)+'\')" style="flex:1;min-width:90px;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--muted)">↩ Batal cek</button>'
+          :'<button onclick="event.stopPropagation();cekDone(\''+escH(it.kunci)+'\')" style="flex:1;min-width:90px;font-size:11px;padding:6px;border:none;background:var(--green);color:#fff;border-radius:7px;cursor:pointer;font-weight:700">✓ Sudah dicek</button>')
+        +cekArsipBtnHTML(it.jenis,it.row)
       +'</div>'
     +'</div>';
   });
@@ -2477,7 +2481,13 @@ function isCekDone(jenis,row){ return _cekKeys[jenis+'#'+row]===true; }
 // Tanda "✓ sudah dicek" — tanpa waktu / tanpa email (cukup info sudah dicek)
 function cekMarkHTML(jenis,row){
   if(!isCekDone(jenis,row))return'';
-  return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px">✓ sudah dicek</span>';
+  var base='display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px';
+  // MANAGER: tanda "sudah dicek admin" hanya tampil sampai kartu di-tap (per hari, per perangkat).
+  if(userRole==='manager'){
+    if(_mgrHasSeen(jenis+'#'+row))return'';
+    return '<span class="cek-seen-badge" data-seen-kunci="'+escH(jenis+'#'+row)+'" style="'+base+'">✓ sudah dicek admin</span>';
+  }
+  return '<span style="'+base+'">✓ sudah dicek</span>';
 }
 // Tombol aksi cek (string) untuk kartu yang masih pakai innerHTML.
 // Memakai data-atribut + delegasi global (lihat listener di bawah) supaya andal di WebView.
@@ -4087,10 +4097,14 @@ function _annotateD04Render(allItems){
     a.appendChild(img); strip.appendChild(a);
   });
   if(pick.dicek){
-    var mark=document.createElement('span');
-    mark.style.cssText='display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px';
-    mark.textContent=(userRole==='manager')?'✓ sudah dicek admin':'✓ sudah dicek';
-    strip.appendChild(mark);
+    var seenKunci='uang#'+pick.row;
+    if(!(userRole==='manager' && _mgrHasSeen(seenKunci))){
+      var mark=document.createElement('span');
+      mark.style.cssText='display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px';
+      if(userRole==='manager'){ mark.className='cek-seen-badge'; mark.setAttribute('data-seen-kunci',seenKunci); mark.textContent='✓ sudah dicek admin'; }
+      else mark.textContent='✓ sudah dicek';
+      strip.appendChild(mark);
+    }
     if(userRole==='admin'){ strip.appendChild(_cekBtnEl('uang',pick.row,false)); strip.appendChild(_cekArsipBtnEl('uang',pick.row)); }
   }else{
     var lbl=document.createElement('span');
@@ -4767,6 +4781,26 @@ function _mgrSeenKey(){ return 'mtg_mgr_seen_'+TODAY_KEY(); }
 function _mgrSeenGet(){ try{ return JSON.parse(localStorage.getItem(_mgrSeenKey())||'{}'); }catch(e){ return {}; } }
 function _mgrSeenMark(kode){ var s=_mgrSeenGet(); s[kode]=true; try{ localStorage.setItem(_mgrSeenKey(),JSON.stringify(s)); }catch(e){} }
 function _mgrHasSeen(kode){ return _mgrSeenGet()[kode]===true; }
+// ── MANAGER: tap kartu berfoto "sudah dicek admin" → badge hilang (per hari, per perangkat) ──
+// Berlaku untuk SEMUA kartu sumber non-event (Kiriman, Pelanggaran, D04, dll) yang memakai
+// badge .cek-seen-badge. Kartu Non-Harian (event) punya mekanisme sendiri di renderEventGrid.
+// Capture-phase: tap pertama hanya membuang badge, TIDAK membuka detail/toggle (samakan Non-Harian).
+document.addEventListener('click',function(e){
+  if(userRole!=='manager')return;
+  if(!e.target||!e.target.closest)return;
+  if(e.target.closest('a,button,.cek-act-btn,.cek-arsip-btn'))return; // biarkan tombol/anchor & foto
+  var card=e.target.closest('.km-card,.task-item');
+  if(!card)return;
+  var badge=card.querySelector('.cek-seen-badge');
+  if(!badge)return;
+  var kunci=badge.getAttribute('data-seen-kunci');
+  if(kunci)_mgrSeenMark(kunci);
+  var strip=badge.parentElement;
+  badge.remove();
+  if(strip && strip!==card && !strip.querySelector('*')) strip.remove(); // buang strip bila jadi kosong
+  e.stopPropagation();
+  if(e.cancelable)e.preventDefault();
+},true);
 // Tampilkan foto bukti + tanda "sudah dicek" + dot notifikasi di tiap kartu Non-Harian (sumber pekerjaan).
 // Sumber data: ?type=cek_list (berisi item berfoto + status dicek). Bisa dibaca admin & manager.
 // Tampilkan tanda dicek di tiap kartu Non-Harian. Pakai CACHE cek_list (tidak fetch tiap kali).
