@@ -494,8 +494,7 @@ body.role-admin #panel-harian .alert.info,
 body.role-admin .loc-retry-inline,
 body.role-admin #mt-edit-box{display:none!important}
 body.role-admin .task-item{cursor:default;pointer-events:none}
-.harian-locked .task-item{pointer-events:none;opacity:.92}
-.harian-locked .task-item .task-note-input,.harian-locked .d04-struk{display:none!important}
+
 body.role-admin .event-card{cursor:default;pointer-events:none}
 /* TAPI tombol cek "sudah dicek" + strip-nya tetap bisa ditekan admin (admin tetap dilarang isi tugas) */
 body.role-admin .event-card .ev-cek-strip,
@@ -684,7 +683,6 @@ body.role-admin #admin-mgrlog{display:none!important}
         </div>
       </div>
       <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px">
-        <button id="adm-reset-harian" onclick="admResetHarian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid rgba(220,38,38,.3);background:rgba(220,38,38,.06);color:var(--red);border-radius:9px;cursor:pointer">🔄 Reset tugas Harian Manager (buka kunci agar bisa isi lagi)</button>
         <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">🙈 Sembunyikan tab Kepegawaian (Manager)</button>
       </div>
     </div>
@@ -850,8 +848,7 @@ body.role-admin #admin-mgrlog{display:none!important}
       <div class="stat-card"><div class="stat-val" id="stat-pct" style="color:var(--muted)">0%</div><div class="stat-label">selesai hari ini</div></div>
     </div>
     <div class="prog-wrap"><div class="prog-header"><span class="prog-label">Progress hari ini</span><span class="prog-pct" id="prog-pct">0%</span></div><div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div></div>
-    <div id="harian-lock-info" style="display:none;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.3);color:var(--accent);border-radius:var(--r);padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:12px"></div>
-    <div id="harian-list"></div>
+    <div id=\"harian-list\"></div>
     <button class="save-btn" id="save-harian-btn" onclick="saveHarian()">Simpan ke Google Sheets</button>
     <a class="stok-sheet-link" href="https://docs.google.com/spreadsheets/d/1ci0F6DajqsXt7IeX88fddYQwT_bO4CxAiV4hJltCyAQ/edit?gid=1670613726#gid=1670613726" target="_blank">📊 Buka Manager Task Guide →</a>
   </div>
@@ -1774,33 +1771,8 @@ function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_
 // Setelah dikirim, centangan tetap terlihat & terkunci. Reset otomatis bila:
 //  (a) ganti tanggal, atau (b) sudah lewat jam 22:00 hari itu.
 // Admin juga bisa reset paksa dari Home.
-const HARIAN_RESET_HOUR=22;
-function _harianLockKey(){ return 'mtg_harian_lock_'+TODAY_KEY(); }
-function harianGetLock(){
-  try{ return JSON.parse(localStorage.getItem(_harianLockKey())||'null'); }catch(e){ return null; }
-}
-function harianIsLocked(){
-  var L=harianGetLock();
-  if(!L||!L.submittedAt) return false;
-  // reset otomatis bila sekarang sudah ≥ jam 22:00 DAN submit-nya sebelum jam 22:00 hari ini
-  var now=new Date();
-  var subAt=new Date(L.submittedAt);
-  var batas=new Date(); batas.setHours(HARIAN_RESET_HOUR,0,0,0);
-  if(now>=batas && subAt<batas){ return false; } // lewat jam 22 → boleh isi lagi (sesi baru)
-  return true;
-}
-function harianSaveLock(){
-  try{
-    localStorage.setItem(_harianLockKey(), JSON.stringify({
-      submittedAt: new Date().toISOString(),
-      checked: checked, notes: notes
-    }));
-  }catch(e){}
-}
-function harianClearLock(){ try{ localStorage.removeItem(_harianLockKey()); }catch(e){} }
-
 // ════ CONFIG GLOBAL (lintas-perangkat, via Apps Script ?type=appconfig) ════
-// { hideKepegawaian:0|1, harianResetTS:<ms>, ... }
+// { hideKepegawaian:0|1, ... }
 var _appCfg={};
 function appConfigLoad(cb){
   var url=scriptUrl; if(!url||!url.startsWith('http')){ if(cb)cb(_appCfg); return; }
@@ -1818,7 +1790,7 @@ function appConfigSet(key,val,cb){
 }
 // Terapkan config ke UI (dipanggil setelah load & setelah set)
 function applyAppConfig(){
-  // 1) Hide/Unhide tab Kepegawaian di akun MANAGER
+  // Hide/Unhide tab Kepegawaian di akun MANAGER
   var hideKep = String(_appCfg.hideKepegawaian||'')==='1';
   var kepBtn=document.querySelector(".tab[onclick*=\"switchTab('pegawai'\"]");
   if(kepBtn){
@@ -1828,15 +1800,6 @@ function applyAppConfig(){
   // refleksikan status tombol admin (kalau ada)
   var aHide=document.getElementById('adm-kep-toggle');
   if(aHide) aHide.textContent = hideKep ? '👁 Tampilkan tab Kepegawaian (Manager)' : '🙈 Sembunyikan tab Kepegawaian (Manager)';
-  // 2) Reset harian global: bila lock dibuat sebelum harianResetTS → anggap belum submit
-  var rs=Number(_appCfg.harianResetTS||0);
-  if(rs>0){
-    var L=harianGetLock();
-    if(L&&L.submittedAt&&(new Date(L.submittedAt).getTime()<rs)){
-      harianClearLock();
-      if(document.getElementById('panel-harian')) applyHarianLock();
-    }
-  }
 }
 function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 
@@ -3894,42 +3857,6 @@ function renderHarian(){
     });
   });
   updateStats();
-  applyHarianLock();
-}
-// Terapkan/lepas kunci harian di tampilan (khusus manager). Admin tidak dikunci.
-function applyHarianLock(){
-  var locked = (userRole==='manager') && harianIsLocked();
-  var list=document.getElementById('harian-list');
-  var btn=document.getElementById('save-harian-btn');
-  var info=document.getElementById('harian-lock-info');
-  if(locked){
-    var L=harianGetLock();
-    if(L){ // pulihkan centangan & catatan tersimpan
-      if(L.checked) checked=L.checked;
-      if(L.notes) notes=L.notes;
-      // refleksikan ke kartu
-      HARIAN.forEach(function(t){
-        if(t.autoTrack)return;
-        var el=document.getElementById('task-'+t.kode);
-        if(el)el.classList.toggle('done',!!checked[t.kode]);
-        var ta=document.getElementById('note-'+t.kode);
-        if(ta&&notes[t.kode]){ta.value=notes[t.kode];}
-      });
-      updateStats();
-    }
-    if(list)list.classList.add('harian-locked');
-    if(btn){btn.disabled=true;btn.textContent='✓ Sudah dikirim hari ini';btn.style.opacity='.6';btn.style.cursor='not-allowed';}
-    if(info){
-      var subAt=L&&L.submittedAt?new Date(L.submittedAt):null;
-      var jam=subAt?(String(subAt.getHours()).padStart(2,'0')+':'+String(subAt.getMinutes()).padStart(2,'0')):'';
-      info.style.display='block';
-      info.innerHTML='🔒 Tugas harian sudah dikirim'+(jam?(' pukul '+jam):'')+'. Tidak bisa diisi lagi sampai reset (otomatis jam 22:00 atau oleh admin).';
-    }
-  }else{
-    if(list)list.classList.remove('harian-locked');
-    if(btn){btn.disabled=false;btn.textContent='Simpan ke Google Sheets';btn.style.opacity='';btn.style.cursor='';}
-    if(info)info.style.display='none';
-  }
 }
 var d04FotoBase64='';
 function d04FotoChange(){
@@ -3943,7 +3870,6 @@ function d04FotoChange(){
   });
 }
 function toggleCheck(k){
-  if(userRole==='manager'&&harianIsLocked()){showToast('Sudah dikirim hari ini — tidak bisa diubah','');return;}
   // D04 (setor uang) wajib ada foto struk sebelum boleh dicentang
   if(k==='D04' && !checked[k] && !d04FotoBase64){
     showToast('📷 Foto struk setoran wajib sebelum mencentang setor uang','err');
@@ -4508,7 +4434,6 @@ function pgUpdateMainBadge(){
 }
 async function saveHarian(){
   if(!scriptUrl){openModal();return;}
-  if(userRole==='manager'&&harianIsLocked()){showToast('Tugas harian sudah dikirim hari ini','');return;}
   // D04 dicentang wajib ada foto struk
   if(checked['D04'] && !d04FotoBase64){
     showToast('📷 Foto struk setoran wajib karena setor uang dicentang','err');
@@ -4521,10 +4446,10 @@ async function saveHarian(){
   var payload={type:'harian',entries:entries};
   // sertakan foto struk D04 bila ada (backend mengabaikan bila tak dipakai)
   if(checked['D04']&&d04FotoBase64){ payload.fotoStruk=d04FotoBase64; payload.fotoStrukKode='D04'; }
-  try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)}),d=await r.json();if(d.status==='ok'){showToast('✓ Tersimpan','ok');logActivity('Simpan tugas Harian',gn);harianSaveLock();applyHarianLock();checkTodayFilled();checkLaporanBadge();}else showToast('Gagal: '+(d.message||''),'err');}
+  try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)}),d=await r.json();if(d.status==='ok'){showToast('✓ Tersimpan','ok');logActivity('Simpan tugas Harian',gn);checkTodayFilled();checkLaporanBadge();}else showToast('Gagal: '+(d.message||''),'err');}
   catch(e){showToast('Gagal terhubung','err');}
   btn.disabled=false;
-  if(!(userRole==='manager'&&harianIsLocked())){btn.textContent='Simpan ke Google Sheets';}
+  btn.textContent='Simpan ke Google Sheets';
 }
 
 // ════ EVENTS ════
@@ -5082,17 +5007,6 @@ function applyRole(){
   _appCfgTimer=setInterval(function(){ appConfigLoad(function(){ applyAppConfig(); }); }, 60000);
 }
 var _appCfgTimer=null;
-// Admin: reset tugas harian manager (lintas perangkat) → set harianResetTS = sekarang
-function admResetHarian(){
-  if(userRole!=='admin')return;
-  if(!confirm('Reset tugas Harian Manager hari ini? Manager akan bisa mengisi & mengirim ulang.'))return;
-  var ts=Date.now();
-  appConfigSet('harianResetTS',ts,function(){});
-  harianClearLock(); // reset juga di perangkat ini
-  if(document.getElementById('panel-harian'))applyHarianLock();
-  showToast('✓ Tugas harian Manager direset','ok');
-  logActivity('Reset harian Manager','TS '+ts);
-}
 // Admin: hide/unhide tab Kepegawaian di akun Manager (lintas perangkat)
 function admToggleKepegawaian(){
   if(userRole!=='admin')return;
