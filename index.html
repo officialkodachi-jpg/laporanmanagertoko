@@ -682,20 +682,21 @@ body.role-admin #admin-mgrlog{display:none!important}
         <div style="font-size:11px;font-weight:700;color:var(--accent);margin:4px 0 6px">🌅 Sesi Pagi</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
           <div><label class="field-label">Masuk</label><input type="time" class="it" id="kjk-pagi-masuk" oninput="kjkHitung()"></div>
-          <div><label class="field-label">Keluar</label><input type="time" class="it" id="kjk-pagi-keluar" oninput="kjkHitung()"></div>
+          <div><label class="field-label">Keluar (opsional)</label><input type="time" class="it" id="kjk-pagi-keluar" oninput="kjkHitung()"></div>
         </div>
         <div style="font-size:11px;font-weight:700;color:var(--orange);margin:4px 0 6px">🌇 Sesi Sore (opsional)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
           <div><label class="field-label">Masuk</label><input type="time" class="it" id="kjk-sore-masuk" oninput="kjkHitung()"></div>
-          <div><label class="field-label">Keluar</label><input type="time" class="it" id="kjk-sore-keluar" oninput="kjkHitung()"></div>
+          <div><label class="field-label">Keluar (opsional)</label><input type="time" class="it" id="kjk-sore-keluar" oninput="kjkHitung()"></div>
         </div>
         <div id="kjk-total" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);background:var(--surface);border-radius:8px;padding:9px 12px;margin-bottom:10px;text-align:center">Total: 0j 0m</div>
         <div id="kjk-saved" style="font-size:11px;color:var(--hint);font-family:var(--mono);margin-bottom:10px;text-align:center"></div>
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;margin-bottom:8px">
           <button class="btn-press" id="kjk-save-btn" onclick="kjkSave()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans)">💾 Simpan koreksi</button>
           <button class="btn-press" onclick="kjkClear()" style="background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.3);border-radius:10px;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans)">🗑 Hapus</button>
         </div>
-        <div style="font-size:10px;color:var(--hint);margin-top:8px;line-height:1.5">Contoh: pagi 10:00–12:00 lalu sore 16:00–18:00 → tercatat 4 jam. Hasil koreksi menimpa jam kerja GPS hari itu di Rekap Jam Kerja.</div>
+        <button class="btn-press" onclick="kjkNol()" style="width:100%;background:rgba(124,58,237,.08);color:#7c3aed;border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans)">🚫 Tandai TIDAK dihitung masuk (0 jam)</button>
+        <div style="font-size:10px;color:var(--hint);margin-top:8px;line-height:1.5">Isi jam <b>Masuk</b> saja boleh (untuk membenahi jam datang). Jam <b>Keluar</b> opsional — kalau diisi, durasinya dihitung (pagi 10:00–12:00 + sore 16:00–18:00 = 4 jam). Tombol ungu dipakai bila GPS salah deteksi padahal Manager tidak benar-benar di toko. Hasil menimpa jam kerja GPS hari itu.</div>
       </div>
     </div>
 
@@ -3872,8 +3873,9 @@ function renderHarian(){
         var strukHtml='';
         if(t.kode==='D04'){
           strukHtml='<div class="d04-struk" onclick="event.stopPropagation()" style="margin-top:8px">'
+            +'<div style="font-size:10px;color:var(--accent);margin-bottom:5px">💵 Terhubung dengan tab <b>Uang Cash</b> — isi transaksi di sana, D04 tercentang otomatis.</div>'
             +'<input type="file" accept="image/*" id="d04-foto" style="display:none" onchange="d04FotoChange()">'
-            +'<button type="button" onclick="document.getElementById(\'d04-foto\').click()" style="font-size:11px;padding:6px 10px;border:1px dashed var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">📷 Foto struk setoran (wajib untuk centang)</button>'
+            +'<button type="button" onclick="document.getElementById(\'d04-foto\').click()" style="font-size:11px;padding:6px 10px;border:1px dashed var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">📷 Lampirkan foto struk (opsional)</button>'
             +'<div id="d04-foto-prev" style="margin-top:6px"></div>'
             +'</div>';
         }
@@ -3915,13 +3917,27 @@ function d04FotoChange(){
 }
 function toggleCheck(k){
   if(userRole==='manager'&&harianIsLocked()){showToast('Sudah lewat batas — tidak bisa diubah hari ini','');return;}
-  // D04 (setor uang) wajib ada foto struk sebelum boleh dicentang
-  if(k==='D04' && !checked[k] && !d04FotoBase64){
-    showToast('📷 Foto struk setoran wajib sebelum mencentang setor uang','err');
-    var d=document.getElementById('d04-foto-prev'); if(d){d.scrollIntoView({behavior:'smooth',block:'center'});}
-    return;
+  // D04 terhubung ke tab Uang Cash: tap → buka tab Uang Cash; tercentang otomatis setelah isi transaksi.
+  if(k==='D04'){
+    if(!checked['D04']){
+      showToast('Isi transaksi di tab Uang Cash — D04 tercentang otomatis','');
+      var cb=document.querySelector(".tab[onclick*=\"switchTab('cash'\"]");
+      if(cb)switchTab('cash',cb); else switchTab('cash');
+      return;
+    }else{
+      checked['D04']=false;var e4=document.getElementById('task-D04');if(e4)e4.classList.remove('done');updateStats();return;
+    }
   }
   checked[k]=!checked[k];var el=document.getElementById('task-'+k);if(el)el.classList.toggle('done',checked[k]);updateStats();
+}
+// Dipanggil setelah manager menyimpan transaksi di tab Uang Cash → centang D04 otomatis.
+function markD04Done(){
+  if(checked['D04'])return;
+  checked['D04']=true;
+  var el=document.getElementById('task-D04');if(el)el.classList.add('done');
+  if(!notes['D04']) notes['D04']='Terisi via tab Uang Cash';
+  updateStats();
+  showToast('✓ D04 (catatan uang) tercentang otomatis','ok');
 }
 function toggleNote(e,k){e.stopPropagation();var ta=document.getElementById('note-'+k);ta.style.display=ta.style.display==='none'?'block':'none';}
 function updateStats(){var done=Object.values(checked).filter(Boolean).length,tot=HARIAN.length,skip=tot-done,pct=Math.round(done/tot*100);document.getElementById('stat-done').textContent=done;document.getElementById('stat-skip').textContent=skip;document.getElementById('stat-pct').textContent=pct+'%';document.getElementById('stat-pct').style.color=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';document.getElementById('prog-pct').textContent=pct+'%';var f=document.getElementById('prog-fill');f.style.width=pct+'%';f.className='prog-fill'+(pct>=90?'':pct>=70?' mid':' low');}
@@ -4480,11 +4496,7 @@ function pgUpdateMainBadge(){
 async function saveHarian(){
   if(!scriptUrl){openModal();return;}
   if(userRole==='manager'&&harianIsLocked()){showToast('Sudah lewat batas — tidak bisa kirim lagi hari ini','err');return;}
-  // D04 dicentang wajib ada foto struk
-  if(checked['D04'] && !d04FotoBase64){
-    showToast('📷 Foto struk setoran wajib karena setor uang dicentang','err');
-    return;
-  }
+  // D04 terhubung ke Uang Cash; foto struk opsional (tidak wajib)
   var btn=document.getElementById('save-harian-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Menyimpan...';
   var t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60);
   var gn=t>0?'GPS: '+h+'j '+m+'m di toko'+(t>=TARGET_MENIT?'':' (< target 4j)')+' · '+(isAtStore?'Masih di toko':'Sudah keluar toko'):'GPS: tidak ada durasi tercatat';
@@ -5080,10 +5092,12 @@ function kjkHitung(){
   var pm=document.getElementById('kjk-pagi-masuk').value, pk=document.getElementById('kjk-pagi-keluar').value;
   var sm=document.getElementById('kjk-sore-masuk').value, sk=document.getElementById('kjk-sore-keluar').value;
   var total=kjkMenitFromTimes(pm,pk)+kjkMenitFromTimes(sm,sk);
+  var adaMasukSaja = (pm&&!pk) || (sm&&!sk); // ada sesi yang hanya diisi jam masuk
   var el=document.getElementById('kjk-total');
   if(el){
     var ket=total>=240?' ✓ (≥4 jam)':total>0?' (kurang dari 4 jam)':'';
-    el.textContent='Total: '+kjkFmt(total)+ket;
+    var note=adaMasukSaja?' · sesi tanpa jam keluar tidak dihitung jam':'';
+    el.textContent='Total: '+kjkFmt(total)+ket+note;
     el.style.color=total>=240?'var(--green)':total>0?'var(--orange)':'var(--text)';
   }
   return total;
@@ -5105,7 +5119,8 @@ function kjkLoad(){
       kjkHitung();
       if(saved){
         var menit=d&&d.menit?Number(d.menit):0;
-        if(s) saved.innerHTML='✓ Koreksi tersimpan: <b>'+kjkFmt(menit)+'</b>';
+        if(s&&s.nol) saved.innerHTML='🚫 Ditandai <b>0 jam</b> (tidak dihitung masuk)';
+        else if(s) saved.innerHTML='✓ Koreksi tersimpan: <b>'+(menit>0?kjkFmt(menit):'jam datang dicatat')+'</b>';
         else if(menit>0) saved.innerHTML='Jam kerja GPS tercatat: <b>'+kjkFmt(menit)+'</b> (belum dikoreksi)';
         else saved.textContent='Belum ada data untuk tanggal ini.';
       }
@@ -5119,27 +5134,42 @@ function kjkSave(){
   var pm=document.getElementById('kjk-pagi-masuk').value, pk=document.getElementById('kjk-pagi-keluar').value;
   var sm=document.getElementById('kjk-sore-masuk').value, sk=document.getElementById('kjk-sore-keluar').value;
   var total=kjkHitung();
-  if(total<=0){showToast('Isi minimal satu sesi (masuk & keluar) yang valid','err');return;}
-  var sesi={};
-  if(kjkMenitFromTimes(pm,pk)>0) sesi.pagi={in:pm,out:pk};
-  if(kjkMenitFromTimes(sm,sk)>0) sesi.sore={in:sm,out:sk};
-  // teks keterangan jam berapa-jam berapa
-  var bagian=[];
-  if(sesi.pagi) bagian.push('pagi '+pm+'–'+pk);
-  if(sesi.sore) bagian.push('sore '+sm+'–'+sk);
+  // sesi boleh hanya jam MASUK (mengkoreksi jam datang walau tidak tahu jam keluar).
+  // Sesi tanpa jam keluar tidak menambah durasi (0 menit), tapi jam datang tetap tercatat.
+  var sesi={}, bagian=[];
+  if(pm){ sesi.pagi={in:pm}; if(pk)sesi.pagi.out=pk; bagian.push('pagi '+pm+(pk?('–'+pk):' (keluar -)')); }
+  if(sm){ sesi.sore={in:sm}; if(sk)sesi.sore.out=sk; bagian.push('sore '+sm+(sk?('–'+sk):' (keluar -)')); }
+  if(!pm&&!sm){showToast('Isi minimal jam MASUK salah satu sesi','err');return;}
   var ketSesi=bagian.join(' & ');
   var btn=document.getElementById('kjk-save-btn');if(btn){btn.disabled=true;btn.textContent='Menyimpan…';}
   var payload={type:'loc_koreksi',tanggal:tgl,menit:total,sesi:JSON.stringify(sesi),
-               jamMasuk:(sesi.pagi?pm:(sesi.sore?sm:'')),jamKeluar:(sesi.sore?sk:(sesi.pagi?pk:'')),
+               jamMasuk:(pm||sm||''),jamKeluar:(sk||pk||''),
                ketSesi:ketSesi,adminEmail:(userEmail||'admin'),waktu:Date.now()};
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
     .then(function(){
-      showToast('✓ Koreksi tersimpan ('+kjkFmt(total)+')','ok');
+      showToast('✓ Koreksi tersimpan ('+(total>0?kjkFmt(total):'jam datang dicatat')+')','ok');
       logActivity('Koreksi jam masuk Manager',tgl+' → '+ketSesi+' = '+kjkFmt(total));
       setTimeout(kjkLoad,1500);
     })
     .catch(function(){showToast('Gagal menyimpan koreksi','err');})
     .finally(function(){if(btn){btn.disabled=false;btn.textContent='💾 Simpan koreksi';}});
+}
+// Tandai hari ini TIDAK dihitung masuk toko (mis. GPS salah deteksi, datang lalu pergi)
+function kjkNol(){
+  if(userRole!=='admin'){showToast('Hanya admin','err');return;}
+  var url=scriptUrl;if(!url||!url.startsWith('http')){showToast('URL belum dikonfigurasi','err');return;}
+  var tgl=document.getElementById('kjk-tgl').value;if(!tgl){showToast('Pilih tanggal dulu','err');return;}
+  if(!confirm('Tandai '+tgl+' sebagai TIDAK dihitung masuk toko (0 jam)? Akan menimpa hasil GPS hari itu.'))return;
+  var payload={type:'loc_koreksi',tanggal:tgl,menit:0,sesi:'{"nol":1}',ketSesi:'tidak dihitung masuk (0 jam)',adminEmail:(userEmail||'admin'),waktu:Date.now()};
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
+    .then(function(){
+      ['kjk-pagi-masuk','kjk-pagi-keluar','kjk-sore-masuk','kjk-sore-keluar'].forEach(function(id){document.getElementById(id).value='';});
+      kjkHitung();
+      showToast('✓ Ditandai 0 jam (tidak dihitung)','ok');
+      logActivity('Koreksi jam Manager',tgl+' → 0 jam (tidak dihitung)');
+      setTimeout(kjkLoad,1500);
+    })
+    .catch(function(){showToast('Gagal menyimpan','err');});
 }
 function kjkClear(){
   if(userRole!=='admin')return;
@@ -5454,6 +5484,7 @@ async function simpanCashData(){
     if(data.status === 'ok'){
       if(sta){sta.style.color='var(--green)'; sta.textContent='✓ Tersimpan!';}
       showToast('✓ Data tersimpan','ok');
+      try{ markD04Done(); }catch(e){}
       logActivity('Simpan Uang Cash','Rp '+finalNom+(ket?' — '+ket:''));
       document.getElementById('cash-inp-nominal').value='';
       document.getElementById('cash-inp-ket').value='';
@@ -5498,6 +5529,7 @@ async function simpanRecehData(){
     if(data.status === 'ok'){
       sta.style.color='var(--green)'; sta.textContent='✓ Tersimpan!';
       showToast('✓ Receh tersimpan','ok');
+      try{ markD04Done(); }catch(e){}
       document.getElementById('cash-inp-receh').value='';
       document.getElementById('cash-inp-ket-receh').value='';
       document.getElementById('cash-receh-info').style.display='none';
