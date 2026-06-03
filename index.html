@@ -4028,6 +4028,14 @@ function _annotateD04Render(allItems){
     if(String(it.tgl||'')>=String(pick.tgl||''))pick=it;
   });
   if(!pick)return;
+  // Foto kecil SELALU tampil (baik sebelum maupun sesudah dicek)
+  (pick.fotos||[]).slice(0,3).forEach(function(u){
+    var a=document.createElement('a'); a.href=u; a.target='_blank'; a.style.display='inline-block';
+    a.addEventListener('click',function(e){e.stopPropagation();});
+    var img=document.createElement('img'); img.src=kmFotoImgUrl(u); img.loading='lazy';
+    img.style.cssText='width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border)';
+    a.appendChild(img); strip.appendChild(a);
+  });
   if(pick.dicek){
     var mark=document.createElement('span');
     mark.style.cssText='display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px';
@@ -4035,13 +4043,6 @@ function _annotateD04Render(allItems){
     strip.appendChild(mark);
     if(userRole==='admin'){ strip.appendChild(_cekBtnEl('uang',pick.row,false)); strip.appendChild(_cekArsipBtnEl('uang',pick.row)); }
   }else{
-    (pick.fotos||[]).slice(0,3).forEach(function(u){
-      var a=document.createElement('a'); a.href=u; a.target='_blank'; a.style.display='inline-block';
-      a.addEventListener('click',function(e){e.stopPropagation();});
-      var img=document.createElement('img'); img.src=kmFotoImgUrl(u); img.loading='lazy';
-      img.style.cssText='width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border)';
-      a.appendChild(img); strip.appendChild(a);
-    });
     var lbl=document.createElement('span');
     lbl.style.cssText='font-size:10px;font-weight:700;color:var(--red)';
     lbl.textContent='● foto perlu dicek';
