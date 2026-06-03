@@ -79,6 +79,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 body.role-manager #km-add-box{display:none}
 .admin-only{display:none}
 body.role-admin .admin-only{display:inline-flex}
+.adm-only-block{display:none}
+body.role-admin .adm-only-block{display:block}
 .km-card{cursor:pointer}
 .km-detail-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center;padding:18px}
 .km-detail-bg.open{display:flex}
@@ -492,6 +494,8 @@ body.role-admin #panel-harian .alert.info,
 body.role-admin .loc-retry-inline,
 body.role-admin #mt-edit-box{display:none!important}
 body.role-admin .task-item{cursor:default;pointer-events:none}
+.harian-locked .task-item{pointer-events:none;opacity:.92}
+.harian-locked .task-item .task-note-input,.harian-locked .d04-struk{display:none!important}
 body.role-admin .event-card{cursor:default;pointer-events:none}
 /* TAPI tombol cek "sudah dicek" + strip-nya tetap bisa ditekan admin (admin tetap dilarang isi tugas) */
 body.role-admin .event-card .ev-cek-strip,
@@ -527,6 +531,12 @@ body.role-admin #admin-mgrlog{display:none!important}
 <div class="alarm-banner" id="minus-alarm-banner" onclick="gotoData('minus')" style="background:#7c3aed">
   <span>🟣 STOK MINUS — <span id="minus-alarm-count"></span>item bernilai negatif, cek selisih/input!</span>
   <span class="mute-hint" onclick="event.stopPropagation();muteMinusAlarm()">👆 Tap untuk lihat · 🔕 bisukan</span>
+</div>
+
+<!-- BELUM SETOR BANNER — biru tua, jika > 3 juta -->
+<div class="alarm-banner" id="setor-alarm-banner" onclick="gotoData('cash')" style="background:#1d4ed8;animation-name:shiftBannerPulse">
+  <span>💰 UANG BELUM DISETOR — <span id="setor-alarm-amount"></span> (lebih dari 3 juta), segera setor ke Bank!</span>
+  <span class="mute-hint" onclick="event.stopPropagation();muteSetorAlarm()">👆 Tap untuk lihat · 🔕 bisukan</span>
 </div>
 
 <!-- NOTE URGENT BANNER — pesan penting dari admin, merah, hanya tampil di HP Manager -->
@@ -641,6 +651,21 @@ body.role-admin #admin-mgrlog{display:none!important}
     <div style="font-size:11px;color:var(--muted);margin-bottom:16px;font-family:var(--mono)">Panel khusus Admin — monitoring real-time aktivitas Manager</div>
 
     <!-- 📸 Pekerjaan berfoto perlu dicek — DI ATAS Note untuk Manager -->
+    <!-- ⚙️ KONTROL ADMIN -->
+    <div id="adm-control" class="adm-only-block" style="margin-bottom:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
+        <span style="font-size:18px">⚙️</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Kontrol Admin</div>
+          <div style="font-size:10px;color:var(--hint)">Pengaturan untuk akun Manager (berlaku di semua perangkat)</div>
+        </div>
+      </div>
+      <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px">
+        <button id="adm-reset-harian" onclick="admResetHarian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid rgba(220,38,38,.3);background:rgba(220,38,38,.06);color:var(--red);border-radius:9px;cursor:pointer">🔄 Reset tugas Harian Manager (buka kunci agar bisa isi lagi)</button>
+        <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">🙈 Sembunyikan tab Kepegawaian (Manager)</button>
+      </div>
+    </div>
+
     <div id="cek-panel" style="margin-bottom:12px">
       <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
         <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
@@ -802,6 +827,7 @@ body.role-admin #admin-mgrlog{display:none!important}
       <div class="stat-card"><div class="stat-val" id="stat-pct" style="color:var(--muted)">0%</div><div class="stat-label">selesai hari ini</div></div>
     </div>
     <div class="prog-wrap"><div class="prog-header"><span class="prog-label">Progress hari ini</span><span class="prog-pct" id="prog-pct">0%</span></div><div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div></div>
+    <div id="harian-lock-info" style="display:none;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.3);color:var(--accent);border-radius:var(--r);padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:12px"></div>
     <div id="harian-list"></div>
     <button class="save-btn" id="save-harian-btn" onclick="saveHarian()">Simpan ke Google Sheets</button>
     <a class="stok-sheet-link" href="https://docs.google.com/spreadsheets/d/1ci0F6DajqsXt7IeX88fddYQwT_bO4CxAiV4hJltCyAQ/edit?gid=1670613726#gid=1670613726" target="_blank">📊 Buka Manager Task Guide →</a>
@@ -1375,7 +1401,8 @@ function gotoData(tujuan){
     var map={
       stok:   {tab:'gudang', gview:'monitor', el:'stok-list'},
       minus:  {tab:'gudang', gview:'monitor', el:'stok-minus-warn'},
-      shift:  {tab:'shift',  gview:null,      el:'shift-list'}
+      shift:  {tab:'shift',  gview:null,      el:'shift-list'},
+      cash:   {tab:'cash',   gview:null,      el:'cash-warn'}
     };
     var t=map[tujuan]; if(!t) return;
     var tabBtn=document.querySelector(".tab[onclick*=\"switchTab('"+t.tab+"'\"]");
@@ -1451,6 +1478,25 @@ function muteMinusAlarm(){
   var banner=document.getElementById('minus-alarm-banner');
   if(banner)banner.classList.remove('show');
   showToast('🔕 Banner stok minus disembunyikan untuk sesi ini. Refresh = muncul lagi.','');
+}
+var setorMuted=false; // bisukan banner belum-setor (sampai refresh)
+function muteSetorAlarm(){
+  setorMuted=true;
+  var banner=document.getElementById('setor-alarm-banner');
+  if(banner)banner.classList.remove('show');
+  showToast('🔕 Banner belum-setor disembunyikan untuk sesi ini. Refresh = muncul lagi.','');
+}
+// Tampilkan banner header bila uang belum disetor > 3 juta
+function triggerSetorBanner(belumB){
+  var banner=document.getElementById('setor-alarm-banner');
+  var amt=document.getElementById('setor-alarm-amount');
+  if(!banner)return;
+  if(belumB!=null && belumB>3000000 && !setorMuted){
+    if(amt)amt.textContent=fRpPlain(belumB);
+    banner.classList.add('show');
+  }else{
+    banner.classList.remove('show');
+  }
 }
 function triggerAlarmIfNeeded(){
   var nMinus=(stokData.minus?stokData.minus.length:0);
@@ -1564,6 +1610,75 @@ const todayValue=TODAY_KEY();
 function formatTodayDisplay(){const d=new Date();return`${DAY_FULL[d.getDay()]}, ${d.getDate()} ${BULAN_NAMES[d.getMonth()]} ${d.getFullYear()}`;}
 function saveLocData(){localStorage.setItem('loc_'+TODAY_KEY(),JSON.stringify({totalMinutes:totalMinutesToday,sessionStart,log:locationLog}));}
 function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_KEY())||'null');if(!d)return;totalMinutesToday=d.totalMinutes||0;sessionStart=d.sessionStart||null;locationLog=d.log||[];if(sessionStart){isAtStore=true;}}catch(e){}}
+
+// ════ KUNCI HARIAN — manager hanya bisa kirim 1× per hari ════
+// Setelah dikirim, centangan tetap terlihat & terkunci. Reset otomatis bila:
+//  (a) ganti tanggal, atau (b) sudah lewat jam 22:00 hari itu.
+// Admin juga bisa reset paksa dari Home.
+const HARIAN_RESET_HOUR=22;
+function _harianLockKey(){ return 'mtg_harian_lock_'+TODAY_KEY(); }
+function harianGetLock(){
+  try{ return JSON.parse(localStorage.getItem(_harianLockKey())||'null'); }catch(e){ return null; }
+}
+function harianIsLocked(){
+  var L=harianGetLock();
+  if(!L||!L.submittedAt) return false;
+  // reset otomatis bila sekarang sudah ≥ jam 22:00 DAN submit-nya sebelum jam 22:00 hari ini
+  var now=new Date();
+  var subAt=new Date(L.submittedAt);
+  var batas=new Date(); batas.setHours(HARIAN_RESET_HOUR,0,0,0);
+  if(now>=batas && subAt<batas){ return false; } // lewat jam 22 → boleh isi lagi (sesi baru)
+  return true;
+}
+function harianSaveLock(){
+  try{
+    localStorage.setItem(_harianLockKey(), JSON.stringify({
+      submittedAt: new Date().toISOString(),
+      checked: checked, notes: notes
+    }));
+  }catch(e){}
+}
+function harianClearLock(){ try{ localStorage.removeItem(_harianLockKey()); }catch(e){} }
+
+// ════ CONFIG GLOBAL (lintas-perangkat, via Apps Script ?type=appconfig) ════
+// { hideKepegawaian:0|1, harianResetTS:<ms>, ... }
+var _appCfg={};
+function appConfigLoad(cb){
+  var url=scriptUrl; if(!url||!url.startsWith('http')){ if(cb)cb(_appCfg); return; }
+  fetch(url+'?type=appconfig&_='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    _appCfg=(d&&d.config)?d.config:{};
+    if(cb)cb(_appCfg);
+  }).catch(function(){ if(cb)cb(_appCfg); });
+}
+function appConfigSet(key,val,cb){
+  var url=scriptUrl; if(!url||!url.startsWith('http'))return;
+  _appCfg[key]=val; // optimistik
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'config_set',key:key,value:val})})
+    .then(function(){ if(cb)cb(); })
+    .catch(function(){ showToast('Gagal simpan setelan ke server','err'); });
+}
+// Terapkan config ke UI (dipanggil setelah load & setelah set)
+function applyAppConfig(){
+  // 1) Hide/Unhide tab Kepegawaian di akun MANAGER
+  var hideKep = String(_appCfg.hideKepegawaian||'')==='1';
+  var kepBtn=document.querySelector(".tab[onclick*=\"switchTab('pegawai'\"]");
+  if(kepBtn){
+    if(userRole==='manager' && hideKep){ kepBtn.style.display='none'; }
+    else { kepBtn.style.display=''; }
+  }
+  // refleksikan status tombol admin (kalau ada)
+  var aHide=document.getElementById('adm-kep-toggle');
+  if(aHide) aHide.textContent = hideKep ? '👁 Tampilkan tab Kepegawaian (Manager)' : '🙈 Sembunyikan tab Kepegawaian (Manager)';
+  // 2) Reset harian global: bila lock dibuat sebelum harianResetTS → anggap belum submit
+  var rs=Number(_appCfg.harianResetTS||0);
+  if(rs>0){
+    var L=harianGetLock();
+    if(L&&L.submittedAt&&(new Date(L.submittedAt).getTime()<rs)){
+      harianClearLock();
+      if(document.getElementById('panel-harian')) applyHarianLock();
+    }
+  }
+}
 function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 
 // ════ GPS — iOS-optimized ════
@@ -3554,15 +3669,79 @@ function renderHarian(){
         var priCls='pri-'+pri.toLowerCase();
         el.className='task-item '+priCls+(checked[t.kode]?' done':'');
         el.id='task-'+t.kode;
-        el.innerHTML='<div class="task-icon">'+(t.icon||'📌')+'</div><div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">'+t.nama+'</div><div class="task-meta">'+t.kode+' · '+t.kategori+' · '+t.kpi+'</div><span class="task-note-toggle" onclick="toggleNote(event,\''+t.kode+'\')">📝 catatan</span><textarea class="task-note-input" id="note-'+t.kode+'" placeholder="Tulis catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes[\''+t.kode+'\']=this.value"></textarea></div>';
+        var strukHtml='';
+        if(t.kode==='D04'){
+          strukHtml='<div class="d04-struk" onclick="event.stopPropagation()" style="margin-top:8px">'
+            +'<input type="file" accept="image/*" id="d04-foto" style="display:none" onchange="d04FotoChange()">'
+            +'<button type="button" onclick="document.getElementById(\'d04-foto\').click()" style="font-size:11px;padding:6px 10px;border:1px dashed var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">📷 Foto struk setoran (wajib untuk centang)</button>'
+            +'<div id="d04-foto-prev" style="margin-top:6px"></div>'
+            +'</div>';
+        }
+        el.innerHTML='<div class="task-icon">'+(t.icon||'📌')+'</div><div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">'+t.nama+'</div><div class="task-meta">'+t.kode+' · '+t.kategori+' · '+t.kpi+'</div><span class="task-note-toggle" onclick="toggleNote(event,\''+t.kode+'\')">📝 catatan</span><textarea class="task-note-input" id="note-'+t.kode+'" placeholder="Tulis catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes[\''+t.kode+'\']=this.value"></textarea>'+strukHtml+'</div>';
         el.addEventListener('click',()=>toggleCheck(t.kode));
         list.appendChild(el);
       }
     });
   });
   updateStats();
+  applyHarianLock();
 }
-function toggleCheck(k){checked[k]=!checked[k];var el=document.getElementById('task-'+k);if(el)el.classList.toggle('done',checked[k]);updateStats();}
+// Terapkan/lepas kunci harian di tampilan (khusus manager). Admin tidak dikunci.
+function applyHarianLock(){
+  var locked = (userRole==='manager') && harianIsLocked();
+  var list=document.getElementById('harian-list');
+  var btn=document.getElementById('save-harian-btn');
+  var info=document.getElementById('harian-lock-info');
+  if(locked){
+    var L=harianGetLock();
+    if(L){ // pulihkan centangan & catatan tersimpan
+      if(L.checked) checked=L.checked;
+      if(L.notes) notes=L.notes;
+      // refleksikan ke kartu
+      HARIAN.forEach(function(t){
+        if(t.autoTrack)return;
+        var el=document.getElementById('task-'+t.kode);
+        if(el)el.classList.toggle('done',!!checked[t.kode]);
+        var ta=document.getElementById('note-'+t.kode);
+        if(ta&&notes[t.kode]){ta.value=notes[t.kode];}
+      });
+      updateStats();
+    }
+    if(list)list.classList.add('harian-locked');
+    if(btn){btn.disabled=true;btn.textContent='✓ Sudah dikirim hari ini';btn.style.opacity='.6';btn.style.cursor='not-allowed';}
+    if(info){
+      var subAt=L&&L.submittedAt?new Date(L.submittedAt):null;
+      var jam=subAt?(String(subAt.getHours()).padStart(2,'0')+':'+String(subAt.getMinutes()).padStart(2,'0')):'';
+      info.style.display='block';
+      info.innerHTML='🔒 Tugas harian sudah dikirim'+(jam?(' pukul '+jam):'')+'. Tidak bisa diisi lagi sampai reset (otomatis jam 22:00 atau oleh admin).';
+    }
+  }else{
+    if(list)list.classList.remove('harian-locked');
+    if(btn){btn.disabled=false;btn.textContent='Simpan ke Google Sheets';btn.style.opacity='';btn.style.cursor='';}
+    if(info)info.style.display='none';
+  }
+}
+var d04FotoBase64='';
+function d04FotoChange(){
+  var inp=document.getElementById('d04-foto'); var f=inp&&inp.files[0];
+  d04FotoBase64=''; var prev=document.getElementById('d04-foto-prev'); if(prev)prev.innerHTML='';
+  if(!f)return;
+  _kmCompress(f,function(b64){
+    d04FotoBase64=b64;
+    if(prev)prev.innerHTML='<img src="'+b64+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green);margin-top:3px">✓ Struk siap dikirim</div>';
+    showToast('✓ Foto struk siap','ok');
+  });
+}
+function toggleCheck(k){
+  if(userRole==='manager'&&harianIsLocked()){showToast('Sudah dikirim hari ini — tidak bisa diubah','');return;}
+  // D04 (setor uang) wajib ada foto struk sebelum boleh dicentang
+  if(k==='D04' && !checked[k] && !d04FotoBase64){
+    showToast('📷 Foto struk setoran wajib sebelum mencentang setor uang','err');
+    var d=document.getElementById('d04-foto-prev'); if(d){d.scrollIntoView({behavior:'smooth',block:'center'});}
+    return;
+  }
+  checked[k]=!checked[k];var el=document.getElementById('task-'+k);if(el)el.classList.toggle('done',checked[k]);updateStats();
+}
 function toggleNote(e,k){e.stopPropagation();var ta=document.getElementById('note-'+k);ta.style.display=ta.style.display==='none'?'block':'none';}
 function updateStats(){var done=Object.values(checked).filter(Boolean).length,tot=HARIAN.length,skip=tot-done,pct=Math.round(done/tot*100);document.getElementById('stat-done').textContent=done;document.getElementById('stat-skip').textContent=skip;document.getElementById('stat-pct').textContent=pct+'%';document.getElementById('stat-pct').style.color=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';document.getElementById('prog-pct').textContent=pct+'%';var f=document.getElementById('prog-fill');f.style.width=pct+'%';f.className='prog-fill'+(pct>=90?'':pct>=70?' mid':' low');}
 
@@ -4119,13 +4298,23 @@ function pgUpdateMainBadge(){
 }
 async function saveHarian(){
   if(!scriptUrl){openModal();return;}
+  if(userRole==='manager'&&harianIsLocked()){showToast('Tugas harian sudah dikirim hari ini','');return;}
+  // D04 dicentang wajib ada foto struk
+  if(checked['D04'] && !d04FotoBase64){
+    showToast('📷 Foto struk setoran wajib karena setor uang dicentang','err');
+    return;
+  }
   var btn=document.getElementById('save-harian-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Menyimpan...';
   var t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60);
   var gn=t>0?'GPS: '+h+'j '+m+'m di toko'+(t>=TARGET_MENIT?'':' (< target 4j)')+' · '+(isAtStore?'Masih di toko':'Sudah keluar toko'):'GPS: tidak ada durasi tercatat';
-  var entries=HARIAN.map(x=>({tanggal:todayValue,kode:x.kode,nama:x.nama,kategori:x.kategori,prioritas:x.prioritas,status:x.autoTrack?(t>=TARGET_MENIT?'✓':'✗'):(checked[x.kode]?'✓':'✗'),catatan:x.autoTrack?gn:(notes[x.kode]||'')}));
-  try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'harian',entries})}),d=await r.json();if(d.status==='ok'){showToast('✓ Tersimpan','ok');logActivity('Simpan tugas Harian',gn);checkTodayFilled();checkLaporanBadge();}else showToast('Gagal: '+(d.message||''),'err');}
+  var entries=HARIAN.map(x=>({tanggal:todayValue,kode:x.kode,nama:x.nama,kategori:x.kategori,prioritas:x.prioritas,status:x.autoTrack?(t>=TARGET_MENIT?'✓':'✗'):(checked[x.kode]?'✓':'✗'),catatan:x.autoTrack?gn:((notes[x.kode]||'')+((x.kode==='D04'&&checked['D04']&&d04FotoBase64)?' [struk setoran dilampirkan]':''))}));
+  var payload={type:'harian',entries:entries};
+  // sertakan foto struk D04 bila ada (backend mengabaikan bila tak dipakai)
+  if(checked['D04']&&d04FotoBase64){ payload.fotoStruk=d04FotoBase64; payload.fotoStrukKode='D04'; }
+  try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)}),d=await r.json();if(d.status==='ok'){showToast('✓ Tersimpan','ok');logActivity('Simpan tugas Harian',gn);harianSaveLock();applyHarianLock();checkTodayFilled();checkLaporanBadge();}else showToast('Gagal: '+(d.message||''),'err');}
   catch(e){showToast('Gagal terhubung','err');}
-  btn.disabled=false;btn.textContent='Simpan ke Google Sheets';
+  btn.disabled=false;
+  if(!(userRole==='manager'&&harianIsLocked())){btn.textContent='Simpan ke Google Sheets';}
 }
 
 // ════ EVENTS ════
@@ -4135,14 +4324,28 @@ function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHT
   if(!g._cekDelegated){
     g.addEventListener('click',function(e){
       if(e.target.closest('.cek-act-btn'))return;     // tombol cek → ditangani delegasi global
+      if(e.target.closest('.cek-arsip-btn'))return;   // tombol arsip
       if(e.target.closest('.ev-cek-strip a'))return;  // klik thumbnail foto → biarkan
       var card=e.target.closest('.event-card'); if(!card)return;
       var kode=card.getAttribute('data-ev-kode'); if(!kode)return;
+      // MANAGER: kalau kartu ini menandai "sudah dicek admin" yang BELUM dilihat manager,
+      // tap pertama = tandai sudah dilihat (notif hilang), tanpa membuka form. Tap kedua = buka.
+      if(userRole==='manager' && card.classList.contains('ev-cek-unseen')){
+        _mgrSeenMark(kode);
+        card.classList.remove('ev-cek-unseen');
+        annotateEventCards();
+        return; // jangan buka form di tap pertama
+      }
       var ev=EVENTS.find(function(x){return x.kode===kode;}); if(ev)selectEvent(ev);
     });
     g._cekDelegated=true;
   }
   annotateEventCards();}
+// Penanda "sudah dilihat manager" untuk notif cek (per-perangkat manager, harian)
+function _mgrSeenKey(){ return 'mtg_mgr_seen_'+TODAY_KEY(); }
+function _mgrSeenGet(){ try{ return JSON.parse(localStorage.getItem(_mgrSeenKey())||'{}'); }catch(e){ return {}; } }
+function _mgrSeenMark(kode){ var s=_mgrSeenGet(); s[kode]=true; try{ localStorage.setItem(_mgrSeenKey(),JSON.stringify(s)); }catch(e){} }
+function _mgrHasSeen(kode){ return _mgrSeenGet()[kode]===true; }
 // Tampilkan foto bukti + tanda "sudah dicek" + dot notifikasi di tiap kartu Non-Harian (sumber pekerjaan).
 // Sumber data: ?type=cek_list (berisi item berfoto + status dicek). Bisa dibaca admin & manager.
 // Tampilkan tanda dicek di tiap kartu Non-Harian. Pakai CACHE cek_list (tidak fetch tiap kali).
@@ -4173,14 +4376,29 @@ function _annotateEventCardsRender(allItems){
       var strip=document.createElement('div'); strip.className='ev-cek-strip';
       strip.style.cssText='margin-top:7px;display:flex;align-items:center;gap:7px;flex-wrap:wrap';
       if(it.dicek){
-        if(isCekDone('nonharian',it.row)){
-          var mark=document.createElement('span');
-          mark.style.cssText='display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px';
-          mark.textContent='✓ sudah dicek';
-          strip.appendChild(mark);
+        if(userRole==='manager'){
+          // Manager: tanda "sudah dicek admin" tampil sampai ia tap pertama kali (lalu hilang).
+          if(!_mgrHasSeen(ev.kode)){
+            var nm=document.createElement('span');
+            nm.style.cssText='display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px';
+            nm.textContent='✓ sudah dicek admin';
+            strip.appendChild(nm);
+            card.classList.add('ev-cek-unseen','ev-has-cek');
+          } else {
+            card.classList.remove('ev-cek-unseen');
+            // sudah dilihat → strip kosong (bersih), tidak ada notif
+            return;
+          }
+        } else {
+          if(isCekDone('nonharian',it.row)){
+            var mark=document.createElement('span');
+            mark.style.cssText='display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px';
+            mark.textContent='✓ sudah dicek';
+            strip.appendChild(mark);
+          }
+          if(userRole==='admin') strip.appendChild(_cekBtnEl('nonharian',it.row,false));
+          if(userRole==='admin') strip.appendChild(_cekArsipBtnEl('nonharian',it.row));
         }
-        if(userRole==='admin') strip.appendChild(_cekBtnEl('nonharian',it.row,false));
-        if(userRole==='admin') strip.appendChild(_cekArsipBtnEl('nonharian',it.row));
       }else{
         (it.fotos||[]).slice(0,3).forEach(function(u){
           var a=document.createElement('a'); a.href=u; a.target='_blank'; a.style.display='inline-block';
@@ -4646,6 +4864,33 @@ function applyRole(){
   if(typeof loadStok==='function')loadStok();
   // muat ulang streak kehadiran setelah login (admin sering login setelah render awal)
   setTimeout(function(){loadStreakHarian();},300);
+  // config global (hide kepegawaian, reset harian) — lintas perangkat
+  appConfigLoad(function(){ applyAppConfig(); });
+  if(_appCfgTimer)clearInterval(_appCfgTimer);
+  _appCfgTimer=setInterval(function(){ appConfigLoad(function(){ applyAppConfig(); }); }, 60000);
+}
+var _appCfgTimer=null;
+// Admin: reset tugas harian manager (lintas perangkat) → set harianResetTS = sekarang
+function admResetHarian(){
+  if(userRole!=='admin')return;
+  if(!confirm('Reset tugas Harian Manager hari ini? Manager akan bisa mengisi & mengirim ulang.'))return;
+  var ts=Date.now();
+  appConfigSet('harianResetTS',ts,function(){});
+  harianClearLock(); // reset juga di perangkat ini
+  if(document.getElementById('panel-harian'))applyHarianLock();
+  showToast('✓ Tugas harian Manager direset','ok');
+  logActivity('Reset harian Manager','TS '+ts);
+}
+// Admin: hide/unhide tab Kepegawaian di akun Manager (lintas perangkat)
+function admToggleKepegawaian(){
+  if(userRole!=='admin')return;
+  var cur=String(_appCfg.hideKepegawaian||'')==='1';
+  var next=cur?'0':'1';
+  appConfigSet('hideKepegawaian',next,function(){});
+  _appCfg.hideKepegawaian=next;
+  applyAppConfig();
+  showToast(next==='1'?'🙈 Tab Kepegawaian disembunyikan untuk Manager':'👁 Tab Kepegawaian ditampilkan untuk Manager','ok');
+  logActivity('Toggle tab Kepegawaian Manager',next==='1'?'hide':'show');
 }
 function logout(){
   if(!confirm('Keluar dari akun?'))return;
@@ -4769,6 +5014,8 @@ function applyCashSummary(rows, meta){
       if(badge)badge.classList.remove('show','pulse');
     }
   }
+  // Banner header "belum disetor > 3 juta" (sejajar stok kosong/minus & shift kosong)
+  triggerSetorBanner(belumB);
 
   // Chips: ambil yang pending dari rows (kolom B positif, dikurangi negatif)
   var pendingB = [], balB = 0;
