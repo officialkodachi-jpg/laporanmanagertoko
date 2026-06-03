@@ -2535,6 +2535,7 @@ var _cekSyncTimer=null;
 function cekRerenderLight(){
   try{ if(typeof cekRender==='function'&&document.getElementById('cek-list')){ var sub=document.getElementById('cek-sub'); if(sub){var belum=_cekData.filter(function(x){return !x.dicek;}).length;sub.textContent=belum+' belum dicek · '+_cekData.length+' total berfoto';} cekRender(); } }catch(e){}
   try{ if(typeof annotateEventCards==='function'&&document.getElementById('event-grid')) _annotateEventCardsRender(_cekItems); }catch(e){}
+  try{ if(typeof _annotateD04Render==='function'&&document.getElementById('d04-cek-strip')) _annotateD04Render(_cekItems); }catch(e){}
   try{ if(typeof kmRender==='function'&&typeof kmData!=='undefined'&&kmData.length) kmRender(); }catch(e){}
   try{ if(userRole==='admin'&&typeof _loadNoteBuktiRender==='function') _loadNoteBuktiRender(); }catch(e){}
 }
@@ -3526,6 +3527,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   setCurrentMonth('grid-month');setCurrentMonth('laporan-month');setCurrentMonth('riwayat-month');setCurrentMonth('shift-month');setCurrentMonth('jam-month');
   renderHarian();renderEventGrid();checkTodayFilled();checkLaporanBadge();checkEventBadge();
   restoreHarianHariIni();restoreD04FotoBekas();
+  annotateD04Card();
   igAddRow();igAddRow();igAddRow();
   acInit();initStokUI();
   var kt=document.getElementById('km-tgl');if(kt)kt.value=todayValue;
@@ -3552,7 +3554,7 @@ function switchTab(name,btn){
   if(name==='cash'){if(cashData.length===0)loadCashData();}
   if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
   if(name==='laporan'&&userRole==='admin')loadLog();
-  if(name==='harian'){fixD01SwipeHeight();if(scriptUrl)loadStreakHarian();}
+  if(name==='harian'){fixD01SwipeHeight();if(scriptUrl)loadStreakHarian();annotateD04Card();}
   if(name==='event'){annotateEventCards();}
   var tabNama={home:'Home',harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link'};
   logActivity('Buka tab',tabNama[name]||name);
@@ -3942,6 +3944,7 @@ function renderHarian(){
             +'<input type="file" accept="image/*" id="d04-foto" style="display:none" onchange="d04FotoChange()">'
             +'<button type="button" onclick="document.getElementById(\'d04-foto\').click()" style="font-size:11px;padding:6px 10px;border:1px dashed var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">📷 Lampirkan foto struk (opsional)</button>'
             +'<div id="d04-foto-prev" style="margin-top:6px"></div>'
+            +'<div class="d04-cek-strip" id="d04-cek-strip" style="margin-top:8px;display:flex;align-items:center;gap:7px;flex-wrap:wrap"></div>'
             +'</div>';
         }
         el.innerHTML='<div class="task-icon">'+(t.icon||'📌')+'</div><div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">'+t.nama+'</div><div class="task-meta">'+t.kode+' · '+t.kategori+' · '+t.kpi+'</div><span class="task-note-toggle" onclick="toggleNote(event,\''+t.kode+'\')">📝 catatan</span><textarea class="task-note-input" id="note-'+t.kode+'" placeholder="Tulis catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes[\''+t.kode+'\']=this.value"></textarea>'+strukHtml+'</div>';
@@ -4008,6 +4011,43 @@ function markD04Done(){
   try{ updateStats(); }catch(e){}
   kirimHarianAuto('D04'); // simpan ke spreadsheet supaya centang D04 tetap ada walau refresh/close
   showToast('✓ D04 (catatan uang) tercentang & tersimpan','ok');
+  setTimeout(function(){ try{annotateD04Card(true);}catch(e){} },1600);
+}
+// Strip "foto perlu dicek / sudah dicek" di kartu D04 — sumber: item Cek jenis 'uang'
+function annotateD04Card(force){ cekKeysLoad(function(items){ _annotateD04Render(items); }, force?true:false); }
+function _annotateD04Render(allItems){
+  allItems=allItems||_cekItems||[];
+  var strip=document.getElementById('d04-cek-strip'); if(!strip)return;
+  strip.innerHTML='';
+  var pick=null;
+  allItems.filter(function(x){return x.jenis==='uang';}).forEach(function(it){
+    if(isCekArsipKey(it.kunci) && it.kunci!==_cekLastKey) return;
+    if(!pick){pick=it;return;}
+    if(it.kunci===_cekLastKey){pick=it;return;}
+    if(pick.kunci===_cekLastKey)return;
+    if(String(it.tgl||'')>=String(pick.tgl||''))pick=it;
+  });
+  if(!pick)return;
+  if(pick.dicek){
+    var mark=document.createElement('span');
+    mark.style.cssText='display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.3);border-radius:20px;padding:3px 9px';
+    mark.textContent=(userRole==='manager')?'✓ sudah dicek admin':'✓ sudah dicek';
+    strip.appendChild(mark);
+    if(userRole==='admin'){ strip.appendChild(_cekBtnEl('uang',pick.row,false)); strip.appendChild(_cekArsipBtnEl('uang',pick.row)); }
+  }else{
+    (pick.fotos||[]).slice(0,3).forEach(function(u){
+      var a=document.createElement('a'); a.href=u; a.target='_blank'; a.style.display='inline-block';
+      a.addEventListener('click',function(e){e.stopPropagation();});
+      var img=document.createElement('img'); img.src=kmFotoImgUrl(u); img.loading='lazy';
+      img.style.cssText='width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border)';
+      a.appendChild(img); strip.appendChild(a);
+    });
+    var lbl=document.createElement('span');
+    lbl.style.cssText='font-size:10px;font-weight:700;color:var(--red)';
+    lbl.textContent='● foto perlu dicek';
+    strip.appendChild(lbl);
+    if(userRole==='admin') strip.appendChild(_cekBtnEl('uang',pick.row,true));
+  }
 }
 // ════ PANTAU LOKASI OTOMATIS (tanpa tombol, tanpa setting) ════
 // Lokasi terdeteksi otomatis begitu app dibuka manager (startGps sudah jalan di applyRole).
