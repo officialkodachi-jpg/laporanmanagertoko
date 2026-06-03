@@ -3525,6 +3525,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('tgl-event-display').textContent=td;
   setCurrentMonth('grid-month');setCurrentMonth('laporan-month');setCurrentMonth('riwayat-month');setCurrentMonth('shift-month');setCurrentMonth('jam-month');
   renderHarian();renderEventGrid();checkTodayFilled();checkLaporanBadge();checkEventBadge();
+  restoreHarianHariIni();restoreD04FotoBekas();
   igAddRow();igAddRow();igAddRow();
   acInit();initStokUI();
   var kt=document.getElementById('km-tgl');if(kt)kt.value=todayValue;
@@ -4040,6 +4041,41 @@ function updateStats(){var done=Object.values(checked).filter(Boolean).length,to
 
 // ════ SAVE HARIAN ════
 async function checkTodayFilled(){if(!scriptUrl)return;try{var r=await fetch(scriptUrl+'?type=cek&tanggal='+todayValue),d=await r.json();var b=document.getElementById('badge-harian'),n=document.getElementById('notif-harian');if(d.filled){b.classList.remove('show');n.style.display='none';}else{b.classList.add('show');n.style.display='flex';n.innerHTML='<div class="notif-item">⚠ Hari ini belum ada data yang disimpan</div>';}}catch(e){}}
+// ── Pulihkan centangan tugas harian HARI INI dari spreadsheet (tahan refresh/close) ──
+async function restoreHarianHariIni(){
+  if(!scriptUrl)return;
+  try{
+    var bulan=todayValue.substring(0,7);
+    var r=await fetch(scriptUrl+'?type=grid&bulan='+bulan+'&_='+Date.now());
+    var d=await r.json();
+    if(!d||!d.rows)return;
+    d.rows.forEach(function(row){
+      // row = [tgl, kode, nama, kategori, prioritas, status, catatan]
+      if(row[0]===todayValue && row[5]==='✓'){ checked[row[1]]=true; }
+    });
+    HARIAN.forEach(function(t){
+      var el=document.getElementById('task-'+t.kode);
+      if(el) el.classList.toggle('done', !!checked[t.kode]);
+    });
+    try{ updateStats(); }catch(e){}
+  }catch(e){}
+}
+// ── Bekas foto bukti D04 — disimpan lokal supaya tetap nempel walau refresh/close ──
+function _d04FotoKey(){ return 'mtg_d04foto_'+todayValue; }
+function simpanD04FotoBekas(b64){
+  try{
+    localStorage.setItem(_d04FotoKey(), b64);
+    // bersihkan bekas hari-hari lama biar tidak menumpuk
+    for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.indexOf('mtg_d04foto_')===0&&k!==_d04FotoKey())localStorage.removeItem(k);}
+  }catch(e){}
+}
+function restoreD04FotoBekas(){
+  try{
+    var b=localStorage.getItem(_d04FotoKey()); if(!b)return;
+    var d=document.getElementById('d04-foto-prev');
+    if(d) d.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-top:4px"><img src="'+b+'" style="width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green)">✓ Bukti dari Uang Cash (tersimpan)</div></div>';
+  }catch(e){}
+}
 async function checkLaporanBadge(){if(!scriptUrl)return;try{var b=document.getElementById('laporan-month').value,r=await fetch(scriptUrl+'?type=rekap&bulan='+b),d=await r.json();if(d.tasks)document.getElementById('badge-laporan').classList.toggle('show',d.tasks.some(t=>t.pct<70&&t.pct>0));}catch(e){}}
 
 // ── Peringatan Non-Harian: warning kalau 3 hari terakhir tidak ada tugas non-harian dikerjakan ──
@@ -5554,6 +5590,7 @@ var cashFotoBase64='', cashRecehFotoBase64='';
 // Tampilkan bekas/thumbnail foto yang sudah terkirim (tidak hilang) — di tab Uang & cermin ke D04
 function tampilkanBekasFoto(prevId, b64, label){
   if(!b64) return;
+  try{ simpanD04FotoBekas(b64); }catch(e){}
   var html='<div style="display:flex;align-items:center;gap:8px;margin-top:4px"><img src="'+b64+'" style="width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green);line-height:1.4">✓ '+(label||'Bukti terkirim')+'<br><span style="color:var(--hint)">ambil foto lagi untuk transaksi baru</span></div></div>';
   var p=document.getElementById(prevId); if(p)p.innerHTML=html;
   // cermin ke kartu D04 di tab Harian sebagai jejak bukti
