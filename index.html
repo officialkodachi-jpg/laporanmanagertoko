@@ -5551,6 +5551,15 @@ function cashOnRecehChange(){ /* preview live bisa ditambah kalau perlu */ }
 
 // ── Foto bukti pekerjaan Uang Cash ──
 var cashFotoBase64='', cashRecehFotoBase64='';
+// Tampilkan bekas/thumbnail foto yang sudah terkirim (tidak hilang) — di tab Uang & cermin ke D04
+function tampilkanBekasFoto(prevId, b64, label){
+  if(!b64) return;
+  var html='<div style="display:flex;align-items:center;gap:8px;margin-top:4px"><img src="'+b64+'" style="width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green);line-height:1.4">✓ '+(label||'Bukti terkirim')+'<br><span style="color:var(--hint)">ambil foto lagi untuk transaksi baru</span></div></div>';
+  var p=document.getElementById(prevId); if(p)p.innerHTML=html;
+  // cermin ke kartu D04 di tab Harian sebagai jejak bukti
+  var d=document.getElementById('d04-foto-prev');
+  if(d&&prevId!=='d04-foto-prev') d.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-top:4px"><img src="'+b64+'" style="width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green)">✓ Bukti dari Uang Cash</div></div>';
+}
 function cashFotoChange(){
   var f=document.getElementById('cash-foto').files[0]; cashFotoBase64='';
   var p=document.getElementById('cash-foto-prev'); if(p)p.innerHTML='';
@@ -5604,11 +5613,11 @@ function simpanKembalianCukup(){
   try{
     kirimCashBukti('Kembalian cukup', '', ket, kblFotoBase64);
     markKembalianDone();
+    tampilkanBekasFoto('kbl-foto-prev', kblFotoBase64, 'Bukti kembalian terkirim');
     if(sta){sta.style.color='var(--green)';sta.textContent='✓ Tersimpan & D04 tercentang';}
     showToast('✓ Kembalian cukup dikonfirmasi (D04)','ok');
     try{ logActivity('Konfirmasi kembalian cukup','D04 — '+ket); }catch(e){}
-    kblFotoBase64=''; var p2=document.getElementById('kbl-foto-prev'); if(p2)p2.innerHTML='';
-    var fi=document.getElementById('kbl-foto'); if(fi)fi.value='';
+    kblFotoBase64=''; var fi=document.getElementById('kbl-foto'); if(fi)fi.value='';
     document.getElementById('kbl-ket').value='';
   }catch(e){ if(sta){sta.style.color='var(--red)';sta.textContent='⚠️ Gagal';} }
   if(btn){btn.disabled=false;btn.textContent='✓ Konfirmasi kembalian cukup';}
@@ -5667,8 +5676,8 @@ async function simpanCashData(){
       showToast('✓ Data tersimpan','ok');
       kirimCashBukti(ket, finalNom, document.getElementById('cash-inp-ket').value, cashFotoBase64);
       try{ markD04Done(); }catch(e){}
-      cashFotoBase64=''; var cfp=document.getElementById('cash-foto-prev'); if(cfp)cfp.innerHTML='';
-      var cfi=document.getElementById('cash-foto'); if(cfi)cfi.value='';
+      tampilkanBekasFoto('cash-foto-prev', cashFotoBase64, 'Bukti terkirim');
+      cashFotoBase64=''; var cfi=document.getElementById('cash-foto'); if(cfi)cfi.value='';
       logActivity('Simpan Uang Cash','Rp '+finalNom+(ket?' — '+ket:''));
       document.getElementById('cash-inp-nominal').value='';
       document.getElementById('cash-inp-ket').value='';
@@ -5716,8 +5725,8 @@ async function simpanRecehData(){
       showToast('✓ Receh tersimpan','ok');
       kirimCashBukti('Receh — '+ket, finalReceh, 'Receh '+ket, cashRecehFotoBase64);
       try{ markD04Done(); }catch(e){}
-      cashRecehFotoBase64=''; var rfpv=document.getElementById('cash-receh-foto-prev'); if(rfpv)rfpv.innerHTML='';
-      var rfi=document.getElementById('cash-receh-foto'); if(rfi)rfi.value='';
+      tampilkanBekasFoto('cash-receh-foto-prev', cashRecehFotoBase64, 'Bukti receh terkirim');
+      cashRecehFotoBase64=''; var rfi=document.getElementById('cash-receh-foto'); if(rfi)rfi.value='';
       document.getElementById('cash-inp-receh').value='';
       document.getElementById('cash-inp-ket-receh').value='';
       document.getElementById('cash-receh-info').style.display='none';
