@@ -3984,6 +3984,7 @@ function d04FotoChange(){
   });
 }
 function toggleCheck(k){
+  if(userRole==='admin'){ showToast('Admin hanya memantau — tugas harian diisi oleh manager',''); return; }
   if(userRole==='manager'&&harianIsLocked()){showToast('Sudah lewat batas — tidak bisa diubah hari ini','');return;}
   // D04 terhubung ke tab Uang Cash: tap → buka tab Uang Cash; tercentang otomatis setelah isi transaksi.
   if(k==='D04'){
