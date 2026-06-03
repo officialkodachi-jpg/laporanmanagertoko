@@ -1737,13 +1737,22 @@ function escH(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replac
 const TODAY_KEY=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const todayValue=TODAY_KEY();
 function formatTodayDisplay(){const d=new Date();return`${DAY_FULL[d.getDay()]}, ${d.getDate()} ${BULAN_NAMES[d.getMonth()]} ${d.getFullYear()}`;}
-function saveLocData(){localStorage.setItem('loc_'+TODAY_KEY(),JSON.stringify({totalMinutes:totalMinutesToday,sessionStart,log:locationLog}));}
-function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_KEY())||'null');if(!d)return;totalMinutesToday=d.totalMinutes||0;
-  // Jangan restore sessionStart dari localStorage — kalau manager buka app lagi,
-  // deteksi router/GPS yang tentukan apakah sedang di toko, bukan sisa sesi lama.
-  // Ini mencegah jam kerja nyambung dari sesi sebelumnya padahal sudah keluar toko.
-  sessionStart=null; isAtStore=false;
-  locationLog=d.log||[];}catch(e){}}
+function saveLocData(){localStorage.setItem('loc_'+TODAY_KEY(),JSON.stringify({totalMinutes:totalMinutesToday,sessionStart,log:locationLog,lastSave:Date.now()}));}
+function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_KEY())||'null');if(!d)return;
+  // Cek gap sejak terakhir terdeteksi — kalau lebih dari 1 jam, reset total menit
+  // (dianggap app/HP mati terlalu lama, sesi tidak valid dilanjutkan)
+  const GAP_RESET_MS = 60 * 60 * 1000; // 1 jam
+  const gap = d.lastSave ? (Date.now() - d.lastSave) : 0;
+  if(gap > GAP_RESET_MS){
+    totalMinutesToday = 0;
+    locationLog = [];
+  } else {
+    totalMinutesToday = d.totalMinutes || 0;
+    locationLog = d.log || [];
+  }
+  // sessionStart dan isAtStore selalu mulai dari nol — deteksi router/GPS yang tentukan
+  sessionStart = null; isAtStore = false;
+  }catch(e){}}
 
 // ════ KUNCI HARIAN — manager hanya bisa kirim 1× per hari ════
 // Setelah dikirim, centangan tetap terlihat & terkunci. Reset otomatis bila:
