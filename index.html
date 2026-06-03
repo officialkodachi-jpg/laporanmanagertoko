@@ -2054,6 +2054,12 @@ function pushManagerLoc(silent){
   if(userRole!=='manager')return;
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   if(!lastPos)return;
+
+  // FIX: jangan push kalau akurasi GPS sangat buruk (>ACC_MAX) DAN manager tidak di toko.
+  // Ini mencegah dist=0 atau dist palsu tersimpan ke sheet saat GPS indoor tidak akurat.
+  // Kalau isAtStore=true (masuk via WiFi/router), tetap push — menit perlu tercatat.
+  if(lastPos.accuracy > ACC_MAX && !isAtStore && !_diWifiToko) return;
+
   _lastPushTime = Date.now();
   var t=getCurrentTotalMinutes();
   var payload={type:'loc',tanggal:todayValue,lat:lastPos.lat,lng:lastPos.lng,accuracy:Math.round(lastPos.accuracy||0),
@@ -2132,17 +2138,41 @@ function renderManagerLoc(d){
     det.innerHTML='Belum ada data posisi Manager hari ini<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
     tm.textContent='—:—';return;
   }
-  var inStore=(d.inStore==1||d.inStore===true);
+  var menitLalu=d.waktu?Math.round((Date.now()-d.waktu)/60000):9999;
+
+  // FIX: inStore hanya dianggap true jika server bilang 1 DAN data segar (<60 menit).
+  // Ini mencegah tampilan "di dalam toko jarak 0m" dari data basi push terakhir.
+  var inStoreRaw=(d.inStore==1||d.inStore===true);
+  var inStore=inStoreRaw && menitLalu<60;
+
   var menit=d.menit||0,h=Math.floor(menit/60),m=Math.floor(menit%60);
   var p=Math.min(100,menit/TARGET_MENIT*100);
   i.textContent=inStore?'🟢':'📍';i.className='loc-icon '+(inStore?'active':'inactive');
   st.textContent=inStore?'✓ Manager di dalam toko':'✗ Manager di luar toko';
   st.className='loc-status '+(inStore?'in':'out');
   var jamUpd=d.waktu?new Date(d.waktu).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'?';
-  var menitLalu=d.waktu?Math.round((Date.now()-d.waktu)/60000):999;
-  var ket='Jarak '+(d.dist!=null?d.dist:'?')+'m dari toko · update '+jamUpd;
-  if(menitLalu>=10){
-    // Posisi belum update >10 menit: jelaskan ini BUKAN berarti manager keluar
+
+  // FIX: tampilkan dist dengan benar. Kalau dist=0 tapi inStore=false (basi),
+  // tunjukkan tanda tanya supaya tidak menyesatkan admin.
+  var distTeks;
+  if(d.dist!=null && (inStore || d.dist>0)){
+    distTeks=d.dist+'m';
+  } else if(d.dist!=null && d.dist===0 && !inStore){
+    // dist=0 tapi bukan di toko → data tidak valid / koreksi manual
+    distTeks='—';
+  } else {
+    distTeks='?';
+  }
+  var ket='Jarak '+distTeks+' dari toko · update '+jamUpd;
+
+  if(menitLalu>=60){
+    // Data lama >60 menit: jelaskan status tidak bisa dipastikan
+    ket+=' <span style="color:#b45309">('+menitLalu+' mnt lalu)</span>'
+      +'<div class="admin-note" style="color:#92400e">Data posisi sudah '+menitLalu+' menit lalu. '
+      +'Status lokasi saat ini tidak bisa dipastikan — manager mungkin sudah tidak di toko. '
+      +'Tekan tombol refresh atau tunggu manager membuka app.</div>';
+  } else if(menitLalu>=10){
+    // Posisi belum update 10-60 menit: informasi ringan
     ket+=' <span style="color:#b45309">('+menitLalu+' mnt lalu)</span>'
       +'<div class="admin-note" style="color:#92400e">Posisi terverifikasi terakhir '+jamUpd
       +'. App manager kemungkinan di background / HP terkunci — bukan berarti keluar toko. '
