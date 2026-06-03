@@ -575,6 +575,34 @@ body.role-admin #admin-mgrlog{display:none!important}
   <div class="loc-timer" id="loc-timer">0:00</div>
 </div></div>
 
+<div id="gmaps-share-card" style="display:none;max-width:680px;margin:0 auto 14px;padding:0 20px">
+  <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
+    <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
+      <span style="font-size:18px">📡</span>
+      <div style="flex:1;min-width:0">
+        <div id="gmaps-title" style="font-size:13px;font-weight:800;color:var(--text)">Pantau Lokasi Otomatis</div>
+        <div id="gmaps-sub" style="font-size:10px;color:var(--hint)">—</div>
+      </div>
+    </div>
+    <div style="padding:12px 14px">
+      <!-- MANAGER: cukup satu tombol -->
+      <div id="gmaps-manager" style="display:none">
+        <button id="track-btn" onclick="toggleTracking()" class="btn-press" style="width:100%;background:var(--green);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:var(--sans)">📍 Nyalakan pantau lokasi</button>
+        <div id="track-status" style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center;line-height:1.6">Tekan tombol hijau saat sampai toko. Biarkan HP dengan app ini terbuka (boleh ditaruh di meja kasir). Layar akan tetap menyala supaya lokasimu terkirim otomatis.</div>
+      </div>
+      <!-- ADMIN: setup sekali di HP manager + lihat live -->
+      <div id="gmaps-admin-help" style="display:none;font-size:12px;color:var(--text);line-height:1.7">
+        <div style="font-weight:700;margin-bottom:6px">Cara paling akurat (tanpa repotin Manager):</div>
+        Lakukan <b>sekali</b> di HP Manager (kamu yang setting, 1 menit) — setelah itu jalan otomatis selamanya, Manager tidak perlu apa-apa:
+        <div style="margin-top:6px">1️⃣ Buka Google Maps di HP Manager → ketuk foto profil</div>
+        <div>2️⃣ <b>Berbagi lokasi</b> → durasi <b>"Sampai Anda mematikan"</b></div>
+        <div>3️⃣ Kirim ke email kamu: <b id="gmaps-admin-email">officialkodachi@gmail.com</b></div>
+        <button onclick="bukaGmaps()" class="btn-press" style="width:100%;margin-top:10px;background:#1a73e8;color:#fff;border:none;border-radius:10px;padding:11px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans)">🗺️ Buka Google Maps untuk cek lokasi Manager</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="mgr-map-card" style="display:none;max-width:680px;margin:0 auto 14px;padding:0 20px">
   <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
     <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
@@ -1192,6 +1220,32 @@ body.role-admin #admin-mgrlog{display:none!important}
         </div>
 
         <div id="cash-preview-nominal" style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-bottom:4px;min-height:14px;margin-top:10px"></div>
+      </div>
+    </div>
+
+    <!-- ══ KONFIRMASI UANG KEMBALIAN CUKUP (D05) ══ -->
+    <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
+        <span style="font-size:18px">💰</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Uang Kembalian Cukup?</div>
+          <div style="font-size:10px;color:var(--hint)">Pastikan stok uang kembalian aman (tugas harian D05)</div>
+        </div>
+      </div>
+      <div style="padding:12px 14px">
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">📷 Foto uang kembalian <span style="color:var(--red)">*</span></div>
+          <input type="file" accept="image/*" id="kbl-foto" style="display:none" onchange="kblFotoChange()">
+          <button type="button" onclick="document.getElementById('kbl-foto').click()" style="width:100%;padding:10px;border:1px dashed var(--border2);background:var(--surface);border-radius:var(--r);cursor:pointer;color:var(--green);font-size:12px;font-weight:600">📷 Ambil/pilih foto bukti</button>
+          <div id="kbl-foto-prev" style="margin-top:6px"></div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">Catatan (opsional)</div>
+          <input type="text" id="kbl-ket" placeholder="mis. receh & pecahan kecil cukup untuk hari ini"
+            style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:12px;background:var(--surface);color:var(--text);outline:none">
+        </div>
+        <button id="kbl-btn" onclick="simpanKembalianCukup()" style="width:100%;padding:12px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer">✓ Konfirmasi kembalian cukup</button>
+        <div id="kbl-status" style="text-align:center;font-size:12px;margin-top:8px;min-height:14px;font-family:var(--mono)"></div>
       </div>
     </div>
 
@@ -3958,6 +4012,66 @@ function markD04Done(){
   updateStats();
   showToast('✓ D04 (catatan uang) tercentang otomatis','ok');
 }
+// ════ PANTAU LOKASI OTOMATIS ════
+var ADMIN_SHARE_EMAIL='officialkodachi@gmail.com';
+var _wakeLock=null, _trackingOn=false;
+function setupGmapsShare(){
+  var card=document.getElementById('gmaps-share-card'); if(!card)return;
+  card.style.display='block';
+  var mgr=document.getElementById('gmaps-manager'), adm=document.getElementById('gmaps-admin-help');
+  if(userRole==='admin'){
+    document.getElementById('gmaps-title').textContent='Pantau Lokasi Manager';
+    document.getElementById('gmaps-sub').textContent='Atur sekali di HP Manager → posisi live otomatis';
+    if(adm)adm.style.display='block'; if(mgr)mgr.style.display='none';
+    var em=document.getElementById('gmaps-admin-email'); if(em)em.textContent=ADMIN_SHARE_EMAIL;
+  }else{
+    document.getElementById('gmaps-title').textContent='Pantau Lokasi (1 tombol)';
+    document.getElementById('gmaps-sub').textContent='Tekan sekali saat sampai toko';
+    if(mgr)mgr.style.display='block'; if(adm)adm.style.display='none';
+    renderTrackBtn();
+  }
+}
+function renderTrackBtn(){
+  var b=document.getElementById('track-btn'); if(!b)return;
+  if(_trackingOn){
+    b.textContent='🟢 Pantau lokasi AKTIF — tekan untuk matikan';
+    b.style.background='var(--red)';
+  }else{
+    b.textContent='📍 Nyalakan pantau lokasi';
+    b.style.background='var(--green)';
+  }
+}
+async function toggleTracking(){
+  if(_trackingOn){ stopTracking(); return; }
+  _trackingOn=true; renderTrackBtn();
+  // pastikan GPS jalan
+  try{ if(typeof startGps==='function'){ _gpsStarted=false; startGps(); } }catch(e){}
+  await acquireWakeLock();
+  showToast('✓ Pantau lokasi aktif — biarkan app terbuka','ok');
+  try{ logActivity('Nyalakan pantau lokasi','wake lock + GPS'); }catch(e){}
+}
+function stopTracking(){
+  _trackingOn=false; renderTrackBtn();
+  releaseWakeLock();
+  showToast('Pantau lokasi dimatikan','');
+}
+async function acquireWakeLock(){
+  try{
+    if('wakeLock' in navigator){
+      _wakeLock=await navigator.wakeLock.request('screen');
+      _wakeLock.addEventListener('release',function(){ /* dilepas sistem */ });
+    }
+  }catch(e){}
+}
+function releaseWakeLock(){ try{ if(_wakeLock){ _wakeLock.release(); _wakeLock=null; } }catch(e){} }
+// Saat app kembali ke depan, re-acquire wake lock (sistem melepasnya saat di background)
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible' && _trackingOn && !_wakeLock){ acquireWakeLock(); }
+});
+function bukaGmaps(){
+  try{ window.open('https://www.google.com/maps','_blank'); }catch(e){ location.href='https://www.google.com/maps'; }
+}
+function setupGmapsShareSafe(){ try{ setupGmapsShare(); }catch(e){} }
 function toggleNote(e,k){e.stopPropagation();var ta=document.getElementById('note-'+k);ta.style.display=ta.style.display==='none'?'block':'none';}
 function updateStats(){var done=Object.values(checked).filter(Boolean).length,tot=HARIAN.length,skip=tot-done,pct=Math.round(done/tot*100);document.getElementById('stat-done').textContent=done;document.getElementById('stat-skip').textContent=skip;document.getElementById('stat-pct').textContent=pct+'%';document.getElementById('stat-pct').style.color=pct>=90?'var(--green)':pct>=70?'var(--orange)':'var(--red)';document.getElementById('prog-pct').textContent=pct+'%';var f=document.getElementById('prog-fill');f.style.width=pct+'%';f.className='prog-fill'+(pct>=90?'':pct>=70?' mid':' low');}
 
@@ -5043,6 +5157,7 @@ function applyRole(){
     // Koreksi jam datang manager — set tanggal hari ini & muat data
     var kjt=document.getElementById('kjk-tgl');
     if(kjt){ if(!kjt.value)kjt.value=todayValue; kjkLoad(); }
+    setupGmapsShareSafe();
     var amg=document.getElementById('admin-mgrlog');if(amg)amg.style.display='block';
     loadManagerLoc();
     _adminLocTimer=setInterval(loadManagerLoc,60000);
@@ -5074,6 +5189,7 @@ function applyRole(){
     if(_harianCutoffTimer)clearInterval(_harianCutoffTimer);
     _harianCutoffTimer=setInterval(function(){ if(document.getElementById('panel-harian')) applyHarianLock(); },60000);
     setTimeout(applyHarianLock,200); // terapkan status batas jam 10:00 segera setelah login
+    setupGmapsShareSafe();
   }
   // loadShift dipanggil di sini (bukan di DOMContentLoaded)
   // supaya isAdmin sudah ter-set saat renderShift() berjalan
@@ -5482,6 +5598,42 @@ function kirimCashBukti(jenis,nominal,catatan,fotoB64){
       oleh:((typeof userEmail!=='undefined'&&userEmail)?userEmail:'Manager'),olehEmail:(typeof userEmail!=='undefined'?userEmail:''),waktu:Date.now()};
     fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
   }catch(e){}
+}
+// ── Konfirmasi uang kembalian cukup (tugas harian D05) ──
+var kblFotoBase64='';
+function kblFotoChange(){
+  var f=document.getElementById('kbl-foto').files[0]; kblFotoBase64='';
+  var p=document.getElementById('kbl-foto-prev'); if(p)p.innerHTML='';
+  if(!f)return;
+  _kmCompress(f,function(b64){ kblFotoBase64=b64;
+    if(p)p.innerHTML='<img src="'+b64+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green);margin-top:3px">✓ Foto siap</div>';
+    showToast('✓ Foto bukti siap','ok');
+  });
+}
+function markD05Done(){
+  if(checked['D05'])return;
+  checked['D05']=true;
+  var el=document.getElementById('task-D05'); if(el)el.classList.add('done');
+  if(!notes['D05']) notes['D05']='Kembalian cukup — dikonfirmasi via tab Uang Cash';
+  try{ updateStats(); }catch(e){}
+}
+function simpanKembalianCukup(){
+  if(!kblFotoBase64){ showToast('📷 Foto uang kembalian wajib','err'); var p=document.getElementById('kbl-foto-prev'); if(p)p.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+  var ket=(document.getElementById('kbl-ket').value||'').trim()||'Uang kembalian cukup';
+  var sta=document.getElementById('kbl-status'); var btn=document.getElementById('kbl-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Menyimpan...';}
+  if(sta){sta.style.color='var(--muted)';sta.textContent='Mengirim bukti...';}
+  try{
+    kirimCashBukti('Kembalian cukup', '', ket, kblFotoBase64);
+    markD05Done();
+    if(sta){sta.style.color='var(--green)';sta.textContent='✓ Tersimpan & D05 tercentang';}
+    showToast('✓ Kembalian cukup dikonfirmasi (D05)','ok');
+    try{ logActivity('Konfirmasi kembalian cukup','D05 — '+ket); }catch(e){}
+    kblFotoBase64=''; var p2=document.getElementById('kbl-foto-prev'); if(p2)p2.innerHTML='';
+    var fi=document.getElementById('kbl-foto'); if(fi)fi.value='';
+    document.getElementById('kbl-ket').value='';
+  }catch(e){ if(sta){sta.style.color='var(--red)';sta.textContent='⚠️ Gagal';} }
+  if(btn){btn.disabled=false;btn.textContent='✓ Konfirmasi kembalian cukup';}
 }
 
 function updateCashPreview(){
