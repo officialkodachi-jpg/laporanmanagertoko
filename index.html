@@ -91,6 +91,22 @@ body.role-admin .admin-only{display:inline-flex}
 .adm-only-block{display:none}
 body.role-admin .adm-only-block{display:block}
 .km-card{cursor:pointer}
+/* ── Kiriman: kontrol admin (urutkan + denyut) ── */
+.km-admin-ctrl{display:flex;align-items:center;gap:6px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--border);flex-wrap:wrap}
+.km-admin-lbl{font-size:10px;font-weight:700;color:var(--hint);letter-spacing:.04em;text-transform:uppercase;margin-right:1px}
+.km-ord-btn{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1;border:1.5px solid var(--border2);background:var(--card);color:var(--muted);border-radius:8px;cursor:pointer;font-weight:700;padding:0}
+.km-ord-btn:active{background:var(--surface)}
+.km-ord-btn:disabled{opacity:.32;cursor:not-allowed}
+.km-pulse-btn{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:6px 11px;border-radius:20px;border:1.5px solid var(--border2);background:var(--card);color:var(--muted);cursor:pointer;margin-left:auto}
+.km-pulse-btn.on{border-color:var(--orange);color:var(--orange);background:rgba(217,119,6,.08)}
+.km-pulse-btn:active{transform:scale(.97)}
+/* kartu yang ditandai admin → berdenyut menarik perhatian */
+.km-card.km-pulse{animation:kmPulseGlow 1.5s ease-in-out infinite;border-left-color:var(--orange)!important;position:relative}
+.km-card.km-pulse::before{content:"💓";position:absolute;top:-9px;right:-7px;font-size:15px;animation:kmPulseBeat 1.5s ease-in-out infinite}
+@keyframes kmPulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,.0)}50%{box-shadow:0 0 0 5px rgba(217,119,6,.22)}}
+@keyframes kmPulseBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+/* mirror denyut di kartu Home (dashboard admin) */
+.home-km-pulse{animation:kmPulseGlow 1.5s ease-in-out infinite}
 .km-detail-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center;padding:18px}
 .km-detail-bg.open{display:flex}
 .km-detail{background:var(--card);border-radius:var(--r-lg);padding:0;width:100%;max-width:440px;max-height:88vh;overflow-y:auto}
@@ -1884,16 +1900,20 @@ function harianClearLock(){ try{ localStorage.removeItem(_harianLockKey()); }cat
 // ════ CONFIG GLOBAL (lintas-perangkat, via Apps Script ?type=appconfig) ════
 // { showKepManager:0|1, showMgrSelf:0|1, mapShareOn:0|1, ... }
 var _appCfg={};
+var _appCfgRecent={}; // {key:{val,ts}} — pertahankan nilai yg BARU diset (≤12 dtk) agar tak "balik" saat server belum selesai menyimpan
 function appConfigLoad(cb){
   var url=scriptUrl; if(!url||!url.startsWith('http')){ if(cb)cb(_appCfg); return; }
   fetch(url+'?type=appconfig&_='+Date.now()).then(function(r){return r.json();}).then(function(d){
     _appCfg=(d&&d.config)?d.config:{};
+    var nowTS=Date.now();
+    Object.keys(_appCfgRecent).forEach(function(k){ if(nowTS-_appCfgRecent[k].ts<12000)_appCfg[k]=_appCfgRecent[k].val; });
     if(cb)cb(_appCfg);
   }).catch(function(){ if(cb)cb(_appCfg); });
 }
 function appConfigSet(key,val,cb){
   var url=scriptUrl; if(!url||!url.startsWith('http'))return;
   _appCfg[key]=val; // optimistik
+  _appCfgRecent[key]={val:val,ts:Date.now()}; // jaga dari overwrite sinkron sementara
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'config_set',key:key,value:val})})
     .then(function(){ if(cb)cb(); })
     .catch(function(){ showToast('Gagal simpan setelan ke server','err'); });
@@ -1937,6 +1957,9 @@ function applyAppConfig(){
   var cfgSig = (showKep?'1':'0')+'|'+(showSelf?'1':'0');
   if(userRole==='manager' && _pgLoadedOnce && _appCfgMgrSelfPrev!==cfgSig){ loadPartimer(); }
   _appCfgMgrSelfPrev = cfgSig;
+  // 5) Kiriman: urutan & denyut diatur admin → segarkan daftar kiriman utk semua peran
+  //    (kmRender membaca _appCfg.kmOrder & _appCfg.kmPulse setiap render)
+  try{ if(typeof kmData!=='undefined' && kmData.length && typeof kmRender==='function' && document.getElementById('km-list')) kmRender(); }catch(e){}
 }
 var _appCfgMgrSelfPrev = null;
 function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
@@ -2731,6 +2754,7 @@ function cekRerenderLight(){
   try{ if(typeof _annotateD04Render==='function'&&document.getElementById('d04-cek-strip')) _annotateD04Render(_cekItems); }catch(e){}
   try{ if(typeof _annotateCashRender==='function'&&document.getElementById('kbl-pending')) _annotateCashRender(_cekItems); }catch(e){}
   try{ if(typeof kmRender==='function'&&typeof kmData!=='undefined'&&kmData.length) kmRender(); }catch(e){}
+  try{ if(typeof pgRenderList==='function'&&document.getElementById('pg-list')&&typeof pgData!=='undefined'&&pgData.length) pgRenderList(); }catch(e){}
   try{ if(userRole==='admin'&&typeof _loadNoteBuktiRender==='function') _loadNoteBuktiRender(); }catch(e){}
 }
 // ── ADMIN: peta posisi manager relatif terhadap toko ──
@@ -3404,7 +3428,7 @@ function _loadNoteBuktiRender(){
       var cekBlok;
       if(!r.foto){ cekBlok=''; }
       else if(done&&nbArsip){
-        cekBlok='<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>'+cekArsipBtnHTML('note_bukti',r.row)+'</div>';
+        cekBlok='<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>'+cekActionBtnHTML('note_bukti',r.row)+cekArsipBtnHTML('note_bukti',r.row)+'</div>';
       } else {
         cekBlok='<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+(done?cekMarkHTML('note_bukti',r.row):'<span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek</span>')+cekActionBtnHTML('note_bukti',r.row)+cekArsipBtnHTML('note_bukti',r.row)+'</div>';
       }
@@ -3579,6 +3603,33 @@ function kmStatusInfo(r){
   if(r.status==='Sampai+SS'||r.fotoSS)return{cls:'sampai',badge:'Sampai · sudah input SS',label:'Sampai+SS'};
   return{cls:'sampai',badge:'Sampai · belum input SS',label:'Sampai'};
 }
+// ── Urutan & denyut kiriman: disimpan lintas-perangkat lewat appconfig ──
+// kmOrder = array nomor baris (urutan pin admin); kmPulse = array nomor baris yg berdenyut.
+function _kmCfgArr(key){
+  try{
+    var v=(typeof _appCfg!=='undefined')?_appCfg[key]:null;
+    if(!v)return [];
+    var a=Array.isArray(v)?v:JSON.parse(v);
+    return a.map(Number).filter(function(n){return !isNaN(n);});
+  }catch(e){ return []; }
+}
+function _kmOrderArr(){ return _kmCfgArr('kmOrder'); }
+function _kmPulseArr(){ return _kmCfgArr('kmPulse'); }
+function _kmIsPulse(row){ return _kmPulseArr().indexOf(Number(row))>=0; }
+// Data kiriman terurut: hormati urutan kustom admin dulu, sisanya default (jalan → terbaru)
+function _kmComputeSorted(){
+  var ord=_kmOrderArr(), omap={};
+  ord.forEach(function(rw,i){ omap[rw]=i; });
+  return kmData.slice().sort(function(a,b){
+    var oa=omap[a.row], ob=omap[b.row], ha=oa!==undefined, hb=ob!==undefined;
+    if(ha&&hb)return oa-ob;
+    if(ha)return -1;
+    if(hb)return 1;
+    var sa=kmStatusInfo(a).cls==='jalan'?0:1, sb=kmStatusInfo(b).cls==='jalan'?0:1;
+    if(sa!==sb)return sa-sb;
+    return (b.tglKirim||'').localeCompare(a.tglKirim||'');
+  });
+}
 function kmRender(){
   var list=document.getElementById('km-list');
   var jalan=0,sampai=0,masalah=0;
@@ -3588,32 +3639,27 @@ function kmRender(){
   document.getElementById('km-c-masalah').textContent=masalah;
   updateGudangBadges();
   if(!kmData.length){list.innerHTML='<div class="empty"><div class="empty-icon">🚚</div><div class="empty-text">Belum ada data kiriman</div></div>';return;}
-  // urutkan: yang masih jalan dulu, lalu terbaru
-  var sorted=kmData.slice().sort(function(a,b){
-    var sa=kmStatusInfo(a).cls==='jalan'?0:1, sb=kmStatusInfo(b).cls==='jalan'?0:1;
-    if(sa!==sb)return sa-sb;
-    return (b.tglKirim||'').localeCompare(a.tglKirim||'');
-  });
-  list.innerHTML=sorted.map(function(r){
+  var sorted=_kmComputeSorted();
+  var pulseSet=_kmPulseArr();
+  var n=sorted.length;
+  list.innerHTML=sorted.map(function(r,i){
     var s=kmStatusInfo(r);
     var hdrTxt=escH(r.jasa||'Kiriman')+' · '+kmFmtTgl(r.tglKirim);
-    var meta='<i>🚚</i> dikirim '+kmFmtTgl(r.tglKirim);
-    if(kmIsSampai(r)&&r.tglSampai)meta+=' · tiba '+kmFmtTgl(r.tglSampai);
     var fotos='<div style="display:flex;gap:12px;flex-wrap:wrap">';
     fotos+=r.fotoResi?'<a class="km-foto-link" href="'+escH(r.fotoResi)+'" target="_blank" onclick="event.stopPropagation()">🧾 Foto resi</a>':'<span style="font-size:12px;color:var(--hint)">tanpa resi</span>';
     fotos+=r.foto?'<a class="km-foto-link" href="'+escH(r.foto)+'" target="_blank" onclick="event.stopPropagation()">📷 Foto nota</a>':'<span style="font-size:12px;color:var(--hint)">tanpa nota</span>';
     fotos+='</div>';
     var note=(s.cls==='masalah'&&r.catatan)?'<div class="km-note">⚠ '+escH(r.catatan)+'</div>':'';
-    // Strip status cek admin (foto perlu dicek → sembunyi setelah dicek, ganti tanda ✓)
+    // Strip status cek admin — set tombol LENGKAP & konsisten dgn panel "perlu dicek":
+    //   sudah dicek → [✓ badge / 🗂 diarsipkan] + [↩ Batal cek] + [🗂 Arsipkan / 📂 Tampilkan lagi]
+    //   belum dicek → ● tanda + [✓ Tandai sudah dicek]
     var cekStrip='';
     var punyaFoto=!!(r.foto||r.fotoResi||r.fotoSurat||r.fotoSS);
     if(punyaFoto){
       if(isCekDone('kiriman',r.row)){
-        if(isCekArsip('kiriman',r.row)){
-          cekStrip='<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>'+cekArsipBtnHTML('kiriman',r.row)+'</div>';
-        }else{
-          cekStrip='<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+cekMarkHTML('kiriman',r.row)+cekActionBtnHTML('kiriman',r.row)+cekArsipBtnHTML('kiriman',r.row)+'</div>';
-        }
+        var arsiped=isCekArsip('kiriman',r.row);
+        var head=arsiped?(userRole==='admin'?'<span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>':''):cekMarkHTML('kiriman',r.row);
+        cekStrip='<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+head+cekActionBtnHTML('kiriman',r.row)+cekArsipBtnHTML('kiriman',r.row)+'</div>';
       }else{
         cekStrip='<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek admin</span>'+cekActionBtnHTML('kiriman',r.row)+'</div>';
       }
@@ -3626,13 +3672,51 @@ function kmRender(){
         +'<button class="km-act-btn no" onclick="event.stopPropagation();kmMark('+r.row+',\'Tidak\')">✗ Tak sesuai</button>'
         +'</div>';
     }
+    // Kontrol admin: naik / turun urutan + denyut (highlight yg dilihat manager juga)
+    var pulseOn=pulseSet.indexOf(Number(r.row))>=0;
+    var adminCtrl='';
+    if(userRole==='admin'){
+      adminCtrl='<div class="km-admin-ctrl" onclick="event.stopPropagation()">'
+        +'<span class="km-admin-lbl">Urutan</span>'
+        +'<button type="button" class="km-ord-btn"'+(i===0?' disabled':'')+' title="Naikkan" onclick="event.stopPropagation();kmMove('+r.row+',-1)">⬆</button>'
+        +'<button type="button" class="km-ord-btn"'+(i===n-1?' disabled':'')+' title="Turunkan" onclick="event.stopPropagation();kmMove('+r.row+',1)">⬇</button>'
+        +'<button type="button" class="km-pulse-btn'+(pulseOn?' on':'')+'" onclick="event.stopPropagation();kmPulseToggle('+r.row+')">'+(pulseOn?'⏹ Stop denyut':'💓 Denyut')+'</button>'
+        +'</div>';
+    }
     var fotosVisible=isCekDone('kiriman',r.row)?'':fotos; // foto hilang dari tampilan setelah dicek (record tetap di sheet)
-    return '<div class="km-card '+s.cls+'" onclick="kmOpenDetail('+r.row+')">'
+    return '<div class="km-card '+s.cls+(pulseOn?' km-pulse':'')+'" onclick="kmOpenDetail('+r.row+')">'
       +'<div class="km-card-top"><span class="km-resi">'+hdrTxt+'</span><span class="km-badge '+s.cls+'">'+s.badge+'</span></div>'
       +'<div class="km-isi">Isi: '+escH(r.isi||'-')+'</div>'
-      +fotosVisible+cekStrip+note+actions
+      +fotosVisible+cekStrip+note+actions+adminCtrl
       +'</div>';
   }).join('');
+}
+// ── ADMIN: naik/turunkan urutan kiriman (tersimpan lintas-perangkat) ──
+function kmMove(row,dir){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa mengatur urutan','err');return;}
+  row=Number(row);
+  var ordered=_kmComputeSorted().map(function(r){return r.row;});
+  var idx=ordered.indexOf(row);
+  if(idx<0)return;
+  var j=idx+dir;
+  if(j<0||j>=ordered.length)return;
+  var t=ordered[idx]; ordered[idx]=ordered[j]; ordered[j]=t;
+  appConfigSet('kmOrder',JSON.stringify(ordered));
+  kmRender();
+  try{logActivity('Atur urutan kiriman',(dir<0?'Naik':'Turun')+' · baris '+row);}catch(e){}
+}
+// ── ADMIN: nyalakan/matikan denyut (highlight) sebuah kiriman ──
+function kmPulseToggle(row){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa menandai denyut','err');return;}
+  row=Number(row);
+  var arr=_kmPulseArr();
+  var i=arr.indexOf(row);
+  if(i>=0)arr.splice(i,1); else arr.push(row);
+  appConfigSet('kmPulse',JSON.stringify(arr));
+  kmRender();
+  try{ if(typeof loadHomeKiriman==='function'&&document.getElementById('home-kiriman-list')&&document.getElementById('home-kiriman-list').children.length)loadHomeKiriman(); }catch(e){}
+  showToast(i>=0?'⏹ Denyut dimatikan':'💓 Ditandai berdenyut — manager akan melihatnya','ok');
+  try{logActivity(i>=0?'Matikan denyut kiriman':'Nyalakan denyut kiriman','Baris '+row);}catch(e){}
 }
 function kmFmtTgl(t){if(!t)return'-';var p=String(t).split('-');if(p.length===3)return p[2]+'/'+p[1];return t;}
 function kmSSFotoChange(){
@@ -4822,7 +4906,7 @@ function pgRenderList(){
     if(userRole!=='admin'){ cekBlok=''; }
     else if(!adaFoto){ cekBlok=''; }
     else if(done&&pgArsip){
-      cekBlok='<div style="margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()"><span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>'+cekArsipBtnHTML('pelanggaran',r.row)+'</div>';
+      cekBlok='<div style="margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()"><span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>'+cekActionBtnHTML('pelanggaran',r.row)+cekArsipBtnHTML('pelanggaran',r.row)+'</div>';
     } else {
       cekBlok='<div style="margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()">'+(done?cekMarkHTML('pelanggaran',r.row):'<span style="font-size:10px;font-weight:700;color:var(--red)">● foto perlu dicek</span>')+cekActionBtnHTML('pelanggaran',r.row)+cekArsipBtnHTML('pelanggaran',r.row)+'</div>';
     }
@@ -6233,8 +6317,9 @@ function loadHomeKiriman(){
       }
       list.innerHTML = pending.map(function(r){
         var hdr = escH(r.jasa||'Kiriman') + ' · dikirim ' + kmFmtTgl(r.tglKirim);
-        return '<div onclick="kmOpenDetail('+r.row+')" style="display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid var(--border);border-left:3px solid var(--orange);border-radius:4px;margin-bottom:4px;background:rgba(217,119,6,.04);cursor:pointer">'
-          + '<div style="font-size:18px">🚚</div>'
+        var pulse = (typeof _kmIsPulse==='function' && _kmIsPulse(r.row)) ? ' home-km-pulse' : '';
+        return '<div data-km-row="'+r.row+'" class="'+pulse.trim()+'" onclick="kmOpenDetail('+r.row+')" style="display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid var(--border);border-left:3px solid var(--orange);border-radius:4px;margin-bottom:4px;background:rgba(217,119,6,.04);cursor:pointer">'
+          + '<div style="font-size:18px">'+(pulse?'💓':'🚚')+'</div>'
           + '<div style="flex:1;min-width:0">'
           + '<div style="font-size:13px;font-weight:700;color:var(--orange)">'+hdr+'</div>'
           + '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+escH(r.isi||'-')+'</div>'
