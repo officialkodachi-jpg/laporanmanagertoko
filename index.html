@@ -452,42 +452,6 @@ select.it{cursor:pointer}
 .empty-icon{font-size:32px;margin-bottom:10px}.empty-text{font-size:13px;line-height:1.6}
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--hint);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* ── Rekap Barang Hilang Retur — tema merah ── */
-#rhr-section{--rhr:var(--red);--rhr-soft:rgba(220,38,38,.08);--rhr-line:rgba(220,38,38,.22)}
-#rhr-head{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--rhr);border-radius:var(--r);padding:11px 14px;margin-bottom:12px;box-shadow:0 6px 16px rgba(220,38,38,.28)}
-#rhr-head .rhr-title{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:800;color:#fff;letter-spacing:.01em}
-#rhr-head .rhr-ic{width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
-#rhr-refresh{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 13px;font-family:var(--sans);font-size:11px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;gap:5px}
-#rhr-refresh:active{background:rgba(255,255,255,.3)}
-#rhr-refresh:disabled{opacity:.7}
-.rhr-stat{background:var(--rhr-soft);border:1px solid var(--rhr-line);border-radius:var(--r);padding:12px 6px;text-align:center}
-.rhr-stat .rhr-v{font-size:21px;font-weight:800;color:var(--rhr);font-family:var(--mono)}
-.rhr-stat .rhr-l{font-size:10px;color:var(--rhr);opacity:.85;margin-top:3px;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
-.rhr-load{display:flex;flex-direction:column;align-items:center;gap:13px;padding:28px 0}
-.rhr-bars{display:flex;align-items:flex-end;gap:5px;height:36px}
-.rhr-bars i{display:block;width:7px;height:8px;border-radius:4px;background:var(--rhr);animation:rhrbar 1s ease-in-out infinite}
-.rhr-bars i:nth-child(2){animation-delay:.12s}.rhr-bars i:nth-child(3){animation-delay:.24s}.rhr-bars i:nth-child(4){animation-delay:.36s}.rhr-bars i:nth-child(5){animation-delay:.48s}
-@keyframes rhrbar{0%,100%{height:8px;opacity:.4}50%{height:36px;opacity:1}}
-.rhr-load-txt{font-size:12px;color:var(--rhr);font-weight:700;letter-spacing:.02em}
-.rhr-spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
-/* ── Sumber Data (tab admin) ── */
-.sd-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:11px}
-.sd-card.warn{border-color:rgba(217,119,6,.4)}
-.sd-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px}
-.sd-ic{font-size:20px;line-height:1;flex-shrink:0}
-.sd-meta{flex:1;min-width:0}
-.sd-name{font-size:14px;font-weight:800;color:var(--text)}
-.sd-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
-.sd-tag{font-size:9px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:6px;text-transform:uppercase;flex-shrink:0;white-space:nowrap}
-.sd-tag.ss{background:rgba(37,99,235,.12);color:var(--blue)}
-.sd-tag.gas{background:rgba(217,119,6,.14);color:var(--orange)}
-.sd-tag.folder{background:rgba(22,163,74,.12);color:var(--green)}
-.sd-cur{font-size:11px;color:var(--hint);font-family:var(--mono);margin-bottom:8px;word-break:break-all}
-.sd-row{display:flex;gap:7px}
-.sd-row input{flex:1;min-width:0;font-family:var(--sans);font-size:12px;padding:9px 11px;border:1px solid var(--border2);border-radius:9px;background:var(--bg);color:var(--text)}
-.sd-row button{white-space:nowrap;background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 13px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
-.sd-row button:active{opacity:.85}
-.sd-warn{display:flex;align-items:flex-start;gap:6px;background:rgba(217,119,6,.1);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--orange);line-height:1.45;margin-top:9px}
 /* tombol dengan efek tekan + ikon muter */
 .btn-press{transition:transform .08s ease, box-shadow .12s ease, background .15s ease;-webkit-tap-highlight-color:transparent}
 .btn-press:active{transform:scale(.94)}
@@ -689,7 +653,6 @@ body.role-admin #admin-mgrlog{display:none!important}
       <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
       <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
       <button class="tab" onclick="switchTab('link',this)">🔗 Link</button>
-      <button class="tab admin-only" id="tab-sumberdata" onclick="switchTab('sumberdata',this)">🗄️ Sumber Data</button>
     </div>
     <button class="tabs-scroll-btn tabs-scroll-btn-right" id="tabs-arrow-right" onclick="tabsScroll(1)">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--accent)" fill-opacity=".85"/><path d="M8 5.5L12.5 10L8 14.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -961,21 +924,6 @@ body.role-admin #admin-mgrlog{display:none!important}
       </div>
       <div id="stok-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Tekan "Perbarui Data"</div></div></div>
       <a class="stok-sheet-link" id="stok-sheet-link" href="#" target="_blank">📊 Buka Google Sheet Stok Toko →</a>
-
-      <!-- ══ Rekap Barang Hilang Retur (dari SS Orderan Tahunan) ══ -->
-      <div id="rhr-section" style="margin-top:24px;border-top:1px solid var(--border);padding-top:18px">
-        <div id="rhr-head">
-          <div class="rhr-title"><span class="rhr-ic" aria-hidden="true">📉</span>Rekap Barang Hilang Retur</div>
-          <button id="rhr-refresh" onclick="loadStokMinus()"><span aria-hidden="true">🔄</span><span>Muat</span></button>
-        </div>
-        <div class="alert info" style="margin-bottom:12px;font-size:11px">Unit Retur / Batal / Hilang per bulan (tahun berjalan). Data keuangan &amp; pembeli tidak ditarik ke aplikasi.</div>
-        <div id="rhr-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
-          <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-retur">–</div><div class="rhr-l">↩ Retur ’26</div></div>
-          <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-batal">–</div><div class="rhr-l">✕ Batal ’26</div></div>
-          <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-hilang">–</div><div class="rhr-l">↘ Hilang ’26</div></div>
-        </div>
-        <div id="rhr-body"><div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--hint)">Tekan “Muat” untuk menarik data</div></div></div>
-      </div>
     </div>
 
     <!-- Gudang IN/OUT -->
@@ -1374,52 +1322,6 @@ body.role-admin #admin-mgrlog{display:none!important}
     <a class="link-row" href="https://docs.google.com/spreadsheets/d/1aFyLfd0R1M7wasdbjB2sF7ap01EiCWosltFHI-wGjds/edit?gid=0#gid=0" target="_blank"><span class="link-ic">👟</span><span class="link-tx"><b>Monitoring Display Sepatu</b><small>Cek display & rak sepatu</small></span><span class="link-ar">→</span></a>
   </div>
 
-  <!-- ══ SUMBER DATA (admin) — ganti spreadsheet tanpa edit kode ══ -->
-  <div class="panel" id="panel-sumberdata">
-    <div class="alert info" style="margin-bottom:14px">🗄️ <b>Sumber Data</b> — ganti link spreadsheet tanpa ngedit kode. Tempel link Google Sheet penuh, sistem ambil ID-nya otomatis, lalu <b>Simpan</b>. Berlaku ke semua perangkat.</div>
-
-    <div class="sd-card">
-      <div class="sd-top"><span class="sd-ic">🗂️</span><div class="sd-meta"><div class="sd-name">Backup Data MTG</div><div class="sd-desc">Salin semua data MTG ke Drive sebagai <b>nilai statis</b> (tanpa rumus)</div></div><span class="sd-tag folder">Drive</span></div>
-      <div class="sd-row"><button id="sd-backup-btn" onclick="backupMTGNow()" style="flex:1">💾 Backup sekarang</button></div>
-      <div id="sd-backup-result" style="font-size:11px;margin-top:9px;line-height:1.5;display:none"></div>
-    </div>
-
-    <div class="section-hdr" style="margin:18px 0 12px"><span class="section-hdr-label">🔗 Ganti Sumber</span><div class="section-hdr-line"></div></div>
-
-    <div class="sd-card">
-      <div class="sd-top"><span class="sd-ic">📅</span><div class="sd-meta"><div class="sd-name">Orderan Tahunan</div><div class="sd-desc">Sumber Rekap Barang Hilang Retur · ganti tiap ganti tahun</div></div><span class="sd-tag ss">Spreadsheet</span></div>
-      <div class="sd-cur">aktif: <span id="sd-tail-ss_orderan">…</span></div>
-      <div class="sd-row"><input id="sd-in-ss_orderan" type="text" placeholder="tempel link Orderan baru…"><button onclick="saveSumber('ss_orderan','sd-in-ss_orderan')">💾 Simpan</button></div>
-    </div>
-
-    <div class="sd-card">
-      <div class="sd-top"><span class="sd-ic">📦</span><div class="sd-meta"><div class="sd-name">Stok Toko &amp; Gudang</div><div class="sd-desc">Sumber Monitoring Stok &amp; autocomplete produk</div></div><span class="sd-tag ss">Spreadsheet</span></div>
-      <div class="sd-cur">aktif: <span id="sd-tail-ss_stok">…</span></div>
-      <div class="sd-row"><input id="sd-in-ss_stok" type="text" placeholder="tempel link baru…"><button onclick="saveSumber('ss_stok','sd-in-ss_stok')">💾 Simpan</button></div>
-    </div>
-
-    <div class="sd-card">
-      <div class="sd-top"><span class="sd-ic">📅</span><div class="sd-meta"><div class="sd-name">Jadwal Shift</div><div class="sd-desc">Sumber partimer &amp; shift kosong</div></div><span class="sd-tag ss">Spreadsheet</span></div>
-      <div class="sd-cur">aktif: <span id="sd-tail-ss_shift">…</span></div>
-      <div class="sd-row"><input id="sd-in-ss_shift" type="text" placeholder="tempel link baru…"><button onclick="saveSumber('ss_shift','sd-in-ss_shift')">💾 Simpan</button></div>
-    </div>
-
-    <div class="sd-card">
-      <div class="sd-top"><span class="sd-ic">🖼️</span><div class="sd-meta"><div class="sd-name">Folder Foto</div><div class="sd-desc">Tempat simpan foto nota, resi, bukti (Google Drive)</div></div><span class="sd-tag folder">Folder</span></div>
-      <div class="sd-cur">aktif: <span id="sd-tail-folder_foto">…</span></div>
-      <div class="sd-row"><input id="sd-in-folder_foto" type="text" placeholder="tempel link folder Drive baru…"><button onclick="saveSumber('folder_foto','sd-in-folder_foto')">💾 Simpan</button></div>
-    </div>
-
-    <div class="sd-card warn">
-      <div class="sd-top"><span class="sd-ic">🖥️</span><div class="sd-meta"><div class="sd-name">URL Backend (GAS)</div><div class="sd-desc">Alamat Web App tempat semua data ditarik</div></div><span class="sd-tag gas">GAS</span></div>
-      <div class="sd-cur">aktif: <span id="sd-tail-gas">…</span></div>
-      <div class="sd-row"><input id="sd-in-gas" type="text" placeholder="https://script.google.com/macros/s/.../exec"><button onclick="saveSumberGas()">💾 Simpan</button></div>
-      <div class="sd-warn">⚠️ Biasanya <b>tidak diganti</b>. Isi hanya kalau kamu redeploy GAS &amp; dapat URL baru. Salah isi → app putus dari semua data.</div>
-    </div>
-
-    <div class="alert info" style="margin-top:8px;font-size:11px;line-height:1.6">ℹ️ <b>Catatan:</b> spreadsheet <b>Manager Task Guide</b> tidak bisa diganti dari sini — di situ tempat skrip GAS menempel. Empat sumber di atas dibaca lewat ID, jadi aman diganti kapan saja (mis. ganti tahun). Setelah ganti Orderan, data Rekap Hilang Retur otomatis tersegarkan.</div>
-  </div>
-
 </div>
 
 <div class="modal-bg" id="modal"><div class="modal">
@@ -1506,8 +1408,8 @@ const STOK_EMPTY_NS='stok_empty_since:';
 // ════ STATE ════
 let checked={},notes={};
 let scriptUrl=localStorage.getItem('mtg_url')||DEFAULT_URL;
-// Koreksi otomatis kalau localStorage menyimpan URL deployment yang salah/rusak → balik ke yang benar
-if(scriptUrl.indexOf('xFQgBZjQgFE_')>=0 || scriptUrl.indexOf('AKfycbxtr9p6')>=0 || !scriptUrl.startsWith('http')){scriptUrl=DEFAULT_URL;localStorage.setItem('mtg_url',DEFAULT_URL);}
+// Koreksi otomatis kalau localStorage menyimpan URL lama yang rusak
+if(scriptUrl.indexOf('xFQgBZjQgFE_')>=0 || !scriptUrl.startsWith('http')){scriptUrl=DEFAULT_URL;localStorage.setItem('mtg_url',DEFAULT_URL);}
 let selectedEvent=null,selectedStatus=null;
 let stokData={minus:[],red:[],yellow:[],blue:[]},stokFilter='all';
 let stokLoadedOnce=false,_stokAudioCtx=null,_stokRefreshTimer=null;
@@ -1523,6 +1425,9 @@ var LEAVE_GRACE_MS = 3*60*1000;    // harus terbaca di luar selama ini baru dian
 var _outSince = null;              // kapan pertama kali terbaca di luar toko
 var _gpsConfirmed = false;         // true HANYA bila GPS akurat pernah memastikan di dalam toko.
                                    // Masuk lewat router/WiFi = provisional → langsung dikoreksi GPS bila ternyata di luar.
+// ── ANTI-CURANG: menit hanya bertambah selama kehadiran benar-benar dikonfirmasi & app aktif ──
+var _lastPresentTime = 0;          // kapan kehadiran terakhir dikonfirmasi (GPS dalam radius / WiFi toko) & app terlihat
+var PRESENCE_STALE_MS = 6*60*1000; // konfirmasi lebih tua dari ini = dianggap pergi (waktu berikutnya tidak dihitung)
 var _fixBuf = [];                  // buffer fix akurat 25 detik terakhir → haluskan posisi (anti loncat)
 var _lastFixTime = 0;              // kapan fix terakhir masuk (untuk watchdog)
 var _gpsWatchdog = null;           // timer pendeteksi GPS "diam"
@@ -1943,20 +1848,25 @@ const todayValue=TODAY_KEY();
 function formatTodayDisplay(){const d=new Date();return`${DAY_FULL[d.getDay()]}, ${d.getDate()} ${BULAN_NAMES[d.getMonth()]} ${d.getFullYear()}`;}
 function saveLocData(){localStorage.setItem('loc_'+TODAY_KEY(),JSON.stringify({totalMinutes:totalMinutesToday,sessionStart,log:locationLog,lastSave:Date.now()}));}
 function loadLocData(){try{const d=JSON.parse(localStorage.getItem('loc_'+TODAY_KEY())||'null');if(!d)return;
-  // Cek gap sejak terakhir terdeteksi — kalau lebih dari 1 jam, reset total menit
-  // (dianggap app/HP mati terlalu lama, sesi tidak valid dilanjutkan)
-  const GAP_RESET_MS = 60 * 60 * 1000; // 1 jam
-  const gap = d.lastSave ? (Date.now() - d.lastSave) : 0;
-  if(gap > GAP_RESET_MS){
-    totalMinutesToday = 0;
-    locationLog = [];
-  } else {
-    totalMinutesToday = d.totalMinutes || 0;
-    locationLog = d.log || [];
-  }
+  // LANJUTKAN total menit hari ini (jangan reset walau app lama ditutup).
+  // Waktu saat app ketutup TIDAK ikut dihitung karena sessionStart di-null-kan di bawah —
+  // jadi sesi pagi/siang aman terkumpul, tidak hilang saat manager buka app lagi.
+  totalMinutesToday = d.totalMinutes || 0;
+  locationLog = d.log || [];
   // sessionStart dan isAtStore selalu mulai dari nol — deteksi router/GPS yang tentukan
   sessionStart = null; isAtStore = false;
   }catch(e){}}
+// Ambil menit tertinggi dari server utk hari ini (pulihkan bila localStorage hilang / ganti HP).
+// Tidak pernah menurunkan angka — selalu MAX(lokal, server).
+function resumeMgrMinutesFromServer(){
+  if(userRole!=='manager'||!scriptUrl||!scriptUrl.startsWith('http'))return;
+  fetch(scriptUrl+'?type=loc&tanggal='+encodeURIComponent(TODAY_KEY())+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var srv=d&&d.menit?Number(d.menit):0;
+      if(srv>totalMinutesToday){ totalMinutesToday=srv; saveLocData(); updateTimerDisplay(); }
+    }).catch(function(){});
+}
 
 // ════ KUNCI HARIAN — manager hanya bisa kirim 1× per hari ════
 // Setelah dikirim, centangan tetap terlihat & terkunci. Reset otomatis bila:
@@ -2067,11 +1977,13 @@ function startGps(){
   // GPS di dalam ruangan bisa butuh 10-30 detik, router lebih cepat
   cekWifiToko(function(hadir){
     if(hadir && !isAtStore){
-      isAtStore=true; sessionStart=Date.now(); _gpsConfirmed=false; // provisional — nunggu GPS konfirmasi
+      isAtStore=true; sessionStart=Date.now(); _gpsConfirmed=false; _markPresent(); // provisional — nunggu GPS konfirmasi
       locationLog.push({type:'masuk',time:Date.now(),lat:0,lng:0,dist:0,cara:'router'});
       saveLocData(); updateLocBanner('in');
       logActivity('Tiba di toko','via router toko (sebelum GPS, menunggu konfirmasi)');
       pushManagerLoc();
+    } else if(hadir && isAtStore){
+      _markPresent(); // jaringan toko masih terdeteksi → kehadiran terkonfirmasi
     } else if(!hadir){
       updateLocBanner('waiting'); // GPS masih loading
     }
@@ -2133,10 +2045,15 @@ function onLocOk(pos){
   if(accuracy > ACC_MAX){
     // ...kecuali WiFi toko terdeteksi → anggap hadir walau GPS buta
     if(_diWifiToko && !isAtStore){
-      isAtStore=true;sessionStart=Date.now();_gpsConfirmed=false; // provisional
+      isAtStore=true;sessionStart=Date.now();_gpsConfirmed=false;_markPresent(); // provisional
       locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist:dist,cara:'wifi'});
       saveLocData();updateLocBanner('in');logActivity('Tiba di toko','via WiFi toko');pushManagerLoc();
-    } else if(isAtStore){saveLocData();updateLocBanner('in');}
+    } else if(isAtStore){
+      if(_diWifiToko) _markPresent(); // jaringan toko masih ada → kehadiran terkonfirmasi
+      // bila GPS buta DAN tidak ada jaringan toko → kehadiran TIDAK dikonfirmasi:
+      // jangan tandai present, penjaga akan menutup sesi bila terus tak terkonfirmasi (anti-curang).
+      saveLocData();updateLocBanner('in');
+    }
     else updateLocBanner('out');
     var dd=document.getElementById('loc-detail');
     if(dd&&userRole==='manager'){
@@ -2166,13 +2083,13 @@ function onLocOk(pos){
     // GPS mengonfirmasi DI DALAM toko
     _outSince=null;
     if(!isAtStore){
-      isAtStore=true;sessionStart=Date.now();_gpsConfirmed=true;
+      isAtStore=true;sessionStart=Date.now();_gpsConfirmed=true;_markPresent();
       locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});
       saveLocData();updateLocBanner('in');
       showToast('✓ Kamu tiba di Kodachi Shop!','ok');
       logActivity('Tiba di toko','Jarak '+dist+'m (GPS)');pushManagerLoc();
     }else{
-      _gpsConfirmed=true;saveLocData();updateLocBanner('in');
+      _gpsConfirmed=true;_markPresent();saveLocData();updateLocBanner('in');
     }
   }else{
     // GPS bilang DI LUAR toko
@@ -2180,7 +2097,7 @@ function onLocOk(pos){
       if(!_gpsConfirmed){
         // Tadi masuk cuma lewat router/WiFi & belum pernah dikonfirmasi GPS → koreksi: langsung keluar.
         // Sesi router yang ternyata salah TIDAK dihitung sebagai jam kerja.
-        isAtStore=false;_outSince=null;sessionStart=null;
+        isAtStore=false;_finalizeSession();sessionStart=null;
         locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist,cara:'gps-koreksi'});
         saveLocData();updateLocBanner('out');
         logActivity('Keluar toko','GPS koreksi — ternyata '+dist+'m dari toko');pushManagerLoc();
@@ -2188,8 +2105,9 @@ function onLocOk(pos){
         // Pernah benar-benar di dalam (dikonfirmasi GPS) → pakai grace period dulu sebelum keluar
         if(_outSince===null) _outSince=Date.now();
         if(Date.now()-_outSince >= LEAVE_GRACE_MS){
-          isAtStore=false;_outSince=null;
-          if(sessionStart){totalMinutesToday+=(Date.now()-sessionStart)/60000;sessionStart=null;}
+          isAtStore=false;
+          // komit durasi hanya sampai konfirmasi terakhir (bukan termasuk waktu mondar-mandir di luar)
+          _finalizeSession();
           locationLog.push({type:'keluar',time:Date.now(),lat,lng,dist});
           saveLocData();updateLocBanner('out');
           logActivity('Keluar toko','Jarak '+dist+'m');pushManagerLoc();
@@ -2236,13 +2154,9 @@ function onLocErr(err){
 // iOS membunuh watchPosition saat di background — perlu restart
 function resumeGps(){
   if(document.visibilityState!=='visible') return;
-
-  // Hitung menit yang mungkin terlewat saat background (iOS)
-  if(_bgPauseTime && isAtStore && sessionStart){
-    // sessionStart tetap valid, waktu akan otomatis terhitung
-  }
   _bgPauseTime = null;
-
+  // Sesi tidak diasumsikan masih di toko. Begitu GPS/WiFi mengonfirmasi di radius,
+  // onLocOk akan membuka sesi baru yang menyambung total menit hari ini.
   if(!_gpsStarted) return;
   if('geolocation' in navigator){
     // Restart watchPosition karena iOS sering matikan saat background
@@ -2260,6 +2174,16 @@ function resumeGps(){
 function pauseGps(){
   // Catat waktu mulai background (iOS)
   _bgPauseTime = Date.now();
+  // ANTI-CURANG: app ke background = kehadiran tak lagi terkonfirmasi.
+  // Tutup sesi aktif (komit hanya sampai konfirmasi terakhir). Waktu di background TIDAK dihitung.
+  // Saat app dibuka lagi & GPS/WiFi mengonfirmasi di toko, sesi baru otomatis menyambung total.
+  if(isAtStore && sessionStart){
+    _finalizeSession();
+    isAtStore=false;
+    locationLog.push({type:'keluar',time:Date.now(),lat:0,lng:0,dist:0,cara:'background'});
+    saveLocData();
+    pushManagerLoc();
+  }
 }
 
 document.addEventListener('visibilitychange', function(){
@@ -2828,9 +2752,47 @@ function updateMgrMap(d){
   if(raw)raw.innerHTML='<b>'+lat.toFixed(5)+', '+lng.toFixed(5)+'</b> · akurasi \u00b1'+Math.round(acc)+'m · jarak '+(d.dist!=null?d.dist:'?')+'m dari toko';
 }
 function updateLocBanner(s){const i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),d=document.getElementById('loc-detail');if(s==='in'){i.innerHTML=ICO.inStore();i.className='loc-icon active';st.textContent='✓ Di dalam toko';st.className='loc-status in';d.textContent='Kodachi Shop Monjali · GPS aktif';}else if(s==='out'){i.innerHTML=ICO.pin();i.className='loc-icon inactive';st.textContent='✗ Di luar toko';st.className='loc-status out';d.textContent='Jarak: '+(document.getElementById('loc-distance').textContent||'?')+'m dari toko';}else if(s==='waiting'){i.innerHTML=ICO.search();i.className='loc-icon';st.textContent='Mencari sinyal GPS...';st.className='loc-status waiting';d.textContent='Mohon tunggu...';}else if(s==='denied'){i.innerHTML=ICO.denied();i.className='loc-icon inactive';st.textContent='Izin lokasi ditolak';st.className='loc-status out';d.textContent='Buka pengaturan browser → izinkan lokasi';}else{i.innerHTML=ICO.error();i.className='loc-icon inactive';st.textContent='GPS tidak didukung';st.className='loc-status out';d.textContent='Browser tidak mendukung geolocation';}_syncActivateBtn(s);}
-function getCurrentTotalMinutes(){let t=totalMinutesToday;if(isAtStore&&sessionStart)t+=(Date.now()-sessionStart)/60000;return t;}
+// Tandai kehadiran terkonfirmasi SAAT INI (dipanggil hanya bila GPS dalam radius / WiFi toko & app aktif)
+function _markPresent(){ if(document.visibilityState==='visible') _lastPresentTime = Date.now(); }
+// Tutup sesi aktif: komit durasi HANYA sampai konfirmasi kehadiran terakhir (bukan sampai 'sekarang'),
+// sehingga waktu setelah manager pergi / app di background TIDAK ikut terhitung.
+function _finalizeSession(){
+  if(isAtStore && sessionStart){
+    var endRef = _lastPresentTime && _lastPresentTime>sessionStart ? _lastPresentTime : sessionStart;
+    var add=(endRef - sessionStart)/60000;
+    if(add>0) totalMinutesToday += add;
+  }
+  sessionStart=null; _outSince=null; _gpsConfirmed=false;
+}
+// Penjaga: kalau app pindah ke background, ATAU konfirmasi kehadiran sudah basi (>PRESENCE_STALE_MS),
+// paksa "keluar" walau tidak ada event GPS keluar (kasus HP dikantongi/dibawa pergi).
+function _enforcePresence(){
+  if(userRole!=='manager') return;
+  if(!(isAtStore && sessionStart)) return;
+  var staleFor = Date.now() - (_lastPresentTime||0);
+  if(document.visibilityState!=='visible' || staleFor > PRESENCE_STALE_MS){
+    _finalizeSession();
+    isAtStore=false;
+    locationLog.push({type:'keluar',time:Date.now(),lat:0,lng:0,dist:0,cara:'presence-basi'});
+    saveLocData(); updateLocBanner('out');
+    logActivity('Keluar toko','kehadiran tidak terkonfirmasi '+Math.round(staleFor/60000)+' mnt — sesi ditutup (anti-curang)');
+    pushManagerLoc();
+  }
+}
+function getCurrentTotalMinutes(){
+  let t=totalMinutesToday;
+  if(isAtStore && sessionStart){
+    // hanya hitung sampai 'sekarang' bila app TERLIHAT dan konfirmasi terakhir masih SEGAR;
+    // selain itu beku di konfirmasi terakhir → waktu pergi/background tidak menambah jam.
+    var fresh = (document.visibilityState==='visible') && _lastPresentTime && (Date.now()-_lastPresentTime)<=PRESENCE_STALE_MS;
+    var endRef = fresh ? Date.now() : (_lastPresentTime && _lastPresentTime>sessionStart ? _lastPresentTime : sessionStart);
+    var add=(endRef - sessionStart)/60000;
+    if(add>0) t+=add;
+  }
+  return t;
+}
 function fmtDur(m){const h=Math.floor(m/60),n=Math.floor(m%60);return h>0?h+'j '+n+'m':n+'m';}
-function updateTimerDisplay(){const t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60),p=Math.min(100,t/TARGET_MENIT*100);document.getElementById('loc-timer').textContent=h+':'+String(m).padStart(2,'0');document.getElementById('loc-timer').className='loc-timer'+(p>=100?' done':p>=50?' warn':'');const f=document.getElementById('time-bar-fill');f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');document.getElementById('time-bar-left').textContent=t>=60?h+' jam '+m+' menit di toko':Math.floor(t)+' menit di toko';document.getElementById('loc-total-today').textContent=h+'j '+m+'m';updateD01Card();}
+function updateTimerDisplay(){_enforcePresence();const t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60),p=Math.min(100,t/TARGET_MENIT*100);document.getElementById('loc-timer').textContent=h+':'+String(m).padStart(2,'0');document.getElementById('loc-timer').className='loc-timer'+(p>=100?' done':p>=50?' warn':'');const f=document.getElementById('time-bar-fill');f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');document.getElementById('time-bar-left').textContent=t>=60?h+' jam '+m+' menit di toko':Math.floor(t)+' menit di toko';document.getElementById('loc-total-today').textContent=h+'j '+m+'m';updateD01Card();}
 function updateD01Card(){const t=getCurrentTotalMinutes(),p=Math.min(100,t/TARGET_MENIT*100),done=t>=TARGET_MENIT,h=Math.floor(t/60),m=Math.floor(t%60);const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),dv=document.getElementById('d01-dur-val'),pf=document.getElementById('d01-prog-fill'),dot=document.getElementById('d01-caption-dot'),cap=document.getElementById('d01-caption-text');if(!card)return;card.className='d01-card '+(done?'d01-done':t>0?'d01-warn':'');if(t>0){const col=done?'%2316a34a':'%23d97706';chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='"+col+"' stroke='"+col+"' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-size='13' font-weight='700' fill='white'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";}else{chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='none' stroke='%23adb5bd' stroke-width='2'/%3E%3C/svg%3E";}if(t===0){badge.innerHTML='<span class="d01-badge-dot"></span>GPS aktif';badge.className='d01-badge empty';}else if(done){badge.innerHTML='≥ 4 jam ✓';badge.className='d01-badge done';}else{badge.innerHTML='< 4 jam';badge.className='d01-badge warn';}dv.textContent=h+'j '+m+'m';dv.className='d01-dur-val '+(t===0?'muted':done?'green':'orange');pf.style.width=p+'%';pf.style.background=done?'var(--green)':t>0?'var(--orange)':'var(--hint)';if(isAtStore){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}else if(t>0){dot.className='dot orange';cap.textContent=done?'Target tercapai':'Durasi '+fmtDur(t)+' tercatat';}else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}notes['D01']=t>0?'GPS: '+h+'j '+m+'m di toko'+(done?'':' (< target 4j)')+' · '+(isAtStore?'Sedang di toko':'Sudah keluar toko'):'';if(t>0&&!checked['D01']){checked['D01']=true;updateStats();}}
 
 // ════ D01 SWIPE ════
@@ -3203,123 +3165,6 @@ function renderStokList(){
     });
   });
   list.innerHTML=html||'<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Tidak ada item dengan filter ini</div></div>';
-}
-
-// ════ Rekap Barang Hilang Retur (Opsi C: ringkasan setahun + tabel) ════
-function _rhrNum(n){ n=Number(n)||0; return n.toLocaleString('id-ID'); }
-function _rhrPct(v){ if(v===null||v===undefined||v==='')return '—'; var n=Number(v); if(!isFinite(n))return '—'; return (Math.round(n*1000)/10)+'%'; }
-async function loadStokMinus(silent){
-  if(!scriptUrl){ if(!silent)openModal(); return; }
-  var btn=document.getElementById('rhr-refresh'), body=document.getElementById('rhr-body');
-  if(!silent){
-    if(btn){btn.disabled=true;btn.innerHTML='<span class="rhr-spin"></span><span>Memuat</span>';}
-    if(body)body.innerHTML='<div class="rhr-load"><div class="rhr-bars"><i></i><i></i><i></i><i></i><i></i></div><div class="rhr-load-txt">Menarik data…</div></div>';
-  }
-  try{
-    var r=await fetch(scriptUrl+'?type=stokminus'), d=await r.json();
-    if(d&&(d.error||d.status==='error')) throw new Error(d.error||d.message||'error');
-    var bulan=(d&&d.bulan)||[], tot=(d&&d.total)||{retur:0,batal:0,hilang:0};
-    var te=document.getElementById('rhr-tot-retur'); if(te)te.textContent=_rhrNum(tot.retur);
-    var tb=document.getElementById('rhr-tot-batal'); if(tb)tb.textContent=_rhrNum(tot.batal);
-    var th=document.getElementById('rhr-tot-hilang'); if(th)th.textContent=_rhrNum(tot.hilang);
-    if(body){
-      if(!bulan.length){ body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--hint)">Belum ada data bulan</div></div>'; }
-      else{
-        var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
-          +'<thead><tr style="color:var(--muted);text-align:right">'
-          +'<th style="text-align:left;font-weight:700;padding:6px 4px">Bulan</th>'
-          +'<th style="font-weight:700;padding:6px 4px">Retur</th>'
-          +'<th style="font-weight:700;padding:6px 4px">Batal</th>'
-          +'<th style="font-weight:700;padding:6px 4px">Hilang</th>'
-          +'<th style="font-weight:700;padding:6px 4px">%Rtr</th>'
-          +'<th style="font-weight:700;padding:6px 4px">%Btl</th>'
-          +'</tr></thead><tbody style="font-family:var(--mono)">';
-        bulan.forEach(function(b){
-          function cell(v){ var n=Number(v)||0; var col=(n<0)?'var(--red)':'var(--hint)'; return '<td style="text-align:right;padding:6px 4px;color:'+col+'">'+_rhrNum(n)+'</td>'; }
-          h+='<tr style="border-top:1px solid var(--border)">'
-            +'<td style="text-align:left;padding:6px 4px;font-family:var(--sans);font-weight:600;color:var(--text)">'+(b.nama||b.kode||'')+'</td>'
-            +cell(b.retur)+cell(b.batal)+cell(b.hilang)
-            +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctRetur)+'</td>'
-            +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctBatal)+'</td>'
-            +'</tr>';
-        });
-        h+='</tbody></table></div>';
-        body.innerHTML=h;
-      }
-    }
-    window._rhrLoadedOnce=true;
-  }catch(e){
-    if(!silent&&body)body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--muted)">Gagal memuat<br><small>'+String(e.message)+'</small></div></div>';
-  }
-  if(btn){btn.disabled=false;btn.innerHTML='<span aria-hidden="true">🔄</span><span>Muat</span>';}
-}
-
-// ════ Sumber Data (admin) — ganti spreadsheet/folder/GAS tanpa edit kode ════
-function _sdExtractId(v){
-  v=String(v||'').trim();
-  var m=v.match(/\/d\/([a-zA-Z0-9_-]+)/)||v.match(/\/folders\/([a-zA-Z0-9_-]+)/)||v.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if(m)return m[1];
-  if(/^[a-zA-Z0-9_-]{20,}$/.test(v))return v;
-  return '';
-}
-function _sdTail(s){ s=String(s||''); return s.length>14 ? '…'+s.slice(-14) : (s||'—'); }
-async function loadSumberData(){
-  var g=document.getElementById('sd-tail-gas'); if(g)g.textContent=_sdTail(scriptUrl);
-  if(!scriptUrl)return;
-  try{
-    var r=await fetch(scriptUrl+'?type=sumberdata'), d=await r.json();
-    if(d&&d.tails){
-      Object.keys(d.tails).forEach(function(k){
-        var el=document.getElementById('sd-tail-'+k); if(el)el.textContent='…'+d.tails[k];
-      });
-    }
-  }catch(e){}
-}
-function saveSumber(key,inputId){
-  var inp=document.getElementById(inputId); if(!inp)return;
-  var raw=inp.value.trim(); if(!raw){showToast('Tempel link dulu','err');return;}
-  var id=_sdExtractId(raw);
-  if(!id){showToast('Link tidak dikenali — pastikan link Google Sheet/Folder','err');return;}
-  appConfigSet(key,id,function(){});
-  try{ _appCfg[key]=id; }catch(e){}
-  inp.value='';
-  var el=document.getElementById('sd-tail-'+key); if(el)el.textContent='…'+id.slice(-14);
-  showToast('✓ Tersimpan','ok');
-  try{ logActivity('Ganti sumber data', key+' → …'+id.slice(-14)); }catch(e){}
-  if(key==='ss_orderan'){ window._rhrLoadedOnce=false; setTimeout(function(){try{loadStokMinus(true);}catch(e){}},1200); }
-}
-function saveSumberGas(){
-  var inp=document.getElementById('sd-in-gas'); if(!inp)return;
-  var v=inp.value.trim();
-  if(!v.startsWith('http')){showToast('URL tidak valid','err');return;}
-  if(!confirm('Ganti URL Backend GAS?\n\nSalah isi bisa bikin app putus dari semua data. Lanjut?'))return;
-  scriptUrl=v; localStorage.setItem('mtg_url',v); inp.value='';
-  var el=document.getElementById('sd-tail-gas'); if(el)el.textContent=_sdTail(v);
-  showToast('✓ URL backend tersimpan','ok');
-  try{ logActivity('Ganti URL Backend GAS', _sdTail(v)); }catch(e){}
-}
-async function backupMTGNow(){
-  if(!scriptUrl){openModal();return;}
-  if(!confirm('Buat backup data MTG ke Drive sekarang?\n\nIsinya nilai statis (tanpa rumus). Proses bisa beberapa detik.'))return;
-  var btn=document.getElementById('sd-backup-btn'), res=document.getElementById('sd-backup-result');
-  if(btn){btn.disabled=true;btn.innerHTML='<span class="rhr-spin"></span> Membuat backup…';}
-  if(res){res.style.display='none';}
-  try{
-    var r=await fetch(scriptUrl+'?type=backup'), d=await r.json();
-    if(!d||!d.ok) throw new Error((d&&(d.message||d.error))||'gagal');
-    if(res){
-      res.style.display='block'; res.style.color='var(--green)';
-      res.innerHTML='✓ Backup dibuat: <b>'+d.name+'</b><br>'
-        +'<a href="'+d.url+'" target="_blank" style="color:var(--accent);font-weight:700">Buka file backup →</a> &nbsp;·&nbsp; '
-        +'<a href="'+d.folderUrl+'" target="_blank" style="color:var(--accent)">folder ‘'+d.folder+'’</a>';
-    }
-    showToast('✓ Backup selesai','ok');
-    try{ logActivity('Backup MTG', d.name); }catch(e){}
-  }catch(e){
-    if(res){res.style.display='block';res.style.color='var(--red)';res.textContent='Gagal: '+String(e.message);}
-    showToast('Gagal backup','err');
-  }
-  if(btn){btn.disabled=false;btn.innerHTML='💾 Backup sekarang';}
 }
 
 // Set badge: tampil kalau n>0, sembunyi kalau 0
@@ -3911,7 +3756,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   var kt=document.getElementById('km-tgl');if(kt)kt.value=todayValue;
   // Load stok & langsung trigger alarm kalau ada merah
   loadStok(true);
-  setTimeout(function(){ try{ loadStokMinus(true); }catch(e){} }, 1500); // prefetch rekap hilang/retur (diam2) → tab buka langsung instan
   kmLoad();
   loadCashData();
   _stokRefreshTimer=setInterval(()=>loadStok(true),STOK_AUTO_REFRESH_MS);
@@ -3928,15 +3772,14 @@ function switchTab(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='home'){loadHomeKiriman();loadHomeLog();loadHomeHarian();loadHomeJamKerja();loadHomeEvent();loadHomeRekap();loadHomeStreak();}
-  if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();if(!window._rhrLoadedOnce){window._rhrLoadedOnce=true;loadStokMinus();}}
+  if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();}
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
   if(name==='cash'){if(cashData.length===0)loadCashData();annotateCashForms();}
   if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
   if(name==='laporan'&&userRole==='admin')loadLog();
-  if(name==='sumberdata')loadSumberData();
   if(name==='harian'){fixD01SwipeHeight();if(scriptUrl)loadStreakHarian();annotateD04Card();}
   if(name==='event'){annotateEventCards();}
-  var tabNama={home:'Home',harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link',sumberdata:'Sumber Data'};
+  var tabNama={home:'Home',harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link'};
   logActivity('Buka tab',tabNama[name]||name);
 }
 function switchGudangView(v,btn){
@@ -5684,6 +5527,7 @@ function applyRole(){
     if(badge){badge.style.display='';badge.className='role-badge manager';badge.textContent='👔 MANAGER';}
     if(lo)lo.style.display='';
     loadLocData();updateTimerDisplay();startGps();
+    resumeMgrMinutesFromServer();
     cekWifiToko();setInterval(cekWifiToko,60000);
     _mgrPushTimer=setInterval(pushManagerLoc,60000);
     startAutoPush();
@@ -6972,20 +6816,13 @@ if ('serviceWorker' in navigator) {
           .catch(function() {}); // permission mungkin ditolak — tidak masalah
       }
 
-      // Terima pesan dari SW → trigger cek router + push lokasi
+      // Terima pesan dari SW → push status terakhir saja (TIDAK menghitung menit di background)
       navigator.serviceWorker.addEventListener('message', function(ev) {
         if (ev.data && ev.data.type === 'bg-ping' && userRole === 'manager') {
-          // App masih hidup di background (iOS ~30 dtk window) → cek router & push
-          cekWifiToko(function(hadir) {
-            if (hadir && !isAtStore) {
-              isAtStore = true; sessionStart = Date.now();
-              saveLocData(); updateLocBanner('in'); pushManagerLoc(true);
-            } else if (!hadir && isAtStore) {
-              // Jangan langsung matikan — biarkan grace period GPS yang putuskan
-            } else {
-              pushManagerLoc(true);
-            }
-          });
+          // ANTI-CURANG: saat app di background kehadiran TIDAK bisa dikonfirmasi.
+          // Jangan buka/lanjutkan sesi di sini — cukup kirim status terakhir agar admin tetap update.
+          // Sesi baru hanya dibuka saat app dibuka & GPS/WiFi mengonfirmasi di toko (onLocOk).
+          pushManagerLoc(true);
         }
       });
 
@@ -7016,10 +6853,12 @@ setInterval(function() {
   if (document.visibilityState !== 'visible') return;
   cekWifiToko(function(hadir) {
     if (hadir && !isAtStore) {
-      isAtStore = true; sessionStart = Date.now();
+      isAtStore = true; sessionStart = Date.now(); _markPresent();
       saveLocData(); updateLocBanner('in');
       logActivity('Tiba di toko', 'via router (keepalive)');
       pushManagerLoc(true);
+    } else if (hadir && isAtStore) {
+      _markPresent(); // jaringan toko masih ada & app terlihat → kehadiran terkonfirmasi
     }
   });
 }, 30 * 1000);
