@@ -85,6 +85,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .km-act-btn.no{border-color:var(--red);color:var(--red)}.km-act-btn.no:active{background:rgba(220,38,38,.1)}
 /* admin & manager dua-duanya boleh update status kiriman; admin tetap bisa lihat form tambah */
 body.role-manager #km-add-box{display:none}
+body.role-manager #pg-add-box{display:none!important}
 .admin-only{display:none}
 body.role-admin .admin-only{display:inline-flex}
 .adm-only-block{display:none}
@@ -679,6 +680,8 @@ body.role-admin #admin-mgrlog{display:none!important}
       <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px">
         <button id="adm-mapshare-toggle" onclick="admToggleMapShare()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">📍 Aktifkan tombol Bagikan Lokasi (Manager)</button>
         <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">🙈 Sembunyikan tab Kepegawaian (Manager)</button>
+        <button id="adm-mgrself-toggle" onclick="admToggleMgrSelf()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">👁 Tampilkan data Rifyh ke Manager (evaluasi)</button>
+        <div style="font-size:10px;color:var(--hint);line-height:1.4">💡 <b>Tampilkan data Rifyh</b>: manager bisa lihat catatan dirinya sendiri (read-only) untuk evaluasi. Default tersembunyi.</div>
       </div>
     </div>
 
@@ -1915,7 +1918,15 @@ function applyAppConfig(){
   }
   var aShare=document.getElementById('adm-mapshare-toggle');
   if(aShare) aShare.textContent = shareOn ? '🙈 Sembunyikan tombol Bagikan Lokasi (Manager)' : '📍 Aktifkan tombol Bagikan Lokasi (Manager)';
+  // 4) Tampilkan data Rifyh (manager) ke akun Manager — read-only, untuk evaluasi
+  var showSelf = String(_appCfg.showMgrSelf||'')==='1';
+  var aSelf=document.getElementById('adm-mgrself-toggle');
+  if(aSelf) aSelf.textContent = showSelf ? '🙈 Sembunyikan data Rifyh dari Manager' : '👁 Tampilkan data Rifyh ke Manager (evaluasi)';
+  // bila status berubah utk manager & tab sudah pernah dibuka, muat ulang daftar nama
+  if(userRole==='manager' && _pgLoadedOnce && _appCfgMgrSelfPrev!==showSelf){ loadPartimer(); }
+  _appCfgMgrSelfPrev = showSelf;
 }
+var _appCfgMgrSelfPrev = null;
 function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 
 // ════ GPS — iOS-optimized ════
@@ -4601,6 +4612,9 @@ function loadPartimer(){
       var NAMA_TETAP_ADMIN=['Rifyh'];
       if(userRole==='admin'){
         NAMA_TETAP_ADMIN.forEach(function(nm){if(pgNames.indexOf(nm)<0)pgNames.unshift(nm);});
+      }else if(String(_appCfg.showMgrSelf||'')==='1'){
+        // Admin mengizinkan manager melihat catatan dirinya (Rifyh) untuk evaluasi — read-only
+        NAMA_TETAP_ADMIN.forEach(function(nm){if(pgNames.indexOf(nm)<0)pgNames.unshift(nm);});
       }else{
         // Sembunyikan nama khusus admin dari manager (cocokkan tanpa peduli huruf besar/kecil)
         var _hide=NAMA_TETAP_ADMIN.map(function(n){return String(n).toLowerCase();});
@@ -4724,7 +4738,8 @@ function pgRenderList(){
     var foto=adaFoto?((done&&pgArsip)?'foto diarsipkan':(done?'foto disembunyikan (sudah dicek)':('🖼 '+(fotoList.length+ftList.length)+' foto'))):'tanpa foto';
     var olehTxt=r.oleh?(' · ✍ '+escH(pgOlehLabel(r.oleh))):'';
     var cekBlok;
-    if(!adaFoto){ cekBlok=''; }
+    if(userRole!=='admin'){ cekBlok=''; }
+    else if(!adaFoto){ cekBlok=''; }
     else if(done&&pgArsip){
       cekBlok='<div style="margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()"><span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>'+cekArsipBtnHTML('pelanggaran',r.row)+'</div>';
     } else {
@@ -4777,16 +4792,18 @@ function pgOpenDetail(row){
     });
   }
   html+='<div class="km-d-actions">';
-  if(cls==='masalah'){
-    // wajib upload foto bukti tindakan dulu
-    html+='<div class="km-field" style="width:100%"><label class="field-label">Foto bukti tindakan (wajib, boleh lebih dari 1)</label>'
-      +'<input type="file" accept="image/*" multiple id="pg-tindak-foto" style="font-size:12px" onchange="pgTindakFotoChange()"><div style="font-size:10px;color:var(--hint);margin-top:3px">💡 di PC/Mac bisa salin gambar lalu tekan Ctrl/Cmd+V untuk menempel</div>'
-      +'<div class="km-foto-prev" id="pg-tindak-prev"></div></div>';
-    html+='<button class="ok" id="pg-tindak-btn" disabled style="opacity:.5" onclick="pgMarkDone('+r.row+',\''+escH(r.nama)+'\')">✓ Tandai sudah ditindak</button>';
-  } else {
-    html+='<button class="reset" onclick="pgMark('+r.row+',\'Belum ditindak\')">↩ Kembalikan ke belum</button>';
+  if(userRole==='admin'){
+    if(cls==='masalah'){
+      // wajib upload foto bukti tindakan dulu
+      html+='<div class="km-field" style="width:100%"><label class="field-label">Foto bukti tindakan (wajib, boleh lebih dari 1)</label>'
+        +'<input type="file" accept="image/*" multiple id="pg-tindak-foto" style="font-size:12px" onchange="pgTindakFotoChange()"><div style="font-size:10px;color:var(--hint);margin-top:3px">💡 di PC/Mac bisa salin gambar lalu tekan Ctrl/Cmd+V untuk menempel</div>'
+        +'<div class="km-foto-prev" id="pg-tindak-prev"></div></div>';
+      html+='<button class="ok" id="pg-tindak-btn" disabled style="opacity:.5" onclick="pgMarkDone('+r.row+',\''+escH(r.nama)+'\')">✓ Tandai sudah ditindak</button>';
+    } else {
+      html+='<button class="reset" onclick="pgMark('+r.row+',\'Belum ditindak\')">↩ Kembalikan ke belum</button>';
+    }
+    html+='<button class="del" onclick="pgDelete('+r.row+')">🗑 Hapus catatan</button>';
   }
-  if(userRole==='admin')html+='<button class="del" onclick="pgDelete('+r.row+')">🗑 Hapus catatan</button>';
   html+='</div>';
   document.getElementById('pg-d-body').innerHTML=html;
   document.getElementById('pg-detail-bg').classList.add('open');
@@ -5594,6 +5611,17 @@ function admToggleKepegawaian(){
   applyAppConfig();
   showToast(next==='1'?'🙈 Tab Kepegawaian disembunyikan untuk Manager':'👁 Tab Kepegawaian ditampilkan untuk Manager','ok');
   logActivity('Toggle tab Kepegawaian Manager',next==='1'?'hide':'show');
+}
+// Admin: tampilkan/sembunyikan data Rifyh (manager) ke akun Manager — read-only, untuk evaluasi
+function admToggleMgrSelf(){
+  if(userRole!=='admin')return;
+  var cur=String(_appCfg.showMgrSelf||'')==='1';
+  var next=cur?'0':'1';
+  appConfigSet('showMgrSelf',next,function(){});
+  _appCfg.showMgrSelf=next;
+  applyAppConfig();
+  showToast(next==='1'?'👁 Data Rifyh kini terlihat oleh Manager (read-only)':'🙈 Data Rifyh disembunyikan dari Manager','ok');
+  logActivity('Toggle data Rifyh ke Manager',next==='1'?'show':'hide');
 }
 // Admin: aktifkan/sembunyikan tombol Bagikan Lokasi (Google Maps) di akun Manager
 function admToggleMapShare(){
