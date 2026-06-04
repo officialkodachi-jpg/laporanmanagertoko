@@ -681,7 +681,7 @@ body.role-admin #admin-mgrlog{display:none!important}
         <button id="adm-mapshare-toggle" onclick="admToggleMapShare()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">📍 Aktifkan tombol Bagikan Lokasi (Manager)</button>
         <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">🙈 Sembunyikan tab Kepegawaian (Manager)</button>
         <button id="adm-mgrself-toggle" onclick="admToggleMgrSelf()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">👁 Tampilkan data Rifyh ke Manager (evaluasi)</button>
-        <div style="font-size:10px;color:var(--hint);line-height:1.4">💡 <b>Tampilkan data Rifyh</b>: manager bisa lihat catatan dirinya sendiri (read-only) untuk evaluasi. Default tersembunyi.</div>
+        <div style="font-size:10px;color:var(--hint);line-height:1.5">💡 <b>Tampilkan data Rifyh</b>: manager bisa lihat catatan dirinya (read-only) untuk evaluasi.<br>• Tab tampil + Rifyh on → manager lihat semua partimer <b>dan</b> Rifyh.<br>• Tab disembunyikan + Rifyh on → tab tetap muncul tapi isinya <b>khusus Rifyh saja</b> (partimer lain disembunyikan). Cocok untuk sesi evaluasi.</div>
       </div>
     </div>
 
@@ -1893,9 +1893,12 @@ function appConfigSet(key,val,cb){
 function applyAppConfig(){
   // 1) Hide/Unhide tab Kepegawaian di akun MANAGER
   var hideKep = String(_appCfg.hideKepegawaian||'')==='1';
+  var showSelfTab = String(_appCfg.showMgrSelf||'')==='1';
   var kepBtn=document.querySelector(".tab[onclick*=\"switchTab('pegawai'\"]");
   if(kepBtn){
-    if(userRole==='manager' && hideKep){ kepBtn.style.display='none'; }
+    // tab disembunyikan dari manager HANYA bila hide aktif DAN data Rifyh tidak ditampilkan.
+    // Bila admin menampilkan data Rifyh, tab tetap muncul (isinya khusus Rifyh — lihat loadPartimer).
+    if(userRole==='manager' && hideKep && !showSelfTab){ kepBtn.style.display='none'; }
     else { kepBtn.style.display=''; }
   }
   // refleksikan status tombol admin (kalau ada)
@@ -1923,8 +1926,9 @@ function applyAppConfig(){
   var aSelf=document.getElementById('adm-mgrself-toggle');
   if(aSelf) aSelf.textContent = showSelf ? '🙈 Sembunyikan data Rifyh dari Manager' : '👁 Tampilkan data Rifyh ke Manager (evaluasi)';
   // bila status berubah utk manager & tab sudah pernah dibuka, muat ulang daftar nama
-  if(userRole==='manager' && _pgLoadedOnce && _appCfgMgrSelfPrev!==showSelf){ loadPartimer(); }
-  _appCfgMgrSelfPrev = showSelf;
+  var cfgSig = (hideKep?'1':'0')+'|'+(showSelf?'1':'0');
+  if(userRole==='manager' && _pgLoadedOnce && _appCfgMgrSelfPrev!==cfgSig){ loadPartimer(); }
+  _appCfgMgrSelfPrev = cfgSig;
 }
 var _appCfgMgrSelfPrev = null;
 function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
@@ -4612,13 +4616,20 @@ function loadPartimer(){
       var NAMA_TETAP_ADMIN=['Rifyh'];
       if(userRole==='admin'){
         NAMA_TETAP_ADMIN.forEach(function(nm){if(pgNames.indexOf(nm)<0)pgNames.unshift(nm);});
-      }else if(String(_appCfg.showMgrSelf||'')==='1'){
-        // Admin mengizinkan manager melihat catatan dirinya (Rifyh) untuk evaluasi — read-only
-        NAMA_TETAP_ADMIN.forEach(function(nm){if(pgNames.indexOf(nm)<0)pgNames.unshift(nm);});
       }else{
-        // Sembunyikan nama khusus admin dari manager (cocokkan tanpa peduli huruf besar/kecil)
-        var _hide=NAMA_TETAP_ADMIN.map(function(n){return String(n).toLowerCase();});
-        pgNames=pgNames.filter(function(n){return _hide.indexOf(String(n).toLowerCase())<0;});
+        var _showSelf=String(_appCfg.showMgrSelf||'')==='1';
+        var _hideKep=String(_appCfg.hideKepegawaian||'')==='1';
+        var _tetapLow=NAMA_TETAP_ADMIN.map(function(n){return String(n).toLowerCase();});
+        if(_showSelf && _hideKep){
+          // MODE EVALUASI: tab umum disembunyikan, manager hanya boleh lihat catatan dirinya (Rifyh)
+          pgNames=NAMA_TETAP_ADMIN.slice();
+        }else if(_showSelf){
+          // tab tampil penuh + tambahkan Rifyh (manager lihat semua partimer & dirinya)
+          NAMA_TETAP_ADMIN.forEach(function(nm){if(pgNames.indexOf(nm)<0)pgNames.unshift(nm);});
+        }else{
+          // default: sembunyikan Rifyh dari manager
+          pgNames=pgNames.filter(function(n){return _tetapLow.indexOf(String(n).toLowerCase())<0;});
+        }
       }
       _pgLoadedOnce=true;pgRenderTabs();pgUpdateMainBadge();})
     .catch(function(){row.innerHTML='<div class="empty"><div class="empty-text">Gagal memuat nama partimer</div></div>';});
