@@ -534,6 +534,43 @@ body.role-admin .task-item .d04-cek-strip .cek-arsip-btn{cursor:pointer}
 /* Admin: sembunyikan notif kiriman & mgrlog di atas tabs — sudah ada di tab Home */
 body.role-admin #notif-stack,
 body.role-admin #admin-mgrlog{display:none!important}
+/* ── Rekap Barang Hilang Retur (stok minus dari Orderan Tahunan) ── */
+#rhr-section{--rhr:var(--red);--rhr-soft:rgba(220,38,38,.08);--rhr-line:rgba(220,38,38,.22)}
+#rhr-head{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--rhr);border-radius:var(--r);padding:11px 14px;margin-bottom:12px;box-shadow:0 6px 16px rgba(220,38,38,.28)}
+#rhr-head .rhr-title{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:800;color:#fff;letter-spacing:.01em}
+#rhr-head .rhr-ic{width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+#rhr-refresh{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 13px;font-family:var(--sans);font-size:11px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;gap:5px}
+#rhr-refresh:active{background:rgba(255,255,255,.3)}
+#rhr-refresh:disabled{opacity:.7}
+.rhr-stat{background:var(--rhr-soft);border:1px solid var(--rhr-line);border-radius:var(--r);padding:12px 6px;text-align:center}
+.rhr-stat .rhr-v{font-size:21px;font-weight:800;color:var(--rhr);font-family:var(--mono)}
+.rhr-stat .rhr-l{font-size:10px;color:var(--rhr);opacity:.85;margin-top:3px;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.rhr-load{display:flex;flex-direction:column;align-items:center;gap:13px;padding:28px 0}
+.rhr-bars{display:flex;align-items:flex-end;gap:5px;height:36px}
+.rhr-bars i{display:block;width:7px;height:8px;border-radius:4px;background:var(--rhr);animation:rhrbar 1s ease-in-out infinite}
+.rhr-bars i:nth-child(2){animation-delay:.12s}.rhr-bars i:nth-child(3){animation-delay:.24s}.rhr-bars i:nth-child(4){animation-delay:.36s}.rhr-bars i:nth-child(5){animation-delay:.48s}
+@keyframes rhrbar{0%,100%{height:8px;opacity:.4}50%{height:36px;opacity:1}}
+.rhr-load-txt{font-size:12px;color:var(--rhr);font-weight:700;letter-spacing:.02em}
+.rhr-spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
+/* ── Sumber Data (tab admin) — ganti spreadsheet/GAS tanpa edit kode ── */
+.sd-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:11px}
+.sd-card.warn{border-color:rgba(217,119,6,.4)}
+.sd-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px}
+.sd-ic{font-size:20px;line-height:1;flex-shrink:0}
+.sd-meta{flex:1;min-width:0}
+.sd-name{font-size:14px;font-weight:800;color:var(--text)}
+.sd-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.sd-tag{font-size:9px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:6px;text-transform:uppercase;flex-shrink:0;white-space:nowrap}
+.sd-tag.ss{background:rgba(37,99,235,.12);color:var(--blue)}
+.sd-tag.gas{background:rgba(217,119,6,.14);color:var(--orange)}
+.sd-tag.folder{background:rgba(22,163,74,.12);color:var(--green)}
+.sd-cur{font-size:11px;color:var(--hint);font-family:var(--mono);margin-bottom:8px;word-break:break-all}
+.sd-row{display:flex;gap:7px}
+.sd-row input{flex:1;min-width:0;font-family:var(--sans);font-size:12px;padding:9px 11px;border:1px solid var(--border2);border-radius:9px;background:var(--bg);color:var(--text)}
+.sd-row button{white-space:nowrap;background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 13px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
+.sd-row button:active{opacity:.85}
+.sd-warn{display:flex;align-items:flex-start;gap:6px;background:rgba(217,119,6,.1);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--orange);line-height:1.45;margin-top:9px}
+.sd-hint{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:var(--hint);line-height:1.45;margin-top:8px}
 </style>
 </head>
 <body>
@@ -669,6 +706,7 @@ body.role-admin #admin-mgrlog{display:none!important}
       <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
       <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
       <button class="tab" onclick="switchTab('link',this)">🔗 Link</button>
+      <button class="tab admin-only" id="tab-sumberdata" onclick="switchTab('sumberdata',this)">🗄️ Sumber Data</button>
     </div>
     <button class="tabs-scroll-btn tabs-scroll-btn-right" id="tabs-arrow-right" onclick="tabsScroll(1)">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--accent)" fill-opacity=".85"/><path d="M8 5.5L12.5 10L8 14.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -940,6 +978,21 @@ body.role-admin #admin-mgrlog{display:none!important}
       </div>
       <div id="stok-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Tekan "Perbarui Data"</div></div></div>
       <a class="stok-sheet-link" id="stok-sheet-link" href="#" target="_blank">📊 Buka Google Sheet Stok Toko →</a>
+
+      <!-- ══ Rekap Barang Hilang Retur (dari SS Orderan Tahunan) ══ -->
+      <div id="rhr-section" style="margin-top:24px;border-top:1px solid var(--border);padding-top:18px">
+        <div id="rhr-head">
+          <div class="rhr-title"><span class="rhr-ic" aria-hidden="true">📉</span>Rekap Barang Hilang Retur</div>
+          <button id="rhr-refresh" onclick="loadStokMinus()"><span aria-hidden="true">🔄</span><span>Muat</span></button>
+        </div>
+        <div class="alert info" style="margin-bottom:12px;font-size:11px">Unit Retur / Batal / Hilang per bulan (tahun berjalan), ditarik dari Spreadsheet Orderan Tahunan. Data keuangan &amp; pembeli tidak ditarik ke aplikasi.</div>
+        <div id="rhr-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+          <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-retur">–</div><div class="rhr-l">↩ Retur ’26</div></div>
+          <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-batal">–</div><div class="rhr-l">✕ Batal ’26</div></div>
+          <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-hilang">–</div><div class="rhr-l">↘ Hilang ’26</div></div>
+        </div>
+        <div id="rhr-body"><div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--hint)">Tekan “Muat” untuk menarik data</div></div></div>
+      </div>
     </div>
 
     <!-- Gudang IN/OUT -->
@@ -1336,6 +1389,46 @@ body.role-admin #admin-mgrlog{display:none!important}
 
     <div class="section-hdr"><span class="section-hdr-label">👟 Display</span><div class="section-hdr-line"></div></div>
     <a class="link-row" href="https://docs.google.com/spreadsheets/d/1aFyLfd0R1M7wasdbjB2sF7ap01EiCWosltFHI-wGjds/edit?gid=0#gid=0" target="_blank"><span class="link-ic">👟</span><span class="link-tx"><b>Monitoring Display Sepatu</b><small>Cek display & rak sepatu</small></span><span class="link-ar">→</span></a>
+  </div>
+
+  <!-- ══ SUMBER DATA (admin) — ganti spreadsheet/GAS tanpa edit kode ══ -->
+  <div class="panel" id="panel-sumberdata">
+    <div class="alert info" style="margin-bottom:14px">🗄️ <b>Sumber Data</b> — ganti link/ID spreadsheet di sini tanpa ngedit kode. Tempel link Google Sheet penuh, sistem ambil ID-nya otomatis, lalu <b>Simpan</b>. Berlaku ke semua perangkat.</div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">📅</span><div class="sd-meta"><div class="sd-name">Orderan Tahunan</div><div class="sd-desc">Sumber Rekap Barang Hilang Retur · ganti tiap ganti tahun</div></div><span class="sd-tag ss">Spreadsheet</span></div>
+      <div class="sd-cur">aktif: <span id="sd-tail-ss_orderan">…</span></div>
+      <div class="sd-row"><input id="sd-in-ss_orderan" type="text" placeholder="tempel link Orderan tahun baru…"><button onclick="saveSumber('ss_orderan','sd-in-ss_orderan')">💾 Simpan</button></div>
+      <div class="sd-hint">ℹ️ <span>Tiap ganti tahun: buka spreadsheet Orderan tahun baru → salin URL dari address bar → tempel di sini → Simpan. Rekap Hilang/Retur langsung tersegarkan.</span></div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">📦</span><div class="sd-meta"><div class="sd-name">Stok Toko &amp; Gudang</div><div class="sd-desc">Sumber Monitoring Stok &amp; autocomplete produk</div></div><span class="sd-tag ss">Spreadsheet</span></div>
+      <div class="sd-cur">aktif: <span id="sd-tail-ss_stok">…</span></div>
+      <div class="sd-row"><input id="sd-in-ss_stok" type="text" placeholder="tempel link baru…"><button onclick="saveSumber('ss_stok','sd-in-ss_stok')">💾 Simpan</button></div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">📅</span><div class="sd-meta"><div class="sd-name">Jadwal Shift</div><div class="sd-desc">Sumber partimer &amp; shift kosong</div></div><span class="sd-tag ss">Spreadsheet</span></div>
+      <div class="sd-cur">aktif: <span id="sd-tail-ss_shift">…</span></div>
+      <div class="sd-row"><input id="sd-in-ss_shift" type="text" placeholder="tempel link baru…"><button onclick="saveSumber('ss_shift','sd-in-ss_shift')">💾 Simpan</button></div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">🖼️</span><div class="sd-meta"><div class="sd-name">Folder Foto</div><div class="sd-desc">Tempat simpan foto nota, resi, bukti (Google Drive)</div></div><span class="sd-tag folder">Folder</span></div>
+      <div class="sd-cur">aktif: <span id="sd-tail-folder_foto">…</span></div>
+      <div class="sd-row"><input id="sd-in-folder_foto" type="text" placeholder="tempel link folder Drive baru…"><button onclick="saveSumber('folder_foto','sd-in-folder_foto')">💾 Simpan</button></div>
+    </div>
+
+    <div class="sd-card warn">
+      <div class="sd-top"><span class="sd-ic">🖥️</span><div class="sd-meta"><div class="sd-name">URL Backend (GAS)</div><div class="sd-desc">Alamat Web App tempat semua data ditarik</div></div><span class="sd-tag gas">GAS</span></div>
+      <div class="sd-cur">aktif: <span id="sd-tail-gas">…</span></div>
+      <div class="sd-row"><input id="sd-in-gas" type="text" placeholder="https://script.google.com/macros/s/.../exec"><button onclick="saveSumberGas()">💾 Simpan</button></div>
+      <div class="sd-hint">ℹ️ <span>Lupa link GAS yang mana? Buka Apps Script → <b>Deploy → Manage deployments</b> → salin URL Web App yang berakhiran <b>/exec</b>.</span></div>
+      <div class="sd-warn">⚠️ Biasanya <b>tidak diganti</b>. Isi hanya kalau kamu redeploy GAS &amp; dapat URL baru. Salah isi → app putus dari semua data.</div>
+    </div>
+
+    <div class="alert info" style="margin-top:8px;font-size:11px;line-height:1.6">ℹ️ <b>Catatan:</b> empat sumber di atas dibaca lewat ID, jadi aman diganti kapan saja (mis. ganti tahun) tanpa perlu redeploy GAS. Hanya <b>URL Backend (GAS)</b> yang perlu hati-hati.</div>
   </div>
 
 </div>
@@ -1914,6 +2007,7 @@ function appConfigSet(key,val,cb){
   var url=scriptUrl; if(!url||!url.startsWith('http'))return;
   _appCfg[key]=val; // optimistik
   _appCfgRecent[key]={val:val,ts:Date.now()}; // jaga dari overwrite sinkron sementara
+  try{ localStorage.setItem('mtg_cfg_'+key, val==null?'':String(val)); }catch(e){} // cadangan lokal: urutan/denyut tetap stabil walau server lambat
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'config_set',key:key,value:val})})
     .then(function(){ if(cb)cb(); })
     .catch(function(){ showToast('Gagal simpan setelan ke server','err'); });
@@ -2448,9 +2542,10 @@ function cekLoad(useCache){
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   cekKeysLoad(function(items){
     _cekData=items||[];
-    var belum=_cekData.filter(function(x){return !x.dicek;}).length;
+    var _mgr=_cekData.filter(_cekItemIsMgr);
+    var belum=_mgr.filter(function(x){return !x.dicek;}).length;
     var sub=document.getElementById('cek-sub');
-    if(sub)sub.textContent=belum+' belum dicek · '+_cekData.length+' total berfoto';
+    if(sub)sub.textContent=belum+' belum dicek · '+_mgr.length+' total berfoto';
     cekRender();
   },!useCache);
 }
@@ -2469,13 +2564,22 @@ function _cekJudul(it){
   }
   return j;
 }
+// Hanya foto BUKTI KERJA MANAGER yang masuk daftar "perlu dicek".
+// Catatan admin (kiriman & pelanggaran yg dibuat admin) bukan pekerjaan yg perlu dicek admin.
+function _cekItemIsMgr(x){
+  var o=String(x&&x.oleh!=null?x.oleh:'').toLowerCase();
+  if(o==='manager')return true;
+  if(o==='admin')return false;
+  return !(x.jenis==='kiriman'||x.jenis==='pelanggaran'); // tanpa info pengirim: anggap kiriman/pelanggaran = admin
+}
 function cekRender(){
   var box=document.getElementById('cek-list');if(!box)return;
   // Mode "belum saja": sembunyikan yang sudah dicek & yang diarsip.
   // Mode "lihat semua": tampilkan SEMUA termasuk yang diarsip (agar bisa dibatalkan arsipnya).
-  var list=_cekShowAll
+  var list=(_cekShowAll
     ? _cekData.slice()
-    : _cekData.filter(function(x){return !x.dicek && !isCekArsipKey(x.kunci);});
+    : _cekData.filter(function(x){return !x.dicek && !isCekArsipKey(x.kunci);})
+  ).filter(_cekItemIsMgr);
   if(!list.length){box.innerHTML='<div style="text-align:center;color:var(--hint);font-size:12px;padding:18px">'+(_cekShowAll?'Belum ada pekerjaan berfoto':'✅ Semua sudah dicek')+'</div>';return;}
   var html='';
   list.forEach(function(it){
@@ -2593,9 +2697,10 @@ function cekGotoTab(tab){ // fallback lama (tak dipakai langsung)
 function cekDone(kunci){ cekSrcToggle(kunci,true); }
 function cekUndo(kunci){ cekSrcToggle(kunci,false); }
 function updateCekCount(){
-  var belum=_cekData.filter(function(x){return !x.dicek;}).length;
+  var _mgr=_cekData.filter(_cekItemIsMgr);
+  var belum=_mgr.filter(function(x){return !x.dicek;}).length;
   var sub=document.getElementById('cek-sub');
-  if(sub)sub.textContent=belum+' belum dicek · '+_cekData.length+' total berfoto';
+  if(sub)sub.textContent=belum+' belum dicek · '+_mgr.length+' total berfoto';
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2749,7 +2854,7 @@ function cekSrcToggle(kunci,done){
 var _cekSyncTimer=null;
 // Render ulang ringan SEMUA tampilan dari cache lokal (tanpa fetch jaringan)
 function cekRerenderLight(){
-  try{ if(typeof cekRender==='function'&&document.getElementById('cek-list')){ var sub=document.getElementById('cek-sub'); if(sub){var belum=_cekData.filter(function(x){return !x.dicek;}).length;sub.textContent=belum+' belum dicek · '+_cekData.length+' total berfoto';} cekRender(); } }catch(e){}
+  try{ if(typeof cekRender==='function'&&document.getElementById('cek-list')){ var sub=document.getElementById('cek-sub'); if(sub){var _mgr=_cekData.filter(_cekItemIsMgr);var belum=_mgr.filter(function(x){return !x.dicek;}).length;sub.textContent=belum+' belum dicek · '+_mgr.length+' total berfoto';} cekRender(); } }catch(e){}
   try{ if(typeof annotateEventCards==='function'&&document.getElementById('event-grid')) _annotateEventCardsRender(_cekItems); }catch(e){}
   try{ if(typeof _annotateD04Render==='function'&&document.getElementById('d04-cek-strip')) _annotateD04Render(_cekItems); }catch(e){}
   try{ if(typeof _annotateCashRender==='function'&&document.getElementById('kbl-pending')) _annotateCashRender(_cekItems); }catch(e){}
@@ -3201,6 +3306,104 @@ function renderStokList(){
   list.innerHTML=html||'<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Tidak ada item dengan filter ini</div></div>';
 }
 
+// ════ Rekap Barang Hilang Retur — "stok minus" dari SS Orderan Tahunan (admin & manager) ════
+function _rhrNum(n){ n=Number(n)||0; return n.toLocaleString('id-ID'); }
+function _rhrPct(v){ if(v===null||v===undefined||v==='')return '—'; var n=Number(v); if(!isFinite(n))return '—'; return (Math.round(n*1000)/10)+'%'; }
+async function loadStokMinus(silent){
+  if(!scriptUrl){ if(!silent)openModal(); return; }
+  var btn=document.getElementById('rhr-refresh'), body=document.getElementById('rhr-body');
+  if(!btn&&!body)return; // panel tidak ada di DOM
+  if(!silent){
+    if(btn){btn.disabled=true;btn.innerHTML='<span class="rhr-spin"></span><span>Memuat</span>';}
+    if(body)body.innerHTML='<div class="rhr-load"><div class="rhr-bars"><i></i><i></i><i></i><i></i><i></i></div><div class="rhr-load-txt">Menarik data…</div></div>';
+  }
+  try{
+    var r=await fetch(scriptUrl+'?type=stokminus'), d=await r.json();
+    if(d&&(d.error||d.status==='error')) throw new Error(d.error||d.message||'error');
+    var bulan=(d&&d.bulan)||[], tot=(d&&d.total)||{retur:0,batal:0,hilang:0};
+    var te=document.getElementById('rhr-tot-retur'); if(te)te.textContent=_rhrNum(tot.retur);
+    var tb=document.getElementById('rhr-tot-batal'); if(tb)tb.textContent=_rhrNum(tot.batal);
+    var th=document.getElementById('rhr-tot-hilang'); if(th)th.textContent=_rhrNum(tot.hilang);
+    if(body){
+      if(!bulan.length){ body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--hint)">Belum ada data bulan</div></div>'; }
+      else{
+        var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+          +'<thead><tr style="color:var(--muted);text-align:right">'
+          +'<th style="text-align:left;font-weight:700;padding:6px 4px">Bulan</th>'
+          +'<th style="font-weight:700;padding:6px 4px">Retur</th>'
+          +'<th style="font-weight:700;padding:6px 4px">Batal</th>'
+          +'<th style="font-weight:700;padding:6px 4px">Hilang</th>'
+          +'<th style="font-weight:700;padding:6px 4px">%Rtr</th>'
+          +'<th style="font-weight:700;padding:6px 4px">%Btl</th>'
+          +'</tr></thead><tbody style="font-family:var(--mono)">';
+        bulan.forEach(function(b){
+          function cell(v){ var n=Number(v)||0; var col=(n<0)?'var(--red)':'var(--hint)'; return '<td style="text-align:right;padding:6px 4px;color:'+col+'">'+_rhrNum(n)+'</td>'; }
+          h+='<tr style="border-top:1px solid var(--border)">'
+            +'<td style="text-align:left;padding:6px 4px;font-family:var(--sans);font-weight:600;color:var(--text)">'+escH(b.nama||b.kode||'')+'</td>'
+            +cell(b.retur)+cell(b.batal)+cell(b.hilang)
+            +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctRetur)+'</td>'
+            +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctBatal)+'</td>'
+            +'</tr>';
+        });
+        h+='</tbody></table></div>';
+        body.innerHTML=h;
+      }
+    }
+    window._rhrLoadedOnce=true;
+  }catch(e){
+    if(!silent&&body)body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--muted)">Gagal memuat<br><small>'+escH(String(e.message))+'</small></div></div>';
+  }
+  if(btn){btn.disabled=false;btn.innerHTML='<span aria-hidden="true">🔄</span><span>Muat</span>';}
+}
+
+// ════ Sumber Data (admin) — ganti spreadsheet/folder/GAS tanpa edit kode ════
+function _sdExtractId(v){
+  v=String(v||'').trim();
+  var m=v.match(/\/d\/([a-zA-Z0-9_-]+)/)||v.match(/\/folders\/([a-zA-Z0-9_-]+)/)||v.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m)return m[1];
+  if(/^[a-zA-Z0-9_-]{20,}$/.test(v))return v;
+  return '';
+}
+function _sdTail(s){ s=String(s||''); return s.length>14 ? '…'+s.slice(-14) : (s||'—'); }
+async function loadSumberData(){
+  var g=document.getElementById('sd-tail-gas'); if(g)g.textContent=_sdTail(scriptUrl);
+  if(!scriptUrl)return;
+  try{
+    var r=await fetch(scriptUrl+'?type=sumberdata'), d=await r.json();
+    if(d&&d.tails){
+      Object.keys(d.tails).forEach(function(k){
+        var el=document.getElementById('sd-tail-'+k); if(el)el.textContent='…'+d.tails[k];
+      });
+    }
+  }catch(e){}
+}
+function saveSumber(key,inputId){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa ganti sumber data','err');return;}
+  var inp=document.getElementById(inputId); if(!inp)return;
+  var raw=inp.value.trim(); if(!raw){showToast('Tempel link dulu','err');return;}
+  var id=_sdExtractId(raw);
+  if(!id){showToast('Link tidak dikenali — pastikan link Google Sheet/Folder','err');return;}
+  appConfigSet(key,id,function(){});
+  try{ _appCfg[key]=id; }catch(e){}
+  inp.value='';
+  var el=document.getElementById('sd-tail-'+key); if(el)el.textContent='…'+id.slice(-14);
+  showToast('✓ Tersimpan — berlaku ke semua perangkat','ok');
+  try{ logActivity('Ganti sumber data', key+' → …'+id.slice(-14)); }catch(e){}
+  if(key==='ss_orderan'){ window._rhrLoadedOnce=false; setTimeout(function(){try{loadStokMinus(true);}catch(e){}},1200); }
+  if(key==='ss_stok'){ stokLoadedOnce=false; setTimeout(function(){try{loadStok(true);}catch(e){}},1200); }
+}
+function saveSumberGas(){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa ganti URL backend','err');return;}
+  var inp=document.getElementById('sd-in-gas'); if(!inp)return;
+  var v=inp.value.trim();
+  if(!v.startsWith('http')){showToast('URL tidak valid','err');return;}
+  if(!confirm('Ganti URL Backend GAS?\n\nSalah isi bisa bikin app putus dari semua data. Lanjut?'))return;
+  scriptUrl=v; localStorage.setItem('mtg_url',v); inp.value='';
+  var el=document.getElementById('sd-tail-gas'); if(el)el.textContent=_sdTail(v);
+  showToast('✓ URL backend tersimpan','ok');
+  try{ logActivity('Ganti URL Backend GAS', _sdTail(v)); }catch(e){}
+}
+
 // Set badge: tampil kalau n>0, sembunyi kalau 0
 function _setBadge(id,n,pulse){
   var b=document.getElementById(id);if(!b)return;
@@ -3608,6 +3811,7 @@ function kmStatusInfo(r){
 function _kmCfgArr(key){
   try{
     var v=(typeof _appCfg!=='undefined')?_appCfg[key]:null;
+    if(v==null||v===''){ try{ v=localStorage.getItem('mtg_cfg_'+key); }catch(e){} } // cadangan lokal bila server belum mengembalikan nilai
     if(!v)return [];
     var a=Array.isArray(v)?v:JSON.parse(v);
     return a.map(Number).filter(function(n){return !isNaN(n);});
@@ -3616,11 +3820,11 @@ function _kmCfgArr(key){
 function _kmOrderArr(){ return _kmCfgArr('kmOrder'); }
 function _kmPulseArr(){ return _kmCfgArr('kmPulse'); }
 function _kmIsPulse(row){ return _kmPulseArr().indexOf(Number(row))>=0; }
-// Data kiriman terurut: hormati urutan kustom admin dulu, sisanya default (jalan → terbaru)
-function _kmComputeSorted(){
+// Urutkan SEMBARANG daftar kiriman: hormati urutan kustom admin (kmOrder) dulu, sisanya default (jalan → terbaru)
+function _kmSortListByOrder(arr){
   var ord=_kmOrderArr(), omap={};
   ord.forEach(function(rw,i){ omap[rw]=i; });
-  return kmData.slice().sort(function(a,b){
+  return arr.slice().sort(function(a,b){
     var oa=omap[a.row], ob=omap[b.row], ha=oa!==undefined, hb=ob!==undefined;
     if(ha&&hb)return oa-ob;
     if(ha)return -1;
@@ -3630,6 +3834,7 @@ function _kmComputeSorted(){
     return (b.tglKirim||'').localeCompare(a.tglKirim||'');
   });
 }
+function _kmComputeSorted(){ return _kmSortListByOrder(kmData); }
 function kmRender(){
   var list=document.getElementById('km-list');
   var jalan=0,sampai=0,masalah=0;
@@ -3655,7 +3860,10 @@ function kmRender(){
     //   belum dicek → ● tanda + [✓ Tandai sudah dicek]
     var cekStrip='';
     var punyaFoto=!!(r.foto||r.fotoResi||r.fotoSurat||r.fotoSS);
-    if(punyaFoto){
+    // Opsi cek HANYA untuk foto kiriman milik MANAGER (bukti kerja manager).
+    // Kiriman yang dibuat admin = catatan stok admin sendiri → tidak perlu dicek.
+    var dariManager=String(r.oleh||'').toLowerCase()==='manager';
+    if(punyaFoto && dariManager){
       if(isCekDone('kiriman',r.row)){
         var arsiped=isCekArsip('kiriman',r.row);
         var head=arsiped?(userRole==='admin'?'<span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>':''):cekMarkHTML('kiriman',r.row);
@@ -3683,7 +3891,7 @@ function kmRender(){
         +'<button type="button" class="km-pulse-btn'+(pulseOn?' on':'')+'" onclick="event.stopPropagation();kmPulseToggle('+r.row+')">'+(pulseOn?'⏹ Stop denyut':'💓 Denyut')+'</button>'
         +'</div>';
     }
-    var fotosVisible=isCekDone('kiriman',r.row)?'':fotos; // foto hilang dari tampilan setelah dicek (record tetap di sheet)
+    var fotosVisible=(dariManager&&isCekDone('kiriman',r.row))?'':fotos; // foto hilang dari tampilan hanya setelah foto MANAGER dicek (record tetap di sheet)
     return '<div class="km-card '+s.cls+(pulseOn?' km-pulse':'')+'" onclick="kmOpenDetail('+r.row+')">'
       +'<div class="km-card-top"><span class="km-resi">'+hdrTxt+'</span><span class="km-badge '+s.cls+'">'+s.badge+'</span></div>'
       +'<div class="km-isi">Isi: '+escH(r.isi||'-')+'</div>'
@@ -3714,7 +3922,7 @@ function kmPulseToggle(row){
   if(i>=0)arr.splice(i,1); else arr.push(row);
   appConfigSet('kmPulse',JSON.stringify(arr));
   kmRender();
-  try{ if(typeof loadHomeKiriman==='function'&&document.getElementById('home-kiriman-list')&&document.getElementById('home-kiriman-list').children.length)loadHomeKiriman(); }catch(e){}
+  try{ if(document.getElementById('home-kiriman-list')){ if(typeof _renderHomeKiriman==='function'&&_homeKmRows&&_homeKmRows.length) _renderHomeKiriman(); else if(typeof loadHomeKiriman==='function'&&document.getElementById('home-kiriman-list').children.length) loadHomeKiriman(); } }catch(e){}
   showToast(i>=0?'⏹ Denyut dimatikan':'💓 Ditandai berdenyut — manager akan melihatnya','ok');
   try{logActivity(i>=0?'Matikan denyut kiriman':'Nyalakan denyut kiriman','Baris '+row);}catch(e){}
 }
@@ -3866,7 +4074,8 @@ function switchTab(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='home'){loadHomeKiriman();loadHomeLog();loadHomeHarian();loadHomeJamKerja();loadHomeEvent();loadHomeRekap();loadHomeStreak();}
-  if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();}
+  if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();if(!window._rhrLoadedOnce){window._rhrLoadedOnce=true;loadStokMinus();}}
+  if(name==='sumberdata')loadSumberData();
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
   if(name==='cash'){if(cashData.length===0)loadCashData();annotateCashForms();}
   if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
@@ -4905,6 +5114,7 @@ function pgRenderList(){
     var cekBlok;
     if(userRole!=='admin'){ cekBlok=''; }
     else if(!adaFoto){ cekBlok=''; }
+    else if(String(r.oleh||'').toLowerCase()!=='manager'){ cekBlok=''; } // catatan admin sendiri → tak perlu opsi cek
     else if(done&&pgArsip){
       cekBlok='<div style="margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()"><span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>'+cekActionBtnHTML('pelanggaran',r.row)+cekArsipBtnHTML('pelanggaran',r.row)+'</div>';
     } else {
@@ -5645,6 +5855,8 @@ function applyRole(){
   // muat kiriman & stok di awal agar banner notifikasi tampil tanpa harus buka tab
   if(typeof kmLoad==='function')kmLoad();
   if(typeof loadStok==='function')loadStok();
+  // prefetch Rekap Barang Hilang Retur (stok minus dari Orderan Tahunan) — diam-diam, utk admin & manager
+  setTimeout(function(){ try{ if(typeof loadStokMinus==='function'){ window._rhrLoadedOnce=true; loadStokMinus(true); } }catch(e){} },1500);
   // muat ulang streak kehadiran setelah login (admin sering login setelah render awal)
   setTimeout(function(){loadStreakHarian();},300);
   // config global (hide kepegawaian, reset harian) — lintas perangkat
@@ -6298,6 +6510,7 @@ function loadHomeLoc(force){
 }
 
 // ── Kiriman belum sampai (mirror dari kmData) ──
+var _homeKmRows=[]; // cache baris "belum sampai" terakhir utk render ulang tanpa fetch
 function loadHomeKiriman(){
   if(userRole!=='admin') return;
   var list = document.getElementById('home-kiriman-list');
@@ -6308,30 +6521,63 @@ function loadHomeKiriman(){
     .then(function(r){return r.json();})
     .then(function(d){
       var rows = (d&&d.rows)?d.rows:[];
-      var pending = rows.filter(function(r){return (r.status||'')!=='Sampai';});
-      if(countEl) countEl.textContent = pending.length + ' kiriman belum sampai';
-      _setBadge('badge-home', pending.length, true);
-      if(!pending.length){
-        list.innerHTML='<div style="padding:14px 8px;color:var(--green);font-size:13px;font-weight:600;text-align:center">✓ Semua kiriman sudah sampai</div>';
-        return;
-      }
-      list.innerHTML = pending.map(function(r){
-        var hdr = escH(r.jasa||'Kiriman') + ' · dikirim ' + kmFmtTgl(r.tglKirim);
-        var pulse = (typeof _kmIsPulse==='function' && _kmIsPulse(r.row)) ? ' home-km-pulse' : '';
-        return '<div data-km-row="'+r.row+'" class="'+pulse.trim()+'" onclick="kmOpenDetail('+r.row+')" style="display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid var(--border);border-left:3px solid var(--orange);border-radius:4px;margin-bottom:4px;background:rgba(217,119,6,.04);cursor:pointer">'
-          + '<div style="font-size:18px">'+(pulse?'💓':'🚚')+'</div>'
-          + '<div style="flex:1;min-width:0">'
-          + '<div style="font-size:13px;font-weight:700;color:var(--orange)">'+hdr+'</div>'
-          + '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+escH(r.isi||'-')+'</div>'
-          + '<div style="font-size:11px;color:var(--accent);margin-top:3px">👆 Tap untuk lihat detail</div>'
-          + '</div>'
-          + '</div>';
-      }).join('');
+      _homeKmRows = rows.filter(function(r){return (r.status||'')!=='Sampai';});
+      _renderHomeKiriman();
     })
     .catch(function(){
       list.innerHTML='<div style="color:var(--red);font-size:12px;padding:12px 4px">⚠ Gagal memuat data kiriman</div>';
       if(countEl) countEl.textContent = 'Gagal memuat';
     });
+}
+// Render daftar "Kiriman Belum Sampai" dari cache _homeKmRows (urut sesuai pengaturan admin)
+function _renderHomeKiriman(){
+  var list = document.getElementById('home-kiriman-list');
+  var countEl = document.getElementById('home-kiriman-count');
+  if(!list) return;
+  var pending = _kmSortListByOrder(_homeKmRows); // hormati urutan admin (kmOrder)
+  if(countEl) countEl.textContent = pending.length + ' kiriman belum sampai';
+  _setBadge('badge-home', pending.length, true);
+  if(!pending.length){
+    list.innerHTML='<div style="padding:14px 8px;color:var(--green);font-size:13px;font-weight:600;text-align:center">✓ Semua kiriman sudah sampai</div>';
+    return;
+  }
+  var n=pending.length;
+  list.innerHTML = pending.map(function(r,i){
+    var hdr = escH(r.jasa||'Kiriman') + ' · dikirim ' + kmFmtTgl(r.tglKirim);
+    var pulseOn = (typeof _kmIsPulse==='function' && _kmIsPulse(r.row));
+    // Kontrol urutan admin (⬆⬇) langsung di widget Home
+    var ctrl='<div style="display:flex;flex-direction:column;gap:3px" onclick="event.stopPropagation()">'
+      +'<button type="button" onclick="event.stopPropagation();kmMoveHome('+r.row+',-1)"'+(i===0?' disabled':'')+' style="width:26px;height:22px;border:1px solid var(--border2);background:var(--card);border-radius:6px;cursor:pointer;font-size:11px;line-height:1;color:var(--muted)" title="Naikkan">⬆</button>'
+      +'<button type="button" onclick="event.stopPropagation();kmMoveHome('+r.row+',1)"'+(i===n-1?' disabled':'')+' style="width:26px;height:22px;border:1px solid var(--border2);background:var(--card);border-radius:6px;cursor:pointer;font-size:11px;line-height:1;color:var(--muted)" title="Turunkan">⬇</button>'
+      +'</div>';
+    return '<div data-km-row="'+r.row+'" class="'+(pulseOn?'home-km-pulse':'')+'" style="display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid var(--border);border-left:3px solid var(--orange);border-radius:4px;margin-bottom:4px;background:rgba(217,119,6,.04)">'
+      + '<div style="font-size:18px">🚚'+(pulseOn?'<span style="font-size:12px"> 💓</span>':'')+'</div>'
+      + '<div style="flex:1;min-width:0;cursor:pointer" onclick="kmOpenDetail('+r.row+')">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--orange)">'+hdr+'</div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+escH(r.isi||'-')+'</div>'
+      + '<div style="font-size:11px;color:var(--accent);margin-top:3px">👆 Tap untuk lihat detail</div>'
+      + '</div>'
+      + ctrl
+      + '</div>';
+  }).join('');
+}
+// Naik/turunkan urutan dari widget Home — simpan ke kmOrder (lintas-perangkat) tanpa fetch ulang
+function kmMoveHome(row,dir){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa mengatur urutan','err');return;}
+  row=Number(row);
+  var pending=_kmSortListByOrder(_homeKmRows);
+  var idx=pending.findIndex(function(r){return Number(r.row)===row;});
+  if(idx<0)return;
+  var j=idx+dir;
+  if(j<0||j>=pending.length)return;
+  var t=pending[idx]; pending[idx]=pending[j]; pending[j]=t;
+  // Urutan global baru: yang belum sampai (urutan baru) dulu, lalu sisanya (mis. yang sudah sampai)
+  var pendingRows=pending.map(function(r){return r.row;});
+  var rest=_kmComputeSorted().filter(function(r){return pendingRows.indexOf(r.row)<0;}).map(function(r){return r.row;});
+  appConfigSet('kmOrder',JSON.stringify(pendingRows.concat(rest)));
+  _renderHomeKiriman();
+  try{ if(typeof kmRender==='function'&&typeof kmData!=='undefined'&&kmData.length) kmRender(); }catch(e){}
+  try{logActivity('Atur urutan kiriman',(dir<0?'Naik':'Turun')+' · baris '+row+' (Home)');}catch(e){}
 }
 
 // ── Log Aktivitas Manager (100 terbaru) ──
