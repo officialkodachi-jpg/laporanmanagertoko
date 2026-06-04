@@ -452,6 +452,42 @@ select.it{cursor:pointer}
 .empty-icon{font-size:32px;margin-bottom:10px}.empty-text{font-size:13px;line-height:1.6}
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--hint);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* ── Rekap Barang Hilang Retur — tema merah ── */
+#rhr-section{--rhr:var(--red);--rhr-soft:rgba(220,38,38,.08);--rhr-line:rgba(220,38,38,.22)}
+#rhr-head{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--rhr);border-radius:var(--r);padding:11px 14px;margin-bottom:12px;box-shadow:0 6px 16px rgba(220,38,38,.28)}
+#rhr-head .rhr-title{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:800;color:#fff;letter-spacing:.01em}
+#rhr-head .rhr-ic{width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+#rhr-refresh{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 13px;font-family:var(--sans);font-size:11px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;gap:5px}
+#rhr-refresh:active{background:rgba(255,255,255,.3)}
+#rhr-refresh:disabled{opacity:.7}
+.rhr-stat{background:var(--rhr-soft);border:1px solid var(--rhr-line);border-radius:var(--r);padding:12px 6px;text-align:center}
+.rhr-stat .rhr-v{font-size:21px;font-weight:800;color:var(--rhr);font-family:var(--mono)}
+.rhr-stat .rhr-l{font-size:10px;color:var(--rhr);opacity:.85;margin-top:3px;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.rhr-load{display:flex;flex-direction:column;align-items:center;gap:13px;padding:28px 0}
+.rhr-bars{display:flex;align-items:flex-end;gap:5px;height:36px}
+.rhr-bars i{display:block;width:7px;height:8px;border-radius:4px;background:var(--rhr);animation:rhrbar 1s ease-in-out infinite}
+.rhr-bars i:nth-child(2){animation-delay:.12s}.rhr-bars i:nth-child(3){animation-delay:.24s}.rhr-bars i:nth-child(4){animation-delay:.36s}.rhr-bars i:nth-child(5){animation-delay:.48s}
+@keyframes rhrbar{0%,100%{height:8px;opacity:.4}50%{height:36px;opacity:1}}
+.rhr-load-txt{font-size:12px;color:var(--rhr);font-weight:700;letter-spacing:.02em}
+.rhr-spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
+/* ── Sumber Data (tab admin) ── */
+.sd-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:11px}
+.sd-card.warn{border-color:rgba(217,119,6,.4)}
+.sd-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px}
+.sd-ic{font-size:20px;line-height:1;flex-shrink:0}
+.sd-meta{flex:1;min-width:0}
+.sd-name{font-size:14px;font-weight:800;color:var(--text)}
+.sd-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.sd-tag{font-size:9px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:6px;text-transform:uppercase;flex-shrink:0;white-space:nowrap}
+.sd-tag.ss{background:rgba(37,99,235,.12);color:var(--blue)}
+.sd-tag.gas{background:rgba(217,119,6,.14);color:var(--orange)}
+.sd-tag.folder{background:rgba(22,163,74,.12);color:var(--green)}
+.sd-cur{font-size:11px;color:var(--hint);font-family:var(--mono);margin-bottom:8px;word-break:break-all}
+.sd-row{display:flex;gap:7px}
+.sd-row input{flex:1;min-width:0;font-family:var(--sans);font-size:12px;padding:9px 11px;border:1px solid var(--border2);border-radius:9px;background:var(--bg);color:var(--text)}
+.sd-row button{white-space:nowrap;background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 13px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
+.sd-row button:active{opacity:.85}
+.sd-warn{display:flex;align-items:flex-start;gap:6px;background:rgba(217,119,6,.1);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--orange);line-height:1.45;margin-top:9px}
 /* tombol dengan efek tekan + ikon muter */
 .btn-press{transition:transform .08s ease, box-shadow .12s ease, background .15s ease;-webkit-tap-highlight-color:transparent}
 .btn-press:active{transform:scale(.94)}
@@ -653,6 +689,7 @@ body.role-admin #admin-mgrlog{display:none!important}
       <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
       <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
       <button class="tab" onclick="switchTab('link',this)">🔗 Link</button>
+      <button class="tab admin-only" id="tab-sumberdata" onclick="switchTab('sumberdata',this)">🗄️ Sumber Data</button>
     </div>
     <button class="tabs-scroll-btn tabs-scroll-btn-right" id="tabs-arrow-right" onclick="tabsScroll(1)">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--accent)" fill-opacity=".85"/><path d="M8 5.5L12.5 10L8 14.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -927,15 +964,15 @@ body.role-admin #admin-mgrlog{display:none!important}
 
       <!-- ══ Rekap Barang Hilang Retur (dari SS Orderan Tahunan) ══ -->
       <div id="rhr-section" style="margin-top:24px;border-top:1px solid var(--border);padding-top:18px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px">
-          <div style="font-size:14px;font-weight:800;color:var(--text)">📉 Rekap Barang Hilang Retur</div>
-          <button id="rhr-refresh" onclick="loadStokMinus()" style="background:var(--card);border:1.5px solid var(--border2);border-radius:20px;padding:6px 13px;font-family:var(--sans);font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;flex-shrink:0">🔄 Muat</button>
+        <div id="rhr-head">
+          <div class="rhr-title"><span class="rhr-ic" aria-hidden="true">📉</span>Rekap Barang Hilang Retur</div>
+          <button id="rhr-refresh" onclick="loadStokMinus()"><span aria-hidden="true">🔄</span><span>Muat</span></button>
         </div>
         <div class="alert info" style="margin-bottom:12px;font-size:11px">Unit Retur / Batal / Hilang per bulan (tahun berjalan). Data keuangan &amp; pembeli tidak ditarik ke aplikasi.</div>
         <div id="rhr-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
-          <div style="background:var(--card2);border-radius:var(--r);padding:12px 6px;text-align:center"><div style="font-size:21px;font-weight:800;color:var(--red);font-family:var(--mono)" id="rhr-tot-retur">–</div><div style="font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.04em">Retur ’26</div></div>
-          <div style="background:var(--card2);border-radius:var(--r);padding:12px 6px;text-align:center"><div style="font-size:21px;font-weight:800;color:var(--red);font-family:var(--mono)" id="rhr-tot-batal">–</div><div style="font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.04em">Batal ’26</div></div>
-          <div style="background:var(--card2);border-radius:var(--r);padding:12px 6px;text-align:center"><div style="font-size:21px;font-weight:800;color:var(--red);font-family:var(--mono)" id="rhr-tot-hilang">–</div><div style="font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.04em">Hilang ’26</div></div>
+          <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-retur">–</div><div class="rhr-l">↩ Retur ’26</div></div>
+          <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-batal">–</div><div class="rhr-l">✕ Batal ’26</div></div>
+          <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-hilang">–</div><div class="rhr-l">↘ Hilang ’26</div></div>
         </div>
         <div id="rhr-body"><div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--hint)">Tekan “Muat” untuk menarik data</div></div></div>
       </div>
@@ -1335,6 +1372,44 @@ body.role-admin #admin-mgrlog{display:none!important}
 
     <div class="section-hdr"><span class="section-hdr-label">👟 Display</span><div class="section-hdr-line"></div></div>
     <a class="link-row" href="https://docs.google.com/spreadsheets/d/1aFyLfd0R1M7wasdbjB2sF7ap01EiCWosltFHI-wGjds/edit?gid=0#gid=0" target="_blank"><span class="link-ic">👟</span><span class="link-tx"><b>Monitoring Display Sepatu</b><small>Cek display & rak sepatu</small></span><span class="link-ar">→</span></a>
+  </div>
+
+  <!-- ══ SUMBER DATA (admin) — ganti spreadsheet tanpa edit kode ══ -->
+  <div class="panel" id="panel-sumberdata">
+    <div class="alert info" style="margin-bottom:14px">🗄️ <b>Sumber Data</b> — ganti link spreadsheet tanpa ngedit kode. Tempel link Google Sheet penuh, sistem ambil ID-nya otomatis, lalu <b>Simpan</b>. Berlaku ke semua perangkat.</div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">📅</span><div class="sd-meta"><div class="sd-name">Orderan Tahunan</div><div class="sd-desc">Sumber Rekap Barang Hilang Retur · ganti tiap ganti tahun</div></div><span class="sd-tag ss">Spreadsheet</span></div>
+      <div class="sd-cur">aktif: <span id="sd-tail-ss_orderan">…</span></div>
+      <div class="sd-row"><input id="sd-in-ss_orderan" type="text" placeholder="tempel link Orderan baru…"><button onclick="saveSumber('ss_orderan','sd-in-ss_orderan')">💾 Simpan</button></div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">📦</span><div class="sd-meta"><div class="sd-name">Stok Toko &amp; Gudang</div><div class="sd-desc">Sumber Monitoring Stok &amp; autocomplete produk</div></div><span class="sd-tag ss">Spreadsheet</span></div>
+      <div class="sd-cur">aktif: <span id="sd-tail-ss_stok">…</span></div>
+      <div class="sd-row"><input id="sd-in-ss_stok" type="text" placeholder="tempel link baru…"><button onclick="saveSumber('ss_stok','sd-in-ss_stok')">💾 Simpan</button></div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">📅</span><div class="sd-meta"><div class="sd-name">Jadwal Shift</div><div class="sd-desc">Sumber partimer &amp; shift kosong</div></div><span class="sd-tag ss">Spreadsheet</span></div>
+      <div class="sd-cur">aktif: <span id="sd-tail-ss_shift">…</span></div>
+      <div class="sd-row"><input id="sd-in-ss_shift" type="text" placeholder="tempel link baru…"><button onclick="saveSumber('ss_shift','sd-in-ss_shift')">💾 Simpan</button></div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">🖼️</span><div class="sd-meta"><div class="sd-name">Folder Foto</div><div class="sd-desc">Tempat simpan foto nota, resi, bukti (Google Drive)</div></div><span class="sd-tag folder">Folder</span></div>
+      <div class="sd-cur">aktif: <span id="sd-tail-folder_foto">…</span></div>
+      <div class="sd-row"><input id="sd-in-folder_foto" type="text" placeholder="tempel link folder Drive baru…"><button onclick="saveSumber('folder_foto','sd-in-folder_foto')">💾 Simpan</button></div>
+    </div>
+
+    <div class="sd-card warn">
+      <div class="sd-top"><span class="sd-ic">🖥️</span><div class="sd-meta"><div class="sd-name">URL Backend (GAS)</div><div class="sd-desc">Alamat Web App tempat semua data ditarik</div></div><span class="sd-tag gas">GAS</span></div>
+      <div class="sd-cur">aktif: <span id="sd-tail-gas">…</span></div>
+      <div class="sd-row"><input id="sd-in-gas" type="text" placeholder="https://script.google.com/macros/s/.../exec"><button onclick="saveSumberGas()">💾 Simpan</button></div>
+      <div class="sd-warn">⚠️ Biasanya <b>tidak diganti</b>. Isi hanya kalau kamu redeploy GAS &amp; dapat URL baru. Salah isi → app putus dari semua data.</div>
+    </div>
+
+    <div class="alert info" style="margin-top:8px;font-size:11px;line-height:1.6">ℹ️ <b>Catatan:</b> spreadsheet <b>Manager Task Guide</b> tidak bisa diganti dari sini — di situ tempat skrip GAS menempel. Empat sumber di atas dibaca lewat ID, jadi aman diganti kapan saja (mis. ganti tahun). Setelah ganti Orderan, data Rekap Hilang Retur otomatis tersegarkan.</div>
   </div>
 
 </div>
@@ -3125,11 +3200,13 @@ function renderStokList(){
 // ════ Rekap Barang Hilang Retur (Opsi C: ringkasan setahun + tabel) ════
 function _rhrNum(n){ n=Number(n)||0; return n.toLocaleString('id-ID'); }
 function _rhrPct(v){ if(v===null||v===undefined||v==='')return '—'; var n=Number(v); if(!isFinite(n))return '—'; return (Math.round(n*1000)/10)+'%'; }
-async function loadStokMinus(){
-  if(!scriptUrl){openModal();return;}
+async function loadStokMinus(silent){
+  if(!scriptUrl){ if(!silent)openModal(); return; }
   var btn=document.getElementById('rhr-refresh'), body=document.getElementById('rhr-body');
-  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner" style="width:11px;height:11px;border-width:2px"></span>';}
-  if(body)body.innerHTML='<div class="empty" style="padding:18px 0"><span class="spinner"></span> Menarik data...</div>';
+  if(!silent){
+    if(btn){btn.disabled=true;btn.innerHTML='<span class="rhr-spin"></span><span>Memuat</span>';}
+    if(body)body.innerHTML='<div class="rhr-load"><div class="rhr-bars"><i></i><i></i><i></i><i></i><i></i></div><div class="rhr-load-txt">Menarik data…</div></div>';
+  }
   try{
     var r=await fetch(scriptUrl+'?type=stokminus'), d=await r.json();
     if(d&&(d.error||d.status==='error')) throw new Error(d.error||d.message||'error');
@@ -3137,33 +3214,81 @@ async function loadStokMinus(){
     var te=document.getElementById('rhr-tot-retur'); if(te)te.textContent=_rhrNum(tot.retur);
     var tb=document.getElementById('rhr-tot-batal'); if(tb)tb.textContent=_rhrNum(tot.batal);
     var th=document.getElementById('rhr-tot-hilang'); if(th)th.textContent=_rhrNum(tot.hilang);
-    if(!bulan.length){body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--hint)">Belum ada data bulan</div></div>';}
-    else{
-      var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
-        +'<thead><tr style="color:var(--muted);text-align:right">'
-        +'<th style="text-align:left;font-weight:700;padding:6px 4px">Bulan</th>'
-        +'<th style="font-weight:700;padding:6px 4px">Retur</th>'
-        +'<th style="font-weight:700;padding:6px 4px">Batal</th>'
-        +'<th style="font-weight:700;padding:6px 4px">Hilang</th>'
-        +'<th style="font-weight:700;padding:6px 4px">%Rtr</th>'
-        +'<th style="font-weight:700;padding:6px 4px">%Btl</th>'
-        +'</tr></thead><tbody style="font-family:var(--mono)">';
-      bulan.forEach(function(b){
-        function cell(v){ var n=Number(v)||0; var col=(n<0)?'var(--red)':'var(--hint)'; return '<td style="text-align:right;padding:6px 4px;color:'+col+'">'+_rhrNum(n)+'</td>'; }
-        h+='<tr style="border-top:1px solid var(--border)">'
-          +'<td style="text-align:left;padding:6px 4px;font-family:var(--sans);font-weight:600;color:var(--text)">'+(b.nama||b.kode||'')+'</td>'
-          +cell(b.retur)+cell(b.batal)+cell(b.hilang)
-          +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctRetur)+'</td>'
-          +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctBatal)+'</td>'
-          +'</tr>';
-      });
-      h+='</tbody></table></div>';
-      body.innerHTML=h;
+    if(body){
+      if(!bulan.length){ body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--hint)">Belum ada data bulan</div></div>'; }
+      else{
+        var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+          +'<thead><tr style="color:var(--muted);text-align:right">'
+          +'<th style="text-align:left;font-weight:700;padding:6px 4px">Bulan</th>'
+          +'<th style="font-weight:700;padding:6px 4px">Retur</th>'
+          +'<th style="font-weight:700;padding:6px 4px">Batal</th>'
+          +'<th style="font-weight:700;padding:6px 4px">Hilang</th>'
+          +'<th style="font-weight:700;padding:6px 4px">%Rtr</th>'
+          +'<th style="font-weight:700;padding:6px 4px">%Btl</th>'
+          +'</tr></thead><tbody style="font-family:var(--mono)">';
+        bulan.forEach(function(b){
+          function cell(v){ var n=Number(v)||0; var col=(n<0)?'var(--red)':'var(--hint)'; return '<td style="text-align:right;padding:6px 4px;color:'+col+'">'+_rhrNum(n)+'</td>'; }
+          h+='<tr style="border-top:1px solid var(--border)">'
+            +'<td style="text-align:left;padding:6px 4px;font-family:var(--sans);font-weight:600;color:var(--text)">'+(b.nama||b.kode||'')+'</td>'
+            +cell(b.retur)+cell(b.batal)+cell(b.hilang)
+            +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctRetur)+'</td>'
+            +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctBatal)+'</td>'
+            +'</tr>';
+        });
+        h+='</tbody></table></div>';
+        body.innerHTML=h;
+      }
     }
+    window._rhrLoadedOnce=true;
   }catch(e){
-    if(body)body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--muted)">Gagal memuat<br><small>'+String(e.message)+'</small></div></div>';
+    if(!silent&&body)body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--muted)">Gagal memuat<br><small>'+String(e.message)+'</small></div></div>';
   }
-  if(btn){btn.disabled=false;btn.textContent='🔄 Muat';}
+  if(btn){btn.disabled=false;btn.innerHTML='<span aria-hidden="true">🔄</span><span>Muat</span>';}
+}
+
+// ════ Sumber Data (admin) — ganti spreadsheet/folder/GAS tanpa edit kode ════
+function _sdExtractId(v){
+  v=String(v||'').trim();
+  var m=v.match(/\/d\/([a-zA-Z0-9_-]+)/)||v.match(/\/folders\/([a-zA-Z0-9_-]+)/)||v.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m)return m[1];
+  if(/^[a-zA-Z0-9_-]{20,}$/.test(v))return v;
+  return '';
+}
+function _sdTail(s){ s=String(s||''); return s.length>14 ? '…'+s.slice(-14) : (s||'—'); }
+async function loadSumberData(){
+  var g=document.getElementById('sd-tail-gas'); if(g)g.textContent=_sdTail(scriptUrl);
+  if(!scriptUrl)return;
+  try{
+    var r=await fetch(scriptUrl+'?type=sumberdata'), d=await r.json();
+    if(d&&d.tails){
+      Object.keys(d.tails).forEach(function(k){
+        var el=document.getElementById('sd-tail-'+k); if(el)el.textContent='…'+d.tails[k];
+      });
+    }
+  }catch(e){}
+}
+function saveSumber(key,inputId){
+  var inp=document.getElementById(inputId); if(!inp)return;
+  var raw=inp.value.trim(); if(!raw){showToast('Tempel link dulu','err');return;}
+  var id=_sdExtractId(raw);
+  if(!id){showToast('Link tidak dikenali — pastikan link Google Sheet/Folder','err');return;}
+  appConfigSet(key,id,function(){});
+  try{ _appCfg[key]=id; }catch(e){}
+  inp.value='';
+  var el=document.getElementById('sd-tail-'+key); if(el)el.textContent='…'+id.slice(-14);
+  showToast('✓ Tersimpan','ok');
+  try{ logActivity('Ganti sumber data', key+' → …'+id.slice(-14)); }catch(e){}
+  if(key==='ss_orderan'){ window._rhrLoadedOnce=false; setTimeout(function(){try{loadStokMinus(true);}catch(e){}},1200); }
+}
+function saveSumberGas(){
+  var inp=document.getElementById('sd-in-gas'); if(!inp)return;
+  var v=inp.value.trim();
+  if(!v.startsWith('http')){showToast('URL tidak valid','err');return;}
+  if(!confirm('Ganti URL Backend GAS?\n\nSalah isi bisa bikin app putus dari semua data. Lanjut?'))return;
+  scriptUrl=v; localStorage.setItem('mtg_url',v); inp.value='';
+  var el=document.getElementById('sd-tail-gas'); if(el)el.textContent=_sdTail(v);
+  showToast('✓ URL backend tersimpan','ok');
+  try{ logActivity('Ganti URL Backend GAS', _sdTail(v)); }catch(e){}
 }
 
 // Set badge: tampil kalau n>0, sembunyi kalau 0
@@ -3755,6 +3880,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   var kt=document.getElementById('km-tgl');if(kt)kt.value=todayValue;
   // Load stok & langsung trigger alarm kalau ada merah
   loadStok(true);
+  setTimeout(function(){ try{ loadStokMinus(true); }catch(e){} }, 1500); // prefetch rekap hilang/retur (diam2) → tab buka langsung instan
   kmLoad();
   loadCashData();
   _stokRefreshTimer=setInterval(()=>loadStok(true),STOK_AUTO_REFRESH_MS);
@@ -3776,9 +3902,10 @@ function switchTab(name,btn){
   if(name==='cash'){if(cashData.length===0)loadCashData();annotateCashForms();}
   if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
   if(name==='laporan'&&userRole==='admin')loadLog();
+  if(name==='sumberdata')loadSumberData();
   if(name==='harian'){fixD01SwipeHeight();if(scriptUrl)loadStreakHarian();annotateD04Card();}
   if(name==='event'){annotateEventCards();}
-  var tabNama={home:'Home',harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link'};
+  var tabNama={home:'Home',harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link',sumberdata:'Sumber Data'};
   logActivity('Buka tab',tabNama[name]||name);
 }
 function switchGudangView(v,btn){
