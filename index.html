@@ -101,9 +101,8 @@ body.role-admin .adm-only-block{display:block}
 .km-pulse-btn.on{border-color:var(--orange);color:var(--orange);background:rgba(217,119,6,.08)}
 .km-pulse-btn:active{transform:scale(.97)}
 /* kartu yang ditandai admin → berdenyut menarik perhatian */
-.km-card.km-pulse{animation:kmPulseGlow 1.5s ease-in-out infinite;border-left-color:var(--orange)!important;position:relative}
-.km-card.km-pulse::before{content:"💓";position:absolute;top:-9px;right:-7px;font-size:15px;animation:kmPulseBeat 1.5s ease-in-out infinite}
-@keyframes kmPulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,.0)}50%{box-shadow:0 0 0 5px rgba(217,119,6,.22)}}
+.km-card.km-pulse{animation:kmPulseGlow 1.4s ease-in-out infinite;border-left-color:var(--orange)!important;position:relative}
+@keyframes kmPulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,0)}50%{box-shadow:0 0 0 6px rgba(217,119,6,.38)}}
 @keyframes kmPulseBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
 /* mirror denyut di kartu Home (dashboard admin) */
 .home-km-pulse{animation:kmPulseGlow 1.5s ease-in-out infinite}
@@ -951,7 +950,7 @@ body.role-admin #admin-mgrlog{display:none!important}
 
     <!-- Monitor -->
     <div class="subview active" id="gview-monitor">
-      <div class="alert info" style="margin-bottom:14px">📦 <b>Monitoring Stok Toko vs Gudang</b> — peringatan otomatis + <b>pencatatan berapa hari stok kosong</b>.</div>
+      <div class="alert info" style="margin-bottom:14px">📦 <b>Monitoring Stok Toko vs Gudang</b> — peringatan otomatis + <b>pencatatan berapa hari stok kosong</b> agar manager tidak abai.</div>
       <div class="stok-controls">
         <button class="stok-refresh-btn" id="stok-refresh-btn" onclick="loadStok()">🔄 Perbarui Data</button>
         <button class="stok-sound-btn ringing" id="stok-sound-btn" onclick="muteAlarm()">🔔 ALARM — Tap Mute</button>
@@ -987,9 +986,9 @@ body.role-admin #admin-mgrlog{display:none!important}
         </div>
         <div class="alert info" style="margin-bottom:12px;font-size:11px">Unit Retur / Batal / Hilang per bulan (tahun berjalan), ditarik dari Spreadsheet Orderan Tahunan. Data keuangan &amp; pembeli tidak ditarik ke aplikasi.</div>
         <div id="rhr-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+          <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-hilang">–</div><div class="rhr-l">↘ Hilang ’26</div></div>
           <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-retur">–</div><div class="rhr-l">↩ Retur ’26</div></div>
           <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-batal">–</div><div class="rhr-l">✕ Batal ’26</div></div>
-          <div class="rhr-stat"><div class="rhr-v" id="rhr-tot-hilang">–</div><div class="rhr-l">↘ Hilang ’26</div></div>
         </div>
         <div id="rhr-body"><div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--hint)">Tekan “Muat” untuk menarik data</div></div></div>
       </div>
@@ -2566,10 +2565,11 @@ function _cekJudul(it){
 }
 // Hanya foto BUKTI KERJA MANAGER yang masuk daftar "perlu dicek".
 // Catatan admin (kiriman & pelanggaran yg dibuat admin) bukan pekerjaan yg perlu dicek admin.
+function _olehManager(o){ o=String(o||'').trim().toLowerCase(); return o.indexOf('manager')===0; } // cocok "manager" & "manager (email)"
 function _cekItemIsMgr(x){
-  var o=String(x&&x.oleh!=null?x.oleh:'').toLowerCase();
-  if(o==='manager')return true;
-  if(o==='admin')return false;
+  var o=String(x&&x.oleh!=null?x.oleh:'').trim().toLowerCase();
+  if(o.indexOf('manager')===0)return true;   // diunggah manager → bukti kerja, perlu dicek
+  if(o.indexOf('admin')===0)return false;     // diunggah admin sendiri → tak perlu dicek
   return !(x.jenis==='kiriman'||x.jenis==='pelanggaran'); // tanpa info pengirim: anggap kiriman/pelanggaran = admin
 }
 function cekRender(){
@@ -3330,9 +3330,9 @@ async function loadStokMinus(silent){
         var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
           +'<thead><tr style="color:var(--muted);text-align:right">'
           +'<th style="text-align:left;font-weight:700;padding:6px 4px">Bulan</th>'
+          +'<th style="font-weight:700;padding:6px 4px">Hilang</th>'
           +'<th style="font-weight:700;padding:6px 4px">Retur</th>'
           +'<th style="font-weight:700;padding:6px 4px">Batal</th>'
-          +'<th style="font-weight:700;padding:6px 4px">Hilang</th>'
           +'<th style="font-weight:700;padding:6px 4px">%Rtr</th>'
           +'<th style="font-weight:700;padding:6px 4px">%Btl</th>'
           +'</tr></thead><tbody style="font-family:var(--mono)">';
@@ -3340,7 +3340,7 @@ async function loadStokMinus(silent){
           function cell(v){ var n=Number(v)||0; var col=(n<0)?'var(--red)':'var(--hint)'; return '<td style="text-align:right;padding:6px 4px;color:'+col+'">'+_rhrNum(n)+'</td>'; }
           h+='<tr style="border-top:1px solid var(--border)">'
             +'<td style="text-align:left;padding:6px 4px;font-family:var(--sans);font-weight:600;color:var(--text)">'+escH(b.nama||b.kode||'')+'</td>'
-            +cell(b.retur)+cell(b.batal)+cell(b.hilang)
+            +cell(b.hilang)+cell(b.retur)+cell(b.batal)
             +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctRetur)+'</td>'
             +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctBatal)+'</td>'
             +'</tr>';
@@ -3351,7 +3351,7 @@ async function loadStokMinus(silent){
     }
     window._rhrLoadedOnce=true;
   }catch(e){
-    if(!silent&&body)body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--muted)">Gagal memuat<br><small>'+escH(String(e.message))+'</small></div></div>';
+    if(!silent&&body)body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--muted)">Belum bisa memuat data.<br><small>Pastikan backend GAS terbaru (endpoint <b>stokminus</b>) sudah di-deploy, dan sumber Orderan Tahunan benar.</small><br><small style="color:var(--hint)">'+escH(String(e.message))+'</small></div></div>';
   }
   if(btn){btn.disabled=false;btn.innerHTML='<span aria-hidden="true">🔄</span><span>Muat</span>';}
 }
@@ -3862,7 +3862,7 @@ function kmRender(){
     var punyaFoto=!!(r.foto||r.fotoResi||r.fotoSurat||r.fotoSS);
     // Opsi cek HANYA untuk foto kiriman milik MANAGER (bukti kerja manager).
     // Kiriman yang dibuat admin = catatan stok admin sendiri → tidak perlu dicek.
-    var dariManager=String(r.oleh||'').toLowerCase()==='manager';
+    var dariManager=_olehManager(r.oleh);
     if(punyaFoto && dariManager){
       if(isCekDone('kiriman',r.row)){
         var arsiped=isCekArsip('kiriman',r.row);
@@ -3888,7 +3888,7 @@ function kmRender(){
         +'<span class="km-admin-lbl">Urutan</span>'
         +'<button type="button" class="km-ord-btn"'+(i===0?' disabled':'')+' title="Naikkan" onclick="event.stopPropagation();kmMove('+r.row+',-1)">⬆</button>'
         +'<button type="button" class="km-ord-btn"'+(i===n-1?' disabled':'')+' title="Turunkan" onclick="event.stopPropagation();kmMove('+r.row+',1)">⬇</button>'
-        +'<button type="button" class="km-pulse-btn'+(pulseOn?' on':'')+'" onclick="event.stopPropagation();kmPulseToggle('+r.row+')">'+(pulseOn?'⏹ Stop denyut':'💓 Denyut')+'</button>'
+        +'<button type="button" class="km-pulse-btn'+(pulseOn?' on':'')+'" onclick="event.stopPropagation();kmPulseToggle('+r.row+')">'+(pulseOn?'Stop denyut':'Denyut')+'</button>'
         +'</div>';
     }
     var fotosVisible=(dariManager&&isCekDone('kiriman',r.row))?'':fotos; // foto hilang dari tampilan hanya setelah foto MANAGER dicek (record tetap di sheet)
@@ -3923,7 +3923,7 @@ function kmPulseToggle(row){
   appConfigSet('kmPulse',JSON.stringify(arr));
   kmRender();
   try{ if(document.getElementById('home-kiriman-list')){ if(typeof _renderHomeKiriman==='function'&&_homeKmRows&&_homeKmRows.length) _renderHomeKiriman(); else if(typeof loadHomeKiriman==='function'&&document.getElementById('home-kiriman-list').children.length) loadHomeKiriman(); } }catch(e){}
-  showToast(i>=0?'⏹ Denyut dimatikan':'💓 Ditandai berdenyut — manager akan melihatnya','ok');
+  showToast(i>=0?'Denyut dimatikan':'Ditandai berdenyut — manager akan melihatnya','ok');
   try{logActivity(i>=0?'Matikan denyut kiriman':'Nyalakan denyut kiriman','Baris '+row);}catch(e){}
 }
 function kmFmtTgl(t){if(!t)return'-';var p=String(t).split('-');if(p.length===3)return p[2]+'/'+p[1];return t;}
@@ -5114,7 +5114,7 @@ function pgRenderList(){
     var cekBlok;
     if(userRole!=='admin'){ cekBlok=''; }
     else if(!adaFoto){ cekBlok=''; }
-    else if(String(r.oleh||'').toLowerCase()!=='manager'){ cekBlok=''; } // catatan admin sendiri → tak perlu opsi cek
+    else if(!_olehManager(r.oleh)){ cekBlok=''; } // catatan admin sendiri → tak perlu opsi cek
     else if(done&&pgArsip){
       cekBlok='<div style="margin-top:7px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()"><span style="font-size:10px;color:var(--hint)">🗂 foto diarsipkan</span>'+cekActionBtnHTML('pelanggaran',r.row)+cekArsipBtnHTML('pelanggaran',r.row)+'</div>';
     } else {
@@ -6551,7 +6551,7 @@ function _renderHomeKiriman(){
       +'<button type="button" onclick="event.stopPropagation();kmMoveHome('+r.row+',1)"'+(i===n-1?' disabled':'')+' style="width:26px;height:22px;border:1px solid var(--border2);background:var(--card);border-radius:6px;cursor:pointer;font-size:11px;line-height:1;color:var(--muted)" title="Turunkan">⬇</button>'
       +'</div>';
     return '<div data-km-row="'+r.row+'" class="'+(pulseOn?'home-km-pulse':'')+'" style="display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid var(--border);border-left:3px solid var(--orange);border-radius:4px;margin-bottom:4px;background:rgba(217,119,6,.04)">'
-      + '<div style="font-size:18px">🚚'+(pulseOn?'<span style="font-size:12px"> 💓</span>':'')+'</div>'
+      + '<div style="font-size:18px">🚚</div>'
       + '<div style="flex:1;min-width:0;cursor:pointer" onclick="kmOpenDetail('+r.row+')">'
       + '<div style="font-size:13px;font-weight:700;color:var(--orange)">'+hdr+'</div>'
       + '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+escH(r.isi||'-')+'</div>'
