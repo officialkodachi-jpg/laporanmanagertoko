@@ -1423,6 +1423,7 @@ var ACC_MAX = 150;                 // akurasi lebih buruk dari ini (meter) tidak
 var ACC_GOOD = 40;                 // fix dianggap sangat akurat bila <=40m
 var LEAVE_GRACE_MS = 3*60*1000;    // harus terbaca di luar selama ini baru dianggap keluar
 var _outSince = null;              // kapan pertama kali terbaca di luar toko
+var _inGpsHits = 0;                // jumlah fix GPS in-radius berturut → buka sesi hanya bila yakin
 var _gpsConfirmed = false;         // true HANYA bila GPS akurat pernah memastikan di dalam toko.
                                    // Masuk lewat router/WiFi = provisional → langsung dikoreksi GPS bila ternyata di luar.
 // ── ANTI-CURANG: menit hanya bertambah selama kehadiran benar-benar dikonfirmasi & app aktif ──
@@ -2076,17 +2077,27 @@ function onLocOk(pos){
   // Anti positif-palsu: kalau GPS jelas DI LUAR, manager dianggap keluar walau router toko
   // sempat terdeteksi. (Gateway umum 192.168.x.x bisa cocok juga di rumah = positif palsu,
   // itulah kenapa sebelumnya "lokasi manager di toko terus".)
-  var inGps = (dist - accuracy) <= TOKO.radius;   // tepi terdekat masih dalam radius?
+  // Toleransi akurasi DIBATASI (maks ACC_GOOD), bukan akurasi penuh — supaya fix berakurasi buruk
+  // tidak bikin radius "membengkak" jadi ratusan meter (penyebab "di toko" palsu di rumah/parkiran).
+  var _allow = Math.min(accuracy, ACC_GOOD);
+  var inGps  = (dist - _allow) <= TOKO.radius;            // utk TETAP di dalam (sesi sudah jalan)
+  if(inGps){ _inGpsHits = (_inGpsHits||0) + 1; } else { _inGpsHits = 0; }
+  // Buka sesi BARU hanya bila yakin: pusat jelas di dalam + akurasi bagus, ATAU 2 fix in-radius berturut.
+  var canOpen = (accuracy <= ACC_GOOD && dist <= TOKO.radius) || (_inGpsHits >= 2);
 
   if(inGps){
     // GPS mengonfirmasi DI DALAM toko
     _outSince=null;
     if(!isAtStore){
-      isAtStore=true;sessionStart=Date.now();_gpsConfirmed=true;_markPresent();
-      locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});
-      saveLocData();updateLocBanner('in');
-      showToast('✓ Kamu tiba di Kodachi Shop!','ok');
-      logActivity('Tiba di toko','Jarak '+dist+'m (GPS)');pushManagerLoc();
+      if(canOpen){
+        isAtStore=true;sessionStart=Date.now();_gpsConfirmed=true;_markPresent();
+        locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});
+        saveLocData();updateLocBanner('in');
+        showToast('✓ Kamu tiba di Kodachi Shop!','ok');
+        logActivity('Tiba di toko','Jarak '+dist+'m (GPS)');pushManagerLoc();
+      }else{
+        // 1 fix in-radius tapi belum meyakinkan → tunggu fix berikutnya, jangan klaim hadir/buka sesi dulu
+      }
     }else{
       _gpsConfirmed=true;_markPresent();saveLocData();updateLocBanner('in');
     }
