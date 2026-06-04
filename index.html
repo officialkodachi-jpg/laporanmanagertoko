@@ -679,7 +679,7 @@ body.role-admin #admin-mgrlog{display:none!important}
       </div>
       <div style="padding:12px 14px;display:flex;flex-direction:column;gap:9px">
         <button id="adm-mapshare-toggle" onclick="admToggleMapShare()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">📍 Aktifkan tombol Bagikan Lokasi (Manager)</button>
-        <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">🙈 Sembunyikan tab Kepegawaian (Manager)</button>
+        <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">👁 Tampilkan tab Kepegawaian (Manager)</button>
         <button id="adm-mgrself-toggle" onclick="admToggleMgrSelf()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">👁 Tampilkan data Rifyh ke Manager (evaluasi)</button>
         <div style="font-size:10px;color:var(--hint);line-height:1.5">💡 <b>Tampilkan data Rifyh</b>: manager bisa lihat catatan dirinya (read-only) untuk evaluasi.<br>• Tab tampil + Rifyh on → manager lihat semua partimer <b>dan</b> Rifyh.<br>• Tab disembunyikan + Rifyh on → tab tetap muncul tapi isinya <b>khusus Rifyh saja</b> (partimer lain disembunyikan). Cocok untuk sesi evaluasi.</div>
       </div>
@@ -1881,7 +1881,7 @@ function harianSaveLock(){}
 function harianClearLock(){ try{ localStorage.removeItem(_harianLockKey()); }catch(e){} }
 
 // ════ CONFIG GLOBAL (lintas-perangkat, via Apps Script ?type=appconfig) ════
-// { hideKepegawaian:0|1, harianResetTS:<ms>, ... }
+// { showKepManager:0|1, showMgrSelf:0|1, mapShareOn:0|1, ... }
 var _appCfg={};
 function appConfigLoad(cb){
   var url=scriptUrl; if(!url||!url.startsWith('http')){ if(cb)cb(_appCfg); return; }
@@ -1899,19 +1899,18 @@ function appConfigSet(key,val,cb){
 }
 // Terapkan config ke UI (dipanggil setelah load & setelah set)
 function applyAppConfig(){
-  // 1) Hide/Unhide tab Kepegawaian di akun MANAGER
-  var hideKep = String(_appCfg.hideKepegawaian||'')==='1';
+  // 1) Tab Kepegawaian di akun MANAGER — DEFAULT TERSEMBUNYI.
+  //    Hanya tampil bila admin menyalakan showKepManager (tab umum) ATAU showMgrSelf (evaluasi Rifyh).
+  var showKep  = String(_appCfg.showKepManager||'')==='1';
   var showSelfTab = String(_appCfg.showMgrSelf||'')==='1';
   var kepBtn=document.querySelector(".tab[onclick*=\"switchTab('pegawai'\"]");
   if(kepBtn){
-    // tab disembunyikan dari manager HANYA bila hide aktif DAN data Rifyh tidak ditampilkan.
-    // Bila admin menampilkan data Rifyh, tab tetap muncul (isinya khusus Rifyh — lihat loadPartimer).
-    if(userRole==='manager' && hideKep && !showSelfTab){ kepBtn.style.display='none'; }
+    if(userRole==='manager'){ kepBtn.style.display = (showKep || showSelfTab) ? '' : 'none'; }
     else { kepBtn.style.display=''; }
   }
   // refleksikan status tombol admin (kalau ada)
   var aHide=document.getElementById('adm-kep-toggle');
-  if(aHide) aHide.textContent = hideKep ? '👁 Tampilkan tab Kepegawaian (Manager)' : '🙈 Sembunyikan tab Kepegawaian (Manager)';
+  if(aHide) aHide.textContent = showKep ? '🙈 Sembunyikan tab Kepegawaian (Manager)' : '👁 Tampilkan tab Kepegawaian (Manager)';
   // 2) (Aturan reset harian lama tidak relevan lagi — kunci sekarang berbasis jam 10:00)
   if(document.getElementById('panel-harian')) applyHarianLock();
   // 3) Tombol Bagikan Lokasi (Google Maps) untuk Manager — diaktifkan oleh Admin
@@ -1934,7 +1933,7 @@ function applyAppConfig(){
   var aSelf=document.getElementById('adm-mgrself-toggle');
   if(aSelf) aSelf.textContent = showSelf ? '🙈 Sembunyikan data Rifyh dari Manager' : '👁 Tampilkan data Rifyh ke Manager (evaluasi)';
   // bila status berubah utk manager & tab sudah pernah dibuka, muat ulang daftar nama
-  var cfgSig = (hideKep?'1':'0')+'|'+(showSelf?'1':'0');
+  var cfgSig = (showKep?'1':'0')+'|'+(showSelf?'1':'0');
   if(userRole==='manager' && _pgLoadedOnce && _appCfgMgrSelfPrev!==cfgSig){ loadPartimer(); }
   _appCfgMgrSelfPrev = cfgSig;
 }
@@ -4678,16 +4677,16 @@ function loadPartimer(){
         NAMA_TETAP_ADMIN.forEach(function(nm){if(pgNames.indexOf(nm)<0)pgNames.unshift(nm);});
       }else{
         var _showSelf=String(_appCfg.showMgrSelf||'')==='1';
-        var _hideKep=String(_appCfg.hideKepegawaian||'')==='1';
+        var _showKep=String(_appCfg.showKepManager||'')==='1';
         var _tetapLow=NAMA_TETAP_ADMIN.map(function(n){return String(n).toLowerCase();});
-        if(_showSelf && _hideKep){
-          // MODE EVALUASI: tab umum disembunyikan, manager hanya boleh lihat catatan dirinya (Rifyh)
+        if(_showSelf && !_showKep){
+          // MODE EVALUASI: tab umum tidak ditampilkan, manager hanya boleh lihat catatan dirinya (Rifyh)
           pgNames=NAMA_TETAP_ADMIN.slice();
         }else if(_showSelf){
-          // tab tampil penuh + tambahkan Rifyh (manager lihat semua partimer & dirinya)
+          // tab umum tampil + tambahkan Rifyh (manager lihat semua partimer & dirinya)
           NAMA_TETAP_ADMIN.forEach(function(nm){if(pgNames.indexOf(nm)<0)pgNames.unshift(nm);});
         }else{
-          // default: sembunyikan Rifyh dari manager
+          // tab umum tampil tanpa data Rifyh: sembunyikan Rifyh dari manager
           pgNames=pgNames.filter(function(n){return _tetapLow.indexOf(String(n).toLowerCase())<0;});
         }
       }
@@ -5521,6 +5520,10 @@ function applyRole(){
     },100);
   }else{
     document.body.classList.add('role-manager');document.body.classList.remove('role-admin');
+    // DEFAULT: tab Kepegawaian disembunyikan untuk manager sampai config (showKepManager/showMgrSelf)
+    // mengizinkan. Mencegah tab "berkedip" muncul sebelum config termuat.
+    var _kepBtnM=document.querySelector(".tab[onclick*=\"switchTab('pegawai'\"]");
+    if(_kepBtnM) _kepBtnM.style.display='none';
     // Hanya akun manager tertentu yang boleh logout
     if(String(userEmail||'').toLowerCase()==='akwalsadida@gmail.com') document.body.classList.add('allow-logout');
     else document.body.classList.remove('allow-logout');
@@ -5673,16 +5676,16 @@ function kjkClear(){
     .catch(function(){showToast('Gagal menghapus','err');});
 }
 
-// Admin: hide/unhide tab Kepegawaian di akun Manager (lintas perangkat)
+// Admin: tampilkan/sembunyikan tab Kepegawaian di akun Manager (default TERSEMBUNYI; lintas perangkat)
 function admToggleKepegawaian(){
   if(userRole!=='admin')return;
-  var cur=String(_appCfg.hideKepegawaian||'')==='1';
+  var cur=String(_appCfg.showKepManager||'')==='1';
   var next=cur?'0':'1';
-  appConfigSet('hideKepegawaian',next,function(){});
-  _appCfg.hideKepegawaian=next;
+  appConfigSet('showKepManager',next,function(){});
+  _appCfg.showKepManager=next;
   applyAppConfig();
-  showToast(next==='1'?'🙈 Tab Kepegawaian disembunyikan untuk Manager':'👁 Tab Kepegawaian ditampilkan untuk Manager','ok');
-  logActivity('Toggle tab Kepegawaian Manager',next==='1'?'hide':'show');
+  showToast(next==='1'?'👁 Tab Kepegawaian ditampilkan untuk Manager':'🙈 Tab Kepegawaian disembunyikan untuk Manager','ok');
+  logActivity('Toggle tab Kepegawaian Manager',next==='1'?'show':'hide');
 }
 // Admin: tampilkan/sembunyikan data Rifyh (manager) ke akun Manager — read-only, untuk evaluasi
 function admToggleMgrSelf(){
