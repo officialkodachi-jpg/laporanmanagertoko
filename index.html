@@ -1379,6 +1379,14 @@ body.role-admin #admin-mgrlog{display:none!important}
     <div class="alert info" style="margin-bottom:14px">🗄️ <b>Sumber Data</b> — ganti link spreadsheet tanpa ngedit kode. Tempel link Google Sheet penuh, sistem ambil ID-nya otomatis, lalu <b>Simpan</b>. Berlaku ke semua perangkat.</div>
 
     <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">🗂️</span><div class="sd-meta"><div class="sd-name">Backup Data MTG</div><div class="sd-desc">Salin semua data MTG ke Drive sebagai <b>nilai statis</b> (tanpa rumus)</div></div><span class="sd-tag folder">Drive</span></div>
+      <div class="sd-row"><button id="sd-backup-btn" onclick="backupMTGNow()" style="flex:1">💾 Backup sekarang</button></div>
+      <div id="sd-backup-result" style="font-size:11px;margin-top:9px;line-height:1.5;display:none"></div>
+    </div>
+
+    <div class="section-hdr" style="margin:18px 0 12px"><span class="section-hdr-label">🔗 Ganti Sumber</span><div class="section-hdr-line"></div></div>
+
+    <div class="sd-card">
       <div class="sd-top"><span class="sd-ic">📅</span><div class="sd-meta"><div class="sd-name">Orderan Tahunan</div><div class="sd-desc">Sumber Rekap Barang Hilang Retur · ganti tiap ganti tahun</div></div><span class="sd-tag ss">Spreadsheet</span></div>
       <div class="sd-cur">aktif: <span id="sd-tail-ss_orderan">…</span></div>
       <div class="sd-row"><input id="sd-in-ss_orderan" type="text" placeholder="tempel link Orderan baru…"><button onclick="saveSumber('ss_orderan','sd-in-ss_orderan')">💾 Simpan</button></div>
@@ -3289,6 +3297,29 @@ function saveSumberGas(){
   var el=document.getElementById('sd-tail-gas'); if(el)el.textContent=_sdTail(v);
   showToast('✓ URL backend tersimpan','ok');
   try{ logActivity('Ganti URL Backend GAS', _sdTail(v)); }catch(e){}
+}
+async function backupMTGNow(){
+  if(!scriptUrl){openModal();return;}
+  if(!confirm('Buat backup data MTG ke Drive sekarang?\n\nIsinya nilai statis (tanpa rumus). Proses bisa beberapa detik.'))return;
+  var btn=document.getElementById('sd-backup-btn'), res=document.getElementById('sd-backup-result');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="rhr-spin"></span> Membuat backup…';}
+  if(res){res.style.display='none';}
+  try{
+    var r=await fetch(scriptUrl+'?type=backup'), d=await r.json();
+    if(!d||!d.ok) throw new Error((d&&(d.message||d.error))||'gagal');
+    if(res){
+      res.style.display='block'; res.style.color='var(--green)';
+      res.innerHTML='✓ Backup dibuat: <b>'+d.name+'</b><br>'
+        +'<a href="'+d.url+'" target="_blank" style="color:var(--accent);font-weight:700">Buka file backup →</a> &nbsp;·&nbsp; '
+        +'<a href="'+d.folderUrl+'" target="_blank" style="color:var(--accent)">folder ‘'+d.folder+'’</a>';
+    }
+    showToast('✓ Backup selesai','ok');
+    try{ logActivity('Backup MTG', d.name); }catch(e){}
+  }catch(e){
+    if(res){res.style.display='block';res.style.color='var(--red)';res.textContent='Gagal: '+String(e.message);}
+    showToast('Gagal backup','err');
+  }
+  if(btn){btn.disabled=false;btn.innerHTML='💾 Backup sekarang';}
 }
 
 // Set badge: tampil kalau n>0, sembunyi kalau 0
