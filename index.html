@@ -924,6 +924,21 @@ body.role-admin #admin-mgrlog{display:none!important}
       </div>
       <div id="stok-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Tekan "Perbarui Data"</div></div></div>
       <a class="stok-sheet-link" id="stok-sheet-link" href="#" target="_blank">📊 Buka Google Sheet Stok Toko →</a>
+
+      <!-- ══ Rekap Barang Hilang Retur (dari SS Orderan Tahunan) ══ -->
+      <div id="rhr-section" style="margin-top:24px;border-top:1px solid var(--border);padding-top:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px">
+          <div style="font-size:14px;font-weight:800;color:var(--text)">📉 Rekap Barang Hilang Retur</div>
+          <button id="rhr-refresh" onclick="loadStokMinus()" style="background:var(--card);border:1.5px solid var(--border2);border-radius:20px;padding:6px 13px;font-family:var(--sans);font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;flex-shrink:0">🔄 Muat</button>
+        </div>
+        <div class="alert info" style="margin-bottom:12px;font-size:11px">Unit Retur / Batal / Hilang per bulan (tahun berjalan). Data keuangan &amp; pembeli tidak ditarik ke aplikasi.</div>
+        <div id="rhr-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+          <div style="background:var(--card2);border-radius:var(--r);padding:12px 6px;text-align:center"><div style="font-size:21px;font-weight:800;color:var(--red);font-family:var(--mono)" id="rhr-tot-retur">–</div><div style="font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.04em">Retur ’26</div></div>
+          <div style="background:var(--card2);border-radius:var(--r);padding:12px 6px;text-align:center"><div style="font-size:21px;font-weight:800;color:var(--red);font-family:var(--mono)" id="rhr-tot-batal">–</div><div style="font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.04em">Batal ’26</div></div>
+          <div style="background:var(--card2);border-radius:var(--r);padding:12px 6px;text-align:center"><div style="font-size:21px;font-weight:800;color:var(--red);font-family:var(--mono)" id="rhr-tot-hilang">–</div><div style="font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.04em">Hilang ’26</div></div>
+        </div>
+        <div id="rhr-body"><div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--hint)">Tekan “Muat” untuk menarik data</div></div></div>
+      </div>
     </div>
 
     <!-- Gudang IN/OUT -->
@@ -1408,8 +1423,8 @@ const STOK_EMPTY_NS='stok_empty_since:';
 // ════ STATE ════
 let checked={},notes={};
 let scriptUrl=localStorage.getItem('mtg_url')||DEFAULT_URL;
-// Koreksi otomatis kalau localStorage menyimpan URL lama yang rusak
-if(scriptUrl.indexOf('xFQgBZjQgFE_')>=0 || !scriptUrl.startsWith('http')){scriptUrl=DEFAULT_URL;localStorage.setItem('mtg_url',DEFAULT_URL);}
+// Koreksi otomatis kalau localStorage menyimpan URL deployment yang salah/rusak → balik ke yang benar
+if(scriptUrl.indexOf('xFQgBZjQgFE_')>=0 || scriptUrl.indexOf('AKfycbxtr9p6')>=0 || !scriptUrl.startsWith('http')){scriptUrl=DEFAULT_URL;localStorage.setItem('mtg_url',DEFAULT_URL);}
 let selectedEvent=null,selectedStatus=null;
 let stokData={minus:[],red:[],yellow:[],blue:[]},stokFilter='all';
 let stokLoadedOnce=false,_stokAudioCtx=null,_stokRefreshTimer=null;
@@ -3107,6 +3122,50 @@ function renderStokList(){
   list.innerHTML=html||'<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Tidak ada item dengan filter ini</div></div>';
 }
 
+// ════ Rekap Barang Hilang Retur (Opsi C: ringkasan setahun + tabel) ════
+function _rhrNum(n){ n=Number(n)||0; return n.toLocaleString('id-ID'); }
+function _rhrPct(v){ if(v===null||v===undefined||v==='')return '—'; var n=Number(v); if(!isFinite(n))return '—'; return (Math.round(n*1000)/10)+'%'; }
+async function loadStokMinus(){
+  if(!scriptUrl){openModal();return;}
+  var btn=document.getElementById('rhr-refresh'), body=document.getElementById('rhr-body');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner" style="width:11px;height:11px;border-width:2px"></span>';}
+  if(body)body.innerHTML='<div class="empty" style="padding:18px 0"><span class="spinner"></span> Menarik data...</div>';
+  try{
+    var r=await fetch(scriptUrl+'?type=stokminus'), d=await r.json();
+    if(d&&(d.error||d.status==='error')) throw new Error(d.error||d.message||'error');
+    var bulan=(d&&d.bulan)||[], tot=(d&&d.total)||{retur:0,batal:0,hilang:0};
+    var te=document.getElementById('rhr-tot-retur'); if(te)te.textContent=_rhrNum(tot.retur);
+    var tb=document.getElementById('rhr-tot-batal'); if(tb)tb.textContent=_rhrNum(tot.batal);
+    var th=document.getElementById('rhr-tot-hilang'); if(th)th.textContent=_rhrNum(tot.hilang);
+    if(!bulan.length){body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--hint)">Belum ada data bulan</div></div>';}
+    else{
+      var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+        +'<thead><tr style="color:var(--muted);text-align:right">'
+        +'<th style="text-align:left;font-weight:700;padding:6px 4px">Bulan</th>'
+        +'<th style="font-weight:700;padding:6px 4px">Retur</th>'
+        +'<th style="font-weight:700;padding:6px 4px">Batal</th>'
+        +'<th style="font-weight:700;padding:6px 4px">Hilang</th>'
+        +'<th style="font-weight:700;padding:6px 4px">%Rtr</th>'
+        +'<th style="font-weight:700;padding:6px 4px">%Btl</th>'
+        +'</tr></thead><tbody style="font-family:var(--mono)">';
+      bulan.forEach(function(b){
+        function cell(v){ var n=Number(v)||0; var col=(n<0)?'var(--red)':'var(--hint)'; return '<td style="text-align:right;padding:6px 4px;color:'+col+'">'+_rhrNum(n)+'</td>'; }
+        h+='<tr style="border-top:1px solid var(--border)">'
+          +'<td style="text-align:left;padding:6px 4px;font-family:var(--sans);font-weight:600;color:var(--text)">'+(b.nama||b.kode||'')+'</td>'
+          +cell(b.retur)+cell(b.batal)+cell(b.hilang)
+          +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctRetur)+'</td>'
+          +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctBatal)+'</td>'
+          +'</tr>';
+      });
+      h+='</tbody></table></div>';
+      body.innerHTML=h;
+    }
+  }catch(e){
+    if(body)body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--muted)">Gagal memuat<br><small>'+String(e.message)+'</small></div></div>';
+  }
+  if(btn){btn.disabled=false;btn.textContent='🔄 Muat';}
+}
+
 // Set badge: tampil kalau n>0, sembunyi kalau 0
 function _setBadge(id,n,pulse){
   var b=document.getElementById(id);if(!b)return;
@@ -3712,7 +3771,7 @@ function switchTab(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='home'){loadHomeKiriman();loadHomeLog();loadHomeHarian();loadHomeJamKerja();loadHomeEvent();loadHomeRekap();loadHomeStreak();}
-  if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();}
+  if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();if(!window._rhrLoadedOnce){window._rhrLoadedOnce=true;loadStokMinus();}}
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
   if(name==='cash'){if(cashData.length===0)loadCashData();annotateCashForms();}
   if(name==='pegawai'&&!_pgLoadedOnce)loadPartimer();
