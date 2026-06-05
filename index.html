@@ -773,6 +773,19 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
         <button id="adm-mapshare-toggle" onclick="admToggleMapShare()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">📍 Aktifkan tombol Bagikan Lokasi (Manager)</button>
         <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">👁 Tampilkan tab Kepegawaian (Manager)</button>
         <button id="adm-mgrself-toggle" onclick="admToggleMgrSelf()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">👁 Tampilkan data Rifyh ke Manager (evaluasi)</button>
+        <div style="display:flex;align-items:center;gap:9px;padding:6px 0 2px;border-top:1px dashed var(--border)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:800;color:var(--text)">⏳ Toleransi jeda kehadiran</div>
+            <div style="font-size:10px;color:var(--hint);line-height:1.5">Layar HP mati / app di background ≤ angka ini → tetap dihitung hadir. Lewat itu sesi <b>pause otomatis</b>. Berlaku ke semua perangkat.</div>
+          </div>
+          <select id="adm-gap-select" onchange="admSetGap(this.value)" style="font-family:var(--mono);font-size:12px;padding:8px 10px;border:1px solid var(--border2);border-radius:9px;background:var(--card);color:var(--text);color-scheme:light">
+            <option value="7">7 mnt (ketat)</option>
+            <option value="15">15 mnt</option>
+            <option value="30">30 mnt</option>
+            <option value="45">45 mnt</option>
+            <option value="60">60 mnt (longgar)</option>
+          </select>
+        </div>
         <div style="font-size:10px;color:var(--hint);line-height:1.5">💡 <b>Tampilkan data Rifyh</b>: manager bisa lihat catatan dirinya (read-only) untuk evaluasi.<br>• Tab tampil + Rifyh on → manager lihat semua partimer <b>dan</b> Rifyh.<br>• Tab disembunyikan + Rifyh on → tab tetap muncul tapi isinya <b>khusus Rifyh saja</b> (partimer lain disembunyikan). Cocok untuk sesi evaluasi.</div>
       </div>
     </div>
@@ -1544,7 +1557,7 @@ const EVENTS=[
 ];
 const BULAN_NAMES=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const DAY_SHORT=['Min','Sen','Sel','Rab','Kam','Jum','Sab'],DAY_FULL=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-const TOKO={lat:-7.761684,lng:110.369448,radius:120},TARGET_MENIT=240;
+const TOKO={lat:-7.761684,lng:110.369448,radius:150},TARGET_MENIT=240;
 const DEFAULT_URL='https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBEBZjQgFE_/exec';
 const SHEET_URL='https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=0#gid=0';
 const GUDANG_SHEET_URL='https://docs.google.com/spreadsheets/d/13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk/edit';
@@ -1566,8 +1579,8 @@ let minusMuted=false; // bisukan banner stok minus (sampai refresh)
 let _alarmInterval=null;
 let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locationLog=[],lastPos=null;
 // Anti GPS-ngaco: abaikan fix berakurasi buruk, beri toleransi & grace period saat keluar
-var ACC_MAX = 150;                 // akurasi lebih buruk dari ini (meter) tidak dipakai ubah status
-var ACC_GOOD = 40;                 // fix dianggap sangat akurat bila <=40m
+var ACC_MAX = 200;                 // akurasi lebih buruk dari ini (meter) tidak dipakai ubah status
+var ACC_GOOD = 65;                 // fix dianggap sangat akurat bila <=65m
 var LEAVE_GRACE_MS = 3*60*1000;    // harus terbaca di luar selama ini baru dianggap keluar
 var _outSince = null;              // kapan pertama kali terbaca di luar toko
 var _inGpsHits = 0;                // jumlah fix GPS in-radius berturut → buka sesi hanya bila yakin
@@ -7384,7 +7397,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
 
   window.renderBottomNav=function(){
     var bar=document.getElementById('bn-bar'); if(!bar)return;
-    var prio={harian:0,event:1};   // Harian paling kiri, Non-harian tepat di kanannya
+    var prio={home:-1,harian:0,event:1};   // Admin: Home paling kiri · Harian lalu Non-harian di kanannya
     var items=[];
     document.querySelectorAll('.tabs .tab').forEach(function(tb,idx){
       var oc=tb.getAttribute('onclick')||''; var m=oc.match(/switchTab\('([^']+)'/); if(!m)return;
@@ -7489,6 +7502,35 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
   };
   window.closeSheet=function(){var s=document.getElementById('sheet-bg'); if(s)s.classList.remove('open');};
 
+  // ── Wake Lock: jaga layar tetap nyala saat manager di toko & app di depan → ping jalan terus ──
+  var _wakeLock=null;
+  function _wlUpdate(){
+    try{
+      if(!('wakeLock' in navigator))return;
+      var want = (userRole==='manager') && (isAtStore===true) && (document.visibilityState==='visible');
+      if(want && !_wakeLock){
+        navigator.wakeLock.request('screen').then(function(wl){ _wakeLock=wl; try{wl.addEventListener('release',function(){_wakeLock=null;});}catch(e){} }).catch(function(){ _wakeLock=null; });
+      }else if(!want && _wakeLock){
+        try{_wakeLock.release();}catch(e){} _wakeLock=null;
+      }
+    }catch(e){}
+  }
+
+  // ── Admin: atur toleransi jeda kehadiran (disimpan lintas-perangkat via appconfig) ──
+  window.admSetGap=function(v){
+    try{
+      if(typeof appConfigSet==='function') appConfigSet('gapMax', String(v));
+      if(typeof showToast==='function') showToast('✓ Toleransi jeda kehadiran: '+v+' menit','ok');
+    }catch(e){}
+  };
+  function _reflectGap(){
+    try{
+      var gm=String((typeof _appCfg!=='undefined' && _appCfg.gapMax)||'30');
+      if(['7','15','30','45','60'].indexOf(gm)<0)gm='30';
+      var gs=document.getElementById('adm-gap-select'); if(gs)gs.value=gm;
+    }catch(e){}
+  }
+
   window.appFab=function(){
     var p=document.querySelector('.panel.active'); if(!p)return;
     p.scrollIntoView({behavior:'smooth',block:'start'});
@@ -7499,7 +7541,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
   function _boot(){
     if(typeof window.switchTab==='function'){ var _s=window.switchTab; window.switchTab=function(n,b){ _s(n,b); try{syncBottomNav(n); if(n==='home'&&window._mgrMap){setTimeout(function(){try{window._mgrMap.invalidateSize();}catch(e){}},120);}}catch(e){} }; }
     if(typeof window.applyRole==='function'){ var _a=window.applyRole; window.applyRole=function(){ _a.apply(this,arguments); try{ placeLocCards(); renderBottomNav(); var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian'); _navPeeked=false; setTimeout(navPeek,900); }catch(e){} }; }
-    if(typeof window.applyAppConfig==='function'){ var _ac=window.applyAppConfig; window.applyAppConfig=function(){ _ac.apply(this,arguments); try{renderBottomNav();}catch(e){} }; }
+    if(typeof window.applyAppConfig==='function'){ var _ac=window.applyAppConfig; window.applyAppConfig=function(){ _ac.apply(this,arguments); try{renderBottomNav();_reflectGap();}catch(e){} }; }
     placeLocCards();
     renderBottomNav();
     var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian');
@@ -7508,6 +7550,9 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     var bn=document.getElementById('bn-bar'); if(bn)bn.addEventListener('scroll',function(){try{updateNavHint();}catch(e){}},{passive:true});
     window.addEventListener('resize',function(){try{updateNavHint();}catch(e){}});
     setTimeout(function(){try{updateNavHint();navPeek();}catch(e){}},900);
+    document.addEventListener('visibilitychange',function(){try{_wlUpdate();}catch(e){}});
+    setInterval(function(){try{_wlUpdate();}catch(e){}},15000);
+    _reflectGap(); _wlUpdate();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_boot); else _boot();
 })();
