@@ -610,6 +610,23 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .sheet-cell span{font-size:11px;text-align:center;line-height:1.2}
 .sheet-cell .si .sdot{position:absolute;top:-2px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1.5px solid var(--card)}
 </style>
+<style>
+.mon-chip{font-size:12px;padding:6px 11px;border-radius:10px;cursor:pointer;border:1px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);white-space:nowrap;font-weight:600}
+.mon-chip.on{background:rgba(37,99,235,.12);color:var(--accent);border-color:rgba(37,99,235,.4)}
+.mon-chip .mon-cnt{color:var(--hint);font-weight:700}
+.mon-chip.on .mon-cnt{color:var(--accent)}
+.mon-card{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:var(--card)}
+.mon-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mon-jchip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:20px;background:var(--surface);color:var(--muted);white-space:nowrap;font-weight:600}
+.mon-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.mon-act{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:7px 11px;border-radius:9px;cursor:pointer;border:1px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);font-weight:700}
+.mon-act:active{transform:scale(.97)}
+.mon-act.ok{border-color:var(--green);color:var(--green)}
+.mon-thumb{position:relative;width:54px;height:54px;border-radius:9px;overflow:hidden;border:1px solid var(--border);background:var(--surface);flex-shrink:0;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mon-fcount{position:absolute;right:3px;bottom:3px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:rgba(0,0,0,.66);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.cek-rk-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:5px 10px;border-radius:20px;background:var(--surface);color:var(--muted);white-space:nowrap;font-weight:600}
+.cek-rk-chip b{color:var(--red)}
+</style>
 </head>
 <body>
 
@@ -825,18 +842,17 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
       </div>
     </div>
 
-    <div id="cek-panel" style="margin-bottom:12px">
-      <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
-        <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
-          <span style="font-size:18px">📸</span>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:800;color:var(--text)">Pekerjaan berfoto — perlu dicek</div>
-            <div style="font-size:10px;color:var(--hint)" id="cek-sub">Memuat…</div>
-          </div>
-          <button id="cek-toggle" onclick="cekToggleMode()" style="font-size:10px;padding:5px 9px;border:1px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;color:var(--muted)">Lihat semua</button>
+    <!-- 📸 Ringkasan Upload Manager — daftar lengkap pindah ke modal Monitor -->
+    <div id="cek-ringkasan" style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:13px 14px">
+        <div style="width:38px;height:38px;border-radius:11px;background:rgba(37,99,235,.1);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">📸</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Upload Manager perlu dicek</div>
+          <div style="font-size:11px;color:var(--hint)"><span id="cek-rk-count" style="font-weight:800;color:var(--red)">0</span> foto bukti menunggu verifikasi</div>
         </div>
-        <div id="cek-list" style="padding:10px 12px;max-height:420px;overflow-y:auto"></div>
+        <button onclick="monOpen()" style="background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);white-space:nowrap">Buka monitor →</button>
       </div>
+      <div id="cek-rk-chips" style="display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 13px"></div>
     </div>
 
     <!-- ✍️ NOTE UNTUK MANAGER — admin tulis pesan yang muncul sebagai banner di HP Manager -->
@@ -1505,6 +1521,24 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <div class="km-detail-bd" id="pg-d-body"></div>
   </div>
 </div>
+<!-- MODAL: Monitor upload manager (admin) -->
+<div class="km-detail-bg" id="mon-bg" onclick="if(event.target===this)monClose()">
+  <div class="km-detail" style="max-width:560px">
+    <div class="km-detail-hd" style="flex-direction:column;align-items:stretch;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">📸</span>
+        <div style="flex:1;min-width:0">
+          <b style="font-size:15px">Monitor upload manager</b>
+          <div id="mon-sub" style="font-size:11px;color:var(--hint);font-family:var(--mono);margin-top:2px">—</div>
+        </div>
+        <button class="km-detail-x" onclick="monClose()">×</button>
+      </div>
+      <div id="mon-status" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      <div id="mon-jenis" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div class="km-detail-bd" id="mon-list" style="padding:12px 14px"></div>
+  </div>
+</div>
 <!-- MODAL: Manager kirim bukti note selesai -->
 <div class="km-detail-bg" id="note-done-bg" onclick="if(event.target===this)closeNoteDone()">
   <div class="km-detail">
@@ -2066,6 +2100,7 @@ function appConfigSet(key,val,cb){
 }
 // Terapkan config ke UI (dipanggil setelah load & setelah set)
 function applyAppConfig(){
+  try{ _cekArsipSync(); }catch(e){}
   // 1) Tab Kepegawaian di akun MANAGER — DEFAULT TERSEMBUNYI.
   //    Hanya tampil bila admin menyalakan showKepManager (tab umum) ATAU showMgrSelf (evaluasi Rifyh).
   var showKep  = String(_appCfg.showKepManager||'')==='1';
@@ -2597,12 +2632,119 @@ function cekLoad(useCache){
   var url=scriptUrl;if(!url||!url.startsWith('http'))return;
   cekKeysLoad(function(items){
     _cekData=items||[];
-    var _mgr=_cekData.filter(_cekItemIsMgr);
-    var belum=_mgr.filter(function(x){return !x.dicek;}).length;
-    var sub=document.getElementById('cek-sub');
-    if(sub)sub.textContent=belum+' belum dicek · '+_mgr.length+' total berfoto';
-    cekRender();
+    cekRenderRingkasan();
+    if(_monIsOpen()) monRender();
   },!useCache);
+}
+
+// ── Meta jenis (label + ikon pendek) ──
+function _jenisMeta(j){
+  return ({
+    nonharian:{l:'Non-Harian',i:'📋'},
+    kiriman:{l:'Kiriman',i:'📦'},
+    pelanggaran:{l:'Pelanggaran',i:'⚠️'},
+    uang:{l:'Uang Cash',i:'💵'},
+    note_bukti:{l:'Note',i:'📝'}
+  })[j]||{l:j,i:'•'};
+}
+function _monOlehShort(o){ o=String(o||''); var m=o.split('(')[0].trim(); return m||o; }
+
+// ── Sumber data monitor: HANYA bukti kerja manager ──
+function monMgrItems(){ return (_cekData||[]).filter(_cekItemIsMgr); }
+// arsip menang; lalu dicek; sisanya belum
+function monStatusOf(it){ return isCekArsipKey(it.kunci)?'arsip':(it.dicek?'dicek':'belum'); }
+function monCount(st){
+  var arr=monMgrItems();
+  if(st==='semua') return arr.length;
+  return arr.filter(function(x){return monStatusOf(x)===st;}).length;
+}
+
+// ── Kartu ringkasan di Home (badge perlu dicek + chip per-jenis) ──
+function cekRenderRingkasan(){
+  var card=document.getElementById('cek-ringkasan'); if(!card)return;
+  var perlu=monMgrItems().filter(function(x){return monStatusOf(x)==='belum';});
+  var c=document.getElementById('cek-rk-count'); if(c)c.textContent=perlu.length;
+  var byJ={}; perlu.forEach(function(x){ byJ[x.jenis]=(byJ[x.jenis]||0)+1; });
+  var order=['nonharian','kiriman','pelanggaran','uang','note_bukti'];
+  var chips=order.filter(function(j){return byJ[j];}).map(function(j){
+    var jm=_jenisMeta(j);
+    return '<span class="cek-rk-chip">'+jm.i+' '+jm.l+' <b>'+byJ[j]+'</b></span>';
+  }).join('');
+  var el=document.getElementById('cek-rk-chips');
+  if(el)el.innerHTML=chips||'<span style="font-size:11px;color:var(--green)">✓ Semua sudah dicek</span>';
+}
+
+// ── Monitor (modal) ──
+var monFStatus='belum', monFJenis='semua', _monZoomKey='';
+function _monIsOpen(){ var b=document.getElementById('mon-bg'); return b&&b.classList.contains('open'); }
+function monOpen(){
+  if(userRole!=='admin')return;
+  monFStatus='belum'; monFJenis='semua'; _monZoomKey='';
+  var b=document.getElementById('mon-bg'); if(b)b.classList.add('open');
+  monRender();
+  cekKeysLoad(function(items){ _cekData=items||_cekData; monRender(); cekRenderRingkasan(); }, true);
+}
+function monClose(){ var b=document.getElementById('mon-bg'); if(b)b.classList.remove('open'); }
+function monSetStatus(k){ monFStatus=k; monRender(); }
+function monSetJenis(k){ monFJenis=k; monRender(); }
+function monZoom(kunci){ _monZoomKey=(_monZoomKey===kunci)?'':kunci; monRender(); }
+function monBuka(jenis,row){ monClose(); cekGoto(jenis,row); }
+function monRender(){
+  var sub=document.getElementById('mon-sub');
+  if(sub)sub.textContent=monCount('belum')+' perlu dicek · '+monCount('semua')+' total berfoto';
+  var sc=document.getElementById('mon-status');
+  if(sc)sc.innerHTML=[['belum','Perlu dicek'],['dicek','Sudah dicek'],['arsip','Diarsip'],['semua','Semua']].map(function(f){
+    return '<button class="mon-chip'+(monFStatus===f[0]?' on':'')+'" onclick="monSetStatus(\''+f[0]+'\')">'+f[1]+' <span class="mon-cnt">'+monCount(f[0])+'</span></button>';
+  }).join('');
+  var jc=document.getElementById('mon-jenis');
+  if(jc)jc.innerHTML=[['semua','Semua'],['nonharian','Non-Harian'],['kiriman','Kiriman'],['pelanggaran','Pelanggaran'],['uang','Uang'],['note_bukti','Note']].map(function(f){
+    return '<button class="mon-chip'+(monFJenis===f[0]?' on':'')+'" onclick="monSetJenis(\''+f[0]+'\')">'+f[1]+'</button>';
+  }).join('');
+  var box=document.getElementById('mon-list'); if(!box)return;
+  var list=monMgrItems().filter(function(it){
+    var okS=(monFStatus==='semua')||(monStatusOf(it)===monFStatus);
+    var okJ=(monFJenis==='semua')||(it.jenis===monFJenis);
+    return okS&&okJ;
+  }).sort(function(a,b){ return String(b.tgl||'').localeCompare(String(a.tgl||'')); });
+  if(!list.length){ box.innerHTML='<div class="empty" style="padding:30px 0"><div class="empty-icon">📭</div><div class="empty-text">Tidak ada item di filter ini</div></div>'; return; }
+  box.innerHTML=list.map(monCardHTML).join('');
+}
+function monCardHTML(it){
+  var st=monStatusOf(it), jm=_jenisMeta(it.jenis);
+  var dot=st==='belum'?'var(--red)':st==='dicek'?'var(--green)':'var(--hint)';
+  var bg=st==='belum'?'rgba(220,38,38,.12)':st==='dicek'?'rgba(22,163,74,.12)':'var(--surface)';
+  var fg=st==='belum'?'var(--red)':st==='dicek'?'var(--green)':'var(--hint)';
+  var btxt=st==='belum'?'belum dicek':st==='dicek'?'sudah dicek':'diarsip';
+  var fotos=it.fotos||[], f0=fotos[0]||'';
+  var fcount=fotos.length>1?'<span class="mon-fcount">'+fotos.length+'</span>':'';
+  var thumb=f0
+    ? '<button class="mon-thumb" onclick="event.stopPropagation();monZoom(\''+escH(it.kunci)+'\')"><img src="'+escH(kmFotoImgUrl(f0))+'" loading="lazy" style="width:100%;height:100%;object-fit:cover">'+fcount+'</button>'
+    : '<div class="mon-thumb" style="cursor:default">📷</div>';
+  var zoom='';
+  if(_monZoomKey===it.kunci){
+    zoom='<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">'+fotos.map(function(u){
+      return '<a href="'+escH(u)+'" target="_blank" onclick="event.stopPropagation()"><img src="'+escH(kmFotoImgUrl(u))+'" loading="lazy" style="width:140px;height:140px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"></a>';
+    }).join('')+'</div>';
+  }
+  var acts='<button class="mon-act" onclick="monBuka(\''+it.jenis+'\','+it.row+')">🔗 Buka sumber</button>';
+  if(st==='belum') acts+='<button class="mon-act ok" onclick="cekSrcToggle(\''+escH(it.kunci)+'\',true)">✓ Tandai dicek</button><button class="mon-act" onclick="cekArsipToggle(\''+escH(it.kunci)+'\',true)">🗂 Arsip</button>';
+  else if(st==='dicek') acts+='<button class="mon-act" onclick="cekSrcToggle(\''+escH(it.kunci)+'\',false)">↩ Batal cek</button><button class="mon-act" onclick="cekArsipToggle(\''+escH(it.kunci)+'\',true)">🗂 Arsip</button>';
+  else acts+='<button class="mon-act" onclick="cekArsipToggle(\''+escH(it.kunci)+'\',false)">📂 Tampilkan lagi</button>';
+  return '<div class="mon-card">'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">'
+      +'<div style="display:flex;align-items:center;gap:7px;min-width:0;flex-wrap:wrap">'
+        +'<span class="mon-dot" style="background:'+dot+'"></span>'
+        +'<span class="mon-jchip">'+jm.i+' '+escH(jm.l)+'</span>'
+        +'<span style="font-size:11px;color:var(--hint);white-space:nowrap">'+escH(it.tgl||'')+(it.oleh?(' · '+escH(_monOlehShort(it.oleh))):'')+'</span>'
+      +'</div>'
+      +'<span class="mon-badge" style="background:'+bg+';color:'+fg+'">'+btxt+'</span>'
+    +'</div>'
+    +'<div style="font-size:13px;font-weight:700;margin:8px 0 7px;line-height:1.4;color:var(--text)">'+escH(_cekJudul(it))+'</div>'
+    +'<div style="display:flex;gap:11px;align-items:flex-start">'+thumb
+      +'<div style="flex:1;min-width:0;font-size:12px;color:var(--muted);line-height:1.5">'+escH(it.detail||'')+'</div>'
+    +'</div>'+zoom
+    +'<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'+acts+'</div>'
+  +'</div>';
 }
 function _cekJenisLabel(j){
   return ({nonharian:'📋 Non-Harian',kiriman:'📦 Kiriman',pelanggaran:'⚠️ Pelanggaran',note_bukti:'📝 Bukti Note',uang:'💵 Uang Cash (D04)'})[j]||j;
@@ -2779,24 +2921,28 @@ var CEK_CACHE_MS=60000;     // cache berlaku 60 detik
 // utuh di spreadsheet (tidak ada perubahan Apps Script). Disimpan di
 // localStorage sebagai set kunci "jenis#row".
 var _cekArsip={};
-function _cekArsipLoad(){
-  try{ var raw=localStorage.getItem('mtg_cek_arsip'); _cekArsip=raw?JSON.parse(raw):{}; }
-  catch(e){ _cekArsip={}; }
+// Sinkron set arsip dari config global (lintas-perangkat), fallback cadangan lokal
+function _cekArsipSync(){
+  try{
+    var v=(typeof _appCfg!=='undefined')?_appCfg.cekArsip:null;
+    if(v==null||v===''){ try{ v=localStorage.getItem('mtg_cfg_cekArsip'); }catch(e){} }
+    var arr=v?(Array.isArray(v)?v:JSON.parse(v)):[];
+    var map={}; arr.forEach(function(k){ if(k)map[k]=true; });
+    _cekArsip=map;
+  }catch(e){ _cekArsip={}; }
 }
-function _cekArsipSave(){
-  try{ localStorage.setItem('mtg_cek_arsip',JSON.stringify(_cekArsip)); }catch(e){}
-}
+function _cekArsipKeys(){ return Object.keys(_cekArsip).filter(function(k){return _cekArsip[k]===true;}); }
 function isCekArsip(jenis,row){ return _cekArsip[jenis+'#'+row]===true; }
 function isCekArsipKey(kunci){ return _cekArsip[kunci]===true; }
-// Arsipkan / batal arsip sebuah kunci → segarkan semua tampilan
+// Arsipkan / batal arsip sebuah kunci → simpan ke server (lintas-perangkat) lalu segarkan tampilan
 function cekArsipToggle(kunci,arsip){
   if(arsip) _cekArsip[kunci]=true; else delete _cekArsip[kunci];
-  _cekArsipSave();
-  showToast(arsip?'🗂 Foto diarsipkan (data tetap di spreadsheet)':'↩ Arsip dibatalkan','ok');
+  appConfigSet('cekArsip', JSON.stringify(_cekArsipKeys()));
+  showToast(arsip?'Foto diarsipkan (data tetap di spreadsheet)':'Arsip dibatalkan','ok');
   try{ logActivity(arsip?'Arsipkan foto pekerjaan':'Batal arsip foto',kunci); }catch(e){}
   cekRerenderLight();
 }
-_cekArsipLoad();
+_cekArsipSync();
 // Tombol arsip (muncul hanya untuk item yang SUDAH dicek). String, ditangani delegasi global.
 function cekArsipBtnHTML(jenis,row){
   if(userRole!=='admin')return'';
@@ -2910,7 +3056,8 @@ function cekSrcToggle(kunci,done){
 var _cekSyncTimer=null;
 // Render ulang ringan SEMUA tampilan dari cache lokal (tanpa fetch jaringan)
 function cekRerenderLight(){
-  try{ if(typeof cekRender==='function'&&document.getElementById('cek-list')){ var sub=document.getElementById('cek-sub'); if(sub){var _mgr=_cekData.filter(_cekItemIsMgr);var belum=_mgr.filter(function(x){return !x.dicek;}).length;sub.textContent=belum+' belum dicek · '+_mgr.length+' total berfoto';} cekRender(); } }catch(e){}
+  try{ cekRenderRingkasan(); }catch(e){}
+  try{ if(_monIsOpen()) monRender(); }catch(e){}
   try{ if(typeof annotateEventCards==='function'&&document.getElementById('event-grid')) _annotateEventCardsRender(_cekItems); }catch(e){}
   try{ if(typeof _annotateD04Render==='function'&&document.getElementById('d04-cek-strip')) _annotateD04Render(_cekItems); }catch(e){}
   try{ if(typeof _annotateCashRender==='function'&&document.getElementById('kbl-pending')) _annotateCashRender(_cekItems); }catch(e){}
@@ -4159,7 +4306,7 @@ function switchTab(name,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
-  if(name==='home'){loadHomeKiriman();loadHomeLog();loadHomeHarian();loadHomeJamKerja();loadHomeEvent();loadHomeRekap();loadHomeStreak();}
+  if(name==='home'){loadHomeKiriman();loadHomeLog();loadHomeHarian();loadHomeJamKerja();loadHomeEvent();loadHomeRekap();loadHomeStreak();cekLoad(true);}
   if(name==='gudang'){if(!stokLoadedOnce)loadStok();if(!_produkLoaded)igLoadProduk();igLoadStokGudang();igLoadRingkasan();if(!window._rhrLoadedOnce){window._rhrLoadedOnce=true;loadStokMinus();}}
   if(name==='sumberdata')loadSumberData();
   if(name==='meeting'){var b=document.getElementById('badge-meeting');if(b)b.classList.remove('show');}
