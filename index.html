@@ -590,6 +590,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .bn-hint-r svg{animation:bnNudge 1.25s ease-in-out infinite}
 .bn-hint-l{left:0;justify-content:flex-start;padding-left:7px;background:linear-gradient(to right,var(--card) 38%,transparent)}
 @keyframes bnNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+.home-embed{max-width:none!important;margin:0 0 14px!important;padding:0!important}
 .bn-dot{position:absolute;top:1px;right:calc(50% - 17px);width:7px;height:7px;border-radius:50%;background:var(--red);display:none;border:1.5px solid var(--card)}
 .bn-item.has-dot .bn-dot{display:block}
 .fab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:85;width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(37,99,235,.45)}
@@ -7357,6 +7358,30 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     return t!==''&&t!=='0';
   }
 
+  var _navSig='';
+  var _locOrig=null,_mapOrig=null;
+  function _captureLocOrig(){
+    var lb=document.querySelector('.loc-banner');
+    var mm=document.getElementById('mgr-map-card');
+    if(lb&&!_locOrig)_locOrig={el:lb,parent:lb.parentNode,next:lb.nextSibling};
+    if(mm&&!_mapOrig)_mapOrig={el:mm,parent:mm.parentNode,next:mm.nextSibling};
+  }
+  // Admin: tanam kartu lokasi + peta di dalam tab Home. Manager: biarkan di header (selalu tampil).
+  window.placeLocCards=function(){
+    _captureLocOrig();
+    var isAdm=document.body.classList.contains('role-admin');
+    var ph=document.getElementById('panel-home');
+    var lb=_locOrig&&_locOrig.el, mm=_mapOrig&&_mapOrig.el;
+    if(isAdm&&ph){
+      var note=ph.firstElementChild;                 // caption "monitoring real-time" tetap di atas
+      if(lb){ lb.classList.add('home-embed'); ph.insertBefore(lb, note?note.nextSibling:ph.firstChild); }
+      if(mm){ mm.classList.add('home-embed'); ph.insertBefore(mm, lb?lb.nextSibling:(note?note.nextSibling:ph.firstChild)); }
+    }else{
+      if(lb&&_locOrig){ lb.classList.remove('home-embed'); if(lb.parentNode!==_locOrig.parent)_locOrig.parent.insertBefore(lb,_locOrig.next); }
+      if(mm&&_mapOrig){ mm.classList.remove('home-embed'); if(mm.parentNode!==_mapOrig.parent)_mapOrig.parent.insertBefore(mm,_mapOrig.next); }
+    }
+  };
+
   window.renderBottomNav=function(){
     var bar=document.getElementById('bn-bar'); if(!bar)return;
     var prio={harian:0,event:1};   // Harian paling kiri, Non-harian tepat di kanannya
@@ -7368,13 +7393,17 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
       items.push({ n:n, k:(n in prio)?prio[n]:(idx+2) });
     });
     items.sort(function(a,b){return a.k-b.k;});
+    var sig=items.map(function(i){return i.n;}).join(',');
+    if(sig===_navSig){ updateNavDots(); updateNavHint(); return; }   // set tab tak berubah → jangan rebuild (cegah scroll meloncat)
+    _navSig=sig;
     var html='';
     items.forEach(function(it){
       var n=it.n;
       html+='<button class="bn-item" data-tab="'+n+'" onclick="navGo(\''+n+'\')">'+_navSvg(n)+'<span>'+(NAVLBL[n]||n)+'</span><i class="bn-dot"></i></button>';
     });
     bar.innerHTML=html;
-    updateNavDots();
+    var ap=document.querySelector('.panel.active'); var an=ap?ap.id.replace('panel-',''):'harian';
+    syncBottomNav(an);
     setTimeout(updateNavHint,50);
   };
 
@@ -7468,8 +7497,10 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
   };
 
   function _boot(){
-    if(typeof window.switchTab==='function'){ var _s=window.switchTab; window.switchTab=function(n,b){ _s(n,b); try{syncBottomNav(n);}catch(e){} }; }
-    if(typeof window.applyRole==='function'){ var _a=window.applyRole; window.applyRole=function(){ _a.apply(this,arguments); try{ renderBottomNav(); var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian'); _navPeeked=false; setTimeout(navPeek,900); }catch(e){} }; }
+    if(typeof window.switchTab==='function'){ var _s=window.switchTab; window.switchTab=function(n,b){ _s(n,b); try{syncBottomNav(n); if(n==='home'&&window._mgrMap){setTimeout(function(){try{window._mgrMap.invalidateSize();}catch(e){}},120);}}catch(e){} }; }
+    if(typeof window.applyRole==='function'){ var _a=window.applyRole; window.applyRole=function(){ _a.apply(this,arguments); try{ placeLocCards(); renderBottomNav(); var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian'); _navPeeked=false; setTimeout(navPeek,900); }catch(e){} }; }
+    if(typeof window.applyAppConfig==='function'){ var _ac=window.applyAppConfig; window.applyAppConfig=function(){ _ac.apply(this,arguments); try{renderBottomNav();}catch(e){} }; }
+    placeLocCards();
     renderBottomNav();
     var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian');
     setInterval(function(){try{updateNavDots();}catch(e){}},5000);
