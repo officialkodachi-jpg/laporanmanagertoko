@@ -571,6 +571,36 @@ body.role-admin #admin-mgrlog{display:none!important}
 .sd-warn{display:flex;align-items:flex-start;gap:6px;background:rgba(217,119,6,.1);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--orange);line-height:1.45;margin-top:9px}
 .sd-hint{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:var(--hint);line-height:1.45;margin-top:8px}
 </style>
+<style>
+/* ===== App-shell (bottom nav + sheet + FAB) — layer tampilan, tidak mengubah logika ===== */
+.tabs-wrap{display:none!important}
+body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+.topbar{position:sticky;top:0;z-index:80;background:var(--bg)}
+.toast{bottom:90px!important}
+#bn-bar{position:fixed;left:0;right:0;bottom:0;z-index:90;display:flex;background:var(--card);border-top:1px solid var(--border);padding:7px 4px calc(7px + env(safe-area-inset-bottom,0px));max-width:680px;margin:0 auto;box-shadow:0 -1px 12px rgba(0,0,0,.05)}
+.bn-item{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:3px 2px;color:var(--hint);cursor:pointer;position:relative;font-family:var(--sans);transition:color .15s}
+.bn-item svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bn-item span{font-size:10px;font-weight:600}
+.bn-item.active{color:var(--accent)}
+.bn-dot{position:absolute;top:1px;right:calc(50% - 17px);width:7px;height:7px;border-radius:50%;background:var(--red);display:none;border:1.5px solid var(--card)}
+.bn-item.has-dot .bn-dot{display:block}
+.fab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:85;width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(37,99,235,.45)}
+.fab.show{display:flex}
+.fab:active{transform:scale(.94)}
+.fab svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2.4;stroke-linecap:round}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:4000;display:none;align-items:flex-end}
+.sheet-bg.open{display:flex}
+.sheet{background:var(--card);width:100%;max-width:680px;margin:0 auto;border-radius:20px 20px 0 0;padding:12px 18px calc(26px + env(safe-area-inset-bottom,0px));max-height:78vh;overflow-y:auto;animation:sheetUp .22s ease}
+@keyframes sheetUp{from{transform:translateY(40px);opacity:.4}to{transform:translateY(0);opacity:1}}
+.sheet-handle{width:38px;height:4px;border-radius:4px;background:var(--border2);margin:2px auto 14px}
+.sheet-title{font-size:15px;font-weight:700;margin-bottom:16px}
+.sheet-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 6px}
+.sheet-cell{display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;color:var(--text);font-family:var(--sans);padding:4px 2px;position:relative}
+.sheet-cell .si{width:48px;height:48px;border-radius:15px;background:var(--surface);display:flex;align-items:center;justify-content:center}
+.sheet-cell svg{width:24px;height:24px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sheet-cell span{font-size:11px;text-align:center;line-height:1.2}
+.sheet-cell .si .sdot{position:absolute;top:-2px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1.5px solid var(--card)}
+</style>
 </head>
 <body>
 
@@ -7270,6 +7300,142 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
   }
 });
 
+</script>
+<!-- ===== APP SHELL: bottom nav + sheet + FAB (layer tampilan) ===== -->
+<nav id="bn-bar" aria-label="Navigasi utama"></nav>
+<button class="fab" id="app-fab" onclick="appFab()" aria-label="Tambah / fokus input">
+  <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+</button>
+<div class="sheet-bg" id="sheet-bg">
+  <div class="sheet" role="dialog" aria-label="Menu lainnya">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Lainnya</div>
+    <div class="sheet-grid" id="sheet-grid"></div>
+  </div>
+</div>
+
+<script>
+/* ===== App-shell controller — additive, tidak mengubah fungsi/aturan role lama ===== */
+(function(){
+  var ICONS={
+    home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+    harian:'<path d="M9 4h6v3H9z"/><path d="M7 5H5v15h14V5h-2"/><path d="M8.5 13l2 2 4-4"/>',
+    event:'<path d="M12 21s-6-5-6-10a6 6 0 0112 0c0 5-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/>',
+    gudang:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4"/><path d="M12 11v10"/>',
+    cash:'<path d="M3 7h16a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M15.5 13h2.5"/>',
+    shift:'<path d="M5 4h14v16H5z"/><path d="M5 9h14"/><path d="M9 2v4"/><path d="M15 2v4"/>',
+    pegawai:'<circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 14c2.2 0 4 1.8 4 4"/><circle cx="17" cy="8" r="2.4"/>',
+    meeting:'<path d="M3 7h11v10H3z"/><path d="M14 10l6-3v10l-6-3"/>',
+    laporan:'<path d="M5 20v-6"/><path d="M12 20V8"/><path d="M19 20v-10"/><path d="M3 20h18"/>',
+    link:'<path d="M9.5 13a4 4 0 005.6 0l2.9-2.9a4 4 0 00-5.6-5.6l-1 1"/><path d="M14.5 11a4 4 0 00-5.6 0L6 13.9a4 4 0 005.6 5.6l1-1"/>',
+    sumberdata:'<ellipse cx="12" cy="6" rx="8" ry="2.6"/><path d="M4 6v6c0 1.4 3.6 2.6 8 2.6s8-1.2 8-2.6V6"/><path d="M4 12v6c0 1.4 3.6 2.6 8 2.6s8-1.2 8-2.6v-6"/>',
+    lainnya:'<path d="M4 4h6v6H4z"/><path d="M14 4h6v6h-6z"/><path d="M4 14h6v6H4z"/><path d="M14 14h6v6h-6z"/>'
+  };
+  function _navSvg(k){return '<svg viewBox="0 0 24 24">'+(ICONS[k]||'')+'</svg>';}
+
+  var NAVLBL={home:'Beranda',harian:'Harian',event:'Non-harian',gudang:'Stok',cash:'Cash',shift:'Shift',pegawai:'Pegawai',meeting:'Meeting',laporan:'Laporan',link:'Link',sumberdata:'Sumber data'};
+  var SHEETLBL={home:'Beranda',harian:'Harian',event:'Non-harian',gudang:'Stok & gudang',cash:'Uang cash',shift:'Shift',pegawai:'Kepegawaian',meeting:'Meeting',laporan:'Laporan',link:'Link',sumberdata:'Sumber data'};
+  var TITLE={home:'Beranda',harian:'Tugas harian',event:'Non-harian',gudang:'Stok & gudang',cash:'Uang cash',shift:'Jadwal shift',pegawai:'Kepegawaian',meeting:'Meeting link',laporan:'Laporan',link:'Link',sumberdata:'Sumber data'};
+  var BADGE={home:'badge-home',harian:'badge-harian',event:'badge-event',gudang:'badge-stok',cash:'badge-cash',shift:'badge-shift',pegawai:'badge-pegawai',meeting:'badge-meeting',laporan:'badge-laporan'};
+  var FAB_ON=['event','gudang','cash','pegawai','meeting'];
+
+  function _badgeActive(id){
+    var b=document.getElementById(id); if(!b)return false;
+    try{ if(getComputedStyle(b).display==='none')return false; }catch(e){}
+    if(b.classList.contains('show'))return true;
+    var t=(b.textContent||'').trim();
+    return t!==''&&t!=='0';
+  }
+
+  window.renderBottomNav=function(){
+    var bar=document.getElementById('bn-bar'); if(!bar)return;
+    var role=document.body.classList.contains('role-admin')?'admin':'manager';
+    var prim=(role==='admin')?['home','gudang','pegawai','laporan']:['harian','gudang','cash','shift'];
+    var html='';
+    prim.forEach(function(n){
+      html+='<button class="bn-item" data-tab="'+n+'" onclick="navGo(\''+n+'\')">'+_navSvg(n)+'<span>'+(NAVLBL[n]||n)+'</span><i class="bn-dot"></i></button>';
+    });
+    html+='<button class="bn-item" data-tab="__more" onclick="openSheet()">'+_navSvg('lainnya')+'<span>Lainnya</span><i class="bn-dot"></i></button>';
+    bar.innerHTML=html;
+    updateNavDots();
+  };
+
+  window.syncBottomNav=function(name){
+    var bar=document.getElementById('bn-bar');
+    if(bar){
+      var found=false;
+      bar.querySelectorAll('.bn-item').forEach(function(it){
+        var on=(it.getAttribute('data-tab')===name);
+        it.classList.toggle('active',on); if(on)found=true;
+      });
+      if(!found){var m=bar.querySelector('[data-tab="__more"]'); if(m)m.classList.add('active');}
+    }
+    var bn=document.querySelector('.brand-name'); if(bn&&TITLE[name])bn.textContent=TITLE[name];
+    var fab=document.getElementById('app-fab'); if(fab)fab.classList.toggle('show',FAB_ON.indexOf(name)>=0);
+    updateNavDots();
+  };
+
+  window.updateNavDots=function(){
+    var bar=document.getElementById('bn-bar'); if(!bar)return;
+    var prim={}; bar.querySelectorAll('.bn-item').forEach(function(x){var d=x.getAttribute('data-tab'); if(d!=='__more')prim[d]=1;});
+    bar.querySelectorAll('.bn-item').forEach(function(it){
+      var t=it.getAttribute('data-tab');
+      if(t==='__more'){
+        var any=false; for(var k in BADGE){ if(!prim[k]&&_badgeActive(BADGE[k]))any=true; }
+        it.classList.toggle('has-dot',any);
+      }else{
+        it.classList.toggle('has-dot', !!BADGE[t]&&_badgeActive(BADGE[t]));
+      }
+    });
+  };
+
+  window.navGo=function(name){
+    closeSheet();
+    var ob=document.querySelector('.tab[onclick*="switchTab(\''+name+'\'"]');
+    if(ob){ switchTab(name,ob); }
+    else{
+      var p=document.getElementById('panel-'+name);
+      if(p){ document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');}); p.classList.add('active'); }
+      syncBottomNav(name);
+    }
+    try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){window.scrollTo(0,0);}
+  };
+
+  window.openSheet=function(){
+    var bar=document.getElementById('bn-bar');
+    var prim={}; if(bar)bar.querySelectorAll('.bn-item').forEach(function(x){var d=x.getAttribute('data-tab'); if(d!=='__more')prim[d]=1;});
+    var html='';
+    document.querySelectorAll('.tabs .tab').forEach(function(tb){
+      var oc=tb.getAttribute('onclick')||''; var m=oc.match(/switchTab\('([^']+)'/); if(!m)return;
+      var n=m[1];
+      if(prim[n])return;
+      try{ if(getComputedStyle(tb).display==='none')return; }catch(e){}   // hormati aturan role & kepegawaian
+      var lbl=SHEETLBL[n]||NAVLBL[n]||n;
+      var dot=(BADGE[n]&&_badgeActive(BADGE[n]))?'<i class="sdot"></i>':'';
+      html+='<button class="sheet-cell" onclick="navGo(\''+n+'\')"><span class="si">'+_navSvg(n)+dot+'</span><span>'+lbl+'</span></button>';
+    });
+    document.getElementById('sheet-grid').innerHTML=html||'<div style="grid-column:1/-1;color:var(--muted);font-size:12px;padding:10px;text-align:center">Tidak ada menu lain.</div>';
+    document.getElementById('sheet-bg').classList.add('open');
+  };
+  window.closeSheet=function(){var s=document.getElementById('sheet-bg'); if(s)s.classList.remove('open');};
+
+  window.appFab=function(){
+    var p=document.querySelector('.panel.active'); if(!p)return;
+    p.scrollIntoView({behavior:'smooth',block:'start'});
+    var f=p.querySelector('input:not([type=hidden]):not([disabled]),select:not([disabled]),textarea:not([disabled])');
+    if(f)setTimeout(function(){try{f.focus({preventScroll:true});}catch(e){}},380);
+  };
+
+  function _boot(){
+    if(typeof window.switchTab==='function'){ var _s=window.switchTab; window.switchTab=function(n,b){ _s(n,b); try{syncBottomNav(n);}catch(e){} }; }
+    if(typeof window.applyRole==='function'){ var _a=window.applyRole; window.applyRole=function(){ _a.apply(this,arguments); try{ renderBottomNav(); var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian'); }catch(e){} }; }
+    renderBottomNav();
+    var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian');
+    setInterval(function(){try{updateNavDots();}catch(e){}},5000);
+    var sb=document.getElementById('sheet-bg'); if(sb)sb.addEventListener('click',function(e){ if(e.target===this)closeSheet(); });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_boot); else _boot();
+})();
 </script>
 </body>
 </html>
