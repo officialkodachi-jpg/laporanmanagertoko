@@ -2053,6 +2053,9 @@ function applyAppConfig(){
   // 5) Kiriman: urutan & denyut diatur admin → segarkan daftar kiriman utk semua peran
   //    (kmRender membaca _appCfg.kmOrder & _appCfg.kmPulse setiap render)
   try{ if(typeof kmData!=='undefined' && kmData.length && typeof kmRender==='function' && document.getElementById('km-list')) kmRender(); }catch(e){}
+  // Denyut & urutan kiriman juga muncul di kartu "Kiriman belum sampai" (atas tab, dilihat manager) & widget Home admin
+  try{ if(typeof renderNotifStack==='function' && document.getElementById('notif-stack')) renderNotifStack(); }catch(e){}
+  try{ if(typeof _renderHomeKiriman==='function' && document.getElementById('home-kiriman-list') && typeof _homeKmRows!=='undefined' && _homeKmRows.length) _renderHomeKiriman(); }catch(e){}
 }
 var _appCfgMgrSelfPrev = null;
 function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
@@ -3327,22 +3330,21 @@ async function loadStokMinus(silent){
     if(body){
       if(!bulan.length){ body.innerHTML='<div class="empty" style="padding:18px 0"><div class="empty-text" style="font-size:12px;color:var(--hint)">Belum ada data bulan</div></div>'; }
       else{
+        var showPct=(userRole!=='manager'); // %Retur & %Batal disembunyikan dari akun Manager (default)
         var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
           +'<thead><tr style="color:var(--muted);text-align:right">'
           +'<th style="text-align:left;font-weight:700;padding:6px 4px">Bulan</th>'
           +'<th style="font-weight:700;padding:6px 4px">Hilang</th>'
           +'<th style="font-weight:700;padding:6px 4px">Retur</th>'
           +'<th style="font-weight:700;padding:6px 4px">Batal</th>'
-          +'<th style="font-weight:700;padding:6px 4px">%Rtr</th>'
-          +'<th style="font-weight:700;padding:6px 4px">%Btl</th>'
+          +(showPct?'<th style="font-weight:700;padding:6px 4px">%Rtr</th><th style="font-weight:700;padding:6px 4px">%Btl</th>':'')
           +'</tr></thead><tbody style="font-family:var(--mono)">';
         bulan.forEach(function(b){
           function cell(v){ var n=Number(v)||0; var col=(n<0)?'var(--red)':'var(--hint)'; return '<td style="text-align:right;padding:6px 4px;color:'+col+'">'+_rhrNum(n)+'</td>'; }
           h+='<tr style="border-top:1px solid var(--border)">'
             +'<td style="text-align:left;padding:6px 4px;font-family:var(--sans);font-weight:600;color:var(--text)">'+escH(b.nama||b.kode||'')+'</td>'
             +cell(b.hilang)+cell(b.retur)+cell(b.batal)
-            +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctRetur)+'</td>'
-            +'<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctBatal)+'</td>'
+            +(showPct?('<td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctRetur)+'</td><td style="text-align:right;padding:6px 4px;color:var(--muted)">'+_rhrPct(b.pctBatal)+'</td>'):'')
             +'</tr>';
         });
         h+='</tbody></table></div>';
@@ -3446,16 +3448,17 @@ function renderNotifStack(){
       +'</div>'
     );
   }
-  // 1) Kiriman stok belum sampai — satu banner per kiriman
-  kmData.forEach(function(r){
+  // 1) Kiriman stok belum sampai — satu banner per kiriman (urut sesuai pengaturan admin)
+  _kmSortListByOrder(kmData).forEach(function(r){
     if(kmIsSampai(r))return;
     var key='kiriman-'+r.row;
     if(_notifDismissed[key])return;
     var jasa=escH(r.jasa||'-');
     var isi=escH(String(r.isi||'').slice(0,50));
     var tgl=r.tglKirim?kmFmtTgl(r.tglKirim):'';
+    var pulse=(typeof _kmIsPulse==='function'&&_kmIsPulse(r.row)); // denyut diatur admin (lintas-perangkat)
     cards.push(
-      '<div class="notif-banner" style="border-color:rgba(217,119,6,.4);background:rgba(217,119,6,.1);cursor:pointer" onclick="kmOpenDetail('+r.row+')">'
+      '<div class="notif-banner'+(pulse?' home-km-pulse':'')+'" style="border-color:rgba(217,119,6,.4);background:rgba(217,119,6,.1);cursor:pointer" onclick="kmOpenDetail('+r.row+')">'
       +'<div style="font-size:20px">🚚</div>'
       +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:12px;font-weight:800;color:var(--orange)">Kiriman belum sampai — '+jasa+'</div>'
@@ -3892,7 +3895,7 @@ function kmRender(){
         +'</div>';
     }
     var fotosVisible=(dariManager&&isCekDone('kiriman',r.row))?'':fotos; // foto hilang dari tampilan hanya setelah foto MANAGER dicek (record tetap di sheet)
-    return '<div class="km-card '+s.cls+(pulseOn?' km-pulse':'')+'" onclick="kmOpenDetail('+r.row+')">'
+    return '<div class="km-card '+s.cls+'" onclick="kmOpenDetail('+r.row+')">'
       +'<div class="km-card-top"><span class="km-resi">'+hdrTxt+'</span><span class="km-badge '+s.cls+'">'+s.badge+'</span></div>'
       +'<div class="km-isi">Isi: '+escH(r.isi||'-')+'</div>'
       +fotosVisible+cekStrip+note+actions+adminCtrl
