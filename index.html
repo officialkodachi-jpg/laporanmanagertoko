@@ -1116,6 +1116,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
       </div>
 
       <div class="stok-controls" style="margin-bottom:12px"><button class="stok-refresh-btn" onclick="kmLoad()">🔄 Perbarui Daftar</button></div>
+      <div id="km-arsip-bar" style="display:none;margin-bottom:10px"></div>
       <div id="km-list"><div class="empty"><div class="empty-icon">🚚</div><div class="empty-text">Belum ada data kiriman</div></div></div>
     </div>
   </div>
@@ -3737,6 +3738,7 @@ function noteBuktiDelete(row){
 }
 // ════ KIRIMAN STOK ════
 var kmData=[],_kmLoadedOnce=false,_kmFotoBase64='',_kmResiBase64='',_kmSuratBase64='',_kmSSBase64='';
+var _kmArsipFilter='all'; // filter sub-tab Kiriman (admin): all | sampai | jalan
 // Kompres satu file gambar → callback(base64)
 // ── PASTE GAMBAR dari clipboard (Ctrl/Cmd+V) → isi input file gambar yang sedang terlihat ──
 // Cari input[type=file][accept*=image] yang sedang tampak di layar, suntikkan gambar, picu handler-nya.
@@ -3898,11 +3900,19 @@ function kmRender(){
   document.getElementById('km-c-sampai').textContent=sampai;
   document.getElementById('km-c-masalah').textContent=masalah;
   updateGudangBadges();
-  if(!kmData.length){list.innerHTML='<div class="empty"><div class="empty-icon">🚚</div><div class="empty-text">Belum ada data kiriman</div></div>';return;}
+  if(!kmData.length){list.innerHTML='<div class="empty"><div class="empty-icon">🚚</div><div class="empty-text">Belum ada data kiriman</div></div>';_kmRenderArsipBar(0,0,0,0);return;}
   var sorted=_kmComputeSorted();
   var pulseSet=_kmPulseArr();
   var n=sorted.length;
-  list.innerHTML=sorted.map(function(r,i){
+  _kmRenderArsipBar(kmData.length, jalan, sampai, masalah);
+  var filtered=(userRole==='admin')?sorted.filter(function(r){
+    if(_kmArsipFilter==='sampai') return kmIsSampai(r);
+    if(_kmArsipFilter==='jalan')  return !kmIsSampai(r);
+    return true;
+  }):sorted;
+  if(!filtered.length){list.innerHTML='<div class="empty"><div class="empty-text">Tidak ada kiriman sesuai filter ini</div></div>';return;}
+  list.innerHTML=filtered.map(function(r){
+    var i=sorted.indexOf(r);   // posisi di urutan PENUH → tombol naik/turun tetap benar walau difilter
     var s=kmStatusInfo(r);
     var hdrTxt=escH(r.jasa||'Kiriman')+' · '+kmFmtTgl(r.tglKirim);
     var fotos='<div style="display:flex;gap:12px;flex-wrap:wrap">';
@@ -3953,6 +3963,27 @@ function kmRender(){
       +fotosVisible+cekStrip+note+actions+adminCtrl
       +'</div>';
   }).join('');
+}
+// ── ADMIN: bar "belum diarsip" + filter di sub-tab Kiriman (HTML only, manager tidak melihat) ──
+function kmSetArsipFilter(f){ _kmArsipFilter=f; kmRender(); }
+function _kmRenderArsipBar(total, jalan, sampai, masalah){
+  var bar=document.getElementById('km-arsip-bar'); if(!bar)return;
+  if(userRole!=='admin'){ bar.style.display='none'; return; }
+  bar.style.display='block';
+  function chip(key,label,count){
+    var on=_kmArsipFilter===key;
+    return '<button onclick="kmSetArsipFilter(\''+key+'\')" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;white-space:nowrap;cursor:pointer;border:1px solid '+(on?'var(--accent)':'var(--border2)')+';background:'+(on?'rgba(37,99,235,.12)':'var(--card)')+';color:'+(on?'var(--accent)':'var(--muted)')+'">'+label+' '+count+'</button>';
+  }
+  bar.innerHTML=''
+    +'<div style="display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r);background:var(--card)">'
+      +'<span style="font-size:20px">🗂</span>'
+      +'<div style="flex:1;min-width:0;font-size:13px;font-weight:800;color:var(--text)">'+total+' kiriman belum diarsip</div>'
+    +'</div>'
+    +'<div style="display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px">'
+      +chip('all','Semua',total)
+      +chip('sampai','Sudah sampai',sampai)
+      +chip('jalan','Belum sampai',jalan)
+    +'</div>';
 }
 // ── ADMIN: naik/turunkan urutan kiriman (tersimpan lintas-perangkat) ──
 function kmMove(row,dir){
