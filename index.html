@@ -583,6 +583,13 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .bn-item svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .bn-item span{font-size:10px;font-weight:600}
 .bn-item.active{color:var(--accent)}
+.bn-hint{position:fixed;bottom:calc(6px + env(safe-area-inset-bottom,0px));height:48px;width:44px;z-index:91;pointer-events:none;display:none;align-items:center;max-width:680px}
+.bn-hint.show{display:flex}
+.bn-hint svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.bn-hint-r{right:0;justify-content:flex-end;padding-right:7px;background:linear-gradient(to left,var(--card) 38%,transparent)}
+.bn-hint-r svg{animation:bnNudge 1.25s ease-in-out infinite}
+.bn-hint-l{left:0;justify-content:flex-start;padding-left:7px;background:linear-gradient(to right,var(--card) 38%,transparent)}
+@keyframes bnNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
 .bn-dot{position:absolute;top:1px;right:calc(50% - 17px);width:7px;height:7px;border-radius:50%;background:var(--red);display:none;border:1.5px solid var(--card)}
 .bn-item.has-dot .bn-dot{display:block}
 .fab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:85;width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(37,99,235,.45)}
@@ -7304,6 +7311,8 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
 </script>
 <!-- ===== APP SHELL: bottom nav + sheet + FAB (layer tampilan) ===== -->
 <nav id="bn-bar" aria-label="Navigasi utama"></nav>
+<div class="bn-hint bn-hint-l" id="bn-hint-l" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></div>
+<div class="bn-hint bn-hint-r" id="bn-hint-r" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>
 <button class="fab" id="app-fab" onclick="appFab()" aria-label="Tambah / fokus input">
   <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
 </button>
@@ -7366,6 +7375,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     });
     bar.innerHTML=html;
     updateNavDots();
+    setTimeout(updateNavHint,50);
   };
 
   window.syncBottomNav=function(name){
@@ -7381,6 +7391,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     var bn=document.querySelector('.brand-name'); if(bn&&TITLE[name])bn.textContent=TITLE[name];
     var fab=document.getElementById('app-fab'); if(fab)fab.classList.toggle('show',FAB_ON.indexOf(name)>=0);
     updateNavDots();
+    updateNavHint();
   };
 
   window.updateNavDots=function(){
@@ -7409,6 +7420,28 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){window.scrollTo(0,0);}
   };
 
+  window.updateNavHint=function(){
+    var bar=document.getElementById('bn-bar'); if(!bar)return;
+    var hr=document.getElementById('bn-hint-r'), hl=document.getElementById('bn-hint-l');
+    var max=bar.scrollWidth-bar.clientWidth;
+    if(hr)hr.classList.toggle('show', max>6 && bar.scrollLeft < max-6);
+    if(hl)hl.classList.toggle('show', bar.scrollLeft>6);
+  };
+  var _navPeeked=false;
+  window.navPeek=function(){
+    if(_navPeeked)return;
+    var bar=document.getElementById('bn-bar'); if(!bar)return;
+    var max=bar.scrollWidth-bar.clientWidth;
+    if(max<=6)return;                 // tidak ada yang kepotong → tak perlu nudge
+    _navPeeked=true;
+    var start=bar.scrollLeft;
+    try{
+      bar.scrollTo({left:Math.min(start+56,max),behavior:'smooth'});
+      setTimeout(function(){ bar.scrollTo({left:start,behavior:'smooth'}); }, 700);
+    }catch(e){}
+  };
+
+
   window.openSheet=function(){
     var bar=document.getElementById('bn-bar');
     var prim={}; if(bar)bar.querySelectorAll('.bn-item').forEach(function(x){var d=x.getAttribute('data-tab'); if(d!=='__more')prim[d]=1;});
@@ -7436,11 +7469,14 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
 
   function _boot(){
     if(typeof window.switchTab==='function'){ var _s=window.switchTab; window.switchTab=function(n,b){ _s(n,b); try{syncBottomNav(n);}catch(e){} }; }
-    if(typeof window.applyRole==='function'){ var _a=window.applyRole; window.applyRole=function(){ _a.apply(this,arguments); try{ renderBottomNav(); var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian'); }catch(e){} }; }
+    if(typeof window.applyRole==='function'){ var _a=window.applyRole; window.applyRole=function(){ _a.apply(this,arguments); try{ renderBottomNav(); var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian'); _navPeeked=false; setTimeout(navPeek,900); }catch(e){} }; }
     renderBottomNav();
     var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian');
     setInterval(function(){try{updateNavDots();}catch(e){}},5000);
     var sb=document.getElementById('sheet-bg'); if(sb)sb.addEventListener('click',function(e){ if(e.target===this)closeSheet(); });
+    var bn=document.getElementById('bn-bar'); if(bn)bn.addEventListener('scroll',function(){try{updateNavHint();}catch(e){}},{passive:true});
+    window.addEventListener('resize',function(){try{updateNavHint();}catch(e){}});
+    setTimeout(function(){try{updateNavHint();navPeek();}catch(e){}},900);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_boot); else _boot();
 })();
