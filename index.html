@@ -803,6 +803,19 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
             <option value="60">60 mnt (longgar)</option>
           </select>
         </div>
+        <div style="display:flex;align-items:center;gap:9px;padding:6px 0 2px;border-top:1px dashed var(--border)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:800;color:var(--text)">📍 Jendela status hadir</div>
+            <div style="font-size:10px;color:var(--hint);line-height:1.5">Sekali Manager kedetek di toko, status <b>tetap "di toko"</b> selama ≤ angka ini walau app ditutup. Khusus indikator status — <b>tidak</b> memengaruhi hitungan jam kerja.</div>
+          </div>
+          <select id="adm-presence-select" onchange="admSetPresence(this.value)" style="font-family:var(--mono);font-size:12px;padding:8px 10px;border:1px solid var(--border2);border-radius:9px;background:var(--card);color:var(--text);color-scheme:light">
+            <option value="30">30 mnt (ketat)</option>
+            <option value="60">60 mnt</option>
+            <option value="90">90 mnt</option>
+            <option value="120">120 mnt</option>
+            <option value="180">180 mnt (longgar)</option>
+          </select>
+        </div>
         <div style="font-size:10px;color:var(--hint);line-height:1.5">💡 <b>Tampilkan data Rifyh</b>: manager bisa lihat catatan dirinya (read-only) untuk evaluasi.<br>• Tab tampil + Rifyh on → manager lihat semua partimer <b>dan</b> Rifyh.<br>• Tab disembunyikan + Rifyh on → tab tetap muncul tapi isinya <b>khusus Rifyh saja</b> (partimer lain disembunyikan). Cocok untuk sesi evaluasi.</div>
       </div>
     </div>
@@ -1616,6 +1629,7 @@ let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locati
 // Anti GPS-ngaco: abaikan fix berakurasi buruk, beri toleransi & grace period saat keluar
 var ACC_MAX = 200;                 // akurasi lebih buruk dari ini (meter) tidak dipakai ubah status
 var ACC_GOOD = 65;                 // fix dianggap sangat akurat bila <=65m
+var ACC_OPEN = 120;                // (v5.4) akurasi maks utk BUKA sesi pada 1 fix → buka app sebentar tetap ke-catch
 var LEAVE_GRACE_MS = 3*60*1000;    // harus terbaca di luar selama ini baru dianggap keluar
 var _outSince = null;              // kapan pertama kali terbaca di luar toko
 var _inGpsHits = 0;                // jumlah fix GPS in-radius berturut → buka sesi hanya bila yakin
@@ -2290,7 +2304,7 @@ function onLocOk(pos){
   var inGps  = (dist - _allow) <= TOKO.radius;            // utk TETAP di dalam (sesi sudah jalan)
   if(inGps){ _inGpsHits = (_inGpsHits||0) + 1; } else { _inGpsHits = 0; }
   // Buka sesi BARU hanya bila yakin: pusat jelas di dalam + akurasi bagus, ATAU 2 fix in-radius berturut.
-  var canOpen = (accuracy <= ACC_GOOD && dist <= TOKO.radius) || (_inGpsHits >= 2);
+  var canOpen = (accuracy <= ACC_OPEN && dist <= TOKO.radius) || (_inGpsHits >= 2);
 
   if(inGps){
     // GPS mengonfirmasi DI DALAM toko
@@ -2591,27 +2605,29 @@ function renderManagerLoc(d){
     det.innerHTML='Belum ada data posisi Manager hari ini<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
     tm.textContent='—:—';return;
   }
+  // (v5.4) Status hadir dari backend (presence kolom M + jendela 90 mnt), TERPISAH dari jam kerja.
+  // Buka app sebentar pun tetap "di toko" selama masih dalam jendela presence.
   var inStore=(d.inStore==1||d.inStore===true);
   var jamUpd=d.waktu?new Date(d.waktu).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'?';
   var menitLalu=d.waktu?Math.round((Date.now()-d.waktu)/60000):999;
-  var stale = (d.stale===true) || (menitLalu>=12); // posisi lama / app manager ditutup
+  var lastSeenMin=(typeof d.lastSeenMin==='number')?d.lastSeenMin:null; // menit sejak terakhir terpantau DI TOKO
+  var posLama = menitLalu>=12; // titik di peta sudah lama (info saja, bukan penentu status hadir)
   var menit=d.menit||0,h=Math.floor(menit/60),m=Math.floor(menit%60);
   var p=Math.min(100,menit/TARGET_MENIT*100);
-  if(stale){
-    // Tidak ada update terbaru → JANGAN klaim "di dalam toko". Tampilkan posisi terakhir saja.
-    i.innerHTML=ICO.clock();i.className='loc-icon inactive';
-    st.textContent='Posisi lama — Manager tidak terpantau';st.className='loc-status waiting';
+  if(inStore){
+    i.innerHTML=ICO.inStore();i.className='loc-icon active';
+    st.textContent='✓ Manager di dalam toko';st.className='loc-status in';
   }else{
-    i.innerHTML=inStore?ICO.inStore():ICO.pin();i.className='loc-icon '+(inStore?'active':'inactive');
-    st.textContent=inStore?'✓ Manager di dalam toko':'✗ Manager di luar toko';
-    st.className='loc-status '+(inStore?'in':'out');
+    i.innerHTML=ICO.pin();i.className='loc-icon inactive';
+    st.textContent='✗ Manager di luar toko';st.className='loc-status out';
   }
   var ket='Jarak '+(d.dist!=null?d.dist:'?')+'m dari toko · update '+jamUpd;
-  if(stale){
-    ket+=' <span style="color:#b45309">('+(menitLalu>=999?'lama sekali':menitLalu+' mnt lalu')+')</span>'
-      +'<div class="admin-note" style="color:#92400e">⚠ Ini posisi TERAKHIR yang dikirim HP Manager (jam '+jamUpd+'), bukan posisi sekarang. '
-      +'App Manager kemungkinan ditutup/terkunci. Titik di peta = lokasi terakhir, belum tentu masih di sana. '
-      +'Akan tersegarkan saat Manager membuka app lagi.</div>';
+  if(inStore && lastSeenMin!=null){
+    ket+=' <span style="color:#16a34a">(terpantau di toko '+(lastSeenMin<=0?'baru saja':lastSeenMin+' mnt lalu')+')</span>';
+  }
+  if(posLama){
+    ket+='<div class="admin-note" style="color:#92400e">ℹ Titik di peta = posisi terakhir yang dikirim HP Manager (jam '+jamUpd+', '+(menitLalu>=999?'lama sekali':menitLalu+' mnt lalu')+'), belum tentu titik persisnya sekarang. '
+      +'Status di atas dihitung dari kehadiran terakhir di toko, tersegarkan saat Manager buka app lagi.</div>';
   }else{
     ket+='<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
   }
@@ -7709,6 +7725,21 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     }catch(e){}
   }
 
+  // ── Admin: atur jendela status hadir (presence) — lintas-perangkat via appconfig ──
+  window.admSetPresence=function(v){
+    try{
+      if(typeof appConfigSet==='function') appConfigSet('presenceStale', String(v));
+      if(typeof showToast==='function') showToast('✓ Jendela status hadir: '+v+' menit','ok');
+    }catch(e){}
+  };
+  function _reflectPresence(){
+    try{
+      var pv=String((typeof _appCfg!=='undefined' && _appCfg.presenceStale)||'90');
+      if(['30','60','90','120','180'].indexOf(pv)<0)pv='90';
+      var ps=document.getElementById('adm-presence-select'); if(ps)ps.value=pv;
+    }catch(e){}
+  }
+
   window.appFab=function(){
     var p=document.querySelector('.panel.active'); if(!p)return;
     p.scrollIntoView({behavior:'smooth',block:'start'});
@@ -7719,7 +7750,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
   function _boot(){
     if(typeof window.switchTab==='function'){ var _s=window.switchTab; window.switchTab=function(n,b){ _s(n,b); try{syncBottomNav(n); if(n==='home'&&window._mgrMap){setTimeout(function(){try{window._mgrMap.invalidateSize();}catch(e){}},120);}}catch(e){} }; }
     if(typeof window.applyRole==='function'){ var _a=window.applyRole; window.applyRole=function(){ _a.apply(this,arguments); try{ placeLocCards(); renderBottomNav(); var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian'); _navPeeked=false; setTimeout(navPeek,900); }catch(e){} }; }
-    if(typeof window.applyAppConfig==='function'){ var _ac=window.applyAppConfig; window.applyAppConfig=function(){ _ac.apply(this,arguments); try{renderBottomNav();_reflectGap();}catch(e){} }; }
+    if(typeof window.applyAppConfig==='function'){ var _ac=window.applyAppConfig; window.applyAppConfig=function(){ _ac.apply(this,arguments); try{renderBottomNav();_reflectGap();_reflectPresence();}catch(e){} }; }
     placeLocCards();
     renderBottomNav();
     var ap=document.querySelector('.panel.active'); syncBottomNav(ap?ap.id.replace('panel-',''):'harian');
@@ -7730,7 +7761,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     setTimeout(function(){try{updateNavHint();navPeek();}catch(e){}},900);
     document.addEventListener('visibilitychange',function(){try{_wlUpdate();}catch(e){}});
     setInterval(function(){try{_wlUpdate();}catch(e){}},15000);
-    _reflectGap(); _wlUpdate();
+    _reflectGap(); _reflectPresence(); _wlUpdate();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_boot); else _boot();
 })();
