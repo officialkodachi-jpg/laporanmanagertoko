@@ -577,8 +577,9 @@ body.role-admin #admin-mgrlog{display:none!important}
 body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .topbar{position:sticky;top:0;z-index:80;background:var(--bg)}
 .toast{bottom:90px!important}
-#bn-bar{position:fixed;left:0;right:0;bottom:0;z-index:90;display:flex;background:var(--card);border-top:1px solid var(--border);padding:7px 4px calc(7px + env(safe-area-inset-bottom,0px));max-width:680px;margin:0 auto;box-shadow:0 -1px 12px rgba(0,0,0,.05)}
-.bn-item{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:3px 2px;color:var(--hint);cursor:pointer;position:relative;font-family:var(--sans);transition:color .15s}
+#bn-bar{position:fixed;left:0;right:0;bottom:0;z-index:90;display:flex;background:var(--card);border-top:1px solid var(--border);padding:7px 2px calc(7px + env(safe-area-inset-bottom,0px));max-width:680px;margin:0 auto;box-shadow:0 -1px 12px rgba(0,0,0,.05);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;scroll-behavior:smooth}
+#bn-bar::-webkit-scrollbar{display:none}
+.bn-item{flex:0 0 auto;min-width:64px;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:3px 6px;color:var(--hint);cursor:pointer;position:relative;font-family:var(--sans);transition:color .15s}
 .bn-item svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .bn-item span{font-size:10px;font-weight:600}
 .bn-item.active{color:var(--accent)}
@@ -7349,13 +7350,20 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
 
   window.renderBottomNav=function(){
     var bar=document.getElementById('bn-bar'); if(!bar)return;
-    var role=document.body.classList.contains('role-admin')?'admin':'manager';
-    var prim=(role==='admin')?['home','gudang','pegawai','laporan']:['harian','gudang','cash','shift'];
+    var prio={harian:0,event:1};   // Harian paling kiri, Non-harian tepat di kanannya
+    var items=[];
+    document.querySelectorAll('.tabs .tab').forEach(function(tb,idx){
+      var oc=tb.getAttribute('onclick')||''; var m=oc.match(/switchTab\('([^']+)'/); if(!m)return;
+      var n=m[1];
+      try{ if(getComputedStyle(tb).display==='none')return; }catch(e){}   // hormati aturan role & kepegawaian
+      items.push({ n:n, k:(n in prio)?prio[n]:(idx+2) });
+    });
+    items.sort(function(a,b){return a.k-b.k;});
     var html='';
-    prim.forEach(function(n){
+    items.forEach(function(it){
+      var n=it.n;
       html+='<button class="bn-item" data-tab="'+n+'" onclick="navGo(\''+n+'\')">'+_navSvg(n)+'<span>'+(NAVLBL[n]||n)+'</span><i class="bn-dot"></i></button>';
     });
-    html+='<button class="bn-item" data-tab="__more" onclick="openSheet()">'+_navSvg('lainnya')+'<span>Lainnya</span><i class="bn-dot"></i></button>';
     bar.innerHTML=html;
     updateNavDots();
   };
@@ -7363,12 +7371,12 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
   window.syncBottomNav=function(name){
     var bar=document.getElementById('bn-bar');
     if(bar){
-      var found=false;
+      var activeEl=null;
       bar.querySelectorAll('.bn-item').forEach(function(it){
         var on=(it.getAttribute('data-tab')===name);
-        it.classList.toggle('active',on); if(on)found=true;
+        it.classList.toggle('active',on); if(on)activeEl=it;
       });
-      if(!found){var m=bar.querySelector('[data-tab="__more"]'); if(m)m.classList.add('active');}
+      if(activeEl){ try{ activeEl.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'}); }catch(e){} }
     }
     var bn=document.querySelector('.brand-name'); if(bn&&TITLE[name])bn.textContent=TITLE[name];
     var fab=document.getElementById('app-fab'); if(fab)fab.classList.toggle('show',FAB_ON.indexOf(name)>=0);
