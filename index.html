@@ -626,7 +626,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .mon-fcount{position:absolute;right:3px;bottom:3px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:rgba(0,0,0,.66);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .cek-rk-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:5px 10px;border-radius:20px;background:var(--surface);color:var(--muted);white-space:nowrap;font-weight:600}
 .cek-rk-chip b{color:var(--red)}
-.mon-seen-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--accent);background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.32);border-radius:20px;padding:3px 9px;white-space:nowrap}
+.mon-seen-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--accent);background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.32);border-radius:12px;padding:3px 9px;max-width:100%;white-space:normal;line-height:1.5;word-break:break-word}
 </style>
 </head>
 <body>
@@ -5606,16 +5606,28 @@ function _nonharianKunciByKode(kode){
   });
   return found?found.kunci:'';
 }
+// (v5.6) Rapikan timestamp "dilihat" → selalu pendek "yyyy-MM-dd HH:mm".
+// Tahan walau server kirim format panjang (Date.toString / locale string).
+function _fmtSeen(t){
+  t=String(t||'').trim();
+  if(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(t)) return t;           // sudah pendek
+  var d=new Date(t);
+  if(!isNaN(d.getTime())){
+    var p=function(n){return String(n).padStart(2,'0');};
+    return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+  }
+  return t.length>16?t.slice(0,16):t;                                // fallback aman
+}
 // (v5.6) Badge "👁 Dilihat manager" — HANYA tampil di akun ADMIN (read-receipt).
 function _dilihatMgrBadge(it){
   if(userRole!=='admin')return'';
-  var t=(it&&it.dilihatMgr)?String(it.dilihatMgr):'';
+  var t=(it&&it.dilihatMgr)?_fmtSeen(it.dilihatMgr):'';
   if(!t)return'';
   return '<span class="mon-seen-badge" title="Manager sudah membuka/melihat ini">👁 Dilihat manager · '+escH(t)+'</span>';
 }
 function _dilihatMgrBadgeEl(it){
   if(userRole!=='admin')return null;
-  var t=(it&&it.dilihatMgr)?String(it.dilihatMgr):'';
+  var t=(it&&it.dilihatMgr)?_fmtSeen(it.dilihatMgr):'';
   if(!t)return null;
   var s=document.createElement('span');
   s.className='mon-seen-badge'; s.title='Manager sudah membuka/melihat ini';
