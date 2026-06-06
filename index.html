@@ -851,7 +851,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
           <button class="btn-press" onclick="kjkClear()" style="background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.3);border-radius:10px;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans)">🗑 Hapus</button>
         </div>
         <button class="btn-press" onclick="kjkNol()" style="width:100%;background:rgba(124,58,237,.08);color:#7c3aed;border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans)">🚫 Tandai TIDAK dihitung masuk (0 jam)</button>
-        <div style="font-size:10px;color:var(--hint);margin-top:8px;line-height:1.5">Isi jam <b>Masuk</b> saja boleh (untuk membenahi jam datang). Jam <b>Keluar</b> opsional — kalau diisi, durasinya dihitung (pagi 10:00–12:00 + sore 16:00–18:00 = 4 jam). Tombol ungu dipakai bila GPS salah deteksi padahal Manager tidak benar-benar di toko. Hasil menimpa jam kerja GPS hari itu.</div>
+        <div style="font-size:10px;color:var(--hint);margin-top:8px;line-height:1.5">Isi jam <b>Masuk</b> saja boleh: kalau <b>Keluar</b> dikosongkan, server otomatis menghitung durasinya dari jam masuk sampai <b>ping terakhir Manager di toko</b> hari itu. Isi <b>Keluar</b> kalau mau durasi pasti (pagi 10:00–12:00 + sore 16:00–18:00 = 4 jam). Tombol ungu dipakai bila GPS salah deteksi padahal Manager tidak benar-benar di toko. Hasil menimpa jam kerja GPS hari itu.</div>
       </div>
     </div>
 
@@ -6170,7 +6170,7 @@ function kjkHitung(){
   var el=document.getElementById('kjk-total');
   if(el){
     var ket=total>=240?' ✓ (≥4 jam)':total>0?' (kurang dari 4 jam)':'';
-    var note=adaMasukSaja?' · sesi tanpa jam keluar tidak dihitung jam':'';
+    var note=adaMasukSaja?' · keluar kosong → dihitung otomatis s/d ping terakhir di toko':'';
     el.textContent='Total: '+kjkFmt(total)+ket+note;
     el.style.color=total>=240?'var(--green)':total>0?'var(--orange)':'var(--text)';
   }
@@ -6208,11 +6208,11 @@ function kjkSave(){
   var pm=document.getElementById('kjk-pagi-masuk').value, pk=document.getElementById('kjk-pagi-keluar').value;
   var sm=document.getElementById('kjk-sore-masuk').value, sk=document.getElementById('kjk-sore-keluar').value;
   var total=kjkHitung();
-  // sesi boleh hanya jam MASUK (mengkoreksi jam datang walau tidak tahu jam keluar).
-  // Sesi tanpa jam keluar tidak menambah durasi (0 menit), tapi jam datang tetap tercatat.
+  // sesi boleh hanya jam MASUK (mengkoreksi jam datang). Bila Keluar kosong,
+  // server menghitung durasinya otomatis: jam masuk → ping terakhir di toko hari itu.
   var sesi={}, bagian=[];
-  if(pm){ sesi.pagi={in:pm}; if(pk)sesi.pagi.out=pk; bagian.push('pagi '+pm+(pk?('–'+pk):' (keluar -)')); }
-  if(sm){ sesi.sore={in:sm}; if(sk)sesi.sore.out=sk; bagian.push('sore '+sm+(sk?('–'+sk):' (keluar -)')); }
+  if(pm){ sesi.pagi={in:pm}; if(pk)sesi.pagi.out=pk; bagian.push('pagi '+pm+(pk?('–'+pk):' (auto s/d ping terakhir)')); }
+  if(sm){ sesi.sore={in:sm}; if(sk)sesi.sore.out=sk; bagian.push('sore '+sm+(sk?('–'+sk):' (auto s/d ping terakhir)')); }
   if(!pm&&!sm){showToast('Isi minimal jam MASUK salah satu sesi','err');return;}
   var ketSesi=bagian.join(' & ');
   var btn=document.getElementById('kjk-save-btn');if(btn){btn.disabled=true;btn.textContent='Menyimpan…';}
@@ -6221,7 +6221,7 @@ function kjkSave(){
                ketSesi:ketSesi,adminEmail:(userEmail||'admin'),waktu:Date.now()};
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
     .then(function(){
-      showToast('✓ Koreksi tersimpan ('+(total>0?kjkFmt(total):'jam datang dicatat')+')','ok');
+      showToast('✓ Koreksi tersimpan ('+(total>0?kjkFmt(total):'dihitung otomatis di server')+')','ok');
       logActivity('Koreksi jam masuk Manager',tgl+' → '+ketSesi+' = '+kjkFmt(total));
       setTimeout(kjkLoad,1500);
     })
@@ -7568,7 +7568,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
   var ICONS={
     home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
     harian:'<path d="M9 4h6v3H9z"/><path d="M7 5H5v15h14V5h-2"/><path d="M8.5 13l2 2 4-4"/>',
-    event:'<path d="M12 21s-6-5-6-10a6 6 0 0112 0c0 5-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/>',
+    event:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16"/><path d="M8 3v3"/><path d="M16 3v3"/><path d="M12 12.4l.9 1.8 2 .3-1.45 1.4.34 2-1.79-.95-1.79.95.34-2-1.45-1.4 2-.3z"/>',
     gudang:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4"/><path d="M12 11v10"/>',
     cash:'<path d="M3 7h16a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M15.5 13h2.5"/>',
     shift:'<path d="M5 4h14v16H5z"/><path d="M5 9h14"/><path d="M9 2v4"/><path d="M15 2v4"/>',
