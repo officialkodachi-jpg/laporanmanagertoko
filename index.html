@@ -707,7 +707,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 
 <!-- BELUM SETOR BANNER — biru tua, jika > 3 juta -->
 <div class="alarm-banner" id="setor-alarm-banner" onclick="gotoData('cash')" style="background:#1d4ed8;animation-name:shiftBannerPulse">
-  <span>💰 UANG BELUM DISETOR — <span id="setor-alarm-amount"></span> (lebih dari 3 juta), segera setor ke Bank!</span>
+  <span>💰 UANG BELUM DISETOR — <span id="setor-alarm-amount"></span> (lebih dari <span id="setor-alarm-thr">3 juta</span>), segera setor ke Bank!</span>
   <span class="mute-hint" onclick="event.stopPropagation();muteSetorAlarm()">👆 Tap untuk lihat · 🔕 bisukan</span>
 </div>
 
@@ -743,7 +743,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   <div class="loc-info">
     <div class="loc-status waiting" id="loc-status">Memulai GPS...</div>
     <div class="loc-detail" id="loc-detail">Mendeteksi posisi kamu</div>
-    <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span>Target: 4 jam</span></div></div>
+    <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span id="time-bar-target">Target: 4 jam</span></div></div>
     <button class="loc-activate-btn btn-press" id="loc-activate-btn" style="display:none" onclick="aktifkanLokasi()"><span id="loc-act-ico" style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" style="stroke:currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><span id="loc-act-lbl">Aktifkan lokasi</span></button>
     <button class="admin-refresh btn-press" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc(true)"><span class="spin-ico" id="admin-loc-ico">⟳</span> Perbarui posisi Manager</button>
   </div>
@@ -1249,7 +1249,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
       <div id="riwayat-container"><div class="empty"><div class="empty-icon">🗂</div><div class="empty-text">Pilih bulan untuk melihat riwayat</div></div></div>
     </div>
     <div class="subview" id="subview-jam">
-      <div class="subview-cap">Jam kerja manager per hari (dari GPS). Target 4 jam/hari. Lihat hari mana yang kurang/lebih.</div>
+      <div class="subview-cap" id="jk-subcap">Jam kerja manager per hari (dari GPS). Target 4 jam/hari. Lihat hari mana yang kurang/lebih.</div>
       <div class="grid-controls"><input type="month" class="month-select" id="jam-month" style="flex:1"><button class="load-btn" onclick="loadJamKerja()">Tampilkan</button></div>
       <div id="jam-summary" style="margin-bottom:12px"></div>
       <div id="jam-container"><div class="empty"><div class="empty-icon">⏱</div><div class="empty-text">Pilih bulan dan klik Tampilkan</div></div></div>
@@ -1559,6 +1559,24 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
       <div class="sd-hint">ℹ️ <span>Dipakai di tombol "Tampilkan data …", tab Kepegawaian, &amp; filter backend. Boleh beberapa ejaan dipisah koma (mis. <b>Rifyh,Ryifih</b>) — ejaan pertama jadi nama tampil.</span></div>
     </div>
 
+    <div class="alert info" style="margin:14px 0 4px;font-size:11px;line-height:1.6">⚙️ <b>Setelan Operasional</b> — nilai yang mungkin perlu disesuaikan seiring waktu (lokasi toko, target jam, ambang setor). Semua berlaku ke semua perangkat.</div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">📍</span><div class="sd-meta"><div class="sd-name">Lokasi Toko (GPS)</div><div class="sd-desc">Titik pusat &amp; radius untuk deteksi "di toko" (jam kerja manager). Ganti kalau toko pindah.</div></div><span class="sd-tag gas">GPS</span></div>
+      <div class="sd-cur">aktif: <span id="sd-cur-toko">…</span></div>
+      <div class="sd-row" style="gap:6px"><input id="sd-in-toko-lat" type="text" inputmode="decimal" placeholder="Lat (mis. -7.761684)" style="flex:1"><input id="sd-in-toko-lng" type="text" inputmode="decimal" placeholder="Lng (mis. 110.369448)" style="flex:1"></div>
+      <div class="sd-row" style="gap:6px;margin-top:6px"><input id="sd-in-toko-rad" type="number" min="20" max="3000" placeholder="Radius meter (mis. 150)" style="flex:1"><button onclick="saveTokoLoc()">💾 Simpan</button></div>
+      <button class="loc-activate-btn" onclick="useMyLocationForStore()" style="margin-top:8px">📍 Pakai lokasi saya sekarang</button>
+      <div class="sd-hint">ℹ️ <span>Berdiri <b>di dalam toko</b>, tekan "Pakai lokasi saya sekarang" untuk isi Lat/Lng otomatis, atur radius (100–200 m biasanya pas), lalu <b>Simpan</b>.</span></div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">🎯</span><div class="sd-meta"><div class="sd-name">Target Jam &amp; Ambang Setor</div><div class="sd-desc">Target jam kerja manager/hari &amp; batas uang belum disetor yang memicu alarm.</div></div><span class="sd-tag ss">Aturan</span></div>
+      <div class="sd-cur">aktif: <span id="sd-cur-aturan">…</span></div>
+      <div class="sd-row" style="gap:6px"><input id="sd-in-target-jam" type="number" min="0.5" max="24" step="0.5" placeholder="Target jam/hari (mis. 4)" style="flex:1"><input id="sd-in-setor-juta" type="number" min="0" step="0.5" placeholder="Ambang setor juta (mis. 3)" style="flex:1"><button onclick="saveOpsAturan()">💾 Simpan</button></div>
+      <div class="sd-hint">ℹ️ <span>Target jam dipakai untuk progres timer &amp; rekap jam kerja. Ambang setor = banner "uang belum disetor" muncul bila saldo melebihi nilai ini.</span></div>
+    </div>
+
     <div class="sd-card warn">
       <div class="sd-top"><span class="sd-ic">🖥️</span><div class="sd-meta"><div class="sd-name">URL Backend (GAS)</div><div class="sd-desc">Alamat Web App tempat semua data ditarik</div></div><span class="sd-tag gas">GAS</span></div>
       <div class="sd-cur">aktif: <span id="sd-tail-gas">…</span></div>
@@ -1663,7 +1681,8 @@ const EVENTS=[
 ];
 const BULAN_NAMES=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const DAY_SHORT=['Min','Sen','Sel','Rab','Kam','Jum','Sab'],DAY_FULL=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-const TOKO={lat:-7.761684,lng:110.369448,radius:150},TARGET_MENIT=240;
+var TOKO={lat:-7.761684,lng:110.369448,radius:150},TARGET_MENIT=240,SETOR_AMBANG=3000000;
+function _targetJamTxt(){ return (Math.round(TARGET_MENIT/60*10)/10)+' jam'; }
 const DEFAULT_URL='https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBEBZjQgFE_/exec';
 const SHEET_URL='https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=0#gid=0';
 const GUDANG_SHEET_URL='https://docs.google.com/spreadsheets/d/13yNmH5jrf1-3AtJq8oyFDQ2H45ygGbefdtj8JKY3Twk/edit';
@@ -1997,7 +2016,9 @@ function triggerSetorBanner(belumB){
   var banner=document.getElementById('setor-alarm-banner');
   var amt=document.getElementById('setor-alarm-amount');
   if(!banner)return;
-  if(belumB!=null && belumB>3000000 && !setorMuted){
+  var thr=document.getElementById('setor-alarm-thr');
+  if(thr) thr.textContent = (SETOR_AMBANG%1000000===0) ? (SETOR_AMBANG/1000000)+' juta' : fRpPlain(SETOR_AMBANG);
+  if(belumB!=null && belumB>SETOR_AMBANG && !setorMuted){
     if(amt)amt.textContent=fRpPlain(belumB);
     banner.classList.add('show');
   }else{
@@ -2186,9 +2207,21 @@ function _applyGlobalTheme(){
     try{ if(typeof window._thmPaint==='function')window._thmPaint(); }catch(e){}
   }catch(e){}
 }
+// (ops global) setelan operasional dari config server: lokasi toko, target jam, ambang setor — berlaku semua HP
+function _applyOpsConfig(){
+  try{
+    var c=_appCfg||{};
+    var la=parseFloat(c.tokoLat), ln=parseFloat(c.tokoLng), rd=parseInt(c.tokoRadius,10);
+    if(isFinite(la)&&isFinite(ln)){ TOKO.lat=la; TOKO.lng=ln; }
+    if(isFinite(rd)&&rd>=20&&rd<=3000) TOKO.radius=rd;
+    var tm=parseInt(c.targetMenit,10); if(isFinite(tm)&&tm>=30&&tm<=1440) TARGET_MENIT=tm;
+    var sa=parseInt(c.setorAmbang,10); if(isFinite(sa)&&sa>=0) SETOR_AMBANG=sa;
+  }catch(e){}
+}
 // Terapkan config ke UI (dipanggil setelah load & setelah set)
 function applyAppConfig(){
   try{ _applyGlobalTheme(); }catch(e){}
+  try{ _applyOpsConfig(); }catch(e){}
   try{ _cekArsipSync(); }catch(e){}
   // 1) Tab Kepegawaian di akun MANAGER — DEFAULT TERSEMBUNYI.
   //    Hanya tampil bila admin menyalakan showKepManager (tab umum) ATAU showMgrSelf (evaluasi Rifyh).
@@ -3230,8 +3263,8 @@ function getCurrentTotalMinutes(){
   return t;
 }
 function fmtDur(m){const h=Math.floor(m/60),n=Math.floor(m%60);return h>0?h+'j '+n+'m':n+'m';}
-function updateTimerDisplay(){_enforcePresence();const t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60),p=Math.min(100,t/TARGET_MENIT*100);document.getElementById('loc-timer').textContent=h+':'+String(m).padStart(2,'0');document.getElementById('loc-timer').className='loc-timer'+(p>=100?' done':p>=50?' warn':'');const f=document.getElementById('time-bar-fill');f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');document.getElementById('time-bar-left').textContent=t>=60?h+' jam '+m+' menit di toko':Math.floor(t)+' menit di toko';document.getElementById('loc-total-today').textContent=h+'j '+m+'m';updateD01Card();}
-function updateD01Card(){const t=getCurrentTotalMinutes(),p=Math.min(100,t/TARGET_MENIT*100),done=t>=TARGET_MENIT,h=Math.floor(t/60),m=Math.floor(t%60);const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),dv=document.getElementById('d01-dur-val'),pf=document.getElementById('d01-prog-fill'),dot=document.getElementById('d01-caption-dot'),cap=document.getElementById('d01-caption-text');if(!card)return;card.className='d01-card '+(done?'d01-done':t>0?'d01-warn':'');if(t>0){const col=done?'%2316a34a':'%23d97706';chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='"+col+"' stroke='"+col+"' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-size='13' font-weight='700' fill='white'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";}else{chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='none' stroke='%23adb5bd' stroke-width='2'/%3E%3C/svg%3E";}if(t===0){badge.innerHTML='<span class="d01-badge-dot"></span>GPS aktif';badge.className='d01-badge empty';}else if(done){badge.innerHTML='≥ 4 jam ✓';badge.className='d01-badge done';}else{badge.innerHTML='< 4 jam';badge.className='d01-badge warn';}dv.textContent=h+'j '+m+'m';dv.className='d01-dur-val '+(t===0?'muted':done?'green':'orange');pf.style.width=p+'%';pf.style.background=done?'var(--green)':t>0?'var(--orange)':'var(--hint)';if(isAtStore){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}else if(t>0){dot.className='dot orange';cap.textContent=done?'Target tercapai':'Durasi '+fmtDur(t)+' tercatat';}else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}notes['D01']=t>0?'GPS: '+h+'j '+m+'m di toko'+(done?'':' (< target 4j)')+' · '+(isAtStore?'Sedang di toko':'Sudah keluar toko'):'';if(t>0&&!checked['D01']){checked['D01']=true;updateStats();}}
+function updateTimerDisplay(){_enforcePresence();const t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60),p=Math.min(100,t/TARGET_MENIT*100);document.getElementById('loc-timer').textContent=h+':'+String(m).padStart(2,'0');document.getElementById('loc-timer').className='loc-timer'+(p>=100?' done':p>=50?' warn':'');const f=document.getElementById('time-bar-fill');f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');document.getElementById('time-bar-left').textContent=t>=60?h+' jam '+m+' menit di toko':Math.floor(t)+' menit di toko';document.getElementById('loc-total-today').textContent=h+'j '+m+'m';var _tbt=document.getElementById('time-bar-target');if(_tbt)_tbt.textContent='Target: '+_targetJamTxt();updateD01Card();}
+function updateD01Card(){const t=getCurrentTotalMinutes(),p=Math.min(100,t/TARGET_MENIT*100),done=t>=TARGET_MENIT,h=Math.floor(t/60),m=Math.floor(t%60);const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),dv=document.getElementById('d01-dur-val'),pf=document.getElementById('d01-prog-fill'),dot=document.getElementById('d01-caption-dot'),cap=document.getElementById('d01-caption-text');if(!card)return;card.className='d01-card '+(done?'d01-done':t>0?'d01-warn':'');if(t>0){const col=done?'%2316a34a':'%23d97706';chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='"+col+"' stroke='"+col+"' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-size='13' font-weight='700' fill='white'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";}else{chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='none' stroke='%23adb5bd' stroke-width='2'/%3E%3C/svg%3E";}if(t===0){badge.innerHTML='<span class="d01-badge-dot"></span>GPS aktif';badge.className='d01-badge empty';}else if(done){badge.innerHTML='≥ '+_targetJamTxt()+' ✓';badge.className='d01-badge done';}else{badge.innerHTML='< '+_targetJamTxt();badge.className='d01-badge warn';}dv.textContent=h+'j '+m+'m';dv.className='d01-dur-val '+(t===0?'muted':done?'green':'orange');pf.style.width=p+'%';pf.style.background=done?'var(--green)':t>0?'var(--orange)':'var(--hint)';if(isAtStore){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}else if(t>0){dot.className='dot orange';cap.textContent=done?'Target tercapai':'Durasi '+fmtDur(t)+' tercatat';}else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}notes['D01']=t>0?'GPS: '+h+'j '+m+'m di toko'+(done?'':' (< target '+_targetJamTxt()+')')+' · '+(isAtStore?'Sedang di toko':'Sudah keluar toko'):'';if(t>0&&!checked['D01']){checked['D01']=true;updateStats();}}
 
 // ════ D01 SWIPE ════
 function fixD01SwipeHeight(){
@@ -3665,6 +3698,7 @@ function _sdExtractId(v){
 function _sdTail(s){ s=String(s||''); return s.length>14 ? '…'+s.slice(-14) : (s||'—'); }
 async function loadSumberData(){
   var g=document.getElementById('sd-tail-gas'); if(g)g.textContent=_sdTail(scriptUrl);
+  try{ var ct=document.getElementById('sd-cur-toko'); if(ct)ct.textContent=_fmtTokoCur(); var ca=document.getElementById('sd-cur-aturan'); if(ca)ca.textContent=_fmtAturanCur(); }catch(e){}
   if(!scriptUrl)return;
   try{
     var r=await fetch(scriptUrl+'?type=sumberdata'), d=await r.json();
@@ -3716,6 +3750,75 @@ function saveSumberGas(){
   var el=document.getElementById('sd-tail-gas'); if(el)el.textContent=_sdTail(v);
   showToast('✓ URL backend tersimpan','ok');
   try{ logActivity('Ganti URL Backend GAS', _sdTail(v)); }catch(e){}
+}
+// ── Setelan operasional (lokasi toko, target jam, ambang setor) ──
+function _fmtTokoCur(){ return (TOKO.lat).toFixed(6)+', '+(TOKO.lng).toFixed(6)+' · radius '+TOKO.radius+' m'; }
+function _fmtAturanCur(){
+  var jam=Math.round(TARGET_MENIT/60*10)/10;
+  var amb=(SETOR_AMBANG%1000000===0)?(SETOR_AMBANG/1000000)+' juta':fRpPlain(SETOR_AMBANG);
+  return 'target '+jam+' jam/hari · ambang setor '+amb;
+}
+function saveTokoLoc(){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa ganti lokasi toko','err');return;}
+  var la=parseFloat((document.getElementById('sd-in-toko-lat').value||'').trim());
+  var ln=parseFloat((document.getElementById('sd-in-toko-lng').value||'').trim());
+  var rdRaw=(document.getElementById('sd-in-toko-rad').value||'').trim();
+  var rd=rdRaw?parseInt(rdRaw,10):TOKO.radius;
+  if(!isFinite(la)||!isFinite(ln)||la<-90||la>90||ln<-180||ln>180){showToast('Lat/Lng tidak valid','err');return;}
+  if(!isFinite(rd)||rd<20||rd>3000){showToast('Radius harus 20–3000 meter','err');return;}
+  appConfigSet('tokoLat',String(la),function(){});
+  appConfigSet('tokoLng',String(ln),function(){});
+  appConfigSet('tokoRadius',String(rd),function(){});
+  try{ _appCfg.tokoLat=String(la); _appCfg.tokoLng=String(ln); _appCfg.tokoRadius=String(rd); }catch(e){}
+  TOKO.lat=la; TOKO.lng=ln; TOKO.radius=rd;
+  var cur=document.getElementById('sd-cur-toko'); if(cur)cur.textContent=_fmtTokoCur();
+  try{ if(typeof updateTimerDisplay==='function')updateTimerDisplay(); }catch(e){}
+  try{ if(typeof _mgrMap!=='undefined' && _mgrMap)_mgrMap.setView([TOKO.lat,TOKO.lng],16); }catch(e){}
+  showToast('✓ Lokasi toko tersimpan — berlaku ke semua perangkat','ok');
+  try{ logActivity('Ganti lokasi toko', _fmtTokoCur()); }catch(e){}
+}
+function useMyLocationForStore(){
+  if(!navigator.geolocation){showToast('GPS tidak tersedia di perangkat ini','err');return;}
+  showToast('📍 Mengambil lokasi… pastikan kamu di dalam toko','');
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var la=pos.coords.latitude, ln=pos.coords.longitude, acc=Math.round(pos.coords.accuracy||0);
+    document.getElementById('sd-in-toko-lat').value=la.toFixed(6);
+    document.getElementById('sd-in-toko-lng').value=ln.toFixed(6);
+    var radEl=document.getElementById('sd-in-toko-rad');
+    if(radEl && !radEl.value.trim()) radEl.value=Math.max(100,Math.min(300,acc+80));
+    showToast('✓ Lokasi terisi (akurasi ±'+acc+' m). Cek radius lalu tekan Simpan.','ok');
+  },function(err){
+    showToast('Gagal ambil lokasi: '+((err&&err.message)?err.message:'izin GPS ditolak'),'err');
+  },{enableHighAccuracy:true,timeout:12000,maximumAge:0});
+}
+function saveOpsAturan(){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa ganti aturan','err');return;}
+  var jamRaw=(document.getElementById('sd-in-target-jam').value||'').trim();
+  var jutaRaw=(document.getElementById('sd-in-setor-juta').value||'').trim();
+  var didAny=false;
+  if(jamRaw!==''){
+    var jam=parseFloat(jamRaw);
+    if(!isFinite(jam)||jam<0.5||jam>24){showToast('Target jam harus 0.5–24','err');return;}
+    var menit=Math.round(jam*60);
+    appConfigSet('targetMenit',String(menit),function(){});
+    try{ _appCfg.targetMenit=String(menit); }catch(e){}
+    TARGET_MENIT=menit; didAny=true;
+  }
+  if(jutaRaw!==''){
+    var juta=parseFloat(jutaRaw);
+    if(!isFinite(juta)||juta<0){showToast('Ambang setor tidak valid','err');return;}
+    var rp=Math.round(juta*1000000);
+    appConfigSet('setorAmbang',String(rp),function(){});
+    try{ _appCfg.setorAmbang=String(rp); }catch(e){}
+    SETOR_AMBANG=rp; didAny=true;
+  }
+  if(!didAny){showToast('Isi minimal salah satu kolom','err');return;}
+  document.getElementById('sd-in-target-jam').value='';
+  document.getElementById('sd-in-setor-juta').value='';
+  var cur=document.getElementById('sd-cur-aturan'); if(cur)cur.textContent=_fmtAturanCur();
+  try{ if(typeof updateTimerDisplay==='function')updateTimerDisplay(); }catch(e){}
+  showToast('✓ Aturan tersimpan — berlaku ke semua perangkat','ok');
+  try{ logActivity('Ganti target/ambang', _fmtAturanCur()); }catch(e){}
 }
 
 // Set badge: tampil kalau n>0, sembunyi kalau 0
@@ -4709,7 +4812,9 @@ function jkFmtDur(menit){var h=Math.floor(menit/60),m=menit%60;return h+'j '+m+'
 function renderJamKerja(d){
   var c=document.getElementById('jam-container'),s=document.getElementById('jam-summary');
   var hari=(d&&d.hari)?d.hari:[];
-  var target=(d&&d.targetHari)?d.targetHari:240;
+  var target=TARGET_MENIT;                                  // target dari config (bukan 240 hardcode)
+  var tJamTxt=(Math.round(target/60*10)/10)+' jam';
+  var _sc=document.getElementById('jk-subcap'); if(_sc)_sc.textContent='Jam kerja manager per hari (dari GPS). Target '+tJamTxt+'/hari. Lihat hari mana yang kurang/lebih.';
   if(!hari.length){s.innerHTML='';c.innerHTML='<div class="empty"><div class="empty-icon">⏱</div><div class="empty-text">Belum ada data jam kerja bulan ini</div></div>';return;}
   // ringkasan
   var totalMenit=0,hariCukup=0;
@@ -4718,17 +4823,17 @@ function renderJamKerja(d){
   var targetMinggu=target*6; // 24 jam
   s.innerHTML='<div class="km-stats-row" style="grid-template-columns:1fr 1fr 1fr">'
     +'<div class="km-stat"><div class="km-stat-val" style="font-size:18px">'+hari.length+'</div><div class="km-stat-label">Hari kerja</div></div>'
-    +'<div class="km-stat"><div class="km-stat-val" style="font-size:18px;color:var(--green)">'+hariCukup+'</div><div class="km-stat-label">Hari ≥4 jam</div></div>'
+    +'<div class="km-stat"><div class="km-stat-val" style="font-size:18px;color:var(--green)">'+hariCukup+'</div><div class="km-stat-label">Hari ≥'+tJamTxt+'</div></div>'
     +'<div class="km-stat"><div class="km-stat-val" style="font-size:18px;color:var(--red)">'+(hari.length-hariCukup)+'</div><div class="km-stat-label">Hari kurang</div></div>'
     +'</div>'
-    +'<div class="notif-item" style="background:rgba(37,99,235,.07);border-color:rgba(37,99,235,.2);color:var(--accent)">Total jam kerja bulan ini: <b>'+totalJam+' jam '+totalSisa+' menit</b> · Target mingguan 4 jam × 6 hari = <b>24 jam</b></div>';
+    +'<div class="notif-item" style="background:rgba(37,99,235,.07);border-color:rgba(37,99,235,.2);color:var(--accent)">Total jam kerja bulan ini: <b>'+totalJam+' jam '+totalSisa+' menit</b> · Target mingguan '+tJamTxt+' × 6 hari = <b>'+(Math.round(targetMinggu/60*10)/10)+' jam</b></div>';
   // daftar per hari
   var html='';
   hari.forEach(function(h){
     var p=h.tgl.split('-'),dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
     var namaHari=DAY_FULL_JK[dt.getDay()],tglTxt=parseInt(p[2])+' '+BULAN_NAMES[parseInt(p[1])-1];
     var cukup=h.menit>=target;
-    var selisih=h.selisih; // menit dibanding 240
+    var selisih=h.menit-target; // dibanding target dari config
     var selTxt,selColor;
     if(selisih>=0){selTxt='lebih '+jkFmtDur(selisih);selColor='var(--green)';}
     else{selTxt='kurang '+jkFmtDur(-selisih);selColor='var(--red)';}
@@ -4736,7 +4841,7 @@ function renderJamKerja(d){
     html+='<div class="stok-item" style="border-left-color:'+warna+'">'
       +'<div class="stok-size-pill" style="background:'+(cukup?'rgba(22,163,74,.12)':'rgba(220,38,38,.12)')+';color:'+warna+';min-width:62px;font-size:12px">'+jkFmtDur(h.menit)+'</div>'
       +'<div class="stok-item-body"><div class="stok-item-name">'+namaHari+', '+tglTxt+'</div>'
-      +'<div class="stok-item-sub" style="color:'+selColor+'">'+(cukup?'✓ ':'')+selTxt+' dari target 4 jam</div></div>'
+      +'<div class="stok-item-sub" style="color:'+selColor+'">'+(cukup?'✓ ':'')+selTxt+' dari target '+tJamTxt+'</div></div>'
       +'</div>';
   });
   c.innerHTML=html;
@@ -5603,7 +5708,7 @@ async function saveHarian(){
   // D04 terhubung ke Uang Cash; foto struk opsional (tidak wajib)
   var btn=document.getElementById('save-harian-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Menyimpan...';
   var t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60);
-  var gn=t>0?'GPS: '+h+'j '+m+'m di toko'+(t>=TARGET_MENIT?'':' (< target 4j)')+' · '+(isAtStore?'Masih di toko':'Sudah keluar toko'):'GPS: tidak ada durasi tercatat';
+  var gn=t>0?'GPS: '+h+'j '+m+'m di toko'+(t>=TARGET_MENIT?'':' (< target '+_targetJamTxt()+')')+' · '+(isAtStore?'Masih di toko':'Sudah keluar toko'):'GPS: tidak ada durasi tercatat';
   var entries=HARIAN.map(x=>({tanggal:todayValue,kode:x.kode,nama:x.nama,kategori:x.kategori,prioritas:x.prioritas,status:x.autoTrack?(t>=TARGET_MENIT?'✓':'✗'):(checked[x.kode]?'✓':'✗'),catatan:x.autoTrack?gn:((notes[x.kode]||'')+((x.kode==='D04'&&checked['D04']&&d04FotoBase64)?' [struk setoran dilampirkan]':''))}));
   var payload={type:'harian',entries:entries};
   // sertakan foto struk D04 bila ada (backend mengabaikan bila tak dipakai)
@@ -6301,10 +6406,11 @@ function kjkHitung(){
   var adaMasukSaja = (pm&&!pk) || (sm&&!sk); // ada sesi yang hanya diisi jam masuk
   var el=document.getElementById('kjk-total');
   if(el){
-    var ket=total>=240?' ✓ (≥4 jam)':total>0?' (kurang dari 4 jam)':'';
+    var _tjm=(Math.round(TARGET_MENIT/60*10)/10)+' jam';
+    var ket=total>=TARGET_MENIT?' ✓ (≥'+_tjm+')':total>0?' (kurang dari '+_tjm+')':'';
     var note=adaMasukSaja?' · keluar kosong → dihitung otomatis s/d ping terakhir di toko':'';
     el.textContent='Total: '+kjkFmt(total)+ket+note;
-    el.style.color=total>=240?'var(--green)':total>0?'var(--orange)':'var(--text)';
+    el.style.color=total>=TARGET_MENIT?'var(--green)':total>0?'var(--orange)':'var(--text)';
   }
   return total;
 }
@@ -6540,10 +6646,10 @@ function applyCashSummary(rows, meta){
   var warn = document.getElementById('cash-warn');
   var badge = document.getElementById('badge-cash');
   if(warn){
-    if(belumB != null && belumB > 3000000){
+    if(belumB != null && belumB > SETOR_AMBANG){
       warn.style.display='block';
       warn.style.background='rgba(220,38,38,.1)';warn.style.border='1px solid rgba(220,38,38,.3)';warn.style.color='var(--red)';
-      warn.innerHTML='🔴 <b>Segera setor ke Bank!</b> Uang belum disetor sudah '+fRpPlain(belumB)+' (lebih dari 3 juta).';
+      warn.innerHTML='🔴 <b>Segera setor ke Bank!</b> Uang belum disetor sudah '+fRpPlain(belumB)+' (lebih dari '+((SETOR_AMBANG%1000000===0)?(SETOR_AMBANG/1000000)+' juta':fRpPlain(SETOR_AMBANG))+').';
       if(badge){badge.textContent='!';badge.style.background='var(--red)';badge.classList.add('show','pulse');}
     } else if(belumB != null && belumB > 1000000){
       warn.style.display='block';
@@ -6912,7 +7018,7 @@ function loadHomeLoc(force){
         + '<div style="height:100%;border-radius:4px;background:var(--accent);width:'+document.getElementById('time-bar-fill').style.width+'"></div>'
         + '</div>'
         + '<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);font-family:var(--mono)">'
-        + '<span>'+escH(timeLTxt)+'</span><span>Target: 4 jam</span>'
+        + '<span>'+escH(timeLTxt)+'</span><span>Target: '+_targetJamTxt()+'</span>'
         + '</div>';
     }, 1400);
     return;
@@ -7256,12 +7362,13 @@ function loadHomeJamKerja(){
   if(!scriptUrl){body.innerHTML='<div style="color:var(--hint);font-size:12px">URL belum dikonfigurasi</div>';return;}
   body.innerHTML='<div style="text-align:center"><span class="spinner"></span> Memuat...</div>';
   var bulan = todayValue.substring(0,7);
-  if(sub) sub.textContent = 'Target: 4 jam/hari · '+bulan;
+  var _tj=Math.round(TARGET_MENIT/60*10)/10;
+  if(sub) sub.textContent = 'Target: '+_tj+' jam/hari · '+bulan;
   fetch(scriptUrl+'?type=jamkerja&bulan='+bulan+'&_='+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){
       var hari=(d&&d.hari)?d.hari:[];
-      var target=(d&&d.targetHari)?d.targetHari:240;
+      var target=TARGET_MENIT;
       if(!hari.length){
         body.innerHTML='<div style="color:var(--hint);font-size:12px;text-align:center;padding:8px 0">Belum ada data jam kerja bulan ini</div>';
         return;
@@ -7275,7 +7382,7 @@ function loadHomeJamKerja(){
       // Ringkasan 3 angka
       var html='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">'
         +'<div style="text-align:center;background:var(--surface);border-radius:10px;padding:12px 8px"><div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--text)">'+hari.length+'</div><div style="font-size:10px;color:var(--muted);margin-top:4px">hari kerja</div></div>'
-        +'<div style="text-align:center;background:var(--surface);border-radius:10px;padding:12px 8px"><div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--green)">'+hariCukup+'</div><div style="font-size:10px;color:var(--muted);margin-top:4px">hari ≥4 jam</div></div>'
+        +'<div style="text-align:center;background:var(--surface);border-radius:10px;padding:12px 8px"><div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--green)">'+hariCukup+'</div><div style="font-size:10px;color:var(--muted);margin-top:4px">hari ≥'+_tj+' jam</div></div>'
         +'<div style="text-align:center;background:var(--surface);border-radius:10px;padding:12px 8px"><div style="font-family:var(--mono);font-size:22px;font-weight:500;color:'+(hariKurang?'var(--red)':'var(--green)')+'">'+hariKurang+'</div><div style="font-size:10px;color:var(--muted);margin-top:4px">hari kurang</div></div>'
         +'</div>';
       // Total jam & bar
@@ -7298,7 +7405,7 @@ function loadHomeJamKerja(){
         var hj=Math.floor(h.menit/60),mj=Math.round(h.menit%60);
         var durTxt=hj+'j '+mj+'m';
         var warna=cukup?'var(--green)':'var(--red)';
-        var selisih=h.selisih||0;
+        var selisih=h.menit-target;
         var selTxt=selisih>=0?'+'+Math.floor(selisih/60)+'j'+Math.round(selisih%60)+'m':'-'+Math.floor((-selisih)/60)+'j'+Math.round((-selisih)%60)+'m';
         html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:'+(cukup?'rgba(22,163,74,.05)':'rgba(220,38,38,.05)')+';border:1px solid '+(cukup?'rgba(22,163,74,.15)':'rgba(220,38,38,.12)')+';margin-bottom:4px">'
           +'<div style="font-family:var(--mono);font-size:11px;color:var(--muted);min-width:48px">'+namaHari+' '+tglTxt+'</div>'
