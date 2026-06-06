@@ -816,7 +816,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
             <option value="180">180 mnt (longgar)</option>
           </select>
         </div>
-        <div style="font-size:10px;color:var(--hint);line-height:1.5">💡 <b>Tampilkan data Rifyh</b>: manager bisa lihat catatan dirinya (read-only) untuk evaluasi.<br>• Tab tampil + Rifyh on → manager lihat semua partimer <b>dan</b> Rifyh.<br>• Tab disembunyikan + Rifyh on → tab tetap muncul tapi isinya <b>khusus Rifyh saja</b> (partimer lain disembunyikan). Cocok untuk sesi evaluasi.</div>
+        <div id="adm-mgrself-hint" style="font-size:10px;color:var(--hint);line-height:1.5">💡 <b>Tampilkan data Rifyh</b>: manager bisa lihat catatan dirinya (read-only) untuk evaluasi.<br>• Tab tampil + Rifyh on → manager lihat semua partimer <b>dan</b> Rifyh.<br>• Tab disembunyikan + Rifyh on → tab tetap muncul tapi isinya <b>khusus Rifyh saja</b> (partimer lain disembunyikan). Cocok untuk sesi evaluasi.</div>
       </div>
     </div>
 
@@ -1501,6 +1501,13 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
       <div class="sd-row"><input id="sd-in-folder_foto" type="text" placeholder="tempel link folder Drive baru…"><button onclick="saveSumber('folder_foto','sd-in-folder_foto')">💾 Simpan</button></div>
     </div>
 
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">🧑‍💼</span><div class="sd-meta"><div class="sd-name">Nama Manager</div><div class="sd-desc">Nama yang dianggap manager tetap (data evaluasi). Ganti di sini, berlaku di semua tempat.</div></div><span class="sd-tag ss">Nama</span></div>
+      <div class="sd-cur">aktif: <span id="sd-cur-mgrnama">…</span></div>
+      <div class="sd-row"><input id="sd-in-mgrnama" type="text" placeholder="mis. Rifyh"><button onclick="saveSumberMgr()">💾 Simpan</button></div>
+      <div class="sd-hint">ℹ️ <span>Dipakai di tombol "Tampilkan data …", tab Kepegawaian, &amp; filter backend. Boleh beberapa ejaan dipisah koma (mis. <b>Rifyh,Ryifih</b>) — ejaan pertama jadi nama tampil.</span></div>
+    </div>
+
     <div class="sd-card warn">
       <div class="sd-top"><span class="sd-ic">🖥️</span><div class="sd-meta"><div class="sd-name">URL Backend (GAS)</div><div class="sd-desc">Alamat Web App tempat semua data ditarik</div></div><span class="sd-tag gas">GAS</span></div>
       <div class="sd-cur">aktif: <span id="sd-tail-gas">…</span></div>
@@ -2093,6 +2100,10 @@ function harianClearLock(){ try{ localStorage.removeItem(_harianLockKey()); }cat
 // ════ CONFIG GLOBAL (lintas-perangkat, via Apps Script ?type=appconfig) ════
 // { showKepManager:0|1, showMgrSelf:0|1, mapShareOn:0|1, ... }
 var _appCfg={};
+// Nama manager (bisa diganti via Sumber Data → config key mgrNama). Default: Rifyh.
+var MGR_NAME='Rifyh';
+function _mgrNamesNow(){ var v=String((_appCfg&&_appCfg.mgrNama)||'').trim(); if(!v)return['Rifyh']; var a=v.split(/[,\n;]+/).map(function(s){return s.trim();}).filter(function(s){return s;}); return a.length?a:['Rifyh']; }
+function _mgrNameNow(){ return _mgrNamesNow()[0]||'Rifyh'; }
 var _appCfgRecent={}; // {key:{val,ts}} — pertahankan nilai yg BARU diset (≤12 dtk) agar tak "balik" saat server belum selesai menyimpan
 function appConfigLoad(cb){
   var url=scriptUrl; if(!url||!url.startsWith('http')){ if(cb)cb(_appCfg); return; }
@@ -2144,10 +2155,13 @@ function applyAppConfig(){
   }
   var aShare=document.getElementById('adm-mapshare-toggle');
   if(aShare) aShare.textContent = shareOn ? '🙈 Sembunyikan tombol Bagikan Lokasi (Manager)' : '📍 Aktifkan tombol Bagikan Lokasi (Manager)';
-  // 4) Tampilkan data Rifyh (manager) ke akun Manager — read-only, untuk evaluasi
+  // 4) Tampilkan data manager ke akun Manager — read-only, untuk evaluasi
+  MGR_NAME=_mgrNameNow();
   var showSelf = String(_appCfg.showMgrSelf||'')==='1';
   var aSelf=document.getElementById('adm-mgrself-toggle');
-  if(aSelf) aSelf.textContent = showSelf ? '🙈 Sembunyikan data Rifyh dari Manager' : '👁 Tampilkan data Rifyh ke Manager (evaluasi)';
+  if(aSelf) aSelf.textContent = showSelf ? ('🙈 Sembunyikan data '+MGR_NAME+' dari Manager') : ('👁 Tampilkan data '+MGR_NAME+' ke Manager (evaluasi)');
+  var hSelf=document.getElementById('adm-mgrself-hint');
+  if(hSelf) hSelf.innerHTML = '💡 <b>Tampilkan data '+escH(MGR_NAME)+'</b>: manager bisa lihat catatan dirinya (read-only) untuk evaluasi.<br>• Tab tampil + '+escH(MGR_NAME)+' on → manager lihat semua partimer <b>dan</b> '+escH(MGR_NAME)+'.<br>• Tab disembunyikan + '+escH(MGR_NAME)+' on → tab tetap muncul tapi isinya <b>khusus '+escH(MGR_NAME)+' saja</b> (partimer lain disembunyikan). Cocok untuk sesi evaluasi.';
   // bila status berubah utk manager & tab sudah pernah dibuka, muat ulang daftar nama
   var cfgSig = (showKep?'1':'0')+'|'+(showSelf?'1':'0');
   if(userRole==='manager' && _pgLoadedOnce && _appCfgMgrSelfPrev!==cfgSig){ loadPartimer(); }
@@ -3593,6 +3607,8 @@ async function loadSumberData(){
         var el=document.getElementById('sd-tail-'+k); if(el)el.textContent='…'+d.tails[k];
       });
     }
+    var mg=document.getElementById('sd-cur-mgrnama');
+    if(mg) mg.textContent = (d&&d.mgrNama) ? d.mgrNama : _mgrNamesNow().join(', ');
   }catch(e){}
 }
 function saveSumber(key,inputId){
@@ -3609,6 +3625,20 @@ function saveSumber(key,inputId){
   try{ logActivity('Ganti sumber data', key+' → …'+id.slice(-14)); }catch(e){}
   if(key==='ss_orderan'){ window._rhrLoadedOnce=false; setTimeout(function(){try{loadStokMinus(true);}catch(e){}},1200); }
   if(key==='ss_stok'){ stokLoadedOnce=false; setTimeout(function(){try{loadStok(true);}catch(e){}},1200); }
+}
+function saveSumberMgr(){
+  if(userRole!=='admin'){showToast('Hanya admin yang bisa ganti nama manager','err');return;}
+  var inp=document.getElementById('sd-in-mgrnama'); if(!inp)return;
+  var v=inp.value.trim(); if(!v){showToast('Isi nama manager dulu','err');return;}
+  appConfigSet('mgrNama',v,function(){});
+  try{ _appCfg.mgrNama=v; }catch(e){}
+  inp.value='';
+  MGR_NAME=_mgrNameNow();
+  try{ applyAppConfig(); }catch(e){}
+  var mg=document.getElementById('sd-cur-mgrnama'); if(mg) mg.textContent=v;
+  showToast('✓ Nama manager tersimpan — berlaku ke semua perangkat','ok');
+  try{ logActivity('Ganti nama manager', v); }catch(e){}
+  if(userRole==='admin' && _pgLoadedOnce){ try{ loadPartimer(); }catch(e){} }
 }
 function saveSumberGas(){
   if(userRole!=='admin'){showToast('Hanya admin yang bisa ganti URL backend','err');return;}
@@ -5225,7 +5255,7 @@ function loadPartimer(){
     .then(function(d){pgNames=(d&&d.nama)?d.nama:[];
       // Nama tetap khusus admin — selalu muncul walau tidak ada di jadwal shift.
       // Ganti ejaan nama di sini kalau perlu:
-      var NAMA_TETAP_ADMIN=['Rifyh'];
+      var NAMA_TETAP_ADMIN=[_mgrNameNow()];
       if(userRole==='admin'){
         NAMA_TETAP_ADMIN.forEach(function(nm){if(pgNames.indexOf(nm)<0)pgNames.unshift(nm);});
       }else{
@@ -6251,8 +6281,8 @@ function admToggleMgrSelf(){
   appConfigSet('showMgrSelf',next,function(){});
   _appCfg.showMgrSelf=next;
   applyAppConfig();
-  showToast(next==='1'?'👁 Data Rifyh kini terlihat oleh Manager (read-only)':'🙈 Data Rifyh disembunyikan dari Manager','ok');
-  logActivity('Toggle data Rifyh ke Manager',next==='1'?'show':'hide');
+  showToast(next==='1'?('👁 Data '+_mgrNameNow()+' kini terlihat oleh Manager (read-only)'):('🙈 Data '+_mgrNameNow()+' disembunyikan dari Manager'),'ok');
+  logActivity('Toggle data '+_mgrNameNow()+' ke Manager',next==='1'?'show':'hide');
 }
 // Admin: aktifkan/sembunyikan tombol Bagikan Lokasi (Google Maps) di akun Manager
 function admToggleMapShare(){
