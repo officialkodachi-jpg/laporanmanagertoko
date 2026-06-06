@@ -840,7 +840,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
         <button id="adm-mapshare-toggle" onclick="admToggleMapShare()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">📍 Aktifkan tombol Bagikan Lokasi (Manager)</button>
         <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">👁 Tampilkan tab Kepegawaian (Manager)</button>
         <button id="adm-mgrself-toggle" onclick="admToggleMgrSelf()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">👁 Tampilkan data Rifyh ke Manager (evaluasi)</button>
-        <button id="adm-theme-btn" onclick="openThemeSheet()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:7px">🎨 Atur tema tampilan (berlaku semua HP)</button>
+        <button id="adm-theme-btn" onclick="openThemeSheet()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">🎨 Atur tema tampilan (berlaku semua HP)</button>
         <div style="display:flex;align-items:center;gap:9px;padding:6px 0 2px;border-top:1px dashed var(--border)">
           <div style="flex:1;min-width:0">
             <div style="font-size:12px;font-weight:800;color:var(--text)">⏳ Toleransi jeda kehadiran</div>
@@ -8111,7 +8111,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
 /* ===== PEMILIH TEMA — sheet pengaturan tampilan. Pakai window.__applyTheme/__themeSave
    dari script di <head>. Banyak preset (mode terang/gelap/auto, 8 warna aksen, gaya ikon). ===== */
 (function(){
-  var ACCENTS=[['#2563eb','Biru'],['#4f46e5','Indigo'],['#7c3aed','Ungu'],['#0d9488','Toska'],['#16a34a','Hijau'],['#e11d48','Rose'],['#ea580c','Oranye'],['#475569','Slate']];
+  var ACCENTS=[['#2563eb','Biru'],['#0ea5e9','Langit'],['#0891b2','Cyan'],['#0d9488','Toska'],['#059669','Emerald'],['#16a34a','Hijau'],['#65a30d','Lime'],['#ca8a04','Kuning'],['#d97706','Amber'],['#ea580c','Oranye'],['#dc2626','Merah'],['#e11d48','Rose'],['#db2777','Pink'],['#c026d3','Fuchsia'],['#9333ea','Purple'],['#7c3aed','Ungu'],['#4f46e5','Indigo'],['#475569','Slate']];
   var bg=null, sheet=null, draft=null, dirty=false;
 
   // Tema yang SEDANG aktif global: server (_appCfg.theme) > cache lokal > default
