@@ -733,7 +733,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   <span class="brand-tag">Manager · v5.1</span>
   <span class="brand-name">Laporan Manager Kodachi Shop</span>
   <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
-</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><button id="thm-btn" onclick="openThemeSheet()" title="Tema tampilan" aria-label="Tema tampilan" style="width:34px;height:34px;flex:0 0 auto;padding:0;border:1px solid var(--border2);border-radius:10px;background:var(--card);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="1.4"/><circle cx="17.5" cy="10.5" r="1.4"/><circle cx="8.5" cy="7.5" r="1.4"/><circle cx="6.5" cy="12.5" r="1.4"/><path d="M12 2a10 10 0 1 0 0 20c1.4 0 2-1 2-2 0-1.6-1.5-1.7-1.5-3 0-1 .8-1.5 2-1.5h1.5A4.5 4.5 0 0 0 22 11 10 10 0 0 0 12 2z"/></svg></button><span class="role-badge manager" id="role-badge" style="display:none">MANAGER</span><button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">🚪 Logout</button></div></div></div>
+</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="role-badge manager" id="role-badge" style="display:none">MANAGER</span><button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">🚪 Logout</button></div></div></div>
 
 <div class="loc-banner"><div class="loc-card" id="loc-card">
   <button id="loc-share-btn" onclick="shareLokasiBuka()" title="Bagikan lokasi ke Google Maps" aria-label="Bagikan lokasi ke Google Maps" style="display:none;width:46px;height:46px;flex:0 0 auto;padding:0;border:none;border-radius:12px;background:rgba(37,99,235,.12);color:var(--accent);cursor:pointer;align-items:center;justify-content:center">
@@ -840,6 +840,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
         <button id="adm-mapshare-toggle" onclick="admToggleMapShare()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">📍 Aktifkan tombol Bagikan Lokasi (Manager)</button>
         <button id="adm-kep-toggle" onclick="admToggleKepegawaian()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">👁 Tampilkan tab Kepegawaian (Manager)</button>
         <button id="adm-mgrself-toggle" onclick="admToggleMgrSelf()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">👁 Tampilkan data Rifyh ke Manager (evaluasi)</button>
+        <button id="adm-theme-btn" onclick="openThemeSheet()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:7px">🎨 Atur tema tampilan (berlaku semua HP)</button>
         <div style="display:flex;align-items:center;gap:9px;padding:6px 0 2px;border-top:1px dashed var(--border)">
           <div style="flex:1;min-width:0">
             <div style="font-size:12px;font-weight:800;color:var(--text)">⏳ Toleransi jeda kehadiran</div>
@@ -2173,8 +2174,21 @@ function appConfigSet(key,val,cb){
     .then(function(){ if(cb)cb(); })
     .catch(function(){ showToast('Gagal simpan setelan ke server','err'); });
 }
+// (tema global) terapkan tema dari config server ke SEMUA akun/HP
+function _applyGlobalTheme(){
+  try{
+    if(window._thmPreviewing)return;                 // admin sedang pratinjau (belum publish) → jangan timpa
+    var raw=_appCfg&&_appCfg.theme; if(!raw||!window.__applyTheme)return;
+    var th=(typeof raw==='string')?JSON.parse(raw):raw; if(!th)return;
+    th=Object.assign({}, window.__themeDef||{}, th);
+    window.__applyTheme(th);
+    try{ localStorage.setItem(window.__themeKey||'mtg_theme', JSON.stringify(th)); }catch(e){}
+    try{ if(typeof window._thmPaint==='function')window._thmPaint(); }catch(e){}
+  }catch(e){}
+}
 // Terapkan config ke UI (dipanggil setelah load & setelah set)
 function applyAppConfig(){
+  try{ _applyGlobalTheme(); }catch(e){}
   try{ _cekArsipSync(); }catch(e){}
   // 1) Tab Kepegawaian di akun MANAGER — DEFAULT TERSEMBUNYI.
   //    Hanya tampil bila admin menyalakan showKepManager (tab umum) ATAU showMgrSelf (evaluasi Rifyh).
@@ -8098,9 +8112,18 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
    dari script di <head>. Banyak preset (mode terang/gelap/auto, 8 warna aksen, gaya ikon). ===== */
 (function(){
   var ACCENTS=[['#2563eb','Biru'],['#4f46e5','Indigo'],['#7c3aed','Ungu'],['#0d9488','Toska'],['#16a34a','Hijau'],['#e11d48','Rose'],['#ea580c','Oranye'],['#475569','Slate']];
-  function read(){ return (window.__themeRead?window.__themeRead():{}); }
-  function save(t){ if(window.__themeSave)window.__themeSave(t); }
-  var bg=null, sheet=null;
+  var bg=null, sheet=null, draft=null, dirty=false;
+
+  // Tema yang SEDANG aktif global: server (_appCfg.theme) > cache lokal > default
+  function published(){
+    try{
+      var raw=(typeof _appCfg!=='undefined' && _appCfg && _appCfg.theme) ? _appCfg.theme : null;
+      if(raw){ var o=(typeof raw==='string')?JSON.parse(raw):raw; if(o)return Object.assign({}, window.__themeDef||{}, o); }
+    }catch(e){}
+    return (window.__themeRead?window.__themeRead():Object.assign({}, window.__themeDef||{}));
+  }
+  function preview(){ if(window.__applyTheme)window.__applyTheme(draft); }       // hanya di layar admin
+  function setOpt(key,val){ draft[key]=val; dirty=true; window._thmPreviewing=true; preview(); paint(); }
 
   function mkSeg(title,key,opts){
     var sec=document.createElement('div'); sec.className='thm-sec';
@@ -8109,7 +8132,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     opts.forEach(function(o){
       var b=document.createElement('button'); b.type='button'; b.className='thm-opt'; b.textContent=o[1];
       b.setAttribute('data-key',key); b.setAttribute('data-val',o[0]);
-      b.onclick=function(){ var t=read(); t[key]=o[0]; save(t); paint(); };
+      b.onclick=function(){ setOpt(key,o[0]); };
       row.appendChild(b);
     });
     sec.appendChild(row); return sec;
@@ -8121,19 +8144,36 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     ACCENTS.forEach(function(a){
       var b=document.createElement('button'); b.type='button'; b.className='thm-sw'; b.style.background=a[0]; b.title=a[1];
       b.setAttribute('data-accent',a[0]);
-      b.onclick=function(){ var t=read(); t.accent=a[0]; save(t); paint(); };
+      b.onclick=function(){ setOpt('accent',a[0]); };
       row.appendChild(b);
     });
     sec.appendChild(row); return sec;
   }
   function paint(){
-    if(!sheet)return; var t=read();
+    if(!sheet)return; var t=draft||{};
     sheet.querySelectorAll('.thm-opt[data-key]').forEach(function(b){
       b.classList.toggle('on', b.getAttribute('data-val')===String(t[b.getAttribute('data-key')]));
     });
     sheet.querySelectorAll('.thm-sw').forEach(function(b){
       b.classList.toggle('on', b.getAttribute('data-accent')===t.accent);
     });
+    var pub=sheet.querySelector('#thm-publish');
+    if(pub){ pub.disabled=!dirty; pub.style.opacity=dirty?'1':'.5'; pub.textContent=dirty?'✓ Publish ke semua HP':'Tema sudah aktif'; }
+    var st=sheet.querySelector('#thm-state');
+    if(st){ st.textContent=dirty?'Pratinjau di layarmu — belum dikirim ke HP lain':'Tema aktif untuk semua HP'; st.style.color=dirty?'var(--orange)':'var(--hint)'; }
+  }
+  function publish(){
+    if(!dirty)return;
+    if(window.__themeSave)window.__themeSave(draft);                              // commit + cache lokal
+    try{ if(typeof appConfigSet==='function' && typeof userRole!=='undefined' && userRole==='admin') appConfigSet('theme', JSON.stringify(draft)); }catch(e){}  // kirim global
+    window._thmPreviewing=false; dirty=false;
+    try{ if(typeof showToast==='function')showToast('Tema dipublish — berlaku di semua HP','ok'); }catch(e){}
+    paint();
+  }
+  function revert(){
+    draft=published(); dirty=false; window._thmPreviewing=false;
+    if(window.__applyTheme)window.__applyTheme(draft);                            // balik ke tema aktif
+    paint();
   }
   function build(){
     bg=document.createElement('div'); bg.className='sheet-bg'; bg.id='thm-bg';
@@ -8141,6 +8181,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     sheet=document.createElement('div'); sheet.className='sheet'; sheet.id='thm-sheet';
     var h=document.createElement('div'); h.className='sheet-handle'; sheet.appendChild(h);
     var tt=document.createElement('div'); tt.className='sheet-title'; tt.textContent='Tema tampilan'; sheet.appendChild(tt);
+    var st=document.createElement('div'); st.id='thm-state'; st.style.cssText='font-size:11px;font-weight:700;margin:-8px 0 14px'; sheet.appendChild(st);
     sheet.appendChild(mkSeg('Mode','mode',[['light','Terang'],['dark','Gelap'],['auto','Auto']]));
     sheet.appendChild(mkSwatches());
     sheet.appendChild(mkSeg('Ketebalan ikon','isw',[['1.6','Tipis'],['2','Normal'],['2.4','Tebal']]));
@@ -8148,13 +8189,20 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     sheet.appendChild(mkSeg('Warna ikon','icol',[['mono','Ikut teks'],['accent','Ikut aksen']]));
     sheet.appendChild(mkSeg('Sudut kartu','radius',[['8','Tegas'],['14','Normal'],['20','Bulat']]));
     var reset=document.createElement('button'); reset.type='button'; reset.className='thm-opt';
-    reset.style.cssText='width:100%;margin-top:2px;border-style:dashed'; reset.textContent='Kembalikan default';
-    reset.onclick=function(){ save(Object.assign({}, window.__themeDef||{})); paint(); };
+    reset.style.cssText='width:100%;margin:2px 0 14px;border-style:dashed'; reset.textContent='Pratinjau tema default';
+    reset.onclick=function(){ draft=Object.assign({}, window.__themeDef||{}); dirty=true; window._thmPreviewing=true; preview(); paint(); };
     sheet.appendChild(reset);
+    var pub=document.createElement('button'); pub.type='button'; pub.id='thm-publish';
+    pub.style.cssText='width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:var(--sans);font-size:13px;font-weight:800;cursor:pointer';
+    pub.onclick=publish; sheet.appendChild(pub);
+    var hint=document.createElement('div'); hint.style.cssText='font-size:10px;color:var(--hint);text-align:center;margin-top:9px;line-height:1.5';
+    hint.textContent='Perubahan cuma kelihatan di layarmu sampai ditekan Publish. Tutup tanpa Publish = batal.';
+    sheet.appendChild(hint);
     bg.appendChild(sheet); document.body.appendChild(bg);
   }
-  window.openThemeSheet=function(){ if(!bg)build(); paint(); bg.classList.add('open'); };
-  window.closeThemeSheet=function(){ if(bg)bg.classList.remove('open'); };
+  window.openThemeSheet=function(){ if(!bg)build(); draft=published(); dirty=false; window._thmPreviewing=false; paint(); bg.classList.add('open'); };
+  window.closeThemeSheet=function(){ if(bg)bg.classList.remove('open'); revert(); };   // tutup tanpa publish = batal
+  window._thmPaint=function(){ if(!dirty){ draft=published(); paint(); } };             // sinkron saat tema global berubah & tidak sedang mengedit
 })();
 </script>
 </body>
