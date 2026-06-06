@@ -17,7 +17,18 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-:root{--bg:#f5f6f8;--surface:#eceef2;--card:#fff;--card2:#f0f2f5;--border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);--text:#1a1c22;--muted:#6b7280;--hint:#adb5bd;--accent:#2563eb;--green:#16a34a;--red:#dc2626;--orange:#d97706;--blue:#2563eb;--mono:'DM Mono',monospace;--sans:'Sora',sans-serif;--r:14px;--r-lg:20px}
+:root{--bg:#f5f6f8;--surface:#eceef2;--card:#fff;--card2:#f0f2f5;--border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);--text:#1a1c22;--muted:#6b7280;--hint:#adb5bd;--accent:#2563eb;--green:#16a34a;--red:#dc2626;--orange:#d97706;--blue:#2563eb;--mono:'DM Mono',monospace;--sans:'Sora',sans-serif;--r:14px;--r-lg:20px;--isw:2;--ilc:round;--ilj:round;--icol:currentColor}
+[data-theme="dark"]{--bg:#0f1115;--surface:#1b1f27;--card:#171a21;--card2:#212631;--border:rgba(255,255,255,.10);--border2:rgba(255,255,255,.18);--text:#e7e9ef;--muted:#9aa3b2;--hint:#646e7e}
+/* pemilih tema (sheet) */
+.thm-sec{margin:2px 0 16px}
+.thm-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 9px}
+.thm-seg{display:flex;gap:7px;flex-wrap:wrap}
+.thm-opt{flex:1 1 auto;min-width:60px;text-align:center;font-family:var(--sans);font-size:12px;font-weight:700;padding:9px 10px;border-radius:11px;border:1.5px solid var(--border2);background:var(--card);color:var(--muted);cursor:pointer;transition:.12s}
+.thm-opt.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+.thm-sw-row{display:flex;gap:11px;flex-wrap:wrap}
+.thm-sw{width:38px;height:38px;border-radius:50%;border:2px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.thm-sw.on{border-color:var(--text)}
+.thm-sw.on::after{content:'';width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.2)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 ::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--hint);border-radius:2px}
@@ -581,7 +592,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 #bn-bar::-webkit-scrollbar{display:none}
 .bn-item{flex:0 0 auto;min-width:64px;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:3px 6px;color:var(--hint);cursor:pointer;position:relative;font-family:var(--sans)}
 .bn-ic{width:34px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb, var(--ic,#2563eb) 16%, transparent);transition:background .15s,transform .12s}
-.bn-item svg{width:21px;height:21px;stroke:var(--ic,#2563eb);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .15s}
+.bn-item svg{width:21px;height:21px;stroke:var(--ic,#2563eb);fill:none;stroke-width:var(--isw,2);stroke-linecap:var(--ilc,round);stroke-linejoin:var(--ilj,round);transition:stroke .15s}
 .bn-item span{font-size:10px;font-weight:600;color:var(--hint);transition:color .15s}
 .bn-item.active .bn-ic{background:var(--ic,#2563eb)}
 .bn-item.active svg{stroke:#fff}
@@ -599,6 +610,9 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 #bn-scroll.show{display:flex}
 #bn-scroll .trk{width:42px;height:3px;border-radius:3px;background:var(--border2);position:relative}
 #bn-scroll .thb{position:absolute;top:0;left:0;height:3px;border-radius:3px;background:var(--accent);width:18px;transition:left .07s linear,width .15s}
+/* (tema flat) ikon inline pengganti emoji — ikut warna teks di sekitarnya */
+.eico{display:inline-flex;align-items:center;justify-content:center;vertical-align:-.14em;width:1.05em;height:1.05em;line-height:0;flex:0 0 auto}
+.eico>svg{width:100%;height:100%;stroke:var(--icol,currentColor);fill:none;stroke-width:var(--isw,2);stroke-linecap:var(--ilc,round);stroke-linejoin:var(--ilj,round)}
 .home-embed{max-width:none!important;margin:0 0 14px!important;padding:0!important}
 .bn-dot{position:absolute;top:1px;right:calc(50% - 17px);width:7px;height:7px;border-radius:50%;background:var(--red);display:none;border:1.5px solid var(--card)}
 .bn-item.has-dot .bn-dot{display:block}
@@ -637,6 +651,32 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .cek-rk-chip b{color:var(--red)}
 .mon-seen-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--accent);background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.32);border-radius:12px;padding:3px 9px;max-width:100%;white-space:normal;line-height:1.5;word-break:break-word}
 </style>
+<script>
+/* TEMA — terapkan sedini mungkin (sebelum render) supaya tidak ada kedip. */
+(function(){
+  var KEY='mtg_theme';
+  var DEF={mode:'light',accent:'#2563eb',isw:'2',corner:'round',icol:'mono',radius:'14'};
+  function read(){ try{var r=localStorage.getItem(KEY);return r?Object.assign({},DEF,JSON.parse(r)):Object.assign({},DEF);}catch(e){return Object.assign({},DEF);} }
+  function rMode(m){ if(m==='auto'){try{return (window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}catch(e){return 'light';}} return m||'light'; }
+  window.__themeKey=KEY; window.__themeDef=DEF; window.__themeRead=read;
+  window.__applyTheme=function(t){
+    t=t||read();
+    var de=document.documentElement, s=de.style;
+    de.setAttribute('data-theme', rMode(t.mode));
+    s.setProperty('--accent', t.accent); s.setProperty('--blue', t.accent);
+    s.setProperty('--isw', String(t.isw||'2'));
+    s.setProperty('--ilc', t.corner==='sharp'?'square':'round');
+    s.setProperty('--ilj', t.corner==='sharp'?'miter':'round');
+    s.setProperty('--icol', t.icol==='accent'?'var(--accent)':'currentColor');
+    var rad=parseInt(t.radius||'14',10); if(!isFinite(rad))rad=14;
+    s.setProperty('--r', rad+'px'); s.setProperty('--r-lg', (rad+6)+'px');
+    try{var mt=document.querySelector('meta[name="theme-color"]'); if(mt)mt.setAttribute('content', rMode(t.mode)==='dark'?'#0f1115':t.accent);}catch(e){}
+  };
+  window.__themeSave=function(t){ try{localStorage.setItem(KEY, JSON.stringify(t));}catch(e){} window.__applyTheme(t); };
+  window.__applyTheme();
+  try{ if(window.matchMedia){ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){ var t=read(); if(t.mode==='auto')window.__applyTheme(t); }); } }catch(e){}
+})();
+</script>
 </head>
 <body>
 
@@ -693,7 +733,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   <span class="brand-tag">Manager · v5.1</span>
   <span class="brand-name">Laporan Manager Kodachi Shop</span>
   <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
-</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="role-badge manager" id="role-badge" style="display:none">MANAGER</span><button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">🚪 Logout</button></div></div></div>
+</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><button id="thm-btn" onclick="openThemeSheet()" title="Tema tampilan" aria-label="Tema tampilan" style="width:34px;height:34px;flex:0 0 auto;padding:0;border:1px solid var(--border2);border-radius:10px;background:var(--card);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="1.4"/><circle cx="17.5" cy="10.5" r="1.4"/><circle cx="8.5" cy="7.5" r="1.4"/><circle cx="6.5" cy="12.5" r="1.4"/><path d="M12 2a10 10 0 1 0 0 20c1.4 0 2-1 2-2 0-1.6-1.5-1.7-1.5-3 0-1 .8-1.5 2-1.5h1.5A4.5 4.5 0 0 0 22 11 10 10 0 0 0 12 2z"/></svg></button><span class="role-badge manager" id="role-badge" style="display:none">MANAGER</span><button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">🚪 Logout</button></div></div></div>
 
 <div class="loc-banner"><div class="loc-card" id="loc-card">
   <button id="loc-share-btn" onclick="shareLokasiBuka()" title="Bagikan lokasi ke Google Maps" aria-label="Bagikan lokasi ke Google Maps" style="display:none;width:46px;height:46px;flex:0 0 auto;padding:0;border:none;border-radius:12px;background:rgba(37,99,235,.12);color:var(--accent);cursor:pointer;align-items:center;justify-content:center">
@@ -7887,6 +7927,234 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     _reflectGap(); _reflectPresence(); _wlUpdate();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_boot); else _boot();
+})();
+</script>
+<script>
+/* ===== TEMA IKON FLAT — ganti semua emoji "objek" jadi ikon garis flat (warna ikut teks).
+   Terpusat & gampang diatur: tinggal edit EICO. Glyph semantik (✓ ✗ → ← ● titik prioritas
+   🔴🟡🟢) sengaja DIBIARKAN. Aman: lewati input/textarea/svg/script, anti-loop. ===== */
+(function(){
+  if(window.__eicoOn)return; window.__eicoOn=true;
+  var camera='<path d="M3 8h3l2-2h8l2 2h3v11H3z"/><circle cx="12" cy="13" r="3.2"/>';
+  var video='<rect x="3" y="7" width="11" height="10" rx="2"/><path d="M14 10l6-3v10l-6-3"/>';
+  var cal='<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16"/><path d="M8 3v3"/><path d="M16 3v3"/>';
+  var folder='<path d="M4 7h6l2 2h8v9a2 2 0 0 1-2 2H4z"/>';
+  var folderOpen='<path d="M3 7h6l2 2h8v9a2 2 0 0 1-2 2H3z"/><path d="M3 11h18"/>';
+  var box='<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4"/><path d="M12 11v10"/>';
+  var refresh='<path d="M20 11a8 8 0 1 0-2 6"/><path d="M20 5v6h-6"/>';
+  var bell='<path d="M8 8a4 4 0 0 1 8 0v3l2 3H6l2-3z"/><path d="M10 18a2 2 0 0 0 4 0"/>';
+  var bellOff='<path d="M8 8a4 4 0 0 1 8 0v3l2 3H6l2-3z"/><path d="M10 18a2 2 0 0 0 4 0"/><path d="M3 3l18 18"/>';
+  var pin='<path d="M12 21s-6-5.5-6-10a6 6 0 1 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/>';
+  var truck='<path d="M3 6h11v9H3z"/><path d="M14 9h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17.5" cy="17.5" r="1.6"/>';
+  var pushpin='<path d="M9 3h6l-1 6 3 3H7l3-3z"/><path d="M12 12v8"/>';
+  var bill='<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/>';
+  var bag='<path d="M9 4h6l-1.5 3h-3z"/><path d="M7 7h10c1 2 2 4 2 7a6 6 0 0 1-12 0c0-3 1-5 2-7z"/><path d="M12 11v5"/><path d="M10.5 12.5h3"/>';
+  var coin='<circle cx="12" cy="12" r="8"/><path d="M9 12h6"/><path d="M12 8.5v7"/>';
+  var gear='<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>';
+  var timer='<circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V10"/><path d="M9 3h6"/>';
+  var save='<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4"/><rect x="8" y="13" width="8" height="6"/>';
+  var chart='<path d="M5 20v-6"/><path d="M12 20V8"/><path d="M19 20v-10"/><path d="M3 20h18"/>';
+  var up='<path d="M4 16l5-5 4 3 7-7"/><path d="M16 7h5v5"/>';
+  var down='<path d="M4 8l5 5 4-3 7 7"/><path d="M16 17h5v-5"/>';
+  var eye='<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.6"/>';
+  var eyeOff='<path d="M2 12s3.5-7 10-7c2 0 3.7.6 5.2 1.5M22 12s-3.5 7-10 7c-2 0-3.7-.6-5.2-1.5"/><path d="M3 3l18 18"/>';
+  var trash='<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>';
+  var upload='<path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/><path d="M12 16V4"/><path d="M8 8l4-4 4 4"/>';
+  var download='<path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/><path d="M12 4v12"/><path d="M8 12l4 4 4-4"/>';
+  var clip='<rect x="5" y="4" width="14" height="17" rx="2"/><rect x="9" y="2.5" width="6" height="3.5" rx="1"/>';
+  var siren='<path d="M6 18a6 6 0 0 1 12 0z"/><path d="M4 21h16"/><path d="M12 6V3"/>';
+  var tap='<path d="M9 11V6a2 2 0 0 1 4 0v5"/><path d="M13 11V8.5a2 2 0 0 1 4 0V15a6 6 0 0 1-6 6h-1a5 5 0 0 1-4-2l-2.5-3.5 1.8-1.2 2 1.7"/>';
+  var bulb='<path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10c1 1 1.5 2 1.5 3h5c0-1 .5-2 1.5-3a6 6 0 0 0-4-10z"/>';
+  var mail='<path d="M3 9l9-5 9 5v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 9l9 6 9-6"/>';
+  var phone='<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>';
+  var doc='<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h6M9 16h6"/>';
+  var hour='<path d="M6 3h12"/><path d="M6 21h12"/><path d="M8 3v3l4 4 4-4V3"/><path d="M8 21v-3l4-4 4 4v3"/>';
+  var alarm='<circle cx="12" cy="13" r="7"/><path d="M12 13V9.5"/><path d="M5 4L3 6M19 4l2 2"/>';
+  var signal='<path d="M4 18v-2M9 18v-5M14 18v-8M19 18V6"/>';
+  var globe='<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>';
+  var lock='<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
+  var unlock='<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7-2.5"/>';
+  var scale='<path d="M12 4v16"/><path d="M6 20h12"/><path d="M4 7h16"/><path d="M4 7l-2 5h4z"/><path d="M20 7l2 5h-4z"/>';
+  var exit='<path d="M5 3h9v18H5z"/><path d="M14 12h7"/><path d="M18 9l3 3-3 3"/>';
+  var link='<path d="M9.5 13a4 4 0 0 0 5.6 0l2.9-2.9a4 4 0 0 0-5.6-5.6l-1 1"/><path d="M14.5 11a4 4 0 0 0-5.6 0L6 13.9a4 4 0 0 0 5.6 5.6l1-1"/>';
+  var clock='<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>';
+  var image='<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M21 16l-5-5L5 19"/>';
+  var monitor='<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>';
+  var laptop='<rect x="4" y="5" width="16" height="10" rx="1.5"/><path d="M2 19h20l-2-2H4z"/>';
+  var pen='<path d="M4 20h4l10-10-4-4L4 16z"/><path d="M14 6l4 4"/>';
+  var note='<path d="M5 4h10l4 4v12H5z"/><path d="M14 4v4h4"/><path d="M9 13h6M9 16h4"/>';
+  var user='<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>';
+  var users='<circle cx="8" cy="8" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 14c2.2 0 4 1.8 4 4"/><circle cx="17" cy="8" r="2.4"/>';
+  var shoe='<path d="M3 16h12l5-2c1-.4 1-2 0-2.3l-5-1.7-3-4-4 1v4H3z"/><path d="M3 16v3h18v-2"/>';
+  var fire='<path d="M12 3c2 3 4 4 4 8a4 4 0 0 1-8 0c0-1 .4-2 1-3 .5 2 2 2 2 2 .6-3-1-5 1-7z"/>';
+  var receipt='<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>';
+  var battery='<rect x="3" y="8" width="16" height="8" rx="1.5"/><path d="M21 11v2"/>';
+  var mega='<path d="M4 10v4l9 4V6z"/><path d="M15 9a3.5 3.5 0 0 1 0 6"/><path d="M4 10H3v4h1"/>';
+  var crown='<path d="M4 18h16"/><path d="M4 18l-1-9 5 4 4-7 4 7 5-4-1 9z"/>';
+  var tie='<path d="M10 3h4l-1 4 2 9-3 5-3-5 2-9z"/>';
+  var bag2='<rect x="3" y="8" width="18" height="11" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>';
+  var db='<ellipse cx="12" cy="6" rx="8" ry="2.6"/><path d="M4 6v6c0 1.4 3.6 2.6 8 2.6s8-1.2 8-2.6V6"/><path d="M4 12v6c0 1.4 3.6 2.6 8 2.6s8-1.2 8-2.6v-6"/>';
+  var ban='<circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/>';
+  var thumb='<path d="M7 11v9H4v-9z"/><path d="M7 11l4-7c1.5 0 2.5 1 2.5 2.5L13 11h5c1.2 0 2 1 1.8 2.2l-1 6c-.2 1-1 1.8-2 1.8H7"/>';
+  var moon='<path d="M20 14a8 8 0 1 1-9.8-9.8A7 7 0 0 0 20 14z"/>';
+  var map='<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>';
+  var home='<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>';
+  var books='<path d="M5 4h5v16H5z"/><path d="M10 4h4l1 16h-5z"/><path d="M16 5l4 1-2 15-4-1"/>';
+  var store='<path d="M4 9l1-5h14l1 5"/><path d="M4 9h16v11H4z"/><path d="M4 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M9 20v-6h6v6"/>';
+  var search='<circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/>';
+  var bolt='<path d="M13 2L4 14h6l-1 8 9-12h-6z"/>';
+  var cap='<path d="M2 9l10-4 10 4-10 4z"/><path d="M6 11v4c0 1.5 12 1.5 12 0v-4"/>';
+  var printer='<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="7" rx="1.5"/><rect x="7" y="14" width="10" height="6"/>';
+  var sign='<rect x="4" y="5" width="16" height="9" rx="1.5"/><path d="M12 14v6"/>';
+  var checkC='<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>';
+  var warn='<path d="M12 4l9 16H3z"/><path d="M12 10v4"/><path d="M12 17v.4"/>';
+  var chat='<path d="M4 5h16v11H9l-5 4z"/>';
+
+  var EICO={
+    '📷':camera,'📸':camera,'📹':video,'📅':cal,'🗓':cal,
+    '📁':folder,'📂':folderOpen,'🗂':folder,'🗃':folder,
+    '📦':box,'🔄':refresh,'🔁':refresh,'🔃':refresh,
+    '🔔':bell,'🔕':bellOff,'📍':pin,'📌':pushpin,'🚚':truck,'🚛':truck,
+    '💵':bill,'💴':bill,'💶':bill,'💷':bill,'💰':bag,'🪙':coin,'💸':bill,
+    '⚙':gear,'⏱':timer,'⏲':timer,'💾':save,'📊':chart,'📈':up,'📉':down,
+    '👁':eye,'👀':eye,'🙈':eyeOff,'🗑':trash,'🗒':note,
+    '📤':upload,'📥':download,'📋':clip,'🚨':siren,'👆':tap,'☝':tap,
+    '💡':bulb,'📭':mail,'📬':mail,'📨':mail,'✉':mail,'📧':mail,
+    '📱':phone,'📲':phone,'📜':doc,'📄':doc,'📃':doc,
+    '⏳':hour,'⌛':hour,'⏰':alarm,'📶':signal,'🌐':globe,
+    '🔒':lock,'🔐':lock,'🔓':unlock,'⚖':scale,'🚪':exit,'🔗':link,
+    '🕐':clock,'🕑':clock,'🕒':clock,'🕓':clock,'🕔':clock,'🕕':clock,'🕘':clock,
+    '🖼':image,'🖥':monitor,'💻':laptop,'✍':pen,'✏':pen,'🖊':pen,'🖋':pen,'📝':note,
+    '👤':user,'🧑':user,'🙋':user,'👥':users,'👟':shoe,'👞':shoe,'🥿':shoe,
+    '🔥':fire,'🧾':receipt,'🔋':battery,'🗣':mega,'📢':mega,'📣':mega,
+    '👑':crown,'👔':tie,'💼':bag2,'🗄':db,'🗳':db,
+    '🚫':ban,'🚷':ban,'⛔':ban,'👍':thumb,'😴':moon,'🌙':moon,'🗺':map,
+    '🏠':home,'🏡':home,'📚':books,'🏪':store,'🏬':store,'🏢':store,
+    '🔍':search,'🔎':search,'⚡':bolt,'🎓':cap,'🖨':printer,'🪧':sign,
+    '✅':checkC,'☑':checkC,'⚠':warn,'❗':warn,'❕':warn,'💬':chat
+  };
+
+  var keys=Object.keys(EICO).sort(function(a,b){return b.length-a.length;});
+  function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+  var alt=keys.map(esc).join('|');
+  var reHas=new RegExp('(?:'+alt+')');
+  function reAll(){return new RegExp('('+alt+')\\uFE0F?','g');}
+
+  function skipEl(el){
+    var t=el.tagName; if(!t)return false; t=t.toUpperCase();
+    if(t==='SCRIPT'||t==='STYLE'||t==='SVG'||t==='TEXTAREA'||t==='INPUT'||t==='SELECT'||t==='OPTION'||t==='CODE'||t==='PRE'||t==='NOSCRIPT')return true;
+    if(el.isContentEditable)return true;
+    var c=el.classList; if(c&&(c.contains('eico')||c.contains('no-eico')))return true;
+    return false;
+  }
+  function skipChain(el){ var n=el; while(n&&n.nodeType===1){ if(skipEl(n))return true; n=n.parentNode; } return false; }
+  function iconEl(path){ var s=document.createElement('span'); s.className='eico'; s.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+path+'</svg>'; return s; }
+  function doText(t){
+    var v=t.nodeValue; if(!v||!reHas.test(v))return;
+    var re=reAll(), m, last=0, any=false, frag=document.createDocumentFragment();
+    while((m=re.exec(v))){
+      var path=EICO[m[1]]; if(!path)continue;
+      if(m.index>last)frag.appendChild(document.createTextNode(v.slice(last,m.index)));
+      frag.appendChild(iconEl(path)); any=true; last=m.index+m[0].length;
+    }
+    if(!any)return;
+    if(last<v.length)frag.appendChild(document.createTextNode(v.slice(last)));
+    if(t.parentNode)t.parentNode.replaceChild(frag,t);
+  }
+  function walk(root){
+    if(!root)return;
+    if(root.nodeType===3){ var p=root.parentNode; if(p&&!skipChain(p))doText(root); return; }
+    if(root.nodeType!==1||skipChain(root))return;
+    var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), hits=[], n;
+    while((n=w.nextNode())){ if(n.nodeValue&&reHas.test(n.nodeValue))hits.push(n); }
+    for(var i=0;i<hits.length;i++){ var pp=hits[i].parentNode; if(pp&&!skipChain(pp))doText(hits[i]); }
+  }
+
+  var obs=null, pend=false, q=[];
+  function flush(){
+    pend=false; var items=q; q=[];
+    if(obs)obs.disconnect();
+    try{ for(var i=0;i<items.length;i++)walk(items[i]); }catch(e){}
+    if(obs&&document.body)obs.observe(document.body,{childList:true,subtree:true});
+  }
+  function sched(){ if(pend)return; pend=true; if(window.requestAnimationFrame)requestAnimationFrame(flush); else setTimeout(flush,16); }
+  function start(){
+    if(!document.body){ setTimeout(start,50); return; }
+    try{ walk(document.body); }catch(e){}
+    if(window.MutationObserver){
+      obs=new MutationObserver(function(muts){
+        for(var i=0;i<muts.length;i++){ var a=muts[i].addedNodes; for(var j=0;j<a.length;j++)q.push(a[j]); }
+        if(q.length)sched();
+      });
+      obs.observe(document.body,{childList:true,subtree:true});
+    }
+    setTimeout(function(){ q.push(document.body); sched(); },1300);  // jaring render async awal
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start); else start();
+})();
+</script>
+<script>
+/* ===== PEMILIH TEMA — sheet pengaturan tampilan. Pakai window.__applyTheme/__themeSave
+   dari script di <head>. Banyak preset (mode terang/gelap/auto, 8 warna aksen, gaya ikon). ===== */
+(function(){
+  var ACCENTS=[['#2563eb','Biru'],['#4f46e5','Indigo'],['#7c3aed','Ungu'],['#0d9488','Toska'],['#16a34a','Hijau'],['#e11d48','Rose'],['#ea580c','Oranye'],['#475569','Slate']];
+  function read(){ return (window.__themeRead?window.__themeRead():{}); }
+  function save(t){ if(window.__themeSave)window.__themeSave(t); }
+  var bg=null, sheet=null;
+
+  function mkSeg(title,key,opts){
+    var sec=document.createElement('div'); sec.className='thm-sec';
+    var l=document.createElement('div'); l.className='thm-lbl'; l.textContent=title; sec.appendChild(l);
+    var row=document.createElement('div'); row.className='thm-seg';
+    opts.forEach(function(o){
+      var b=document.createElement('button'); b.type='button'; b.className='thm-opt'; b.textContent=o[1];
+      b.setAttribute('data-key',key); b.setAttribute('data-val',o[0]);
+      b.onclick=function(){ var t=read(); t[key]=o[0]; save(t); paint(); };
+      row.appendChild(b);
+    });
+    sec.appendChild(row); return sec;
+  }
+  function mkSwatches(){
+    var sec=document.createElement('div'); sec.className='thm-sec';
+    var l=document.createElement('div'); l.className='thm-lbl'; l.textContent='Warna aksen'; sec.appendChild(l);
+    var row=document.createElement('div'); row.className='thm-sw-row';
+    ACCENTS.forEach(function(a){
+      var b=document.createElement('button'); b.type='button'; b.className='thm-sw'; b.style.background=a[0]; b.title=a[1];
+      b.setAttribute('data-accent',a[0]);
+      b.onclick=function(){ var t=read(); t.accent=a[0]; save(t); paint(); };
+      row.appendChild(b);
+    });
+    sec.appendChild(row); return sec;
+  }
+  function paint(){
+    if(!sheet)return; var t=read();
+    sheet.querySelectorAll('.thm-opt[data-key]').forEach(function(b){
+      b.classList.toggle('on', b.getAttribute('data-val')===String(t[b.getAttribute('data-key')]));
+    });
+    sheet.querySelectorAll('.thm-sw').forEach(function(b){
+      b.classList.toggle('on', b.getAttribute('data-accent')===t.accent);
+    });
+  }
+  function build(){
+    bg=document.createElement('div'); bg.className='sheet-bg'; bg.id='thm-bg';
+    bg.addEventListener('click',function(e){ if(e.target===bg)window.closeThemeSheet(); });
+    sheet=document.createElement('div'); sheet.className='sheet'; sheet.id='thm-sheet';
+    var h=document.createElement('div'); h.className='sheet-handle'; sheet.appendChild(h);
+    var tt=document.createElement('div'); tt.className='sheet-title'; tt.textContent='Tema tampilan'; sheet.appendChild(tt);
+    sheet.appendChild(mkSeg('Mode','mode',[['light','Terang'],['dark','Gelap'],['auto','Auto']]));
+    sheet.appendChild(mkSwatches());
+    sheet.appendChild(mkSeg('Ketebalan ikon','isw',[['1.6','Tipis'],['2','Normal'],['2.4','Tebal']]));
+    sheet.appendChild(mkSeg('Sudut ikon','corner',[['round','Bulat'],['sharp','Tegas']]));
+    sheet.appendChild(mkSeg('Warna ikon','icol',[['mono','Ikut teks'],['accent','Ikut aksen']]));
+    sheet.appendChild(mkSeg('Sudut kartu','radius',[['8','Tegas'],['14','Normal'],['20','Bulat']]));
+    var reset=document.createElement('button'); reset.type='button'; reset.className='thm-opt';
+    reset.style.cssText='width:100%;margin-top:2px;border-style:dashed'; reset.textContent='Kembalikan default';
+    reset.onclick=function(){ save(Object.assign({}, window.__themeDef||{})); paint(); };
+    sheet.appendChild(reset);
+    bg.appendChild(sheet); document.body.appendChild(bg);
+  }
+  window.openThemeSheet=function(){ if(!bg)build(); paint(); bg.classList.add('open'); };
+  window.closeThemeSheet=function(){ if(bg)bg.classList.remove('open'); };
 })();
 </script>
 </body>
