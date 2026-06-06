@@ -579,10 +579,14 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .toast{bottom:90px!important}
 #bn-bar{position:fixed;left:0;right:0;bottom:0;z-index:90;display:flex;background:var(--card);border-top:1px solid var(--border);padding:7px 2px calc(7px + env(safe-area-inset-bottom,0px));max-width:680px;margin:0 auto;box-shadow:0 -1px 12px rgba(0,0,0,.05);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;scroll-behavior:smooth}
 #bn-bar::-webkit-scrollbar{display:none}
-.bn-item{flex:0 0 auto;min-width:64px;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:3px 6px;color:var(--hint);cursor:pointer;position:relative;font-family:var(--sans);transition:color .15s}
-.bn-item svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.bn-item span{font-size:10px;font-weight:600}
-.bn-item.active{color:var(--accent)}
+.bn-item{flex:0 0 auto;min-width:64px;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:3px 6px;color:var(--hint);cursor:pointer;position:relative;font-family:var(--sans)}
+.bn-ic{width:34px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb, var(--ic,#2563eb) 16%, transparent);transition:background .15s,transform .12s}
+.bn-item svg{width:21px;height:21px;stroke:var(--ic,#2563eb);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .15s}
+.bn-item span{font-size:10px;font-weight:600;color:var(--hint);transition:color .15s}
+.bn-item.active .bn-ic{background:var(--ic,#2563eb)}
+.bn-item.active svg{stroke:#fff}
+.bn-item.active span{color:var(--ic,#2563eb);font-weight:700}
+.bn-item:active .bn-ic{transform:scale(.9)}
 .bn-hint{position:fixed;bottom:calc(6px + env(safe-area-inset-bottom,0px));height:48px;width:44px;z-index:91;pointer-events:none;display:none;align-items:center;max-width:680px}
 .bn-hint.show{display:flex}
 .bn-hint svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
@@ -590,6 +594,11 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .bn-hint-r svg{animation:bnNudge 1.25s ease-in-out infinite}
 .bn-hint-l{left:0;justify-content:flex-start;padding-left:7px;background:linear-gradient(to right,var(--card) 38%,transparent)}
 @keyframes bnNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+.bn-hint{display:none!important}   /* (Shopee-style) ganti chevron tepi dengan indikator geser di bawah */
+#bn-scroll{position:fixed;left:0;right:0;z-index:91;display:none;justify-content:center;pointer-events:none}
+#bn-scroll.show{display:flex}
+#bn-scroll .trk{width:42px;height:3px;border-radius:3px;background:var(--border2);position:relative}
+#bn-scroll .thb{position:absolute;top:0;left:0;height:3px;border-radius:3px;background:var(--accent);width:18px;transition:left .07s linear,width .15s}
 .home-embed{max-width:none!important;margin:0 0 14px!important;padding:0!important}
 .bn-dot{position:absolute;top:1px;right:calc(50% - 17px);width:7px;height:7px;border-radius:50%;background:var(--red);display:none;border:1.5px solid var(--card)}
 .bn-item.has-dot .bn-dot{display:block}
@@ -7620,6 +7629,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
 <nav id="bn-bar" aria-label="Navigasi utama"></nav>
 <div class="bn-hint bn-hint-l" id="bn-hint-l" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></div>
 <div class="bn-hint bn-hint-r" id="bn-hint-r" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>
+<div id="bn-scroll" aria-hidden="true"><span class="trk"><span class="thb"></span></span></div>
 <button class="fab" id="app-fab" onclick="appFab()" aria-label="Tambah / fokus input">
   <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
 </button>
@@ -7654,6 +7664,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
   var SHEETLBL={home:'Beranda',harian:'Harian',event:'Non-harian',gudang:'Stok & gudang',cash:'Uang cash',shift:'Shift',pegawai:'Kepegawaian',meeting:'Meeting',laporan:'Laporan',link:'Link',sumberdata:'Sumber data'};
   var TITLE={home:'Beranda',harian:'Tugas harian',event:'Non-harian',gudang:'Stok & gudang',cash:'Uang cash',shift:'Jadwal shift',pegawai:'Kepegawaian',meeting:'Meeting link',laporan:'Laporan',link:'Link',sumberdata:'Sumber data'};
   var BADGE={home:'badge-home',harian:'badge-harian',event:'badge-event',gudang:'badge-stok',cash:'badge-cash',shift:'badge-shift',pegawai:'badge-pegawai',meeting:'badge-meeting',laporan:'badge-laporan'};
+  var NAVCOLOR={home:'#2563eb',harian:'#16a34a',event:'#f59e0b',gudang:'#7c3aed',cash:'#0d9488',shift:'#4f46e5',pegawai:'#dc2626',meeting:'#0891b2',laporan:'#db2777',link:'#0ea5e9',sumberdata:'#475569',lainnya:'#64748b'};
   var FAB_ON=['event','gudang','cash','pegawai','meeting'];
 
   function _badgeActive(id){
@@ -7705,7 +7716,8 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     var html='';
     items.forEach(function(it){
       var n=it.n;
-      html+='<button class="bn-item" data-tab="'+n+'" onclick="navGo(\''+n+'\')">'+_navSvg(n)+'<span>'+(NAVLBL[n]||n)+'</span><i class="bn-dot"></i></button>';
+      var col=NAVCOLOR[n]||'#2563eb';
+      html+='<button class="bn-item" data-tab="'+n+'" style="--ic:'+col+'" onclick="navGo(\''+n+'\')"><span class="bn-ic">'+_navSvg(n)+'</span><span>'+(NAVLBL[n]||n)+'</span><i class="bn-dot"></i></button>';
     });
     bar.innerHTML=html;
     var ap=document.querySelector('.panel.active'); var an=ap?ap.id.replace('panel-',''):'harian';
@@ -7761,6 +7773,18 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     var max=bar.scrollWidth-bar.clientWidth;
     if(hr)hr.classList.toggle('show', max>6 && bar.scrollLeft < max-6);
     if(hl)hl.classList.toggle('show', bar.scrollLeft>6);
+    // (Shopee-style) indikator posisi geser, muncul cuma kalau memang bisa digeser
+    var sc=document.getElementById('bn-scroll');
+    if(sc){
+      var trk=sc.querySelector('.trk'), thb=sc.querySelector('.thb');
+      if(max>6 && trk && thb){
+        sc.classList.add('show');
+        var TW=42, ratio=Math.max(.2, bar.clientWidth/bar.scrollWidth);
+        var tw=Math.round(TW*ratio), prog=max>0?(bar.scrollLeft/max):0;
+        thb.style.width=tw+'px'; thb.style.left=Math.round((TW-tw)*prog)+'px';
+        var r=bar.getBoundingClientRect(); sc.style.top=Math.round(r.top-7)+'px';
+      } else { sc.classList.remove('show'); }
+    }
   };
   var _navPeeked=false;
   window.navPeek=function(){
