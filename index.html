@@ -626,6 +626,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .mon-fcount{position:absolute;right:3px;bottom:3px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:rgba(0,0,0,.66);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .cek-rk-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:5px 10px;border-radius:20px;background:var(--surface);color:var(--muted);white-space:nowrap;font-weight:600}
 .cek-rk-chip b{color:var(--red)}
+.mon-seen-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--accent);background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.32);border-radius:20px;padding:3px 9px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -2766,6 +2767,7 @@ function monCardHTML(it){
         +'<span class="mon-dot" style="background:'+dot+'"></span>'
         +'<span class="mon-jchip">'+jm.i+' '+escH(jm.l)+'</span>'
         +'<span style="font-size:11px;color:var(--hint);white-space:nowrap">'+escH(it.tgl||'')+(it.oleh?(' · '+escH(_monOlehShort(it.oleh))):'')+'</span>'
+        +_dilihatMgrBadge(it)
       +'</div>'
       +'<span class="mon-badge" style="background:'+bg+';color:'+fg+'">'+btxt+'</span>'
     +'</div>'
@@ -2820,6 +2822,7 @@ function cekRender(){
         +'<span style="font-size:10px;color:var(--hint)">'+escH(it.tgl)+'</span>'
         +(it.dicek?'<span style="margin-left:auto;font-size:10px;color:var(--green)">✓ dicek '+escH(it.cekInfo)+(isCekArsipKey(it.kunci)?' · 🗂 diarsipkan':'')+'</span>':'<span style="margin-left:auto;font-size:10px;color:var(--red);font-weight:700">belum dicek</span>')
       +'</div>'
+      +(function(){var b=_dilihatMgrBadge(it);return b?('<div style="margin:0 0 5px">'+b+'</div>'):'';})()
       +'<div style="font-size:12px;font-weight:600;color:var(--text)">'+escH(_cekJudul(it))+'</div>'
       +(it.detail?'<div style="font-size:11px;color:var(--muted);margin:2px 0 6px">'+escH(it.detail)+'</div>':'<div style="height:6px"></div>')
       +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+thumbs+'</div>'
@@ -4872,6 +4875,7 @@ function _annotateD04Render(allItems){
   (pick.fotos||[]).slice(0,3).forEach(function(u){
     var a=document.createElement('a'); a.href=u; a.target='_blank'; a.style.display='inline-block';
     a.addEventListener('click',function(e){e.stopPropagation();});
+    a.setAttribute('data-seen-kunci', pick.kunci);
     var img=document.createElement('img'); img.src=kmFotoImgUrl(u); img.loading='lazy';
     img.style.cssText='width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border)';
     a.appendChild(img); strip.appendChild(a);
@@ -4893,6 +4897,7 @@ function _annotateD04Render(allItems){
     strip.appendChild(lbl);
     if(userRole==='admin') strip.appendChild(_cekBtnEl('uang',pick.row,true));
   }
+  var _seenEl=_dilihatMgrBadgeEl(pick); if(_seenEl) strip.appendChild(_seenEl);
 }
 // ════ PANTAU LOKASI OTOMATIS (tanpa tombol, tanpa setting) ════
 // Lokasi terdeteksi otomatis begitu app dibuka manager (startGps sudah jalan di applyRole).
@@ -5561,6 +5566,7 @@ function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHT
       // tap pertama = tandai sudah dilihat (notif hilang), tanpa membuka form. Tap kedua = buka.
       if(userRole==='manager' && card.classList.contains('ev-cek-unseen')){
         _mgrSeenMark(kode);
+        _mgrSeenServer(_nonharianKunciByKode(kode));
         card.classList.remove('ev-cek-unseen');
         annotateEventCards();
         return; // jangan buka form di tap pertama
@@ -5575,6 +5581,47 @@ function _mgrSeenKey(){ return 'mtg_mgr_seen_'+TODAY_KEY(); }
 function _mgrSeenGet(){ try{ return JSON.parse(localStorage.getItem(_mgrSeenKey())||'{}'); }catch(e){ return {}; } }
 function _mgrSeenMark(kode){ var s=_mgrSeenGet(); s[kode]=true; try{ localStorage.setItem(_mgrSeenKey(),JSON.stringify(s)); }catch(e){} }
 function _mgrHasSeen(kode){ return _mgrSeenGet()[kode]===true; }
+// (v5.6) READ-RECEIPT: kirim "dilihat manager" ke server agar ADMIN bisa lihat tandanya.
+// Idempotent (server hanya simpan 1x per kunci); guard lokal supaya tak kirim berkali-kali.
+function _mgrSeenServer(kunci){
+  try{
+    if(userRole!=='manager'||!kunci)return;
+    var url=scriptUrl; if(!url||!url.startsWith('http'))return;
+    var sk='mtg_seen_sent_'+kunci;
+    try{ if(localStorage.getItem(sk))return; localStorage.setItem(sk,'1'); }catch(e){}
+    fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({
+      type:'mgr_seen', kunci:kunci, oleh:(userRole||'-'), olehEmail:(typeof userEmail!=='undefined'?(userEmail||''):''),
+      waktuLokal:(function(){try{return new Date().toLocaleString('id-ID');}catch(e){return '';}})()
+    })}).catch(function(){});
+  }catch(e){}
+}
+// Resolusi kunci cek ("nonharian#row") dari kode event (mis. "E05") via cache cek_list.
+function _nonharianKunciByKode(kode){
+  var found=null;
+  (_cekItems||[]).forEach(function(it){
+    if(it.jenis!=='nonharian')return;
+    var m=String(it.judul||'').match(/E\d{2}/i); if(!m)return;
+    if(m[0].toUpperCase()!==String(kode).toUpperCase())return;
+    if(!found||String(it.tgl||'')>=String(found.tgl||''))found=it;
+  });
+  return found?found.kunci:'';
+}
+// (v5.6) Badge "👁 Dilihat manager" — HANYA tampil di akun ADMIN (read-receipt).
+function _dilihatMgrBadge(it){
+  if(userRole!=='admin')return'';
+  var t=(it&&it.dilihatMgr)?String(it.dilihatMgr):'';
+  if(!t)return'';
+  return '<span class="mon-seen-badge" title="Manager sudah membuka/melihat ini">👁 Dilihat manager · '+escH(t)+'</span>';
+}
+function _dilihatMgrBadgeEl(it){
+  if(userRole!=='admin')return null;
+  var t=(it&&it.dilihatMgr)?String(it.dilihatMgr):'';
+  if(!t)return null;
+  var s=document.createElement('span');
+  s.className='mon-seen-badge'; s.title='Manager sudah membuka/melihat ini';
+  s.textContent='👁 Dilihat manager · '+t;
+  return s;
+}
 // ── MANAGER: tap kartu berfoto "sudah dicek admin" → badge hilang (per hari, per perangkat) ──
 // Berlaku untuk SEMUA kartu sumber non-event (Kiriman, Pelanggaran, D04, dll) yang memakai
 // badge .cek-seen-badge. Kartu Non-Harian (event) punya mekanisme sendiri di renderEventGrid.
@@ -5588,12 +5635,20 @@ document.addEventListener('click',function(e){
   var badge=card.querySelector('.cek-seen-badge');
   if(!badge)return;
   var kunci=badge.getAttribute('data-seen-kunci');
-  if(kunci)_mgrSeenMark(kunci);
+  if(kunci){ _mgrSeenMark(kunci); _mgrSeenServer(kunci); }
   var strip=badge.parentElement;
   badge.remove();
   if(strip && strip!==card && !strip.querySelector('*')) strip.remove(); // buang strip bila jadi kosong
   e.stopPropagation();
   if(e.cancelable)e.preventDefault();
+},true);
+// (v5.6) MANAGER: membuka foto bukti (tap thumbnail ber-atribut data-seen-kunci) = tercatat
+// "dilihat manager" untuk admin. TIDAK mencegah link terbuka. Untuk admin: listener ini diam.
+document.addEventListener('click',function(e){
+  if(userRole!=='manager')return;
+  if(!e.target||!e.target.closest)return;
+  var a=e.target.closest('a[data-seen-kunci]');
+  if(a) _mgrSeenServer(a.getAttribute('data-seen-kunci'));
 },true);
 // Tampilkan foto bukti + tanda "sudah dicek" + dot notifikasi di tiap kartu Non-Harian (sumber pekerjaan).
 // Sumber data: ?type=cek_list (berisi item berfoto + status dicek). Bisa dibaca admin & manager.
@@ -5652,6 +5707,7 @@ function _annotateEventCardsRender(allItems){
         (it.fotos||[]).slice(0,3).forEach(function(u){
           var a=document.createElement('a'); a.href=u; a.target='_blank'; a.style.display='inline-block';
           a.addEventListener('click',function(e){e.stopPropagation();});
+          a.setAttribute('data-seen-kunci', it.kunci);
           var img=document.createElement('img'); img.src=kmFotoImgUrl(u); img.loading='lazy';
           img.style.cssText='width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border)';
           a.appendChild(img); strip.appendChild(a);
@@ -5663,6 +5719,7 @@ function _annotateEventCardsRender(allItems){
         if(userRole==='admin') strip.appendChild(_cekBtnEl('nonharian',it.row,true));
         card.classList.add('ev-has-cek');
       }
+      var _seenEl=_dilihatMgrBadgeEl(it); if(_seenEl) strip.appendChild(_seenEl);
       body.appendChild(strip);
     });
 }
