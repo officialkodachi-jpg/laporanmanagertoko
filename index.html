@@ -1247,8 +1247,8 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
       <div class="field-label" style="margin-bottom:8px">Status</div>
       <div class="status-row"><button class="status-btn" id="sbtn-ok" onclick="setStatus('✓')">✓ Selesai</button><button class="status-btn" id="sbtn-no" onclick="setStatus('✗')">✗ Tidak dilakukan</button></div>
       <div id="event-foto-wrap" style="display:none;margin-top:12px">
-        <div class="field-label" style="margin-bottom:6px">📸 Foto bukti pekerjaan <span style="color:var(--red)">(wajib, ambil langsung dari kamera)</span></div>
-        <input type="file" accept="image/*" capture="environment" id="event-foto" style="font-size:12px" onchange="eventFotoChange()"><div style="font-size:10px;color:var(--hint);margin-top:3px">📷 harus foto langsung dari kamera (bukti asli)</div>
+        <div class="field-label" style="margin-bottom:6px">📸 Foto bukti pekerjaan <span style="color:var(--red)" id="event-foto-cap-label">(wajib, ambil langsung dari kamera)</span></div>
+        <input type="file" accept="image/*" capture="environment" id="event-foto" style="font-size:12px" onchange="eventFotoChange()"><div style="font-size:10px;color:var(--hint);margin-top:3px" id="event-foto-cap-hint">📷 harus foto langsung dari kamera (bukti asli)</div>
         <div class="km-foto-prev" id="event-foto-prev"></div>
       </div>
       <div class="field-label">Catatan / Hasil</div>
@@ -1695,6 +1695,25 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <input class="modal-input" id="tm-in-kpi" placeholder="mis. 0 komplain" style="font-family:var(--sans)">
   </div>
 
+  <div id="tm-photo-wrap" style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+    <div class="tm-field-label">📷 Bukti foto saat tugas ditandai selesai</div>
+    <div class="tm-row2">
+      <div style="flex:1;min-width:0">
+        <select class="tm-select" id="tm-in-reqfoto" onchange="tmFotoToggle()">
+          <option value="0">Foto tidak wajib</option>
+          <option value="1">Wajib ada foto</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:0" id="tm-camonly-wrap">
+        <select class="tm-select" id="tm-in-camonly" onchange="tmFotoToggle()">
+          <option value="1">📷 Harus dari kamera</option>
+          <option value="0">🖼️ Boleh dari galeri</option>
+        </select>
+      </div>
+    </div>
+    <div id="tm-photo-hint" style="font-size:10px;color:var(--hint);margin-top:6px"></div>
+  </div>
+
   <div class="modal-btns" style="margin-top:16px"><button class="modal-cancel" onclick="tmClose()">Batal</button><button class="modal-save" id="tm-save-btn" onclick="tmSave()">Simpan</button></div>
 </div></div>
 
@@ -1770,15 +1789,15 @@ var HARIAN=[
   {kode:'D14',nama:'Pelayanan offline berjalan lancar',kategori:'Layanan',prioritas:'Penting',kpi:'0 komplain pelayanan offline',icon:'🏬'},
 ];
 var EVENTS=[
-  {kode:'E01',nama:'Input stok masuk dari gudang',kategori:'Operasional',frekuensi:'Mingguan',prioritas:'Penting',icon:'📥'},
-  {kode:'E02',nama:'Setor uang ke owner & laporan keuangan',kategori:'Keuangan',frekuensi:'Mingguan',prioritas:'Wajib',icon:'💵'},
-  {kode:'E03',nama:'Stok opname — aktual vs sistem',kategori:'Inventaris',frekuensi:'2x/Bulan',prioritas:'Wajib',icon:'📊'},
-  {kode:'E04',nama:'Laporan stok minus / kehilangan ke owner',kategori:'Inventaris',frekuensi:'Insidental',prioritas:'Wajib',icon:'⚠️'},
-  {kode:'E05',nama:'Laporan stok datang dari pabrik',kategori:'Inventaris',frekuensi:'Insidental',prioritas:'Penting',icon:'🚚'},
-  {kode:'E06',nama:'Menegur partimer yang melanggar',kategori:'SDM',frekuensi:'Insidental',prioritas:'Wajib',icon:'⚡'},
-  {kode:'E07',nama:'Isi shift kosong — carikan pengganti',kategori:'SDM',frekuensi:'Insidental',prioritas:'Wajib',icon:'🔄'},
-  {kode:'E08',nama:'Training partimer baru',kategori:'SDM',frekuensi:'Insidental',prioritas:'Pendukung',icon:'🎓'},
-  {kode:'E09',nama:'Sampaikan keluhan partimer ke owner',kategori:'SDM',frekuensi:'Insidental',prioritas:'Penting',icon:'📢'},
+  {kode:'E01',nama:'Input stok masuk dari gudang',kategori:'Operasional',frekuensi:'Mingguan',prioritas:'Penting',icon:'📥',requirePhoto:true,cameraOnly:true},
+  {kode:'E02',nama:'Setor uang ke owner & laporan keuangan',kategori:'Keuangan',frekuensi:'Mingguan',prioritas:'Wajib',icon:'💵',requirePhoto:true,cameraOnly:true},
+  {kode:'E03',nama:'Stok opname — aktual vs sistem',kategori:'Inventaris',frekuensi:'2x/Bulan',prioritas:'Wajib',icon:'📊',requirePhoto:true,cameraOnly:true},
+  {kode:'E04',nama:'Laporan stok minus / kehilangan ke owner',kategori:'Inventaris',frekuensi:'Insidental',prioritas:'Wajib',icon:'⚠️',requirePhoto:true,cameraOnly:true},
+  {kode:'E05',nama:'Laporan stok datang dari pabrik',kategori:'Inventaris',frekuensi:'Insidental',prioritas:'Penting',icon:'🚚',requirePhoto:true,cameraOnly:true},
+  {kode:'E06',nama:'Menegur partimer yang melanggar',kategori:'SDM',frekuensi:'Insidental',prioritas:'Wajib',icon:'⚡',requirePhoto:true,cameraOnly:true},
+  {kode:'E07',nama:'Isi shift kosong — carikan pengganti',kategori:'SDM',frekuensi:'Insidental',prioritas:'Wajib',icon:'🔄',requirePhoto:true,cameraOnly:true},
+  {kode:'E08',nama:'Training partimer baru',kategori:'SDM',frekuensi:'Insidental',prioritas:'Pendukung',icon:'🎓',requirePhoto:true,cameraOnly:true},
+  {kode:'E09',nama:'Sampaikan keluhan partimer ke owner',kategori:'SDM',frekuensi:'Insidental',prioritas:'Penting',icon:'📢',requirePhoto:true,cameraOnly:true},
 ];
 const BULAN_NAMES=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const DAY_SHORT=['Min','Sen','Sel','Rab','Kam','Jum','Sab'],DAY_FULL=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
@@ -5026,7 +5045,17 @@ function renderHarian(){
             +'<div class="d04-cek-strip" id="d04-cek-strip" style="margin-top:8px;display:flex;align-items:center;gap:7px;flex-wrap:wrap"></div>'
             +'</div>';
         }
-        el.innerHTML='<div class="task-icon">'+(t.icon||'📌')+'</div><div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">'+t.nama+'</div><div class="task-meta">'+t.kode+' · '+t.kategori+' · '+t.kpi+'</div><span class="task-note-toggle" onclick="toggleNote(event,\''+t.kode+'\')">📝 catatan</span><textarea class="task-note-input" id="note-'+t.kode+'" placeholder="Tulis catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes[\''+t.kode+'\']=this.value"></textarea>'+strukHtml+'</div>';
+        var fotoHtml='';
+        if(t.requirePhoto && !t.autoTrack && t.kode!=='D04'){
+          var capAttr=(t.cameraOnly===false)?'':' capture="environment"';
+          fotoHtml='<div class="d04-struk" onclick="event.stopPropagation()" style="margin-top:8px">'
+            +'<div style="font-size:10px;color:var(--red);margin-bottom:5px">📷 Wajib foto bukti '+((t.cameraOnly===false)?'(boleh dari galeri)':'(ambil langsung dari kamera)')+'</div>'
+            +'<input type="file" accept="image/*"'+capAttr+' id="hf-'+t.kode+'" style="display:none" onchange="harianFotoChange(\''+t.kode+'\')">'
+            +'<button type="button" onclick="document.getElementById(\'hf-'+t.kode+'\').click()" style="font-size:11px;padding:6px 10px;border:1px dashed var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">📷 Ambil/pilih foto bukti</button>'
+            +'<div id="hf-'+t.kode+'-prev" style="margin-top:6px"></div>'
+            +'</div>';
+        }
+        el.innerHTML='<div class="task-icon">'+(t.icon||'📌')+'</div><div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">'+t.nama+'</div><div class="task-meta">'+t.kode+' · '+t.kategori+' · '+t.kpi+'</div><span class="task-note-toggle" onclick="toggleNote(event,\''+t.kode+'\')">📝 catatan</span><textarea class="task-note-input" id="note-'+t.kode+'" placeholder="Tulis catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes[\''+t.kode+'\']=this.value"></textarea>'+strukHtml+fotoHtml+'</div>';
         el.addEventListener('click',()=>toggleCheck(t.kode));
         list.appendChild(el);
       }
@@ -5034,6 +5063,7 @@ function renderHarian(){
   });
   updateStats();
   applyHarianLock();
+  try{ _restoreHarianFotoPrev(); }catch(e){}
 }
 // Terapkan/lepas kunci harian di tampilan (khusus manager). Admin tidak dikunci.
 function applyHarianLock(){
@@ -5060,6 +5090,23 @@ function d04FotoChange(){
     d04FotoBase64=b64;
     if(prev)prev.innerHTML='<img src="'+b64+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green);margin-top:3px">✓ Struk siap dikirim</div>';
     showToast('✓ Foto struk siap','ok');
+  });
+}
+var harianFotos={}; // kode -> base64 foto bukti tugas harian (yang di-set wajib foto)
+function harianFotoChange(kode){
+  var inp=document.getElementById('hf-'+kode); var f=inp&&inp.files[0];
+  delete harianFotos[kode]; var prev=document.getElementById('hf-'+kode+'-prev'); if(prev)prev.innerHTML='';
+  if(!f)return;
+  _kmCompress(f,function(b64){
+    harianFotos[kode]=b64;
+    if(prev)prev.innerHTML='<img src="'+b64+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green);margin-top:3px">✓ Foto bukti siap</div>';
+    showToast('✓ Foto bukti siap','ok');
+  });
+}
+function _restoreHarianFotoPrev(){
+  Object.keys(harianFotos).forEach(function(k){
+    var prev=document.getElementById('hf-'+k+'-prev');
+    if(prev && harianFotos[k]) prev.innerHTML='<img src="'+harianFotos[k]+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green);margin-top:3px">✓ Foto bukti siap</div>';
   });
 }
 function toggleCheck(k){
@@ -5810,12 +5857,18 @@ async function saveHarian(){
   if(userRole==='manager'&&harianIsLocked()){showToast('Sudah lewat batas — tidak bisa kirim lagi hari ini','err');return;}
   // D04 terhubung ke Uang Cash; foto struk opsional (tidak wajib)
   var btn=document.getElementById('save-harian-btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Menyimpan...';
+  // pastikan tugas wajib-foto yang dicentang sudah ada fotonya
+  var _missFoto=HARIAN.filter(function(x){ return x.requirePhoto && !x.autoTrack && x.kode!=='D04' && checked[x.kode] && !harianFotos[x.kode]; });
+  if(_missFoto.length){ showToast('Foto bukti wajib untuk: '+_missFoto.map(function(x){return x.kode;}).join(', '),'err'); btn.disabled=false; btn.textContent='Simpan ke Google Sheets'; return; }
   var t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60);
   var gn=t>0?'GPS: '+h+'j '+m+'m di toko'+(t>=TARGET_MENIT?'':' (< target '+_targetJamTxt()+')')+' · '+(isAtStore?'Masih di toko':'Sudah keluar toko'):'GPS: tidak ada durasi tercatat';
   var entries=HARIAN.map(x=>({tanggal:todayValue,kode:x.kode,nama:x.nama,kategori:x.kategori,prioritas:x.prioritas,status:x.autoTrack?(t>=TARGET_MENIT?'✓':'✗'):(checked[x.kode]?'✓':'✗'),catatan:x.autoTrack?gn:((notes[x.kode]||'')+((x.kode==='D04'&&checked['D04']&&d04FotoBase64)?' [struk setoran dilampirkan]':''))}));
   var payload={type:'harian',entries:entries};
   // sertakan foto struk D04 bila ada (backend mengabaikan bila tak dipakai)
   if(checked['D04']&&d04FotoBase64){ payload.fotoStruk=d04FotoBase64; payload.fotoStrukKode='D04'; }
+  // sertakan foto bukti per-tugas harian (kode -> base64); backend simpan ke Drive & catat link
+  var _hf={}; HARIAN.forEach(function(x){ if(x.requirePhoto && !x.autoTrack && x.kode!=='D04' && checked[x.kode] && harianFotos[x.kode]) _hf[x.kode]=harianFotos[x.kode]; });
+  if(Object.keys(_hf).length) payload.harianFotos=_hf;
   try{var r=await fetch(scriptUrl,{method:'POST',body:JSON.stringify(payload)}),d=await r.json();if(d.status==='ok'){showToast('✓ Tersimpan','ok');logActivity('Simpan tugas Harian',gn);harianSaveLock();applyHarianLock();checkTodayFilled();checkLaporanBadge();}else showToast('Gagal: '+(d.message||''),'err');}
   catch(e){showToast('Gagal terhubung','err');}
   btn.disabled=false;
@@ -5852,8 +5905,8 @@ var _tmCat='harian', _tmEdit=null, _tmIcon='📌';
 var _TM_PROTECT={D01:1, D04:1}; // tugas inti — tidak boleh dihapus (boleh diedit)
 
 function _priOK(p){ p=String(p||'').trim(); return (p==='Wajib'||p==='Penting'||p==='Pendukung')?p:'Penting'; }
-function _normTaskH(t){ return {kode:String(t.kode||'').trim().toUpperCase(),nama:String(t.nama||'').trim(),kategori:String(t.kategori||'Operasional'),prioritas:_priOK(t.prioritas),kpi:String(t.kpi||''),icon:String(t.icon||'📌'),autoTrack:!!t.autoTrack}; }
-function _normTaskE(e){ return {kode:String(e.kode||'').trim().toUpperCase(),nama:String(e.nama||'').trim(),kategori:String(e.kategori||'Operasional'),prioritas:_priOK(e.prioritas),frekuensi:String(e.frekuensi||'Insidental'),icon:String(e.icon||'📌')}; }
+function _normTaskH(t){ return {kode:String(t.kode||'').trim().toUpperCase(),nama:String(t.nama||'').trim(),kategori:String(t.kategori||'Operasional'),prioritas:_priOK(t.prioritas),kpi:String(t.kpi||''),icon:String(t.icon||'📌'),autoTrack:!!t.autoTrack,requirePhoto:!!t.requirePhoto,cameraOnly:(t.cameraOnly===false?false:true)}; }
+function _normTaskE(e){ return {kode:String(e.kode||'').trim().toUpperCase(),nama:String(e.nama||'').trim(),kategori:String(e.kategori||'Operasional'),prioritas:_priOK(e.prioritas),frekuensi:String(e.frekuensi||'Insidental'),icon:String(e.icon||'📌'),requirePhoto:(e.requirePhoto===false?false:true),cameraOnly:(e.cameraOnly===false?false:true)}; }
 
 // Terapkan daftar tugas dari config server (dipanggil dari applyAppConfig)
 function _applyTasksConfig(){
@@ -5866,7 +5919,7 @@ function _applyTasksConfig(){
   if(!HARIAN.some(function(t){return t.kode==='D04';})) HARIAN.push({kode:'D04',nama:'Catatan uang (ambil, setor, kembalian) terisi & kembalian cukup',kategori:'Keuangan',prioritas:'Wajib',kpi:'Catatan lengkap tanpa selisih & kembalian aman',icon:'💰'});
   // bersihkan status centang/catatan dari tugas yang sudah dihapus
   try{ Object.keys(checked).forEach(function(k){ if(!HARIAN.some(function(t){return t.kode===k;})) delete checked[k]; }); }catch(e){}
-  var sig=JSON.stringify(HARIAN.map(function(t){return [t.kode,t.nama,t.icon,t.prioritas,t.kategori,t.kpi];}))+'||'+JSON.stringify(EVENTS.map(function(e){return [e.kode,e.nama,e.icon,e.prioritas,e.frekuensi,e.kategori];}));
+  var sig=JSON.stringify(HARIAN.map(function(t){return [t.kode,t.nama,t.icon,t.prioritas,t.kategori,t.kpi,t.requirePhoto?1:0,t.cameraOnly===false?0:1];}))+'||'+JSON.stringify(EVENTS.map(function(e){return [e.kode,e.nama,e.icon,e.prioritas,e.frekuensi,e.kategori,e.requirePhoto===false?0:1,e.cameraOnly===false?0:1];}));
   if(sig===_tasksSig) return;
   _tasksSig=sig;
   try{ var ph2=document.getElementById('panel-harian'); if(ph2&&ph2.classList.contains('active')) renderHarian(); }catch(e){}
@@ -5891,7 +5944,7 @@ function _tmRenderList(cat){
     return '<div class="tm-item">'
       +'<div class="tm-item-ic">'+(t.icon||'📌')+'</div>'
       +'<div class="tm-item-body"><div class="tm-item-nama">'+escH(t.nama)+'</div>'
-      +'<div class="tm-item-meta"><span class="tm-pri-dot tm-pri-'+pri+'"></span>'+escH(t.prioritas)+' · '+meta+(t.autoTrack?' <span class="tm-lock">📍GPS</span>':(locked?' <span class="tm-lock">INTI</span>':''))+'</div></div>'
+      +'<div class="tm-item-meta"><span class="tm-pri-dot tm-pri-'+pri+'"></span>'+escH(t.prioritas)+' · '+meta+(t.autoTrack?' <span class="tm-lock">📍GPS</span>':(locked?' <span class="tm-lock">INTI</span>':''))+(t.requirePhoto?(' <span class="tm-lock" style="background:rgba(220,38,38,.10);color:#b91c1c">'+(t.cameraOnly===false?'🖼️ foto':'📷 foto')+'</span>'):'')+'</div></div>'
       +'<div class="tm-item-acts">'+acts+'</div>'
       +'</div>';
   }).join('');
@@ -5917,10 +5970,26 @@ function tmOpen(cat, idx){
   document.getElementById('tm-pick-preview').textContent=_tmIcon;
   document.getElementById('tm-icon-search').value='';
   tmRenderIcons('');
+  // pengaturan bukti foto
+  var pw=document.getElementById('tm-photo-wrap');
+  var protectedH=(cat==='harian' && t && (t.autoTrack || _TM_PROTECT[t.kode]));
+  if(pw) pw.style.display=protectedH?'none':'block';
+  var rpDefault=(cat==='event')?1:0;
+  var rpVal=t?((cat==='event')?(t.requirePhoto===false?0:1):(t.requirePhoto?1:0)):rpDefault;
+  document.getElementById('tm-in-reqfoto').value=String(rpVal);
+  document.getElementById('tm-in-camonly').value=(t&&t.cameraOnly===false)?'0':'1';
+  tmFotoToggle();
   document.getElementById('tm-modal').classList.add('open');
   setTimeout(function(){ try{ document.getElementById('tm-in-nama').focus(); }catch(e){} },120);
 }
 function tmClose(){ document.getElementById('tm-modal').classList.remove('open'); }
+function tmFotoToggle(){
+  var req=document.getElementById('tm-in-reqfoto').value==='1';
+  var cw=document.getElementById('tm-camonly-wrap'); if(cw)cw.style.display=req?'block':'none';
+  var cam=document.getElementById('tm-in-camonly').value==='1';
+  var h=document.getElementById('tm-photo-hint');
+  if(h)h.textContent=req?(cam?'Petugas WAJIB ambil foto langsung dari kamera saat menandai selesai (bukti asli — tidak bisa pilih dari galeri).':'Petugas WAJIB melampirkan foto — boleh dari kamera atau galeri.'):'Tugas bisa ditandai selesai tanpa foto.';
+}
 function tmRenderIcons(q){
   q=String(q||'').trim().toLowerCase();
   var g=document.getElementById('tm-icon-grid'); if(!g)return;
@@ -5944,13 +6013,15 @@ function tmSave(){
   var cat=_tmCat, arr=(cat==='event')?EVENTS:HARIAN;
   var pri=_priOK(document.getElementById('tm-in-prioritas').value);
   var kat=document.getElementById('tm-in-kategori').value||'Operasional';
+  var reqFoto=document.getElementById('tm-in-reqfoto').value==='1';
+  var camOnly=document.getElementById('tm-in-camonly').value==='1';
   if(_tmEdit==null){
     var kode=_tmNextKode(arr, cat==='event'?'E':'D');
-    if(cat==='event') arr.push({kode:kode,nama:nama,kategori:kat,prioritas:pri,frekuensi:document.getElementById('tm-in-frekuensi').value||'Insidental',icon:_tmIcon});
-    else arr.push({kode:kode,nama:nama,kategori:kat,prioritas:pri,kpi:document.getElementById('tm-in-kpi').value.trim(),icon:_tmIcon});
+    if(cat==='event') arr.push({kode:kode,nama:nama,kategori:kat,prioritas:pri,frekuensi:document.getElementById('tm-in-frekuensi').value||'Insidental',icon:_tmIcon,requirePhoto:reqFoto,cameraOnly:camOnly});
+    else arr.push({kode:kode,nama:nama,kategori:kat,prioritas:pri,kpi:document.getElementById('tm-in-kpi').value.trim(),icon:_tmIcon,requirePhoto:reqFoto,cameraOnly:camOnly});
   } else {
     var t=arr[_tmEdit]; if(!t){ tmClose(); return; }
-    t.nama=nama; t.prioritas=pri; t.kategori=kat; t.icon=_tmIcon;
+    t.nama=nama; t.prioritas=pri; t.kategori=kat; t.icon=_tmIcon; t.requirePhoto=reqFoto; t.cameraOnly=camOnly;
     if(cat==='event') t.frekuensi=document.getElementById('tm-in-frekuensi').value||'Insidental';
     else t.kpi=document.getElementById('tm-in-kpi').value.trim();
   }
@@ -6211,9 +6282,17 @@ function setStatus(s){
   selectedStatus=s;
   document.getElementById('sbtn-ok').className='status-btn'+(s==='✓'?' sel-ok':'');
   document.getElementById('sbtn-no').className='status-btn'+(s==='✗'?' sel-no':'');
-  // foto bukti wajib hanya untuk manager saat memilih "Selesai"
+  // foto bukti: hanya jika tugas di-set "wajib foto" oleh admin, & untuk manager saat memilih "Selesai"
+  var need=(s==='✓' && userRole==='manager' && selectedEvent && selectedEvent.requirePhoto!==false);
+  var camOnly=!(selectedEvent && selectedEvent.cameraOnly===false);
   var fw=document.getElementById('event-foto-wrap');
-  if(fw)fw.style.display=(s==='✓'&&userRole==='manager')?'block':'none';
+  if(fw)fw.style.display=need?'block':'none';
+  var fi=document.getElementById('event-foto');
+  if(fi){ if(camOnly) fi.setAttribute('capture','environment'); else fi.removeAttribute('capture'); }
+  var lbl=document.getElementById('event-foto-cap-label');
+  if(lbl)lbl.textContent=camOnly?'(wajib, ambil langsung dari kamera)':'(wajib — boleh kamera atau galeri)';
+  var hnt=document.getElementById('event-foto-cap-hint');
+  if(hnt)hnt.textContent=camOnly?'📷 harus foto langsung dari kamera (bukti asli)':'🖼️ boleh ambil kamera atau pilih dari galeri';
 }
 var eventFotoBase64='';
 function eventFotoChange(){
@@ -6228,7 +6307,7 @@ async function saveEvent(){
   if(!selectedEvent){showToast('Pilih tugas dulu','err');return;}
   if(!selectedStatus){showToast('Pilih status dulu','err');return;}
   // manager wajib upload foto bukti (dari kamera) saat menandai Selesai
-  if(selectedStatus==='✓'&&userRole==='manager'&&!eventFotoBase64){showToast('Upload foto bukti dari kamera dulu','err');return;}
+  if(selectedStatus==='✓'&&userRole==='manager'&&selectedEvent&&selectedEvent.requirePhoto!==false&&!eventFotoBase64){showToast((selectedEvent.cameraOnly===false?'Lampirkan foto bukti dulu':'Ambil foto bukti dari kamera dulu'),'err');return;}
   var btn=document.getElementById('event-send-btn');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>'+(eventFotoBase64?'Mengirim + foto...':'Menyimpan...');}
   var payload={type:'event',tanggal:todayValue,kode:selectedEvent.kode,nama:selectedEvent.nama,kategori:selectedEvent.kategori,frekuensi:selectedEvent.frekuensi,prioritas:selectedEvent.prioritas,status:selectedStatus,catatan:document.getElementById('event-note').value||'',foto:eventFotoBase64||'',oleh:userRole,olehEmail:userEmail||''};
