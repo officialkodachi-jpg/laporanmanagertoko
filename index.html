@@ -677,6 +677,41 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   try{ if(window.matchMedia){ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){ var t=read(); if(t.mode==='auto')window.__applyTheme(t); }); } }catch(e){}
 })();
 </script>
+<style>
+/* ── Kelola Tugas (Sumber Data) ── */
+.sd-section-hdr{display:flex;align-items:center;gap:10px;margin:6px 0 12px}
+.sd-section-hdr>span{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;letter-spacing:.02em}
+.sd-section-line{flex:1;height:1px;background:var(--border)}
+.tm-list{display:flex;flex-direction:column;gap:7px;margin-bottom:11px}
+.tm-empty{font-size:11px;color:var(--hint);text-align:center;padding:8px 0}
+.tm-item{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:8px 10px}
+.tm-item-ic{font-size:19px;line-height:1;flex-shrink:0;width:24px;text-align:center}
+.tm-item-body{flex:1;min-width:0}
+.tm-item-nama{font-size:12.5px;font-weight:700;color:var(--text);line-height:1.3;word-break:break-word}
+.tm-item-meta{font-size:10px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.tm-pri-dot{display:inline-block;width:7px;height:7px;border-radius:50%}
+.tm-pri-wajib{background:var(--red)} .tm-pri-penting{background:var(--orange)} .tm-pri-pendukung{background:var(--green)}
+.tm-lock{font-size:9px;font-weight:800;color:var(--blue);background:rgba(37,99,235,.12);border-radius:5px;padding:1px 6px}
+.tm-item-acts{display:flex;gap:5px;flex-shrink:0}
+.tm-act{width:30px;height:30px;border-radius:8px;border:1px solid var(--border2);background:var(--card);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.tm-act:active{transform:scale(.92)}
+.tm-act.del{color:var(--red);border-color:rgba(220,38,38,.3)}
+.tm-add-btn{width:100%;padding:10px;border:1.5px dashed var(--accent);background:rgba(37,99,235,.06);color:var(--accent);border-radius:10px;font-family:var(--sans);font-size:12.5px;font-weight:700;cursor:pointer}
+.tm-add-btn:active{opacity:.85}
+/* ── Modal tugas ── */
+.tm-field-label{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.tm-pick-preview{font-size:20px;line-height:1}
+.tm-icon-search input{width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:9px;background:var(--surface);color:var(--text);font-family:var(--sans);font-size:12px;outline:none;margin-bottom:9px}
+.tm-icon-search input:focus{border-color:var(--accent)}
+.tm-icon-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;max-height:148px;overflow-y:auto;padding:4px;background:var(--surface);border:1px solid var(--border2);border-radius:10px}
+.tm-icon-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:19px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;background:var(--card)}
+.tm-icon-cell:active{transform:scale(.9)}
+.tm-icon-cell.sel{border-color:var(--accent);background:rgba(37,99,235,.14)}
+.tm-icon-none{grid-column:1/-1;font-size:11px;color:var(--hint);text-align:center;padding:10px 0}
+.tm-row2{display:flex;gap:10px}
+.tm-select{width:100%;padding:10px 11px;border:1px solid var(--border2);border-radius:9px;background:var(--surface);color:var(--text);font-family:var(--sans);font-size:12.5px;outline:none}
+.tm-select:focus{border-color:var(--accent)}
+</style>
 </head>
 <body>
 
@@ -1525,6 +1560,26 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 
   <!-- ══ SUMBER DATA (admin) — ganti spreadsheet/GAS tanpa edit kode ══ -->
   <div class="panel" id="panel-sumberdata">
+
+    <!-- ══ KELOLA TUGAS (admin) — tambah/kurangi tugas Harian & Non-Harian ══ -->
+    <div class="sd-section-hdr"><span>📋 Kelola Tugas</span><div class="sd-section-line"></div></div>
+    <div class="alert info" style="margin-bottom:12px;font-size:11px;line-height:1.6">📋 <b>Tambah / kurangi tugas</b> Harian &amp; Non-Harian di sini. Pilih ikon dari perbendaharaan, tulis nama, atur prioritas → <b>Simpan</b>. Spreadsheet &amp; semua perangkat ikut menyesuaikan otomatis.</div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">📋</span><div class="sd-meta"><div class="sd-name">Tugas Harian</div><div class="sd-desc">Dicentang manager tiap hari · grid bulanan ikut menyesuaikan</div></div><span class="sd-tag ss"><span id="tm-count-harian">0</span> tugas</span></div>
+      <div class="tm-list" id="tm-list-harian"></div>
+      <button class="tm-add-btn" onclick="tmOpen('harian')">＋ Tambah Tugas Harian</button>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-top"><span class="sd-ic">📌</span><div class="sd-meta"><div class="sd-name">Tugas Non-Harian</div><div class="sd-desc">Tugas insidental/mingguan · pilihan di tab Non-Harian</div></div><span class="sd-tag folder"><span id="tm-count-event">0</span> tugas</span></div>
+      <div class="tm-list" id="tm-list-event"></div>
+      <button class="tm-add-btn" onclick="tmOpen('event')">＋ Tambah Tugas Non-Harian</button>
+    </div>
+
+    <div class="sd-hint" style="margin:2px 0 16px">ℹ️ <span>Tugas <b>📍 GPS</b> &amp; <b>💰 Uang Cash</b> tidak bisa dihapus (terhubung fitur otomatis) — nama &amp; ikonnya tetap boleh diganti. Menghapus tugas <b>tidak</b> menghapus riwayat bulan-bulan lalu.</span></div>
+
+    <div class="sd-section-hdr"><span>🗄️ Sumber Data</span><div class="sd-section-line"></div></div>
     <div class="alert info" style="margin-bottom:14px">🗄️ <b>Sumber Data</b> — ganti link/ID spreadsheet di sini tanpa ngedit kode. Tempel link Google Sheet penuh, sistem ambil ID-nya otomatis, lalu <b>Simpan</b>. Berlaku ke semua perangkat.</div>
 
     <div class="sd-card">
@@ -1597,6 +1652,52 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   <div class="modal-btns"><button class="modal-cancel" onclick="closeModal()">Batal</button><button class="modal-save" onclick="saveUrl()">Simpan</button></div>
 </div></div>
 
+<!-- ══ Modal Tambah/Edit Tugas (admin) ══ -->
+<div class="modal-bg" id="tm-modal"><div class="modal" style="max-width:460px">
+  <div class="modal-title" id="tm-modal-title">Tambah Tugas</div>
+  <div class="modal-sub" id="tm-modal-sub">Pilih ikon, tulis nama tugas, atur prioritas.</div>
+
+  <div class="tm-field-label">Ikon <span id="tm-pick-preview" class="tm-pick-preview">📌</span></div>
+  <div class="tm-icon-search"><input type="text" id="tm-icon-search" placeholder="🔍 cari ikon (mis. uang, box, jam)…" oninput="tmRenderIcons(this.value)"></div>
+  <div class="tm-icon-grid" id="tm-icon-grid"></div>
+
+  <div class="tm-field-label" style="margin-top:14px">Nama tugas</div>
+  <input class="modal-input" id="tm-in-nama" placeholder="mis. Cek suhu AC ruangan" style="margin-bottom:10px;font-family:var(--sans)">
+
+  <div class="tm-row2">
+    <div style="flex:1;min-width:0">
+      <div class="tm-field-label">Prioritas</div>
+      <select class="tm-select" id="tm-in-prioritas">
+        <option value="Wajib">🔴 Wajib</option>
+        <option value="Penting" selected>🟡 Penting</option>
+        <option value="Pendukung">🟢 Pendukung</option>
+      </select>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="tm-field-label">Kategori</div>
+      <select class="tm-select" id="tm-in-kategori">
+        <option>Operasional</option><option>Keuangan</option><option>Inventaris</option>
+        <option>SDM</option><option>Visual</option><option>Layanan</option><option>Pendukung</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="tm-frek-wrap" style="display:none;margin-top:10px">
+    <div class="tm-field-label">Frekuensi</div>
+    <select class="tm-select" id="tm-in-frekuensi">
+      <option>Insidental</option><option>Harian</option><option>Mingguan</option>
+      <option>2x/Bulan</option><option>Bulanan</option>
+    </select>
+  </div>
+
+  <div style="margin-top:10px">
+    <div class="tm-field-label" id="tm-kpi-label">Indikator / Target (opsional)</div>
+    <input class="modal-input" id="tm-in-kpi" placeholder="mis. 0 komplain" style="font-family:var(--sans)">
+  </div>
+
+  <div class="modal-btns" style="margin-top:16px"><button class="modal-cancel" onclick="tmClose()">Batal</button><button class="modal-save" id="tm-save-btn" onclick="tmSave()">Simpan</button></div>
+</div></div>
+
 <div class="ac-dropdown" id="ac-dropdown"></div>
 <div class="km-detail-bg" id="km-detail-bg" onclick="if(event.target===this)kmCloseDetail()">
   <div class="km-detail">
@@ -1652,7 +1753,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 
 <script>
 // ════ CONFIG ════
-const HARIAN=[
+var HARIAN=[
   {kode:'D01',nama:'Kehadiran efektif di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Min. 4 jam/hari',autoTrack:true,icon:'📍'},
   {kode:'D02',nama:'Paket terkirim ke semua ekspedisi (J&T, SPX, dll)',kategori:'Operasional',prioritas:'Wajib',kpi:'0 komplain pengiriman',icon:'📦'},
   {kode:'D03',nama:'Stok sepatu, kaos kaki & tali tersedia di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Tidak ada kehabisan mendadak',icon:'👟'},
@@ -1668,16 +1769,16 @@ const HARIAN=[
   {kode:'D13',nama:'Proses bungkus: print resi → packing → input data lancar',kategori:'Operasional',prioritas:'Penting',kpi:'0 kesalahan proses',icon:'🖨️'},
   {kode:'D14',nama:'Pelayanan offline berjalan lancar',kategori:'Layanan',prioritas:'Penting',kpi:'0 komplain pelayanan offline',icon:'🏬'},
 ];
-const EVENTS=[
-  {kode:'E01',nama:'Input stok masuk dari gudang',kategori:'Operasional',frekuensi:'Mingguan',prioritas:'Penting'},
-  {kode:'E02',nama:'Setor uang ke owner & laporan keuangan',kategori:'Keuangan',frekuensi:'Mingguan',prioritas:'Wajib'},
-  {kode:'E03',nama:'Stok opname — aktual vs sistem',kategori:'Inventaris',frekuensi:'2x/Bulan',prioritas:'Wajib'},
-  {kode:'E04',nama:'Laporan stok minus / kehilangan ke owner',kategori:'Inventaris',frekuensi:'Insidental',prioritas:'Wajib'},
-  {kode:'E05',nama:'Laporan stok datang dari pabrik',kategori:'Inventaris',frekuensi:'Insidental',prioritas:'Penting'},
-  {kode:'E06',nama:'Menegur partimer yang melanggar',kategori:'SDM',frekuensi:'Insidental',prioritas:'Wajib'},
-  {kode:'E07',nama:'Isi shift kosong — carikan pengganti',kategori:'SDM',frekuensi:'Insidental',prioritas:'Wajib'},
-  {kode:'E08',nama:'Training partimer baru',kategori:'SDM',frekuensi:'Insidental',prioritas:'Pendukung'},
-  {kode:'E09',nama:'Sampaikan keluhan partimer ke owner',kategori:'SDM',frekuensi:'Insidental',prioritas:'Penting'},
+var EVENTS=[
+  {kode:'E01',nama:'Input stok masuk dari gudang',kategori:'Operasional',frekuensi:'Mingguan',prioritas:'Penting',icon:'📥'},
+  {kode:'E02',nama:'Setor uang ke owner & laporan keuangan',kategori:'Keuangan',frekuensi:'Mingguan',prioritas:'Wajib',icon:'💵'},
+  {kode:'E03',nama:'Stok opname — aktual vs sistem',kategori:'Inventaris',frekuensi:'2x/Bulan',prioritas:'Wajib',icon:'📊'},
+  {kode:'E04',nama:'Laporan stok minus / kehilangan ke owner',kategori:'Inventaris',frekuensi:'Insidental',prioritas:'Wajib',icon:'⚠️'},
+  {kode:'E05',nama:'Laporan stok datang dari pabrik',kategori:'Inventaris',frekuensi:'Insidental',prioritas:'Penting',icon:'🚚'},
+  {kode:'E06',nama:'Menegur partimer yang melanggar',kategori:'SDM',frekuensi:'Insidental',prioritas:'Wajib',icon:'⚡'},
+  {kode:'E07',nama:'Isi shift kosong — carikan pengganti',kategori:'SDM',frekuensi:'Insidental',prioritas:'Wajib',icon:'🔄'},
+  {kode:'E08',nama:'Training partimer baru',kategori:'SDM',frekuensi:'Insidental',prioritas:'Pendukung',icon:'🎓'},
+  {kode:'E09',nama:'Sampaikan keluhan partimer ke owner',kategori:'SDM',frekuensi:'Insidental',prioritas:'Penting',icon:'📢'},
 ];
 const BULAN_NAMES=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const DAY_SHORT=['Min','Sen','Sel','Rab','Kam','Jum','Sab'],DAY_FULL=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
@@ -2222,6 +2323,7 @@ function _applyOpsConfig(){
 function applyAppConfig(){
   try{ _applyGlobalTheme(); }catch(e){}
   try{ _applyOpsConfig(); }catch(e){}
+  try{ _applyTasksConfig(); }catch(e){}
   try{ _cekArsipSync(); }catch(e){}
   // 1) Tab Kepegawaian di akun MANAGER — DEFAULT TERSEMBUNYI.
   //    Hanya tampil bila admin menyalakan showKepManager (tab umum) ATAU showMgrSelf (evaluasi Rifyh).
@@ -3697,6 +3799,7 @@ function _sdExtractId(v){
 }
 function _sdTail(s){ s=String(s||''); return s.length>14 ? '…'+s.slice(-14) : (s||'—'); }
 async function loadSumberData(){
+  try{ renderTaskManager(); }catch(e){}
   var g=document.getElementById('sd-tail-gas'); if(g)g.textContent=_sdTail(scriptUrl);
   try{ var ct=document.getElementById('sd-cur-toko'); if(ct)ct.textContent=_fmtTokoCur(); var ca=document.getElementById('sd-cur-aturan'); if(ca)ca.textContent=_fmtAturanCur(); }catch(e){}
   if(!scriptUrl)return;
@@ -5719,9 +5822,173 @@ async function saveHarian(){
   if(!(userRole==='manager'&&harianIsLocked())){btn.textContent='Simpan ke Google Sheets';}
 }
 
+// ════════════════════════════════════════════════════════════
+//  KELOLA TUGAS (admin) — tambah/kurangi tugas Harian & Non-Harian
+//  Disimpan lintas-perangkat via appconfig (tasksHarian / tasksEvent).
+//  Backend GAS menyesuaikan grid spreadsheet otomatis (type=tasks_set).
+// ════════════════════════════════════════════════════════════
+
+// Perbendaharaan ikon — [emoji, "kata kunci pencarian"]
+const ICON_POOL=[
+  ['📍','lokasi gps pin titik hadir'],['🏪','toko store minimarket'],['🏬','toko mall offline'],['🛒','keranjang belanja cart'],['🛍️','belanja shopping tas'],
+  ['👟','sepatu shoe sneaker'],['👞','sepatu pantofel'],['🥿','sepatu flat'],['🩴','sandal jepit'],['🧦','kaos kaki sock tali'],
+  ['👕','kaos baju shirt'],['👔','kemeja dasi'],['🧥','jaket jacket'],['🎽','singlet jersey'],
+  ['📦','box paket kardus stok'],['📥','masuk in stok inbox terima'],['📤','keluar out outbox kirim'],['🚚','kirim truk ekspedisi datang'],['🛵','kurir motor kirim'],['📮','pos kirim surat'],
+  ['💰','uang duit setor money keuangan'],['💵','uang cash tunai dollar'],['💳','kartu edc debit'],['🪙','koin receh kembalian'],['🧾','struk nota bill bukti'],['🏧','atm setor tarik'],
+  ['📊','laporan grafik chart data opname'],['📈','naik untung profit chart'],['📉','turun rugi minus chart'],['🗂️','arsip folder berkas'],['📋','catatan clipboard checklist tugas'],['📝','tulis catatan note'],['🗒️','memo catatan'],
+  ['✅','selesai centang done'],['☑️','checklist centang'],['⚠️','peringatan warning minus hilang'],['🚩','tanda flag penting'],['🎯','target sasaran goal'],['🏁','selesai finish'],
+  ['🧹','sapu bersih rapi'],['🧽','spons bersih lap'],['🧼','sabun cuci bersih'],['🚿','air kran semprot'],['🗑️','sampah buang'],['♻️','daur ulang sampah'],['🧴','botol sabun cairan air minum'],
+  ['🥤','minum air gelas'],['☕','kopi minum'],['🧊','es dingin ice'],['🍵','teh minum'],
+  ['⏰','jam alarm waktu tepat'],['⏱️','stopwatch timer durasi'],['🕐','jam waktu clock'],['📅','kalender tanggal jadwal'],['🗓️','kalender bulan jadwal shift'],
+  ['💬','chat balas wa pesan instagram'],['📣','umumkan pengumuman owner'],['📢','pengumuman keluhan lapor owner'],['🔔','notif lonceng ingat'],['📞','telepon hubungi call'],['📱','hp ponsel mobile'],
+  ['🤝','layanan customer service salam'],['🙌','bagus apresiasi'],['👍','oke bagus setuju'],['👌','oke beres'],['👀','periksa cek lihat awasi'],['🧑‍💼','manager staf pegawai'],['👷','pekerja petugas'],['🧍','partimer staf berdiri'],['🚶','datang pulang jalan'],
+  ['🖨️','print resi cetak printer bungkus'],['🪧','banner signage papan'],['🏷️','label harga tag'],['📎','klip lampiran'],['✂️','gunting potong'],['📐','penggaris ukur'],['📏','ukur penggaris'],['🧰','peralatan tools kotak'],['🪛','obeng perbaikan'],['🔧','kunci pas perbaikan service'],['🔌','colokan listrik'],['🔋','baterai daya'],['💡','lampu ide'],['🔑','kunci akses'],['🔒','gembok kunci aman'],
+  ['🌡️','suhu termometer ac'],['🪟','jendela kaca'],['🚪','pintu door'],['🪑','kursi tempat duduk'],['🏆','juara prestasi target'],['⭐','bintang rating bagus'],['⚡','tegur cepat kilat'],['🔄','tukar ganti rotasi shift'],['🎓','training belajar didik'],['📚','buku panduan']
+];
+
+// ── state ──
+var _tasksSig='';
+var _tmCat='harian', _tmEdit=null, _tmIcon='📌';
+var _TM_PROTECT={D01:1, D04:1}; // tugas inti — tidak boleh dihapus (boleh diedit)
+
+function _priOK(p){ p=String(p||'').trim(); return (p==='Wajib'||p==='Penting'||p==='Pendukung')?p:'Penting'; }
+function _normTaskH(t){ return {kode:String(t.kode||'').trim().toUpperCase(),nama:String(t.nama||'').trim(),kategori:String(t.kategori||'Operasional'),prioritas:_priOK(t.prioritas),kpi:String(t.kpi||''),icon:String(t.icon||'📌'),autoTrack:!!t.autoTrack}; }
+function _normTaskE(e){ return {kode:String(e.kode||'').trim().toUpperCase(),nama:String(e.nama||'').trim(),kategori:String(e.kategori||'Operasional'),prioritas:_priOK(e.prioritas),frekuensi:String(e.frekuensi||'Insidental'),icon:String(e.icon||'📌')}; }
+
+// Terapkan daftar tugas dari config server (dipanggil dari applyAppConfig)
+function _applyTasksConfig(){
+  var rawH=(typeof _appCfg!=='undefined')?_appCfg.tasksHarian:null;
+  if(rawH){ try{ var ph=(typeof rawH==='string')?JSON.parse(rawH):rawH; if(ph&&ph.length) HARIAN=ph.map(_normTaskH).filter(function(t){return t.kode&&t.nama;}); }catch(e){} }
+  var rawE=(typeof _appCfg!=='undefined')?_appCfg.tasksEvent:null;
+  if(rawE){ try{ var pe=(typeof rawE==='string')?JSON.parse(rawE):rawE; if(pe&&pe.length) EVENTS=pe.map(_normTaskE).filter(function(e){return e.kode&&e.nama;}); }catch(e){} }
+  // jaring pengaman: pastikan tugas inti selalu ada walau config korup
+  if(!HARIAN.some(function(t){return t.kode==='D01';})) HARIAN.unshift({kode:'D01',nama:'Kehadiran efektif di toko',kategori:'Operasional',prioritas:'Wajib',kpi:'Min. 4 jam/hari',autoTrack:true,icon:'📍'});
+  if(!HARIAN.some(function(t){return t.kode==='D04';})) HARIAN.push({kode:'D04',nama:'Catatan uang (ambil, setor, kembalian) terisi & kembalian cukup',kategori:'Keuangan',prioritas:'Wajib',kpi:'Catatan lengkap tanpa selisih & kembalian aman',icon:'💰'});
+  // bersihkan status centang/catatan dari tugas yang sudah dihapus
+  try{ Object.keys(checked).forEach(function(k){ if(!HARIAN.some(function(t){return t.kode===k;})) delete checked[k]; }); }catch(e){}
+  var sig=JSON.stringify(HARIAN.map(function(t){return [t.kode,t.nama,t.icon,t.prioritas,t.kategori,t.kpi];}))+'||'+JSON.stringify(EVENTS.map(function(e){return [e.kode,e.nama,e.icon,e.prioritas,e.frekuensi,e.kategori];}));
+  if(sig===_tasksSig) return;
+  _tasksSig=sig;
+  try{ var ph2=document.getElementById('panel-harian'); if(ph2&&ph2.classList.contains('active')) renderHarian(); }catch(e){}
+  try{ var pe2=document.getElementById('panel-event'); if(pe2&&pe2.classList.contains('active')){ renderEventGrid(); if(typeof annotateEventCards==='function')annotateEventCards(); } }catch(e){}
+  try{ var ps2=document.getElementById('panel-sumberdata'); if(ps2&&ps2.classList.contains('active')) renderTaskManager(); }catch(e){}
+}
+
+// ── daftar tugas di panel Sumber Data ──
+function renderTaskManager(){ _tmRenderList('harian'); _tmRenderList('event'); }
+function _tmRenderList(cat){
+  var arr=(cat==='event')?EVENTS:HARIAN;
+  var box=document.getElementById('tm-list-'+cat); if(!box)return;
+  var cnt=document.getElementById('tm-count-'+cat); if(cnt)cnt.textContent=arr.length;
+  if(!arr.length){ box.innerHTML='<div class="tm-empty">Belum ada tugas.</div>'; return; }
+  box.innerHTML=arr.map(function(t,i){
+    var pri=String(t.prioritas||'Penting').toLowerCase();
+    var locked=(cat==='harian'&&_TM_PROTECT[t.kode]);
+    var meta=t.kode+' · '+escH(t.kategori||'')+(cat==='event'?(' · '+escH(t.frekuensi||'')):'');
+    var acts='<button class="tm-act" title="Edit" onclick="tmOpen(\''+cat+'\','+i+')">✏️</button>';
+    if(locked) acts+='<button class="tm-act" title="Tugas inti — tidak bisa dihapus" onclick="showToast(\'Tugas inti (terhubung fitur otomatis) — tidak bisa dihapus\',\'\')" style="opacity:.4">🔒</button>';
+    else acts+='<button class="tm-act del" title="Hapus" onclick="tmDelete(\''+cat+'\','+i+')">🗑️</button>';
+    return '<div class="tm-item">'
+      +'<div class="tm-item-ic">'+(t.icon||'📌')+'</div>'
+      +'<div class="tm-item-body"><div class="tm-item-nama">'+escH(t.nama)+'</div>'
+      +'<div class="tm-item-meta"><span class="tm-pri-dot tm-pri-'+pri+'"></span>'+escH(t.prioritas)+' · '+meta+(t.autoTrack?' <span class="tm-lock">📍GPS</span>':(locked?' <span class="tm-lock">INTI</span>':''))+'</div></div>'
+      +'<div class="tm-item-acts">'+acts+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+// ── modal tambah/edit ──
+function tmOpen(cat, idx){
+  if(userRole!=='admin'){ showToast('Hanya admin yang bisa kelola tugas','err'); return; }
+  _tmCat=cat; _tmEdit=(idx==null?null:idx);
+  var arr=(cat==='event')?EVENTS:HARIAN;
+  var t=(idx==null)?null:arr[idx];
+  document.getElementById('tm-modal-title').textContent=(t?'Edit Tugas':'Tambah Tugas')+(cat==='event'?' Non-Harian':' Harian');
+  document.getElementById('tm-modal-sub').textContent=(cat==='event'?'Tugas insidental/mingguan yang muncul di tab Non-Harian.':'Dicentang manager tiap hari — grid bulanan ikut menyesuaikan.');
+  document.getElementById('tm-in-nama').value=t?t.nama:'';
+  document.getElementById('tm-in-prioritas').value=t?_priOK(t.prioritas):'Penting';
+  document.getElementById('tm-in-kategori').value=t?(t.kategori||'Operasional'):'Operasional';
+  document.getElementById('tm-in-kpi').value=(t&&cat!=='event')?(t.kpi||''):'';
+  var fw=document.getElementById('tm-frek-wrap');
+  var kpiWrap=document.getElementById('tm-in-kpi').parentNode;
+  if(cat==='event'){ fw.style.display='block'; document.getElementById('tm-in-frekuensi').value=t?(t.frekuensi||'Insidental'):'Insidental'; kpiWrap.style.display='none'; }
+  else { fw.style.display='none'; kpiWrap.style.display='block'; }
+  _tmIcon=t?(t.icon||'📌'):(cat==='event'?'📌':'📋');
+  document.getElementById('tm-pick-preview').textContent=_tmIcon;
+  document.getElementById('tm-icon-search').value='';
+  tmRenderIcons('');
+  document.getElementById('tm-modal').classList.add('open');
+  setTimeout(function(){ try{ document.getElementById('tm-in-nama').focus(); }catch(e){} },120);
+}
+function tmClose(){ document.getElementById('tm-modal').classList.remove('open'); }
+function tmRenderIcons(q){
+  q=String(q||'').trim().toLowerCase();
+  var g=document.getElementById('tm-icon-grid'); if(!g)return;
+  var list=ICON_POOL.filter(function(p){ return !q || p[0]===q || p[1].indexOf(q)>=0; });
+  if(!list.length){ g.innerHTML='<div class="tm-icon-none">Ikon tak ditemukan — coba kata lain</div>'; return; }
+  g.innerHTML=list.map(function(p){ return '<div class="tm-icon-cell'+(p[0]===_tmIcon?' sel':'')+'" onclick="tmPickIcon(\''+p[0]+'\')">'+p[0]+'</div>'; }).join('');
+}
+function tmPickIcon(ic){
+  _tmIcon=ic;
+  document.getElementById('tm-pick-preview').textContent=ic;
+  var g=document.getElementById('tm-icon-grid'); if(g){ g.querySelectorAll('.tm-icon-cell').forEach(function(c){ c.classList.toggle('sel', c.textContent===ic); }); }
+}
+function _tmNextKode(arr, pre){
+  var max=0; arr.forEach(function(t){ var m=String(t.kode||'').match(new RegExp('^'+pre+'(\\d+)$')); if(m){ var n=parseInt(m[1],10); if(n>max)max=n; } });
+  return pre+String(max+1).padStart(2,'0');
+}
+function tmSave(){
+  if(userRole!=='admin'){ showToast('Hanya admin','err'); return; }
+  var nama=document.getElementById('tm-in-nama').value.trim();
+  if(!nama){ showToast('Tulis nama tugas dulu','err'); return; }
+  var cat=_tmCat, arr=(cat==='event')?EVENTS:HARIAN;
+  var pri=_priOK(document.getElementById('tm-in-prioritas').value);
+  var kat=document.getElementById('tm-in-kategori').value||'Operasional';
+  if(_tmEdit==null){
+    var kode=_tmNextKode(arr, cat==='event'?'E':'D');
+    if(cat==='event') arr.push({kode:kode,nama:nama,kategori:kat,prioritas:pri,frekuensi:document.getElementById('tm-in-frekuensi').value||'Insidental',icon:_tmIcon});
+    else arr.push({kode:kode,nama:nama,kategori:kat,prioritas:pri,kpi:document.getElementById('tm-in-kpi').value.trim(),icon:_tmIcon});
+  } else {
+    var t=arr[_tmEdit]; if(!t){ tmClose(); return; }
+    t.nama=nama; t.prioritas=pri; t.kategori=kat; t.icon=_tmIcon;
+    if(cat==='event') t.frekuensi=document.getElementById('tm-in-frekuensi').value||'Insidental';
+    else t.kpi=document.getElementById('tm-in-kpi').value.trim();
+  }
+  _tmCommit(cat, (_tmEdit==null?'Tambah':'Edit')+' tugas '+(cat==='event'?'non-harian':'harian')+': '+nama);
+  tmClose();
+}
+function tmDelete(cat, idx){
+  if(userRole!=='admin'){ showToast('Hanya admin','err'); return; }
+  var arr=(cat==='event')?EVENTS:HARIAN; var t=arr[idx]; if(!t)return;
+  if(cat==='harian'&&_TM_PROTECT[t.kode]){ showToast('Tugas inti — tidak bisa dihapus','err'); return; }
+  if(!confirm('Hapus tugas ini?\n\n'+(t.icon||'')+' '+t.nama+'\n\nRiwayat bulan lalu tetap aman. Tugas hilang dari aplikasi & grid bulan ini.')) return;
+  arr.splice(idx,1);
+  _tmCommit(cat, 'Hapus tugas '+(cat==='event'?'non-harian':'harian')+': '+t.nama);
+}
+// Simpan ke server (config + minta backend sesuaikan spreadsheet), lalu re-render lokal.
+function _tmCommit(cat, logTxt){
+  var arr=(cat==='event')?EVENTS:HARIAN;
+  var key=(cat==='event')?'tasksEvent':'tasksHarian';
+  var json=JSON.stringify(arr);
+  try{ if(typeof appConfigSet==='function') appConfigSet(key, json); }catch(e){}
+  try{ _appCfg[key]=json; }catch(e){}
+  if(scriptUrl&&scriptUrl.startsWith('http')){
+    var payload=JSON.stringify({type:'tasks_set',kategori:cat,tasks:arr});
+    fetch(scriptUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:payload})
+      .then(function(r){return r.json();})
+      .then(function(d){ if(d&&d.status==='ok'){ showToast('✓ Tersimpan'+(cat==='harian'?(d.resynced?' · grid bulan ini disesuaikan':' · berlaku bulan depan'):'')+' · semua perangkat','ok'); } else { showToast('Tersimpan lokal — server: '+((d&&d.message)||'?'),'err'); } })
+      .catch(function(){ fetch(scriptUrl,{method:'POST',mode:'no-cors',body:payload}).then(function(){ showToast('✓ Tersimpan — semua perangkat','ok'); }).catch(function(){ showToast('Tersimpan lokal, server gagal','err'); }); });
+  } else { showToast('✓ Tersimpan lokal','ok'); }
+  try{ logActivity('Kelola tugas', logTxt); }catch(e){}
+  _tasksSig=''; try{ _applyTasksConfig(); }catch(e){}
+  try{ renderTaskManager(); }catch(e){}
+}
+// tutup modal tugas saat klik latar
+(function(){ var _tmM=document.getElementById('tm-modal'); if(_tmM)_tmM.addEventListener('click',function(e){ if(e.target===this)tmClose(); }); })();
+
 // ════ EVENTS ════
 var EV_ICONS={E01:'📥',E02:'💵',E03:'📊',E04:'⚠️',E05:'🚚',E06:'⚡',E07:'🔄',E08:'🎓',E09:'📢'};
-function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHTML='';EVENTS.forEach(ev=>{var el=document.createElement('div');var priCls='pri-'+ev.prioritas.toLowerCase();el.className='event-card '+priCls;el.id='ev-'+ev.kode;el.setAttribute('data-ev-kode',ev.kode);el.innerHTML='<div class="ev-icon">'+(EV_ICONS[ev.kode]||'📌')+'</div><div class="ev-body"><div class="event-nama">'+ev.nama+'</div><div class="event-meta">'+ev.kode+' · '+ev.frekuensi+' · <b>'+ev.prioritas+'</b></div></div><div class="ev-arrow">›</div>';g.appendChild(el);});
+function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHTML='';EVENTS.forEach(ev=>{var el=document.createElement('div');var priCls='pri-'+ev.prioritas.toLowerCase();el.className='event-card '+priCls;el.id='ev-'+ev.kode;el.setAttribute('data-ev-kode',ev.kode);el.innerHTML='<div class="ev-icon">'+(ev.icon||EV_ICONS[ev.kode]||'📌')+'</div><div class="ev-body"><div class="event-nama">'+escH(ev.nama)+'</div><div class="event-meta">'+ev.kode+' · '+escH(ev.frekuensi||'')+' · <b>'+escH(ev.prioritas)+'</b></div></div><div class="ev-arrow">›</div>';g.appendChild(el);});
   // Delegasi: buka form saat kartu ditekan, KECUALI kalau yang ditekan tombol/anchor cek
   if(!g._cekDelegated){
     g.addEventListener('click',function(e){
