@@ -5129,7 +5129,7 @@ function toggleCheck(k){
 // Kirim status 1 tugas harian ke spreadsheet (tanpa harus tekan Simpan) — agar tahan refresh
 function kirimHarianAuto(kode){
   if(!scriptUrl||!scriptUrl.startsWith('http'))return;
-  try{ fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'harian',entries:[{tanggal:todayValue,kode:kode,status:'✓'}]})}); }catch(e){}
+  try{ fetch(scriptUrl,{method:'POST',body:JSON.stringify({type:'harian',entries:[{tanggal:todayValue,kode:kode,status:'✓'}],oleh:userRole||'',olehEmail:userEmail||''})}); }catch(e){}
 }
 function markD04Done(){
   checked['D04']=true;
@@ -5863,7 +5863,7 @@ async function saveHarian(){
   var t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60);
   var gn=t>0?'GPS: '+h+'j '+m+'m di toko'+(t>=TARGET_MENIT?'':' (< target '+_targetJamTxt()+')')+' · '+(isAtStore?'Masih di toko':'Sudah keluar toko'):'GPS: tidak ada durasi tercatat';
   var entries=HARIAN.map(x=>({tanggal:todayValue,kode:x.kode,nama:x.nama,kategori:x.kategori,prioritas:x.prioritas,status:x.autoTrack?(t>=TARGET_MENIT?'✓':'✗'):(checked[x.kode]?'✓':'✗'),catatan:x.autoTrack?gn:((notes[x.kode]||'')+((x.kode==='D04'&&checked['D04']&&d04FotoBase64)?' [struk setoran dilampirkan]':''))}));
-  var payload={type:'harian',entries:entries};
+  var payload={type:'harian',entries:entries,oleh:userRole||'',olehEmail:userEmail||''};
   // sertakan foto struk D04 bila ada (backend mengabaikan bila tak dipakai)
   if(checked['D04']&&d04FotoBase64){ payload.fotoStruk=d04FotoBase64; payload.fotoStrukKode='D04'; }
   // sertakan foto bukti per-tugas harian (kode -> base64); backend simpan ke Drive & catat link
