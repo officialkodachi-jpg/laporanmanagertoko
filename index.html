@@ -62,9 +62,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .loc-retry-inline.show{display:block}
 .loc-activate-btn{margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;background:rgba(37,99,235,.10);color:var(--accent);border:1px solid rgba(37,99,235,.30);border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
 .loc-activate-btn svg{width:15px;height:15px}
-.loc-activate-btn.glow{background:var(--accent);color:#fff;border-color:var(--accent);animation:locActPulse 1.4s ease-in-out infinite}
+.loc-activate-btn.glow{background:var(--accent);color:#fff;border-color:var(--accent);animation:locActPulse 2.4s ease-in-out infinite}
 .loc-activate-btn.ok{background:rgba(22,163,74,.10);color:var(--green);border-color:rgba(22,163,74,.30);animation:none}
-@keyframes locActPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+@keyframes locActPulse{0%,100%{transform:scale(1);opacity:.96}50%{transform:scale(1.012);opacity:1}}
+.hicon{flex:0 0 auto;width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.task-icon.kat-op,.ev-icon.kat-op,.tm-item-ic.kat-op{background:rgba(37,99,235,.13)}
+.task-icon.kat-uang,.ev-icon.kat-uang,.tm-item-ic.kat-uang{background:rgba(13,148,136,.15)}
+.task-icon.kat-inv,.ev-icon.kat-inv,.tm-item-ic.kat-inv{background:rgba(217,119,6,.15)}
+.task-icon.kat-sdm,.ev-icon.kat-sdm,.tm-item-ic.kat-sdm{background:rgba(124,58,237,.13)}
+.task-icon.kat-vis,.ev-icon.kat-vis,.tm-item-ic.kat-vis{background:rgba(219,39,119,.13)}
+.task-icon.kat-lay,.ev-icon.kat-lay,.tm-item-ic.kat-lay{background:rgba(79,70,229,.13)}
 .subtab-row{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
 .km-add-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px}
 .km-add-title{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px}
@@ -792,7 +799,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 <div id="mgr-map-card" style="display:none;max-width:680px;margin:0 auto 14px;padding:0 20px">
   <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
     <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
-      <span style="font-size:18px">🗺️</span>
+      <span class="hicon" style="background:rgba(13,148,136,.14);font-size:18px">🗺️</span>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:800;color:var(--text)">Posisi Manager di peta</div>
         <div style="font-size:10px;color:var(--hint)">Relatif terhadap toko · untuk cek akurasi GPS</div>
@@ -807,7 +814,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 
 <div id="mgr-activity-banner" class="admin-only" style="display:none;margin:0 16px 12px;background:rgba(124,58,237,.1);border:1.5px solid rgba(124,58,237,.4);border-radius:var(--r);padding:12px 14px">
   <div style="display:flex;align-items:center;gap:10px">
-    <div style="font-size:22px">🔔</div>
+    <div class="hicon" style="background:rgba(217,119,6,.15);font-size:22px">🔔</div>
     <div style="flex:1;min-width:0">
       <div style="font-size:13px;font-weight:800;color:#7c3aed">Aktivitas Manager terbaru</div>
       <div id="mgr-activity-text" style="font-size:12px;color:var(--text);margin-top:2px;line-height:1.4">—</div>
@@ -818,7 +825,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 
 <div id="admin-mgrlog" style="display:none;margin:0 16px 14px;border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden">
   <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border)">
-    <div style="font-size:18px">📜</div>
+    <div class="hicon" style="background:rgba(100,116,139,.14);font-size:18px">📜</div>
     <div style="flex:1;min-width:0">
       <div style="font-size:13px;font-weight:800;color:var(--text)">Aktivitas Manager (100 terbaru)</div>
       <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="admin-mgrlog-email">fahdryifih@gmail.com</div>
@@ -868,7 +875,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- 🕒 ABSEN MANAGER HARI INI (check-in/out) + override -->
     <div id="absen-admin-card" class="adm-only-block" style="margin-bottom:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
       <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
-        <span style="font-size:18px">🕒</span>
+        <span class="hicon" style="background:rgba(217,119,6,.15);font-size:18px">🕒</span>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Absen manager hari ini</div>
           <div style="font-size:10px;color:var(--hint)">Check-in/out (sumber resmi durasi) · admin bisa set/ubah jam & reset</div>
@@ -882,7 +889,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- ⚙️ KONTROL ADMIN -->
     <div id="adm-control" class="adm-only-block" style="margin-bottom:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
       <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
-        <span style="font-size:18px">⚙️</span>
+        <span class="hicon" style="background:rgba(100,116,139,.14);font-size:18px">⚙️</span>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Kontrol Admin</div>
           <div style="font-size:10px;color:var(--hint)">Pengaturan untuk akun Manager (berlaku di semua perangkat)</div>
@@ -926,7 +933,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- ⏱ KOREKSI JAM MASUK MANAGER (admin) -->
     <div id="koreksi-jam-card" class="adm-only-block" style="margin-bottom:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
       <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
-        <span style="font-size:18px">⏱</span>
+        <span class="hicon" style="background:rgba(217,119,6,.15);font-size:18px">⏱</span>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Koreksi Jam Datang Manager</div>
           <div style="font-size:10px;color:var(--hint)">Benahi jam masuk asli bila GPS salah / dimanipulasi. Bisa 2 sesi (pagi & sore).</div>
@@ -974,7 +981,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- ✍️ NOTE UNTUK MANAGER — admin tulis pesan yang muncul sebagai banner di HP Manager -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-        <div style="font-size:18px">✍️</div>
+        <div class="hicon" style="background:rgba(37,99,235,.13);font-size:18px">✍️</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Note untuk Manager</div>
           <div style="font-size:10px;color:var(--hint);font-family:var(--mono)">Tampil sebagai banner di HP Manager (sejajar banner kiriman)</div>
@@ -1004,7 +1011,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- Kiriman Belum Sampai -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-        <div style="font-size:18px">🚚</div>
+        <div class="hicon" style="background:rgba(37,99,235,.13);font-size:18px">🚚</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Kiriman Belum Sampai</div>
           <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-kiriman-count">Memuat...</div>
@@ -1019,7 +1026,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- Aktivitas & Update Manager (log terbaru) -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-        <div style="font-size:18px">📜</div>
+        <div class="hicon" style="background:rgba(100,116,139,.14);font-size:18px">📜</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Aktivitas & Update Manager</div>
           <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-log-sub">100 terbaru · fahdryifih@gmail.com</div>
@@ -1034,7 +1041,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- Streak Kehadiran -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-        <div style="font-size:18px">📅</div>
+        <div class="hicon" style="background:rgba(79,70,229,.13);font-size:18px">📅</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Streak Kehadiran</div>
           <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-streak-sub">Bulan ini</div>
@@ -1049,7 +1056,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- Rekap Jam Kerja Bulan Ini -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-        <div style="font-size:18px">⏱</div>
+        <div class="hicon" style="background:rgba(217,119,6,.15);font-size:18px">⏱</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Rekap Jam Kerja Bulan Ini</div>
           <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-jam-sub">Target: 4 jam/hari</div>
@@ -1064,7 +1071,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- Non-Harian Terakhir Dikerjakan -->
     <div id="home-event-card" style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-        <div style="font-size:18px">📌</div>
+        <div class="hicon" style="background:rgba(217,119,6,.15);font-size:18px">📌</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Non-Harian Terakhir Dikerjakan</div>
           <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-event-sub">Bulan ini</div>
@@ -1079,7 +1086,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- % Kinerja Bulan Ini -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-        <div style="font-size:18px">📊</div>
+        <div class="hicon" style="background:rgba(37,99,235,.13);font-size:18px">📊</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">% Kinerja Bulan Ini</div>
           <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-rekap-sub">Rata-rata penyelesaian tugas per kategori</div>
@@ -1094,7 +1101,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- Tugas Harian Manager Hari Ini -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-        <div style="font-size:18px">📋</div>
+        <div class="hicon" style="background:rgba(37,99,235,.13);font-size:18px">📋</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Progress Tugas Harian Manager</div>
           <div style="font-size:10px;color:var(--hint);font-family:var(--mono)" id="home-harian-sub">Hari ini</div>
@@ -1473,7 +1480,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <!-- ══ KONFIRMASI UANG KEMBALIAN CUKUP (D05) ══ -->
     <div style="border:1px solid var(--border);border-radius:var(--r);background:var(--card);overflow:hidden;margin-bottom:14px">
       <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
-        <span style="font-size:18px">💰</span>
+        <span class="hicon" style="background:rgba(13,148,136,.14);font-size:18px">💰</span>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Uang Kembalian Cukup?</div>
           <div style="font-size:10px;color:var(--hint)">Pastikan stok uang kembalian aman (bagian tugas harian D04)</div>
@@ -1752,7 +1759,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   <div class="km-detail" style="max-width:560px">
     <div class="km-detail-hd" style="flex-direction:column;align-items:stretch;gap:10px">
       <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:18px">📸</span>
+        <span class="hicon" style="background:rgba(219,39,119,.13);font-size:18px">📸</span>
         <div style="flex:1;min-width:0">
           <b style="font-size:15px">Monitor upload manager</b>
           <div id="mon-sub" style="font-size:11px;color:var(--hint);font-family:var(--mono);margin-top:2px">—</div>
@@ -3477,6 +3484,7 @@ function getCurrentTotalMinutes(){
   return t;
 }
 function fmtDur(m){const h=Math.floor(m/60),n=Math.floor(m%60);return h>0?h+'j '+n+'m':n+'m';}
+function _katCls(k){k=String(k||'').toLowerCase();if(k.indexOf('operasi')>=0)return'kat-op';if(k.indexOf('keuang')>=0||k.indexOf('uang')>=0)return'kat-uang';if(k.indexOf('invent')>=0)return'kat-inv';if(k.indexOf('sdm')>=0)return'kat-sdm';if(k.indexOf('visual')>=0)return'kat-vis';if(k.indexOf('layan')>=0)return'kat-lay';return'kat-op';}
 function updateTimerDisplay(){_enforcePresence();const t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60),p=Math.min(100,t/TARGET_MENIT*100);document.getElementById('loc-timer').textContent=h+':'+String(m).padStart(2,'0');document.getElementById('loc-timer').className='loc-timer'+(p>=100?' done':p>=50?' warn':'');const f=document.getElementById('time-bar-fill');f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');document.getElementById('time-bar-left').textContent=t>=60?h+' jam '+m+' menit di toko':Math.floor(t)+' menit di toko';document.getElementById('loc-total-today').textContent=h+'j '+m+'m';var _tbt=document.getElementById('time-bar-target');if(_tbt)_tbt.textContent='Target: '+_targetJamTxt();updateD01Card();}
 function updateD01Card(){const t=getCurrentTotalMinutes(),p=Math.min(100,t/TARGET_MENIT*100),done=t>=TARGET_MENIT,h=Math.floor(t/60),m=Math.floor(t%60);const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),dv=document.getElementById('d01-dur-val'),pf=document.getElementById('d01-prog-fill'),dot=document.getElementById('d01-caption-dot'),cap=document.getElementById('d01-caption-text');if(!card)return;card.className='d01-card '+(done?'d01-done':t>0?'d01-warn':'');if(t>0){const col=done?'%2316a34a':'%23d97706';chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='"+col+"' stroke='"+col+"' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-size='13' font-weight='700' fill='white'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";}else{chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='none' stroke='%23adb5bd' stroke-width='2'/%3E%3C/svg%3E";}if(t===0){badge.innerHTML='<span class="d01-badge-dot"></span>GPS aktif';badge.className='d01-badge empty';}else if(done){badge.innerHTML='≥ '+_targetJamTxt()+' ✓';badge.className='d01-badge done';}else{badge.innerHTML='< '+_targetJamTxt();badge.className='d01-badge warn';}dv.textContent=h+'j '+m+'m';dv.className='d01-dur-val '+(t===0?'muted':done?'green':'orange');pf.style.width=p+'%';pf.style.background=done?'var(--green)':t>0?'var(--orange)':'var(--hint)';if(_atStoreCount()){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}else if(isAtStore){dot.className='dot orange';cap.textContent='Di area toko — memastikan kehadiran…';}else if(t>0){dot.className='dot orange';cap.textContent=done?'Target tercapai':'Durasi '+fmtDur(t)+' tercatat';}else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}notes['D01']=t>0?'GPS: '+h+'j '+m+'m di toko'+(done?'':' (< target '+_targetJamTxt()+')')+' · '+(isAtStore?'Sedang di toko':'Sudah keluar toko'):'';if(t>0&&!checked['D01']){checked['D01']=true;updateStats();}}
 
@@ -4292,7 +4300,7 @@ function renderNotifStack(){
     var njam=_mgrNote.waktu?new Date(Number(_mgrNote.waktu)).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
     cards.push(
       '<div class="notif-banner '+(nu?'note-urgent':'note')+'">'
-      +'<div style="font-size:20px">'+(nu?'🚨':'📌')+'</div>'
+      +'<div class="hicon" style="background:'+(nu?'rgba(220,38,38,.13)':'rgba(217,119,6,.15)')+';font-size:20px">'+(nu?'🚨':'📌')+'</div>'
       +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:12px;font-weight:800;color:'+(nu?'var(--red)':'var(--accent)')+'">'+(nu?'PESAN PENTING dari Admin':'Note dari Admin')+'</div>'
       +'<div style="font-size:12px;color:var(--text);margin-top:3px;line-height:1.5;white-space:pre-wrap">'+escH(_mgrNote.teks)+'</div>'
@@ -4315,7 +4323,7 @@ function renderNotifStack(){
     var pulse=(typeof _kmIsPulse==='function'&&_kmIsPulse(r.row)); // denyut diatur admin (lintas-perangkat)
     cards.push(
       '<div class="notif-banner'+(pulse?' home-km-pulse':'')+'" style="border-color:rgba(217,119,6,.4);background:rgba(217,119,6,.1);cursor:pointer" onclick="kmOpenDetail('+r.row+')">'
-      +'<div style="font-size:20px">🚚</div>'
+      +'<div class="hicon" style="background:rgba(37,99,235,.13);font-size:20px">🚚</div>'
       +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:12px;font-weight:800;color:var(--orange)">Kiriman belum sampai — '+jasa+'</div>'
       +'<div style="font-size:11px;color:var(--text);margin-top:2px;line-height:1.4">'+(isi||'(tanpa rincian)')+(tgl?(' · dikirim '+escH(tgl)):'')+'</div>'
@@ -4779,7 +4787,7 @@ function _kmRenderArsipBar(total, jalan, sampai, masalah){
   }
   bar.innerHTML=''
     +'<div style="display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r);background:var(--card)">'
-      +'<span style="font-size:20px">🗂</span>'
+      +'<span class="hicon" style="background:rgba(217,119,6,.15);font-size:20px">🗂</span>'
       +'<div style="flex:1;min-width:0;font-size:13px;font-weight:800;color:var(--text)">'+total+' kiriman belum diarsip</div>'
     +'</div>'
     +'<div style="display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px">'
@@ -5374,7 +5382,7 @@ function renderHarian(){
             +'<div id="hf-'+t.kode+'-prev" style="margin-top:6px"></div>'
             +'</div>';
         }
-        el.innerHTML='<div class="task-icon">'+(t.icon||'📌')+'</div><div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">'+t.nama+'</div><div class="task-meta">'+t.kode+' · '+t.kategori+' · '+t.kpi+'</div><span class="task-note-toggle" onclick="toggleNote(event,\''+t.kode+'\')">📝 catatan</span><textarea class="task-note-input" id="note-'+t.kode+'" placeholder="Tulis catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes[\''+t.kode+'\']=this.value"></textarea>'+strukHtml+fotoHtml+'</div>';
+        el.innerHTML='<div class="task-icon '+_katCls(t.kategori)+'">'+(t.icon||'📌')+'</div><div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">'+t.nama+'</div><div class="task-meta">'+t.kode+' · '+t.kategori+' · '+t.kpi+'</div><span class="task-note-toggle" onclick="toggleNote(event,\''+t.kode+'\')">📝 catatan</span><textarea class="task-note-input" id="note-'+t.kode+'" placeholder="Tulis catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes[\''+t.kode+'\']=this.value"></textarea>'+strukHtml+fotoHtml+'</div>';
         el.addEventListener('click',()=>toggleCheck(t.kode));
         list.appendChild(el);
       }
@@ -5819,7 +5827,7 @@ function renderShift(d,bulan,dNext,nextBulan){
           +'</div>';
       } else {
         html+='<div style="margin-bottom:14px;background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px">'
-          +'<span style="font-size:20px">✅</span>'
+          +'<span class="hicon" style="background:rgba(22,163,74,.13);font-size:20px">✅</span>'
           +'<div style="font-weight:700;color:#15803d;font-size:13px">Jadwal '+namaBulanNext+' sudah lengkap!</div>'
           +'</div>';
       }
@@ -6261,7 +6269,7 @@ function _tmRenderList(cat){
     if(locked) acts+='<button class="tm-act" title="Tugas inti — tidak bisa dihapus" onclick="showToast(\'Tugas inti (terhubung fitur otomatis) — tidak bisa dihapus\',\'\')" style="opacity:.4">🔒</button>';
     else acts+='<button class="tm-act del" title="Hapus" onclick="tmDelete(\''+cat+'\','+i+')">🗑️</button>';
     return '<div class="tm-item">'
-      +'<div class="tm-item-ic">'+(t.icon||'📌')+'</div>'
+      +'<div class="tm-item-ic '+_katCls(t.kategori)+'">'+(t.icon||'📌')+'</div>'
       +'<div class="tm-item-body"><div class="tm-item-nama">'+escH(t.nama)+'</div>'
       +'<div class="tm-item-meta"><span class="tm-pri-dot tm-pri-'+pri+'"></span>'+escH(t.prioritas)+' · '+meta+(t.autoTrack?' <span class="tm-lock">📍GPS</span>':(locked?' <span class="tm-lock">INTI</span>':''))+(t.requirePhoto?(' <span class="tm-lock" style="background:rgba(220,38,38,.10);color:#b91c1c">'+(t.cameraOnly===false?'🖼️ foto':'📷 foto')+'</span>'):'')+'</div></div>'
       +'<div class="tm-item-acts">'+acts+'</div>'
@@ -6378,7 +6386,7 @@ function _tmCommit(cat, logTxt){
 
 // ════ EVENTS ════
 var EV_ICONS={E01:'📥',E02:'💵',E03:'📊',E04:'⚠️',E05:'🚚',E06:'⚡',E07:'🔄',E08:'🎓',E09:'📢'};
-function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHTML='';EVENTS.forEach(ev=>{var el=document.createElement('div');var priCls='pri-'+ev.prioritas.toLowerCase();el.className='event-card '+priCls;el.id='ev-'+ev.kode;el.setAttribute('data-ev-kode',ev.kode);el.innerHTML='<div class="ev-icon">'+(ev.icon||EV_ICONS[ev.kode]||'📌')+'</div><div class="ev-body"><div class="event-nama">'+escH(ev.nama)+'</div><div class="event-meta">'+ev.kode+' · '+escH(ev.frekuensi||'')+' · <b>'+escH(ev.prioritas)+'</b></div></div><div class="ev-arrow">›</div>';g.appendChild(el);});
+function renderEventGrid(){var g=document.getElementById('event-grid');g.innerHTML='';EVENTS.forEach(ev=>{var el=document.createElement('div');var priCls='pri-'+ev.prioritas.toLowerCase();el.className='event-card '+priCls;el.id='ev-'+ev.kode;el.setAttribute('data-ev-kode',ev.kode);el.innerHTML='<div class="ev-icon '+_katCls(ev.kategori)+'">'+(ev.icon||EV_ICONS[ev.kode]||'📌')+'</div><div class="ev-body"><div class="event-nama">'+escH(ev.nama)+'</div><div class="event-meta">'+ev.kode+' · '+escH(ev.frekuensi||'')+' · <b>'+escH(ev.prioritas)+'</b></div></div><div class="ev-arrow">›</div>';g.appendChild(el);});
   // Delegasi: buka form saat kartu ditekan, KECUALI kalau yang ditekan tombol/anchor cek
   if(!g._cekDelegated){
     g.addEventListener('click',function(e){
@@ -7733,7 +7741,7 @@ function _renderHomeKiriman(){
       +'<button type="button" onclick="event.stopPropagation();kmMoveHome('+r.row+',1)"'+(i===n-1?' disabled':'')+' style="width:26px;height:22px;border:1px solid var(--border2);background:var(--card);border-radius:6px;cursor:pointer;font-size:11px;line-height:1;color:var(--muted)" title="Turunkan">⬇</button>'
       +'</div>';
     return '<div data-km-row="'+r.row+'" class="'+(pulseOn?'home-km-pulse':'')+'" style="display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid var(--border);border-left:3px solid var(--orange);border-radius:4px;margin-bottom:4px;background:rgba(217,119,6,.04)">'
-      + '<div style="font-size:18px">🚚</div>'
+      + '<div class="hicon" style="background:rgba(37,99,235,.13);font-size:18px">🚚</div>'
       + '<div style="flex:1;min-width:0;cursor:pointer" onclick="kmOpenDetail('+r.row+')">'
       + '<div style="font-size:13px;font-weight:700;color:var(--orange)">'+hdr+'</div>'
       + '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+escH(r.isi||'-')+'</div>'
@@ -8124,7 +8132,7 @@ function loadHomeEvent(){
         bannerTxt='<b>'+hariSejak+' hari</b> tidak ada tugas non-harian — segera cek!';
       }
       var html='<div style="background:'+bannerBg+';border:1px solid '+bannerColor+';border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">'
-        +'<span style="font-size:18px">'+bannerIcon+'</span>'
+        +'<span class="hicon" style="background:rgba(217,119,6,.15);font-size:18px">'+bannerIcon+'</span>'
         +'<span style="font-size:13px;color:'+bannerColor+'">'+bannerTxt+'</span>'
         +'</div>';
       if(!rows.length){
