@@ -779,9 +779,9 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <div class="loc-status waiting" id="loc-status">Memulai GPS...</div>
     <div class="loc-detail" id="loc-detail">Mendeteksi posisi kamu</div>
     <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span id="time-bar-target">Target: 4 jam</span></div></div>
-    <div id="absen-row" style="display:none;align-items:center;gap:8px;margin-top:9px">
-      <div id="absen-masuk-info" style="flex:1;min-width:0;font-size:11px;color:var(--muted);line-height:1.4">Memuat absen…</div>
-      <button id="absen-btn" class="btn-press" style="font-size:12px;font-weight:700;padding:8px 14px;border-radius:9px;border:none;color:#fff;background:var(--green);cursor:pointer;white-space:nowrap">✓ Check in</button>
+    <div id="absen-row" style="display:none;flex-direction:column;gap:8px;margin-top:10px">
+      <div id="absen-masuk-info" style="font-size:11.5px;color:var(--muted);line-height:1.45">Memuat absen…</div>
+      <button id="absen-btn" class="btn-press" style="width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px;border-radius:var(--r);border:none;color:#fff;font-weight:700;font-size:13.5px;background:var(--green);cursor:pointer">✓ Check in</button>
     </div>
     <button class="loc-activate-btn btn-press" id="loc-activate-btn" style="display:none" onclick="aktifkanLokasi()"><span id="loc-act-ico" style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" style="stroke:currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><span id="loc-act-lbl">Aktifkan lokasi</span></button>
     <button class="admin-refresh btn-press" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc(true)"><span class="spin-ico" id="admin-loc-ico">⟳</span> Perbarui posisi Manager</button>
@@ -2771,20 +2771,22 @@ function aktifkanLokasi(){
   }
 }
 function _syncActivateBtn(s){
-  var b=document.getElementById('loc-activate-btn'); if(!b)return;
-  if(userRole!=='manager'){ b.style.display='none'; return; }
-  b.style.display='';
   var connected = (s==='in') || (!!lastPos);   // GPS aktif & sudah dapat posisi
-  var icoEl=document.getElementById('loc-act-ico'), lblEl=document.getElementById('loc-act-lbl');
-  b.classList.toggle('ok', connected);
-  b.classList.toggle('glow', !connected && _locTimedOut===true);
-  if(connected){
-    if(icoEl)icoEl.innerHTML='<svg viewBox="0 0 24 24" fill="none" style="stroke:currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
-    if(lblEl)lblEl.textContent='Lokasi aktif';
-  }else{
-    if(icoEl)icoEl.innerHTML='<svg viewBox="0 0 24 24" fill="none" style="stroke:currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
-    if(lblEl)lblEl.textContent='Aktifkan lokasi';
+  _locConnected = connected;
+  var b=document.getElementById('loc-activate-btn');
+  if(b){
+    if(userRole!=='manager'){ b.style.display='none'; }
+    else if(connected){ b.style.display='none'; }   // lokasi aktif → tombol absen yang jadi aksi utama (status GPS ada di teks kartu)
+    else {
+      b.style.display='';
+      b.classList.remove('ok');
+      b.classList.toggle('glow', _locTimedOut===true);
+      var icoEl=document.getElementById('loc-act-ico'), lblEl=document.getElementById('loc-act-lbl');
+      if(icoEl)icoEl.innerHTML='<svg viewBox="0 0 24 24" fill="none" style="stroke:currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
+      if(lblEl)lblEl.textContent='Aktifkan lokasi';
+    }
   }
+  try{ if(typeof absenRender==='function') absenRender(); }catch(e){}
 }
 function _armLocTimeout(){
   if(_locWaitTimer)clearTimeout(_locWaitTimer);
@@ -3490,6 +3492,7 @@ var ABS_CAP_HARI = 16*60;
 var _absen = { tgl:'', masuk:'', keluar:'', durasi:0, sumberMasuk:'', sumberKeluar:'', loaded:false };
 var _absenAdminRows = [];
 var _absenBusy = false;
+var _locConnected = false;   // GPS aktif & sudah dapat posisi (di-set oleh _syncActivateBtn)
 function _absHmToMin(s){ var a=String(s||'').split(':'); if(a.length<2) return null; var h=parseInt(a[0],10), m=parseInt(a[1],10); if(isNaN(h)||isNaN(m)) return null; return h*60+m; }
 function _absMinNow(){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }
 function _absHHMM(){ var d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
@@ -3561,20 +3564,31 @@ function absenAutoCheckin(){
 
 function absenRender(){
   var row=document.getElementById('absen-row'); if(!row) return;
-  row.style.display = (userRole==='manager') ? 'flex' : 'none';
-  if(userRole!=='manager') return;
+  if(userRole!=='manager'){ row.style.display='none'; return; }
+  // Tampil hanya bila lokasi sudah aktif ATAU sudah check-in. Kalau lokasi
+  // belum aktif & belum check-in → sembunyikan (tombol "Aktifkan lokasi"
+  // yang jadi aksi utama → tidak ada dua tombol berebut).
+  if(!_locConnected && !_absen.masuk){ row.style.display='none'; return; }
+  row.style.display='flex';
   var info=document.getElementById('absen-masuk-info'), btn=document.getElementById('absen-btn');
   if(!btn) return;
   if(!_absen.loaded){ if(info) info.textContent='Memuat absen…'; btn.style.display='none'; return; }
+  btn.style.display='flex';
   if(_absen.keluar){
-    if(info) info.innerHTML='Masuk <b>'+_absEsc(_absen.masuk)+'</b> · Keluar <b>'+_absEsc(_absen.keluar)+'</b> — selesai';
+    if(info) info.innerHTML='Masuk <b>'+_absEsc(_absen.masuk)+'</b> · Keluar <b>'+_absEsc(_absen.keluar)+'</b> — hari ini selesai';
     btn.style.display='none';
   } else if(_absen.masuk){
-    if(info) info.innerHTML='Masuk <b>'+_absEsc(_absen.masuk)+'</b>'+(_absen.sumberMasuk==='auto'?' <span style="font-size:10px;color:var(--accent)">(auto GPS)</span>':'');
-    btn.style.display=''; btn.textContent='⏹ Check out'; btn.style.background='var(--orange)'; btn.onclick=absenCheckout;
+    if(info) info.innerHTML='Sudah check in jam <b>'+_absEsc(_absen.masuk)+'</b>'+(_absen.sumberMasuk==='auto'?' <span style="color:var(--accent)">· otomatis</span>':'');
+    btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer';
+    btn.textContent='⏹ Check out'; btn.style.background='var(--orange)'; btn.onclick=absenCheckout;
+  } else if(isAtStore){
+    if(info) info.textContent='Kamu di toko — silakan check in';
+    btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer';
+    btn.textContent='✓ Check in'; btn.style.background='var(--green)'; btn.onclick=function(){ absenCheckin('manual'); };
   } else {
-    if(info) info.textContent='Belum check in hari ini';
-    btn.style.display=''; btn.textContent='✓ Check in'; btn.style.background='var(--green)'; btn.onclick=function(){ absenCheckin('manual'); };
+    if(info) info.textContent='Datang ke toko untuk check in';
+    btn.disabled=true; btn.style.opacity='.5'; btn.style.cursor='default';
+    btn.textContent='✓ Check in'; btn.style.background='var(--hint)'; btn.onclick=null;
   }
 }
 
