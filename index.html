@@ -1626,11 +1626,12 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     </div>
 
     <div class="sd-card">
-      <div class="sd-top"><span class="sd-ic">📶</span><div class="sd-meta"><div class="sd-name">WiFi Toko (IP Publik)</div><div class="sd-desc">Manager dihitung hadir hanya bila HP terhubung WiFi toko <b>DAN</b> GPS di radius. Browser tak bisa baca nama WiFi — dipakai IP publik (alamat internet WiFi toko).</div></div><span class="sd-tag gas">WiFi</span></div>
+      <div class="sd-top"><span class="sd-ic">📶</span><div class="sd-meta"><div class="sd-name">Deteksi WiFi Toko</div><div class="sd-desc">Opsional & rahasia (manager tidak diberi tahu). Bila <b>diaktifkan</b>, manager hanya dihitung hadir saat HP terhubung WiFi toko <b>DAN</b> GPS di radius. Bila mati → cukup GPS. Browser tak bisa baca nama WiFi, jadi dipakai IP publik (alamat internet WiFi toko).</div></div><span class="sd-tag gas">WiFi</span></div>
       <div class="sd-cur">aktif: <span id="sd-cur-wifi">…</span></div>
+      <button id="adm-wifigate-toggle" onclick="admToggleWifiGate()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer;width:100%;margin-bottom:8px">📶 Aktifkan deteksi WiFi (wajib WiFi toko + GPS)</button>
       <div class="sd-row" style="gap:6px"><input id="sd-in-wifi-ip" type="text" inputmode="text" placeholder="IP publik toko (mis. 114.10.20.30)" style="flex:1"><button onclick="saveWifiIP()">💾 Simpan</button></div>
       <button class="loc-activate-btn" onclick="readMyStoreIP()" style="margin-top:8px">📶 Baca IP saya sekarang</button>
-      <div class="sd-hint">ℹ️ <span>Saat <b>di toko & HP tersambung WiFi toko</b>, tekan "Baca IP saya sekarang" lalu <b>Simpan</b>. Boleh beberapa IP dipisah koma. <b>Kosongkan</b> = mode lama (GPS saja). Kalau internet toko IP-nya sering berubah, cukup tekan baca+simpan lagi.</span></div>
+      <div class="sd-hint">ℹ️ <span>Langkah: (1) <b>di toko & HP tersambung WiFi toko</b>, tekan "Baca IP saya sekarang" lalu <b>Simpan</b>. (2) Tekan <b>Aktifkan deteksi WiFi</b>. Boleh beberapa IP dipisah koma. Kalau internet toko IP-nya sering berubah, cukup baca+simpan lagi. Matikan saklar = kembali ke GPS saja.</span></div>
     </div>
 
     <div class="sd-card">
@@ -1871,6 +1872,7 @@ var IP_TOKO        = [''];           // IP publik toko — diisi dari Setelan (k
 var _diWifiToko    = false;  // true bila terhubung WiFi toko (IP publik cocok)
 var _wifiMethod    = '';     // metode terakhir berhasil ('ip'/'beacon'/'subnet'/'')
 var _lastWifiOkTime= 0;      // (v6.0) kapan terakhir WiFi toko terkonfirmasi (toleransi cek gagal sesaat ~2.5 mnt)
+var _wifiGateOn    = false;  // (v6.1) saklar admin: true = wajib WiFi toko + GPS; false = GPS saja. Manager tidak diberi tahu.
 
 // LAPIS A: Cek SSID via Network Information API
 // Catatan: iOS Safari tidak ekspos SSID langsung — metode ini bekerja di Android & beberapa browser.
@@ -1968,7 +1970,7 @@ function cekWifiToko(cb) {
     _updateWifiBanner();
     if (cb) cb(_diWifiToko);
   }
-  if (!_wifiConfigured()) { done(false, ''); return; }   // belum diatur → serahkan ke GPS
+  if (!_wifiGateActive()) { done(false, ''); return; }   // gate mati / IP belum diisi → serahkan ke GPS
   // 1) IP publik toko (utama)
   _cekIPPublik().then(function(ipMatch){
     if (ipMatch) { done(true, 'ip'); return; }
@@ -1986,11 +1988,8 @@ function cekWifiToko(cb) {
 
 function _updateWifiBanner() {
   var dd = document.getElementById('loc-detail');
-  if (dd && _diWifiToko) {
-    var cara = _wifiMethod === 'subnet' ? '📶 Jaringan lokal toko terdeteksi'
-             : _wifiMethod === 'beacon' ? '📡 Router toko terdeteksi'
-             : '🌐 IP jaringan toko cocok';
-    dd.textContent = cara + ' — dihitung hadir';
+  if (dd && _diWifiToko && isAtStore) {
+    dd.textContent = 'Kodachi Shop Monjali · GPS aktif';
   }
 }
 var _adminLocTimer=null,_mgrPushTimer=null;
@@ -2352,6 +2351,7 @@ function _applyOpsConfig(){
     var ipRaw=String(c.ipToko||'').trim();
     if(ipRaw){ IP_TOKO = ipRaw.split(/[,\n; ]+/).map(function(s){return s.trim();}).filter(function(s){return s;}); }
     else { IP_TOKO = ['']; }
+    _wifiGateOn = String(c.wifiGate||'')==='1';
   }catch(e){}
 }
 // Terapkan config ke UI (dipanggil setelah load & setelah set)
@@ -2389,6 +2389,10 @@ function applyAppConfig(){
   }
   var aShare=document.getElementById('adm-mapshare-toggle');
   if(aShare) aShare.textContent = shareOn ? '🙈 Sembunyikan tombol Bagikan Lokasi (Manager)' : '📍 Aktifkan tombol Bagikan Lokasi (Manager)';
+  // 3b) Saklar deteksi WiFi (admin). Manager tidak diberi tahu.
+  var aWifi=document.getElementById('adm-wifigate-toggle');
+  if(aWifi) aWifi.textContent = _wifiGateOn ? '🛑 Matikan deteksi WiFi (kini: WiFi toko + GPS)' : '📶 Aktifkan deteksi WiFi (wajib WiFi toko + GPS)';
+  try{ var cw=document.getElementById('sd-cur-wifi'); if(cw)cw.textContent=_fmtWifiCur(); }catch(e){}
   // 4) Tampilkan data manager ke akun Manager — read-only, untuk evaluasi
   MGR_NAME=_mgrNameNow();
   var showSelf = String(_appCfg.showMgrSelf||'')==='1';
@@ -2417,10 +2421,12 @@ function _wifiConfigured(){
   try{ if(IP_TOKO && IP_TOKO.some(function(x){return String(x||'').trim();})) return true; }catch(e){}
   return !!String(LAPTOP_IP||'').trim();
 }
-// true bila terhubung WiFi toko. Toleransi 2.5 menit utk kegagalan cek sesaat (mis. ipify timeout).
-// Bila IP toko BELUM diatur → true (mode lama GPS-only: jangan blokir pencatatan).
+// Gate WiFi AKTIF hanya bila admin menyalakannya DAN IP toko sudah diisi.
+function _wifiGateActive(){ return _wifiGateOn && _wifiConfigured(); }
+// true bila boleh dihitung dari sisi WiFi. Gate mati / IP belum diisi → selalu true (mode GPS saja).
+// Toleransi 2.5 menit utk kegagalan cek sesaat (mis. ipify timeout).
 function _wifiOkEffective(){
-  if(!_wifiConfigured()) return true;
+  if(!_wifiGateActive()) return true;
   if(_diWifiToko) return true;
   return !!(_lastWifiOkTime && (Date.now()-_lastWifiOkTime) <= 150000);
 }
@@ -2475,9 +2481,9 @@ function startGps(){
   cekWifiToko(function(hadir){
     if(hadir && !isAtStore && _gpsState()!=='outside'){
       isAtStore=true; sessionStart=Date.now(); _gpsConfirmed=false; _markPresent(); // provisional — nunggu GPS konfirmasi
-      locationLog.push({type:'masuk',time:Date.now(),lat:0,lng:0,dist:0,cara:'wifi'});
+      locationLog.push({type:'masuk',time:Date.now(),lat:0,lng:0,dist:0,cara:'auto'});
       saveLocData(); updateLocBanner('in');
-      logActivity('Tiba di toko','via WiFi toko (sebelum GPS, menunggu konfirmasi)');
+      logActivity('Tiba di toko','terdeteksi di lokasi (menunggu konfirmasi GPS)');
       pushManagerLoc();
     } else if(hadir && isAtStore){
       _markPresent(); // jaringan toko masih terdeteksi → kehadiran terkonfirmasi
@@ -2543,11 +2549,11 @@ function onLocOk(pos){
     // ...kecuali WiFi toko terdeteksi → anggap hadir walau GPS buta
     if(_diWifiToko && !isAtStore){
       isAtStore=true;sessionStart=Date.now();_gpsConfirmed=false;_markPresent(); // provisional
-      locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist:dist,cara:'wifi'});
-      saveLocData();updateLocBanner('in');logActivity('Tiba di toko','via WiFi toko');pushManagerLoc();
+      locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist:dist,cara:'auto'});
+      saveLocData();updateLocBanner('in');logActivity('Tiba di toko','terdeteksi di lokasi');pushManagerLoc();
     } else if(isAtStore){
-      if(_diWifiToko) _markPresent(); // jaringan toko masih ada → kehadiran terkonfirmasi
-      // bila GPS buta DAN tidak ada jaringan toko → kehadiran TIDAK dikonfirmasi:
+      if(_diWifiToko) _markPresent(); // kehadiran masih terkonfirmasi
+      // bila GPS buta DAN kehadiran tidak terkonfirmasi:
       // jangan tandai present, penjaga akan menutup sesi bila terus tak terkonfirmasi (anti-curang).
       saveLocData();updateLocBanner('in');
     }
@@ -2555,11 +2561,9 @@ function onLocOk(pos){
     var dd=document.getElementById('loc-detail');
     if(dd&&userRole==='manager'){
       if(_diWifiToko){
-        dd.textContent = _wifiMethod==='subnet' ? '📶 Jaringan lokal toko terdeteksi — dihitung hadir'
-                       : _wifiMethod==='beacon' ? '📡 Router toko terdeteksi — dihitung hadir'
-                       : '🌐 IP jaringan toko cocok — dihitung hadir';
+        dd.textContent = 'Kodachi Shop Monjali · GPS aktif';
       } else {
-        dd.textContent = 'Sinyal GPS lemah (±'+Math.round(accuracy)+'m) — mendeteksi jaringan toko...';
+        dd.textContent = 'Sinyal GPS lemah (±'+Math.round(accuracy)+'m) — memastikan lokasi…';
       }
     }
     updateD01Card();
@@ -2591,10 +2595,10 @@ function onLocOk(pos){
         locationLog.push({type:'masuk',time:Date.now(),lat,lng,dist});
         saveLocData();updateLocBanner('in');
         showToast('✓ Kamu tiba di Kodachi Shop!','ok');
-        logActivity('Tiba di toko','Jarak '+dist+'m (GPS + WiFi toko)');pushManagerLoc();
+        logActivity('Tiba di toko','Jarak '+dist+'m');pushManagerLoc();
       }else if(canOpen){
-        // (v6.0) GPS sudah di dalam radius TAPI WiFi toko belum terdeteksi →
-        // jangan buka sesi (jam kerja butuh WiFi toko). Picu cek WiFi & beri info.
+        // (v6.1) GPS di radius tapi kehadiran belum terkonfirmasi penuh →
+        // tunggu konfirmasi sebelum buka sesi. Picu cek di latar.
         updateLocBanner('in'); try{ cekWifiToko(); }catch(e){}
       }else{
         // 1 fix in-radius tapi belum meyakinkan → tunggu fix berikutnya, jangan klaim hadir/buka sesi dulu
@@ -2824,7 +2828,7 @@ function updatePushStatusBadge(status){
   if(!d || userRole!=='manager') return;
   var now = new Date();
   var jam = now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-  var base = _atStoreCount() ? 'Kodachi Shop Monjali · GPS aktif' : (isAtStore ? 'Di area toko · sambungkan WiFi toko' : 'Jarak: '+(document.getElementById('loc-distance').textContent||'?')+'m dari toko');
+  var base = _atStoreCount() ? 'Kodachi Shop Monjali · GPS aktif' : (isAtStore ? 'Di area toko · memastikan kehadiran…' : 'Jarak: '+(document.getElementById('loc-distance').textContent||'?')+'m dari toko');
   if(status==='ok') d.textContent = base + ' · sync ' + jam;
   else if(status==='err') d.textContent = base + ' · ⚠ gagal sync';
 }
@@ -3391,7 +3395,7 @@ function updateMgrMap(d){
   try{_mgrMap.fitBounds(L.latLngBounds([[TOKO.lat,TOKO.lng],[lat,lng]]).pad(.4));}catch(e){}
   if(raw)raw.innerHTML='<b>'+lat.toFixed(5)+', '+lng.toFixed(5)+'</b> · akurasi \u00b1'+Math.round(acc)+'m · jarak '+(d.dist!=null?d.dist:'?')+'m dari toko';
 }
-function updateLocBanner(s){const i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),d=document.getElementById('loc-detail');if(s==='in'){ if(_atStoreCount()){ i.innerHTML=ICO.inStore();i.className='loc-icon active';st.textContent='✓ Di dalam toko';st.className='loc-status in';d.textContent='Kodachi Shop Monjali · GPS aktif'; } else { i.innerHTML=ICO.search();i.className='loc-icon';st.textContent='Di area toko · sambungkan WiFi toko';st.className='loc-status waiting';d.textContent='Jam kerja jalan saat HP terhubung WiFi toko'; } }else if(s==='out'){i.innerHTML=ICO.pin();i.className='loc-icon inactive';st.textContent='✗ Di luar toko';st.className='loc-status out';d.textContent='Jarak: '+(document.getElementById('loc-distance').textContent||'?')+'m dari toko';}else if(s==='waiting'){i.innerHTML=ICO.search();i.className='loc-icon';st.textContent='Mencari sinyal GPS...';st.className='loc-status waiting';d.textContent='Mohon tunggu...';}else if(s==='denied'){i.innerHTML=ICO.denied();i.className='loc-icon inactive';st.textContent='Izin lokasi ditolak';st.className='loc-status out';d.textContent='Buka pengaturan browser → izinkan lokasi';}else{i.innerHTML=ICO.error();i.className='loc-icon inactive';st.textContent='GPS tidak didukung';st.className='loc-status out';d.textContent='Browser tidak mendukung geolocation';}_syncActivateBtn(s);}
+function updateLocBanner(s){const i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),d=document.getElementById('loc-detail');if(s==='in'){ if(_atStoreCount()){ i.innerHTML=ICO.inStore();i.className='loc-icon active';st.textContent='✓ Di dalam toko';st.className='loc-status in';d.textContent='Kodachi Shop Monjali · GPS aktif'; } else { i.innerHTML=ICO.search();i.className='loc-icon';st.textContent='Di area toko';st.className='loc-status waiting';d.textContent='Memastikan kehadiran…'; } }else if(s==='out'){i.innerHTML=ICO.pin();i.className='loc-icon inactive';st.textContent='✗ Di luar toko';st.className='loc-status out';d.textContent='Jarak: '+(document.getElementById('loc-distance').textContent||'?')+'m dari toko';}else if(s==='waiting'){i.innerHTML=ICO.search();i.className='loc-icon';st.textContent='Mencari sinyal GPS...';st.className='loc-status waiting';d.textContent='Mohon tunggu...';}else if(s==='denied'){i.innerHTML=ICO.denied();i.className='loc-icon inactive';st.textContent='Izin lokasi ditolak';st.className='loc-status out';d.textContent='Buka pengaturan browser → izinkan lokasi';}else{i.innerHTML=ICO.error();i.className='loc-icon inactive';st.textContent='GPS tidak didukung';st.className='loc-status out';d.textContent='Browser tidak mendukung geolocation';}_syncActivateBtn(s);}
 // Tandai kehadiran terkonfirmasi SAAT INI (dipanggil hanya bila GPS dalam radius / WiFi toko & app aktif)
 function _markPresent(){ if(document.visibilityState==='visible' && _wifiOkEffective()) _lastPresentTime = Date.now(); }
 // Tutup sesi aktif: komit durasi HANYA sampai konfirmasi kehadiran terakhir (bukan sampai 'sekarang'),
@@ -3409,14 +3413,14 @@ function _finalizeSession(){
 function _enforcePresence(){
   if(userRole!=='manager') return;
   if(!(isAtStore && sessionStart)) return;
-  // (v6.0) keluar jaringan WiFi toko → tutup sesi (jam kerja butuh WiFi toko).
+  // (v6.0) keluar jaringan WiFi toko → tutup sesi (hanya bila deteksi WiFi diaktifkan admin).
   // Toleransi cek-gagal sesaat sudah ditangani _wifiOkEffective (±2.5 mnt).
-  if(_wifiConfigured() && !_wifiOkEffective()){
+  if(_wifiGateActive() && !_wifiOkEffective()){
     _finalizeSession();
     isAtStore=false;
-    locationLog.push({type:'keluar',time:Date.now(),lat:0,lng:0,dist:0,cara:'wifi-putus'});
+    locationLog.push({type:'keluar',time:Date.now(),lat:0,lng:0,dist:0,cara:'auto'});
     saveLocData(); updateLocBanner('out');
-    logActivity('Keluar toko','HP tidak lagi terhubung WiFi toko — sesi ditutup');
+    logActivity('Keluar toko','sesi ditutup — lokasi tidak lagi terkonfirmasi');
     pushManagerLoc();
     return;
   }
@@ -3444,7 +3448,7 @@ function getCurrentTotalMinutes(){
 }
 function fmtDur(m){const h=Math.floor(m/60),n=Math.floor(m%60);return h>0?h+'j '+n+'m':n+'m';}
 function updateTimerDisplay(){_enforcePresence();const t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60),p=Math.min(100,t/TARGET_MENIT*100);document.getElementById('loc-timer').textContent=h+':'+String(m).padStart(2,'0');document.getElementById('loc-timer').className='loc-timer'+(p>=100?' done':p>=50?' warn':'');const f=document.getElementById('time-bar-fill');f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');document.getElementById('time-bar-left').textContent=t>=60?h+' jam '+m+' menit di toko':Math.floor(t)+' menit di toko';document.getElementById('loc-total-today').textContent=h+'j '+m+'m';var _tbt=document.getElementById('time-bar-target');if(_tbt)_tbt.textContent='Target: '+_targetJamTxt();updateD01Card();}
-function updateD01Card(){const t=getCurrentTotalMinutes(),p=Math.min(100,t/TARGET_MENIT*100),done=t>=TARGET_MENIT,h=Math.floor(t/60),m=Math.floor(t%60);const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),dv=document.getElementById('d01-dur-val'),pf=document.getElementById('d01-prog-fill'),dot=document.getElementById('d01-caption-dot'),cap=document.getElementById('d01-caption-text');if(!card)return;card.className='d01-card '+(done?'d01-done':t>0?'d01-warn':'');if(t>0){const col=done?'%2316a34a':'%23d97706';chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='"+col+"' stroke='"+col+"' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-size='13' font-weight='700' fill='white'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";}else{chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='none' stroke='%23adb5bd' stroke-width='2'/%3E%3C/svg%3E";}if(t===0){badge.innerHTML='<span class="d01-badge-dot"></span>GPS aktif';badge.className='d01-badge empty';}else if(done){badge.innerHTML='≥ '+_targetJamTxt()+' ✓';badge.className='d01-badge done';}else{badge.innerHTML='< '+_targetJamTxt();badge.className='d01-badge warn';}dv.textContent=h+'j '+m+'m';dv.className='d01-dur-val '+(t===0?'muted':done?'green':'orange');pf.style.width=p+'%';pf.style.background=done?'var(--green)':t>0?'var(--orange)':'var(--hint)';if(_atStoreCount()){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}else if(isAtStore){dot.className='dot orange';cap.textContent='Di area toko — sambungkan WiFi toko agar timer jalan';}else if(t>0){dot.className='dot orange';cap.textContent=done?'Target tercapai':'Durasi '+fmtDur(t)+' tercatat';}else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}notes['D01']=t>0?'GPS: '+h+'j '+m+'m di toko'+(done?'':' (< target '+_targetJamTxt()+')')+' · '+(isAtStore?'Sedang di toko':'Sudah keluar toko'):'';if(t>0&&!checked['D01']){checked['D01']=true;updateStats();}}
+function updateD01Card(){const t=getCurrentTotalMinutes(),p=Math.min(100,t/TARGET_MENIT*100),done=t>=TARGET_MENIT,h=Math.floor(t/60),m=Math.floor(t%60);const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),dv=document.getElementById('d01-dur-val'),pf=document.getElementById('d01-prog-fill'),dot=document.getElementById('d01-caption-dot'),cap=document.getElementById('d01-caption-text');if(!card)return;card.className='d01-card '+(done?'d01-done':t>0?'d01-warn':'');if(t>0){const col=done?'%2316a34a':'%23d97706';chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='"+col+"' stroke='"+col+"' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-size='13' font-weight='700' fill='white'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";}else{chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='none' stroke='%23adb5bd' stroke-width='2'/%3E%3C/svg%3E";}if(t===0){badge.innerHTML='<span class="d01-badge-dot"></span>GPS aktif';badge.className='d01-badge empty';}else if(done){badge.innerHTML='≥ '+_targetJamTxt()+' ✓';badge.className='d01-badge done';}else{badge.innerHTML='< '+_targetJamTxt();badge.className='d01-badge warn';}dv.textContent=h+'j '+m+'m';dv.className='d01-dur-val '+(t===0?'muted':done?'green':'orange');pf.style.width=p+'%';pf.style.background=done?'var(--green)':t>0?'var(--orange)':'var(--hint)';if(_atStoreCount()){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}else if(isAtStore){dot.className='dot orange';cap.textContent='Di area toko — memastikan kehadiran…';}else if(t>0){dot.className='dot orange';cap.textContent=done?'Target tercapai':'Durasi '+fmtDur(t)+' tercatat';}else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}notes['D01']=t>0?'GPS: '+h+'j '+m+'m di toko'+(done?'':' (< target '+_targetJamTxt()+')')+' · '+(isAtStore?'Sedang di toko':'Sudah keluar toko'):'';if(t>0&&!checked['D01']){checked['D01']=true;updateStats();}}
 
 // ════ D01 SWIPE ════
 function fixD01SwipeHeight(){
@@ -3974,11 +3978,11 @@ function useMyLocationForStore(){
 }
 // ── WiFi toko (IP publik) — gate kehadiran (GPS radius DAN WiFi toko) ──
 function _fmtWifiCur(){
-  try{
-    var ips=(IP_TOKO||[]).filter(function(x){return String(x||'').trim();});
-    if(ips.length) return 'IP toko: '+ips.join(', ');
-  }catch(e){}
-  return 'belum diatur · mode GPS saja (WiFi tidak wajib)';
+  var ips=[];
+  try{ ips=(IP_TOKO||[]).filter(function(x){return String(x||'').trim();}); }catch(e){}
+  if(!_wifiGateOn) return 'MATI · GPS saja'+(ips.length?(' (IP tersimpan: '+ips.join(', ')+')'):'');
+  if(!ips.length)  return 'ON tapi IP belum diisi → sementara GPS saja';
+  return 'AKTIF · WiFi toko + GPS · IP: '+ips.join(', ');
 }
 function _validIPv4(s){
   var m=String(s||'').trim().match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
@@ -4027,6 +4031,24 @@ function readMyStoreIP(){
       showToast('✓ IP saat ini: '+ip+' — cek lalu tekan Simpan','ok');
     })
     .catch(function(){showToast('Gagal baca IP — koneksi internet?','err');});
+}
+// Admin: saklar deteksi WiFi on/off. Manager TIDAK diberi tahu (UI manager tetap tampak GPS biasa).
+function admToggleWifiGate(){
+  if(userRole!=='admin'){showToast('Hanya admin','err');return;}
+  var cur=String(_appCfg.wifiGate||'')==='1';
+  var next=cur?'0':'1';
+  if(next==='1' && !_wifiConfigured()){
+    showToast('Isi & simpan IP toko dulu sebelum aktifkan deteksi WiFi','err');
+    return;
+  }
+  appConfigSet('wifiGate',next,function(){});
+  try{ _appCfg.wifiGate=next; }catch(e){}
+  _wifiGateOn=(next==='1');
+  _diWifiToko=false; _lastWifiOkTime=0;
+  try{ applyAppConfig(); }catch(e){}
+  try{ if(userRole==='manager' && typeof cekWifiToko==='function')cekWifiToko(); }catch(e){}
+  showToast(next==='1'?'📶 Deteksi WiFi AKTIF — manager dihitung hanya saat di WiFi toko + GPS':'📍 Deteksi WiFi MATI — manager dihitung dari GPS saja','ok');
+  try{ logActivity('Toggle deteksi WiFi', next==='1'?'on':'off'); }catch(e){}
 }
 function saveOpsAturan(){
   if(userRole!=='admin'){showToast('Hanya admin yang bisa ganti aturan','err');return;}
@@ -8179,7 +8201,7 @@ setInterval(function() {
     if (hadir && !isAtStore && _gpsState()!=='outside') {
       isAtStore = true; sessionStart = Date.now(); _markPresent();
       saveLocData(); updateLocBanner('in');
-      logActivity('Tiba di toko', 'via WiFi toko (keepalive)');
+      logActivity('Tiba di toko', 'terdeteksi di lokasi');
       pushManagerLoc(true);
     } else if (hadir && isAtStore) {
       _markPresent(); // jaringan toko masih ada & app terlihat → kehadiran terkonfirmasi
