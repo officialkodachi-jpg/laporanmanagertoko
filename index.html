@@ -779,6 +779,10 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <div class="loc-status waiting" id="loc-status">Memulai GPS...</div>
     <div class="loc-detail" id="loc-detail">Mendeteksi posisi kamu</div>
     <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span id="time-bar-target">Target: 4 jam</span></div></div>
+    <div id="absen-row" style="display:none;align-items:center;gap:8px;margin-top:9px">
+      <div id="absen-masuk-info" style="flex:1;min-width:0;font-size:11px;color:var(--muted);line-height:1.4">Memuat absen…</div>
+      <button id="absen-btn" class="btn-press" style="font-size:12px;font-weight:700;padding:8px 14px;border-radius:9px;border:none;color:#fff;background:var(--green);cursor:pointer;white-space:nowrap">✓ Check in</button>
+    </div>
     <button class="loc-activate-btn btn-press" id="loc-activate-btn" style="display:none" onclick="aktifkanLokasi()"><span id="loc-act-ico" style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" style="stroke:currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><span id="loc-act-lbl">Aktifkan lokasi</span></button>
     <button class="admin-refresh btn-press" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc(true)"><span class="spin-ico" id="admin-loc-ico">⟳</span> Perbarui posisi Manager</button>
   </div>
@@ -860,6 +864,19 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   <!-- HOME (admin only) -->
   <div class="panel" id="panel-home">
     <div style="font-size:11px;color:var(--muted);margin-bottom:16px;font-family:var(--mono)">Panel khusus Admin — monitoring real-time aktivitas Manager</div>
+
+    <!-- 🕒 ABSEN MANAGER HARI INI (check-in/out) + override -->
+    <div id="absen-admin-card" class="adm-only-block" style="margin-bottom:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
+        <span style="font-size:18px">🕒</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Absen manager hari ini</div>
+          <div style="font-size:10px;color:var(--hint)">Check-in/out (sumber resmi durasi) · admin bisa set/ubah jam & reset</div>
+        </div>
+        <button class="btn-press" onclick="absenFetch()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer">⟳ Muat</button>
+      </div>
+      <div id="absen-admin-list" style="padding:10px 12px"><div style="font-size:12px;color:var(--hint);padding:8px">Memuat…</div></div>
+    </div>
 
     <!-- 📸 Pekerjaan berfoto perlu dicek — DI ATAS Note untuk Manager -->
     <!-- ⚙️ KONTROL ADMIN -->
@@ -1626,15 +1643,6 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     </div>
 
     <div class="sd-card">
-      <div class="sd-top"><span class="sd-ic">📶</span><div class="sd-meta"><div class="sd-name">Deteksi WiFi Toko</div><div class="sd-desc">Opsional & rahasia (manager tidak diberi tahu). Bila <b>diaktifkan</b>, manager hanya dihitung hadir saat HP terhubung WiFi toko <b>DAN</b> GPS di radius. Bila mati → cukup GPS. Browser tak bisa baca nama WiFi, jadi dipakai IP publik (alamat internet WiFi toko).</div></div><span class="sd-tag gas">WiFi</span></div>
-      <div class="sd-cur">aktif: <span id="sd-cur-wifi">…</span></div>
-      <button id="adm-wifigate-toggle" onclick="admToggleWifiGate()" style="font-size:12px;font-weight:700;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer;width:100%;margin-bottom:8px">📶 Aktifkan deteksi WiFi (wajib WiFi toko + GPS)</button>
-      <div class="sd-row" style="gap:6px"><input id="sd-in-wifi-ip" type="text" inputmode="text" placeholder="IP publik toko (mis. 114.10.20.30)" style="flex:1"><button onclick="saveWifiIP()">💾 Simpan</button></div>
-      <button class="loc-activate-btn" onclick="readMyStoreIP()" style="margin-top:8px">📶 Baca IP saya sekarang</button>
-      <div class="sd-hint">ℹ️ <span>Langkah: (1) <b>di toko & HP tersambung WiFi toko</b>, tekan "Baca IP saya sekarang" lalu <b>Simpan</b>. (2) Tekan <b>Aktifkan deteksi WiFi</b>. Boleh beberapa IP dipisah koma. Kalau internet toko IP-nya sering berubah, cukup baca+simpan lagi. Matikan saklar = kembali ke GPS saja.</span></div>
-    </div>
-
-    <div class="sd-card">
       <div class="sd-top"><span class="sd-ic">🎯</span><div class="sd-meta"><div class="sd-name">Target Jam &amp; Ambang Setor</div><div class="sd-desc">Target jam kerja manager/hari &amp; batas uang belum disetor yang memicu alarm.</div></div><span class="sd-tag ss">Aturan</span></div>
       <div class="sd-cur">aktif: <span id="sd-cur-aturan">…</span></div>
       <div class="sd-row" style="gap:6px"><input id="sd-in-target-jam" type="number" min="0.5" max="24" step="0.5" placeholder="Target jam/hari (mis. 4)" style="flex:1"><input id="sd-in-setor-juta" type="number" min="0" step="0.5" placeholder="Ambang setor juta (mis. 3)" style="flex:1"><button onclick="saveOpsAturan()">💾 Simpan</button></div>
@@ -1835,7 +1843,11 @@ let geoWatchId=null,isAtStore=false,sessionStart=null,totalMinutesToday=0,locati
 // Anti GPS-ngaco: abaikan fix berakurasi buruk, beri toleransi & grace period saat keluar
 var ACC_MAX = 200;                 // akurasi lebih buruk dari ini (meter) tidak dipakai ubah status
 var ACC_GOOD = 65;                 // fix dianggap sangat akurat bila <=65m
-var ACC_OPEN = 120;                // (v5.4) akurasi maks utk BUKA sesi pada 1 fix → buka app sebentar tetap ke-catch
+var ACC_OPEN = 120;                // (v5.4) akurasi maks utk BUKA sesi → buka app sebentar tetap ke-catch
+var OPEN_DWELL_MS = 25*1000;       // (v6.2) DEBOUNCE: harus di radius nonstop selama ini baru buka sesi (anti "lewat depan toko")
+var OPEN_MIN_HITS = 3;             // (v6.2) DEBOUNCE: minimal sekian fix in-radius berturut sebelum buka sesi
+var _inSince = null;               // kapan mulai streak in-radius (di-reset saat keluar radius)
+var _inBestAcc = Infinity;         // akurasi terbaik selama streak in-radius berjalan
 var LEAVE_GRACE_MS = 3*60*1000;    // harus terbaca di luar selama ini baru dianggap keluar
 var _outSince = null;              // kapan pertama kali terbaca di luar toko
 var _inGpsHits = 0;                // jumlah fix GPS in-radius berturut → buka sesi hanya bila yakin
@@ -2421,15 +2433,11 @@ function _wifiConfigured(){
   try{ if(IP_TOKO && IP_TOKO.some(function(x){return String(x||'').trim();})) return true; }catch(e){}
   return !!String(LAPTOP_IP||'').trim();
 }
-// Gate WiFi AKTIF hanya bila admin menyalakannya DAN IP toko sudah diisi.
-function _wifiGateActive(){ return _wifiGateOn && _wifiConfigured(); }
-// true bila boleh dihitung dari sisi WiFi. Gate mati / IP belum diisi → selalu true (mode GPS saja).
-// Toleransi 2.5 menit utk kegagalan cek sesaat (mis. ipify timeout).
-function _wifiOkEffective(){
-  if(!_wifiGateActive()) return true;
-  if(_diWifiToko) return true;
-  return !!(_lastWifiOkTime && (Date.now()-_lastWifiOkTime) <= 150000);
-}
+// (v6.2) FITUR DETEKSI WIFI DIMATIKAN — absen kembali murni GPS.
+// Dikunci di sini agar tidak bisa nyala walau ada sisa setelan lama (wifiGate=1) di server.
+function _wifiGateActive(){ return false; }
+// Selalu lolos → semua titik penghitungan/presensi/kirim memakai GPS saja.
+function _wifiOkEffective(){ return true; }
 // Status FINAL "di toko" (jam kerja, kirim server, tampilan): GPS radius + WiFi toko.
 function _atStoreCount(){ return isAtStore && _wifiOkEffective(); }
 // Status GPS terkini dari fix terakhir: 'inside' | 'outside' | 'blind'.
@@ -2582,9 +2590,18 @@ function onLocOk(pos){
   // tidak bikin radius "membengkak" jadi ratusan meter (penyebab "di toko" palsu di rumah/parkiran).
   var _allow = Math.min(accuracy, ACC_GOOD);
   var inGps  = (dist - _allow) <= TOKO.radius;            // utk TETAP di dalam (sesi sudah jalan)
-  if(inGps){ _inGpsHits = (_inGpsHits||0) + 1; } else { _inGpsHits = 0; }
-  // Buka sesi BARU hanya bila yakin: pusat jelas di dalam + akurasi bagus, ATAU 2 fix in-radius berturut.
-  var canOpen = (accuracy <= ACC_OPEN && dist <= TOKO.radius) || (_inGpsHits >= 2);
+  if(inGps){
+    _inGpsHits = (_inGpsHits||0) + 1;
+    if(_inSince===null){ _inSince=Date.now(); _inBestAcc=accuracy; }   // streak in-radius dimulai
+    else { _inBestAcc = Math.min(_inBestAcc, accuracy); }
+  } else {
+    _inGpsHits = 0; _inSince=null; _inBestAcc=Infinity;               // keluar radius → reset debounce
+  }
+  // (v6.2) DEBOUNCE buka sesi: harus di radius NONSTOP minimal OPEN_DWELL_MS,
+  // DAN sudah terkumpul cukup fix (≥OPEN_MIN_HITS) atau pernah dapat fix cukup akurat (≤ACC_OPEN).
+  // Tujuan: lewat sebentar di depan toko (durasi pendek / 1-2 fix loncat) TIDAK membuka sesi.
+  var _dwellOk = (_inSince!==null) && (Date.now()-_inSince >= OPEN_DWELL_MS);
+  var canOpen  = inGps && _dwellOk && (_inGpsHits >= OPEN_MIN_HITS || _inBestAcc <= ACC_OPEN);
 
   if(inGps){
     // GPS mengonfirmasi DI DALAM toko
@@ -2596,6 +2613,7 @@ function onLocOk(pos){
         saveLocData();updateLocBanner('in');
         showToast('✓ Kamu tiba di Kodachi Shop!','ok');
         logActivity('Tiba di toko','Jarak '+dist+'m');pushManagerLoc();
+        try{ absenAutoCheckin(); }catch(e){}   // (v6.2) auto check-in saat GPS konfirmasi tiba
       }else if(canOpen){
         // (v6.1) GPS di radius tapi kehadiran belum terkonfirmasi penuh →
         // tunggu konfirmasi sebelum buka sesi. Picu cek di latar.
@@ -3407,6 +3425,7 @@ function _finalizeSession(){
     if(add>0) totalMinutesToday += add;
   }
   sessionStart=null; _outSince=null; _gpsConfirmed=false;
+  _inSince=null; _inBestAcc=Infinity; _inGpsHits=0;   // (v6.2) reset debounce streak
 }
 // Penjaga: kalau app pindah ke background, ATAU konfirmasi kehadiran sudah basi (>PRESENCE_STALE_MS),
 // paksa "keluar" walau tidak ada event GPS keluar (kasus HP dikantongi/dibawa pergi).
@@ -3435,10 +3454,19 @@ function _enforcePresence(){
   }
 }
 function getCurrentTotalMinutes(){
+  // (v6.2) SUMBER RESMI = check-in/out (kerja). GPS-otomatis hanya indikator "lagi di toko".
+  if(typeof _absen!=='undefined' && _absen.loaded){
+    if(!_absen.masuk) return 0;                       // belum check-in hari ini
+    var mIn=_absHmToMin(_absen.masuk); if(mIn==null) return 0;
+    var mOut = _absen.keluar ? _absHmToMin(_absen.keluar) : _absMinNow();  // belum keluar → sampai sekarang
+    if(mOut==null) return 0;
+    var d=mOut-mIn; if(d<0) d+=1440;
+    if(d>ABS_CAP_HARI) d=ABS_CAP_HARI;
+    return d;
+  }
+  // fallback sebelum data absen termuat: pakai GPS lama biar tidak terlihat 0 sesaat
   let t=totalMinutesToday;
   if(isAtStore && sessionStart){
-    // hanya hitung sampai 'sekarang' bila app TERLIHAT dan konfirmasi terakhir masih SEGAR;
-    // selain itu beku di konfirmasi terakhir → waktu pergi/background tidak menambah jam.
     var fresh = (document.visibilityState==='visible') && _lastPresentTime && (Date.now()-_lastPresentTime)<=PRESENCE_STALE_MS;
     var endRef = fresh ? Date.now() : (_lastPresentTime && _lastPresentTime>sessionStart ? _lastPresentTime : sessionStart);
     var add=(endRef - sessionStart)/60000;
@@ -3449,6 +3477,146 @@ function getCurrentTotalMinutes(){
 function fmtDur(m){const h=Math.floor(m/60),n=Math.floor(m%60);return h>0?h+'j '+n+'m':n+'m';}
 function updateTimerDisplay(){_enforcePresence();const t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60),p=Math.min(100,t/TARGET_MENIT*100);document.getElementById('loc-timer').textContent=h+':'+String(m).padStart(2,'0');document.getElementById('loc-timer').className='loc-timer'+(p>=100?' done':p>=50?' warn':'');const f=document.getElementById('time-bar-fill');f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');document.getElementById('time-bar-left').textContent=t>=60?h+' jam '+m+' menit di toko':Math.floor(t)+' menit di toko';document.getElementById('loc-total-today').textContent=h+'j '+m+'m';var _tbt=document.getElementById('time-bar-target');if(_tbt)_tbt.textContent='Target: '+_targetJamTxt();updateD01Card();}
 function updateD01Card(){const t=getCurrentTotalMinutes(),p=Math.min(100,t/TARGET_MENIT*100),done=t>=TARGET_MENIT,h=Math.floor(t/60),m=Math.floor(t%60);const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),dv=document.getElementById('d01-dur-val'),pf=document.getElementById('d01-prog-fill'),dot=document.getElementById('d01-caption-dot'),cap=document.getElementById('d01-caption-text');if(!card)return;card.className='d01-card '+(done?'d01-done':t>0?'d01-warn':'');if(t>0){const col=done?'%2316a34a':'%23d97706';chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='"+col+"' stroke='"+col+"' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-size='13' font-weight='700' fill='white'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";}else{chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='none' stroke='%23adb5bd' stroke-width='2'/%3E%3C/svg%3E";}if(t===0){badge.innerHTML='<span class="d01-badge-dot"></span>GPS aktif';badge.className='d01-badge empty';}else if(done){badge.innerHTML='≥ '+_targetJamTxt()+' ✓';badge.className='d01-badge done';}else{badge.innerHTML='< '+_targetJamTxt();badge.className='d01-badge warn';}dv.textContent=h+'j '+m+'m';dv.className='d01-dur-val '+(t===0?'muted':done?'green':'orange');pf.style.width=p+'%';pf.style.background=done?'var(--green)':t>0?'var(--orange)':'var(--hint)';if(_atStoreCount()){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}else if(isAtStore){dot.className='dot orange';cap.textContent='Di area toko — memastikan kehadiran…';}else if(t>0){dot.className='dot orange';cap.textContent=done?'Target tercapai':'Durasi '+fmtDur(t)+' tercatat';}else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}notes['D01']=t>0?'GPS: '+h+'j '+m+'m di toko'+(done?'':' (< target '+_targetJamTxt()+')')+' · '+(isAtStore?'Sedang di toko':'Sudah keluar toko'):'';if(t>0&&!checked['D01']){checked['D01']=true;updateStats();}}
+
+// ════════════════════════════════════════════════════════════
+//  (v6.2) ABSEN CHECK-IN / CHECK-OUT — sumber resmi durasi kerja
+//  Manager: auto check-in saat GPS deteksi tiba + tombol manual,
+//  check-out manual. Admin: panel override (set/ubah jam, reset).
+//  GPS-otomatis turun jadi indikator "lagi di toko" (lihat
+//  getCurrentTotalMinutes). POST fire-and-forget (no-cors) lalu
+//  re-fetch utk konfirmasi. Jam resmi dari server (GAS).
+// ════════════════════════════════════════════════════════════
+var ABS_CAP_HARI = 16*60;
+var _absen = { tgl:'', masuk:'', keluar:'', durasi:0, sumberMasuk:'', sumberKeluar:'', loaded:false };
+var _absenAdminRows = [];
+var _absenBusy = false;
+function _absHmToMin(s){ var a=String(s||'').split(':'); if(a.length<2) return null; var h=parseInt(a[0],10), m=parseInt(a[1],10); if(isNaN(h)||isNaN(m)) return null; return h*60+m; }
+function _absMinNow(){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }
+function _absHHMM(){ var d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function _absEsc(s){ return String(s||'').replace(/[<>&"']/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+function absenFetch(){
+  var url=scriptUrl; if(!url||!url.startsWith('http')) return;
+  fetch(url+'?type=absen&tanggal='+encodeURIComponent(TODAY_KEY())+'&email='+encodeURIComponent(userEmail||'')+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d) return;
+      if(userRole==='admin'){ _absenAdminRows=(d.rows||[]); absenAdminRender(); }
+      var me=d.me;
+      _absen.tgl=TODAY_KEY();
+      _absen.masuk = me?String(me.masuk||''):'';
+      _absen.keluar = me?String(me.keluar||''):'';
+      _absen.durasi = me?(Number(me.durasi)||0):0;
+      _absen.sumberMasuk = me?String(me.sumberMasuk||''):'';
+      _absen.sumberKeluar = me?String(me.sumberKeluar||''):'';
+      _absen.loaded=true;
+      absenRender();
+      try{ updateTimerDisplay(); }catch(e){}
+    }).catch(function(){});
+}
+
+function _absenPost(payload, optimistic){
+  var url=scriptUrl; if(!url||!url.startsWith('http')){ showToast('URL GAS belum diatur','err'); return; }
+  if(typeof optimistic==='function'){ try{ optimistic(); }catch(e){} }
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
+    .then(function(){ setTimeout(absenFetch,1500); })
+    .catch(function(){ showToast('Gagal menyimpan absen — coba lagi','err'); setTimeout(absenFetch,1500); });
+}
+
+function absenCheckin(sumber){
+  if(userRole!=='manager') return;
+  if(_absenBusy) return;
+  if(_absen.loaded && _absen.masuk) return;                 // sudah check-in
+  if(sumber!=='auto' && !isAtStore){ showToast('Kamu harus berada di toko untuk check in','err'); return; }
+  _absenBusy=true;
+  var jam=_absHHMM();
+  _absenPost({type:'absen_in', tanggal:TODAY_KEY(), nama:'', sumber:(sumber||'manual'), email:(userEmail||''), oleh:(userEmail||'')}, function(){
+    if(!_absen.masuk){ _absen.masuk=jam; _absen.sumberMasuk=(sumber||'manual'); _absen.loaded=true; absenRender(); try{updateTimerDisplay();}catch(e){} }
+  });
+  if(sumber!=='auto') showToast('✓ Check in '+jam,'ok');
+  setTimeout(function(){ _absenBusy=false; },2500);
+}
+
+function absenCheckout(){
+  if(userRole!=='manager') return;
+  if(_absenBusy) return;
+  if(!_absen.masuk){ showToast('Belum check in hari ini','err'); return; }
+  if(_absen.keluar){ showToast('Sudah check out hari ini','err'); return; }
+  if(!confirm('Check out sekarang?\n\nDurasi kerja hari ini dikunci sampai jam ini.')) return;
+  _absenBusy=true;
+  var jam=_absHHMM();
+  _absenPost({type:'absen_out', tanggal:TODAY_KEY(), nama:'', sumber:'manual', email:(userEmail||''), oleh:(userEmail||'')}, function(){
+    _absen.keluar=jam; _absen.sumberKeluar='manual'; absenRender(); try{updateTimerDisplay();}catch(e){}
+  });
+  showToast('✓ Check out '+jam,'ok');
+  setTimeout(function(){ _absenBusy=false; },2500);
+}
+
+// Dipanggil saat GPS mengonfirmasi tiba di toko (lihat onLocOk).
+function absenAutoCheckin(){
+  if(userRole!=='manager') return;
+  if(_absen.loaded && (_absen.masuk || _absen.keluar)) return;   // sudah masuk / sudah keluar hari ini
+  absenCheckin('auto');
+}
+
+function absenRender(){
+  var row=document.getElementById('absen-row'); if(!row) return;
+  row.style.display = (userRole==='manager') ? 'flex' : 'none';
+  if(userRole!=='manager') return;
+  var info=document.getElementById('absen-masuk-info'), btn=document.getElementById('absen-btn');
+  if(!btn) return;
+  if(!_absen.loaded){ if(info) info.textContent='Memuat absen…'; btn.style.display='none'; return; }
+  if(_absen.keluar){
+    if(info) info.innerHTML='Masuk <b>'+_absEsc(_absen.masuk)+'</b> · Keluar <b>'+_absEsc(_absen.keluar)+'</b> — selesai';
+    btn.style.display='none';
+  } else if(_absen.masuk){
+    if(info) info.innerHTML='Masuk <b>'+_absEsc(_absen.masuk)+'</b>'+(_absen.sumberMasuk==='auto'?' <span style="font-size:10px;color:var(--accent)">(auto GPS)</span>':'');
+    btn.style.display=''; btn.textContent='⏹ Check out'; btn.style.background='var(--orange)'; btn.onclick=absenCheckout;
+  } else {
+    if(info) info.textContent='Belum check in hari ini';
+    btn.style.display=''; btn.textContent='✓ Check in'; btn.style.background='var(--green)'; btn.onclick=function(){ absenCheckin('manual'); };
+  }
+}
+
+// ── Panel admin: daftar absen hari ini + override ──
+function absenAdminRender(){
+  var box=document.getElementById('absen-admin-list'); if(!box) return;
+  if(!_absenAdminRows.length){ box.innerHTML='<div style="font-size:12px;color:var(--hint);padding:8px">Belum ada absen hari ini.</div>'; return; }
+  var html='';
+  _absenAdminRows.forEach(function(r){
+    var status = r.keluar ? 'selesai' : (r.masuk ? 'sedang di toko' : 'belum masuk');
+    var warna = r.keluar ? 'var(--green)' : (r.masuk ? 'var(--orange)' : 'var(--hint)');
+    var durTxt = r.durasi ? (Math.floor(r.durasi/60)+'j '+(r.durasi%60)+'m') : '';
+    html+='<div style="border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:8px">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><b style="font-size:13px;flex:1;min-width:0">'+_absEsc(r.nama)+'</b><span style="font-size:10px;color:'+warna+';font-weight:700">'+status+'</span></div>'
+      +'<div style="font-size:12px;color:var(--muted);margin-bottom:9px">Masuk <b style="font-family:var(--mono)">'+(_absEsc(r.masuk)||'—')+'</b> · Keluar <b style="font-family:var(--mono)">'+(_absEsc(r.keluar)||'—')+'</b>'+(durTxt?(' · '+durTxt):'')+'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+      +'<button class="km-act-btn" onclick="absenAdminSet(\''+_absEsc(r.nama)+'\',\'masuk\')">✎ Set masuk</button>'
+      +'<button class="km-act-btn" onclick="absenAdminSet(\''+_absEsc(r.nama)+'\',\'keluar\')">⏹ Set keluar</button>'
+      +'<button class="km-act-btn" style="color:var(--red)" onclick="absenAdminReset(\''+_absEsc(r.nama)+'\')">↺ Reset</button>'
+      +'</div></div>';
+  });
+  box.innerHTML=html;
+}
+function absenAdminSet(nama, field){
+  if(userRole!=='admin') return;
+  var v=prompt('Set jam '+(field==='masuk'?'MASUK':'KELUAR')+' untuk '+nama+'\nFormat HH:mm (mis. 09:15). Kosongkan = hapus.', _absHHMM());
+  if(v===null) return;
+  v=String(v).trim();
+  if(v && !/^\d{1,2}:\d{2}$/.test(v)){ showToast('Format jam salah — pakai HH:mm','err'); return; }
+  _absenPost({type:'absen_override', tanggal:TODAY_KEY(), nama:nama, field:field, value:v, adminEmail:(userEmail||'')}, null);
+  showToast('✓ '+(field==='masuk'?'Masuk':'Keluar')+' '+nama+' → '+(v||'dihapus'),'ok');
+}
+function absenAdminReset(nama){
+  if(userRole!=='admin') return;
+  if(!confirm('Reset absen '+nama+' hari ini?\nJam masuk & keluar akan dihapus.')) return;
+  _absenPost({type:'absen_reset', tanggal:TODAY_KEY(), nama:nama, adminEmail:(userEmail||'')}, null);
+  showToast('✓ Absen '+nama+' direset','ok');
+}
+
+// Init: muat absen sekali (setelah login & URL siap) + poll berkala.
+setTimeout(function(){ try{ absenFetch(); }catch(e){} }, 2500);
+setInterval(function(){ try{ absenFetch(); }catch(e){} }, 30000);
 
 // ════ D01 SWIPE ════
 function fixD01SwipeHeight(){
