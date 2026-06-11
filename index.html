@@ -772,7 +772,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 </div>
 
 <div class="topbar"><div class="topbar-inner"><div class="brand">
-  <span class="brand-tag">Manager · v5.1</span>
+  <span class="brand-tag">Manager · v6.3</span>
   <span class="brand-name">Laporan Manager Kodachi Shop</span>
   <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
 </div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="role-badge manager" id="role-badge" style="display:none">MANAGER</span><button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">🚪 Logout</button></div></div></div>
@@ -2906,12 +2906,81 @@ function loadManagerLoc(manual){
     }).catch(()=>{renderManagerLoc(null);if(manual)showToast('Gagal memuat posisi','err');})
     .finally(()=>{if(manual&&btn){btn.classList.remove('loading');}});
 }
+
+// ════════════════════════════════════════════════════════════
+//  (v6.3) MONITOR ADMIN PAKAI SUMBER RESMI = CHECK-IN/OUT
+//  Sebelumnya panel admin membaca "menit" dari GPS auto-track
+//  (kolom G). Itu nyaris selalu 0 karena HP manager mem-background
+//  app → ping berhenti → jam kerja tidak terakumulasi. Padahal jam
+//  kerja resmi = selisih CHECK-IN s/d CHECK-OUT (sheet Absen Harian,
+//  jam server). Helper di bawah membaca baris absen manager (dari
+//  _absenAdminRows yang sudah di-fetch tiap 30 dtk) lalu:
+//   • Sudah check-in & belum check-out → durasi HIDUP = sekarang − masuk
+//   • Sudah check-out → durasi TERKUNCI = keluar − masuk
+//   • Belum check-in → fallback angka GPS lama (d.menit)
+// ════════════════════════════════════════════════════════════
+var _lastMgrLoc = null;          // cache payload type=loc terakhir (utk ticker)
+var _adminTimerTick = null;      // interval ticker durasi hidup (admin)
+
+function _mgrAbsenRow(){
+  if(userRole!=='admin' || !_absenAdminRows || !_absenAdminRows.length) return null;
+  var names=(typeof _mgrNamesNow==='function'?_mgrNamesNow():[MGR_NAME])
+    .map(function(s){return String(s||'').trim().toLowerCase();});
+  var hit=null, anyMasuk=null;
+  for(var i=0;i<_absenAdminRows.length;i++){
+    var r=_absenAdminRows[i]; var nm=String(r.nama||'').trim().toLowerCase();
+    if(names.indexOf(nm)>=0){ hit=r; break; }
+    if(!anyMasuk && r.masuk) anyMasuk=r;   // app ini absennya khusus manager → baris ber-check-in = manager
+  }
+  return hit || anyMasuk;
+}
+function _mgrLiveMinutes(d){
+  var r=_mgrAbsenRow();
+  if(r && r.masuk){
+    var mIn=_absHmToMin(r.masuk);
+    if(mIn!=null){
+      if(r.keluar){
+        var dur=Number(r.durasi)||0;
+        if(!dur){ var mo=_absHmToMin(r.keluar); if(mo!=null){ dur=mo-mIn; if(dur<0)dur+=1440; } }
+        if(dur>ABS_CAP_HARI)dur=ABS_CAP_HARI;
+        return {menit:dur, live:false, masuk:r.masuk, keluar:r.keluar, fromAbsen:true};
+      }
+      var dl=_absMinNow()-mIn; if(dl<0)dl+=1440; if(dl>ABS_CAP_HARI)dl=ABS_CAP_HARI;
+      return {menit:dl, live:true, masuk:r.masuk, keluar:'', fromAbsen:true};
+    }
+  }
+  return {menit:(d&&d.menit)||0, live:false, masuk:'', keluar:'', fromAbsen:false};
+}
+// Render hanya bagian TIMER/BAR durasi kerja (dipakai render utama + ticker 10 dtk)
+function _renderMgrTimer(){
+  if(userRole!=='admin') return;
+  var tm=document.getElementById('loc-timer'); if(!tm) return;
+  var d=_lastMgrLoc; if(!d) return;
+  var lm=_mgrLiveMinutes(d);
+  var menit=lm.menit||0, h=Math.floor(menit/60), m=Math.floor(menit%60);
+  var p=Math.min(100,menit/TARGET_MENIT*100);
+  tm.textContent=h+':'+String(m).padStart(2,'0');
+  tm.className='loc-timer'+(p>=100?' done':p>=50?' warn':'');
+  var f=document.getElementById('time-bar-fill'); if(f){ f.style.width=p+'%'; f.className='time-bar-fill'+(p>=100?' done':''); }
+  var lbl=document.getElementById('time-bar-left');
+  if(lbl){
+    if(lm.fromAbsen && lm.live) lbl.textContent=(menit>=60?(h+'j '+m+'m'):(m+' menit'))+' kerja · sejak '+lm.masuk;
+    else if(lm.fromAbsen && lm.keluar) lbl.textContent='Selesai · '+h+'j '+m+'m ('+lm.masuk+'–'+lm.keluar+')';
+    else lbl.textContent=h+' jam '+m+' menit (Manager)';
+  }
+}
 function renderManagerLoc(d){
   try{updateMgrMap(d);}catch(e){}
   var i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),
       det=document.getElementById('loc-detail'),tm=document.getElementById('loc-timer');
   if(!d||(!d.lat&&!d.menit&&d.inStore===undefined)){
     i.innerHTML=ICO.watch();i.className='loc-icon';st.textContent='Memantau posisi Manager';st.className='loc-status waiting';
+    var _lm0=_mgrLiveMinutes(d);
+    if(_lm0.fromAbsen && _lm0.masuk){
+      // Posisi GPS belum/tidak terkirim, tapi manager sudah check-in → durasi resmi tetap ditampilkan.
+      det.innerHTML='Posisi GPS belum terkirim hari ini, tapi <b>jam kerja resmi sudah berjalan</b> dari absen check-in.<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
+      _lastMgrLoc=d||{}; _renderMgrTimer(); return;
+    }
     det.innerHTML='Belum ada data posisi Manager hari ini<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
     tm.textContent='—:—';return;
   }
@@ -2941,11 +3010,17 @@ function renderManagerLoc(d){
   }else{
     ket+='<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
   }
+  // (v6.3) Tempel info SUMBER RESMI (check-in/out) ke detail, lalu render timer dari absen.
+  var _lm=_mgrLiveMinutes(d);
+  if(_lm.fromAbsen){
+    if(_lm.live) ket+='<div class="admin-note" style="color:#0f766e">🟢 Jam kerja resmi BERJALAN sejak check-in <b>'+_lm.masuk+'</b> — sumber: absen (jam server), bukan GPS.</div>';
+    else if(_lm.keluar) ket+='<div class="admin-note" style="color:#15803d">✓ Sudah check-out — durasi terkunci: masuk <b>'+_lm.masuk+'</b> · keluar <b>'+_lm.keluar+'</b>.</div>';
+  } else if((d.menit||0)<=0){
+    ket+='<div class="admin-note" style="color:#92400e">ℹ Manager belum check-in hari ini, durasi kerja belum jalan. Jam kerja resmi dihitung dari Check in → Check out (auto saat tiba di toko); angka GPS hanya cadangan.</div>';
+  }
   det.innerHTML=ket;
-  tm.textContent=h+':'+String(m).padStart(2,'0');
-  tm.className='loc-timer'+(p>=100?' done':p>=50?' warn':'');
-  var f=document.getElementById('time-bar-fill');if(f){f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');}
-  document.getElementById('time-bar-left').textContent=h+' jam '+m+' menit (Manager)';
+  _lastMgrLoc=d;
+  _renderMgrTimer();
 }
 // ── ADMIN: panel pekerjaan berfoto yang perlu dicek ──
 var _cekData=[], _cekShowAll=false;
@@ -7002,6 +7077,8 @@ function applyRole(){
     var amg=document.getElementById('admin-mgrlog');if(amg)amg.style.display='block';
     loadManagerLoc();
     _adminLocTimer=setInterval(loadManagerLoc,60000);
+    if(_adminTimerTick)clearInterval(_adminTimerTick);
+    _adminTimerTick=setInterval(function(){ try{ _renderMgrTimer(); }catch(e){} },10000); // (v6.3) durasi kerja jalan tiap menit walau loc poll 60 dtk
     startAdminAutoRefresh();
     loadAdminNote();
     if(_adminNoteTimer)clearInterval(_adminNoteTimer);
@@ -7219,6 +7296,7 @@ function logout(){
 function doLogout(expired){
   logActivity(expired?'Sesi berakhir':'Logout',expired?'Auto-logout setelah 8 jam':'Keluar manual');
   if(_adminLocTimer){clearInterval(_adminLocTimer);_adminLocTimer=null;}
+  if(_adminTimerTick){clearInterval(_adminTimerTick);_adminTimerTick=null;}
   if(_mgrPushTimer){clearInterval(_mgrPushTimer);_mgrPushTimer=null;}
   if(_sessionTimer){clearInterval(_sessionTimer);_sessionTimer=null;}
   try{if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}catch(e){}
