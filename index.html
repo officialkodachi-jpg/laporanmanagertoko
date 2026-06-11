@@ -39,7 +39,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .brand-name{font-size:20px;font-weight:700;letter-spacing:-.5px;line-height:1.2}
 .brand-sub{font-size:11px;color:var(--muted);font-weight:300;margin-top:2px}
 .loc-banner{max-width:680px;margin:12px auto 0;padding:0 20px}
-.loc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px}
+.loc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
 .loc-icon{width:36px;height:36px;border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .loc-icon.active{background:rgba(22,163,74,.12);animation:pulse-loc 2s infinite}
 .loc-icon.inactive{background:rgba(220,38,38,.08)}
@@ -48,10 +48,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .loc-icon .loc-spin{animation:locSpin .85s linear infinite;transform-origin:center}
 @keyframes pulse-loc{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,.4)}50%{box-shadow:0 0 0 6px rgba(22,163,74,0)}}
 .loc-info{flex:1;min-width:0}
+.loc-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.loc-top .loc-status{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .loc-status{font-size:12px;font-weight:600}
 .loc-status.in{color:var(--green)}.loc-status.out{color:var(--red)}.loc-status.waiting{color:var(--orange)}
-.loc-detail{font-size:11px;color:var(--muted);margin-top:2px}
-.loc-timer{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--text);flex-shrink:0}
+.loc-detail{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.45}
+.loc-timer{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--text);flex-shrink:0;letter-spacing:-.3px}
 .loc-timer.done{color:var(--green)}.loc-timer.warn{color:var(--orange)}
 .time-bar-wrap{margin-top:10px}
 .time-bar-track{height:8px;background:var(--surface);border-radius:4px;overflow:hidden}
@@ -772,7 +774,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 </div>
 
 <div class="topbar"><div class="topbar-inner"><div class="brand">
-  <span class="brand-tag">Manager · v6.7</span>
+  <span class="brand-tag">Manager · v6.9</span>
   <span class="brand-name">Laporan Manager Kodachi Shop</span>
   <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
 </div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="role-badge manager" id="role-badge" style="display:none">MANAGER</span><button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">🚪 Logout</button></div></div></div>
@@ -783,7 +785,10 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   </button>
   <div class="loc-icon" id="loc-icon"><svg class="loc-ic" viewBox="0 0 24 24" fill="none" style="stroke:var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg></div>
   <div class="loc-info">
-    <div class="loc-status waiting" id="loc-status">Memulai GPS...</div>
+    <div class="loc-top">
+      <div class="loc-status waiting" id="loc-status">Memulai GPS...</div>
+      <div class="loc-timer" id="loc-timer">0:00</div>
+    </div>
     <div class="loc-detail" id="loc-detail">Mendeteksi posisi kamu</div>
     <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span id="time-bar-target">Target: 4 jam</span></div></div>
     <div id="absen-row" style="display:none;flex-direction:column;gap:8px;margin-top:10px">
@@ -793,7 +798,6 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <button class="loc-activate-btn btn-press" id="loc-activate-btn" style="display:none" onclick="aktifkanLokasi()"><span id="loc-act-ico" style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" style="stroke:currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><span id="loc-act-lbl">Aktifkan lokasi</span></button>
     <button class="admin-refresh btn-press" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc(true)"><span class="spin-ico" id="admin-loc-ico">⟳</span> Perbarui posisi Manager</button>
   </div>
-  <div class="loc-timer" id="loc-timer">0:00</div>
 </div></div>
 
 <div id="mgr-map-card" style="display:none;max-width:680px;margin:0 auto 14px;padding:0 20px">
@@ -2953,10 +2957,10 @@ function _hms(menit){
 function _mgrLiveMinutes(d){
   var r=_mgrAbsenRow();
   if(r && r.masuk){
-    var mIn=_absHmToMin(r.masuk);
-    if(mIn!=null){
-      if(r.keluar) return {menit:_durMinFromCheckin(r.masuk,r.keluar), live:false, masuk:r.masuk, keluar:r.keluar, fromAbsen:true};
-      return {menit:_durMinFromCheckin(r.masuk,''), live:true, masuk:r.masuk, keluar:'', fromAbsen:true};
+    var masuk=_absToHHMM(r.masuk), keluar=_absToHHMM(r.keluar);
+    if(masuk){
+      if(keluar) return {menit:_durMinFromCheckin(masuk,keluar), live:false, masuk:masuk, keluar:keluar, fromAbsen:true};
+      return {menit:_durMinFromCheckin(masuk,''), live:true, masuk:masuk, keluar:'', fromAbsen:true};
     }
   }
   return {menit:(d&&d.menit)||0, live:false, masuk:'', keluar:'', fromAbsen:false};
@@ -2975,7 +2979,7 @@ function _renderMgrTimer(){
   var lbl=document.getElementById('time-bar-left');
   if(lbl){
     if(lm.fromAbsen && lm.live) lbl.textContent=(menit>=60?(hms.h+'j '+hms.m+'m'):(hms.m+'m '+hms.s+'d'))+' kerja · sejak '+lm.masuk;
-    else if(lm.fromAbsen && lm.keluar) lbl.textContent='Selesai · '+hms.h+'j '+hms.m+'m ('+lm.masuk+'–'+lm.keluar+')';
+    else if(lm.fromAbsen && lm.keluar) lbl.textContent='selesai · '+lm.masuk+'–'+lm.keluar;
     else lbl.textContent='Manager belum check-in';
   }
 }
@@ -3015,18 +3019,14 @@ function renderManagerLoc(d){
     ket+=' <span style="color:#16a34a">(terpantau di toko '+(lastSeenMin<=0?'baru saja':lastSeenMin+' mnt lalu')+')</span>';
   }
   if(posLama){
-    ket+='<div class="admin-note" style="color:#92400e">ℹ Titik di peta = posisi terakhir yang dikirim HP Manager (jam '+jamUpd+', '+(menitLalu>=999?'lama sekali':menitLalu+' mnt lalu')+'), belum tentu titik persisnya sekarang. '
-      +'Status di atas dihitung dari kehadiran terakhir di toko, tersegarkan saat Manager buka app lagi.</div>';
+    ket+='<div class="admin-note" style="color:#92400e">Titik peta = posisi terakhir HP Manager (jam '+jamUpd+'). Status dari kehadiran terakhir di toko.</div>';
   }else{
     ket+='<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
   }
-  // (v6.3) Tempel info SUMBER RESMI (check-in/out) ke detail, lalu render timer dari absen.
+  // (v6.9) Detail ringkas; status jam kerja (sejak/selesai) sudah ada di label bar timer.
   var _lm=_mgrLiveMinutes(d);
-  if(_lm.fromAbsen){
-    if(_lm.live) ket+='<div class="admin-note" style="color:#0f766e">🟢 Jam kerja resmi BERJALAN sejak check-in <b>'+_lm.masuk+'</b> — sumber: absen (jam server), bukan GPS.</div>';
-    else if(_lm.keluar) ket+='<div class="admin-note" style="color:#15803d">✓ Sudah check-out — durasi terkunci: masuk <b>'+_lm.masuk+'</b> · keluar <b>'+_lm.keluar+'</b>.</div>';
-  } else if((d.menit||0)<=0){
-    ket+='<div class="admin-note" style="color:#92400e">ℹ Manager belum check-in hari ini, durasi kerja belum jalan. Jam kerja resmi dihitung dari Check in → Check out (auto saat tiba di toko); angka GPS hanya cadangan.</div>';
+  if(!_lm.fromAbsen && (d.menit||0)<=0){
+    ket+='<div class="admin-note" style="color:#92400e">Belum check-in hari ini.</div>';
   }
   det.innerHTML=ket;
   _lastMgrLoc=d;
@@ -3587,7 +3587,16 @@ var _absen = { tgl:'', masuk:'', keluar:'', durasi:0, sumberMasuk:'', sumberKelu
 var _absenAdminRows = [];
 var _absenBusy = false;
 var _locConnected = false;   // GPS aktif & sudah dapat posisi (di-set oleh _syncActivateBtn)
-function _absHmToMin(s){ var a=String(s||'').split(':'); if(a.length<2) return null; var h=parseInt(a[0],10), m=parseInt(a[1],10); if(isNaN(h)||isNaN(m)) return null; return h*60+m; }
+// (v6.8) Ekstrak "HH:mm" dari format APA PUN — termasuk saat server kirim jam sebagai
+// objek tanggal yg ke-stringify jadi "Sat Dec 30 1899 10:34:00 GMT+0707 (Waktu ...)".
+// Tanpa ini, jam tak terbaca → durasi 0 & teks kepanjangan.
+function _absToHHMM(v){
+  v=String(v||'').trim(); if(!v) return '';
+  var m=v.match(/(\d{1,2}):(\d{2})/);            // pola jam pertama = jam sebenarnya
+  if(m){ var h=parseInt(m[1],10); if(h>=0&&h<24) return ('0'+m[1]).slice(-2)+':'+m[2]; }
+  return '';
+}
+function _absHmToMin(s){ var hm=_absToHHMM(s); if(!hm) return null; var a=hm.split(':'); return parseInt(a[0],10)*60+parseInt(a[1],10); }
 function _absMinNow(){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }
 function _absHHMM(){ var d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 function _absEsc(s){ return String(s||'').replace(/[<>&"']/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c];}); }
@@ -3601,8 +3610,8 @@ function absenFetch(){
       if(userRole==='admin'){ _absenAdminRows=(d.rows||[]); absenAdminRender(); }
       var me=d.me;
       _absen.tgl=TODAY_KEY();
-      _absen.masuk = me?String(me.masuk||''):'';
-      _absen.keluar = me?String(me.keluar||''):'';
+      _absen.masuk = me?_absToHHMM(me.masuk):'';
+      _absen.keluar = me?_absToHHMM(me.keluar):'';
       _absen.durasi = me?(Number(me.durasi)||0):0;
       _absen.sumberMasuk = me?String(me.sumberMasuk||''):'';
       _absen.sumberKeluar = me?String(me.sumberKeluar||''):'';
@@ -3694,12 +3703,14 @@ function absenAdminRender(){
   if(!_absenAdminRows.length){ box.innerHTML='<div style="font-size:12px;color:var(--hint);padding:8px">Belum ada absen hari ini.</div>'; return; }
   var html='';
   _absenAdminRows.forEach(function(r){
-    var status = r.keluar ? 'selesai' : (r.masuk ? 'sedang di toko' : 'belum masuk');
-    var warna = r.keluar ? 'var(--green)' : (r.masuk ? 'var(--orange)' : 'var(--hint)');
-    var durTxt = r.durasi ? (Math.floor(r.durasi/60)+'j '+(r.durasi%60)+'m') : '';
+    var rm=_absToHHMM(r.masuk), rk=_absToHHMM(r.keluar);
+    var status = rk ? 'selesai' : (rm ? 'sedang di toko' : 'belum masuk');
+    var warna = rk ? 'var(--green)' : (rm ? 'var(--orange)' : 'var(--hint)');
+    var durMin = (rm&&rk) ? _durMinFromCheckin(rm,rk) : (Number(r.durasi)||0);
+    var durTxt = durMin>0 ? (Math.floor(durMin/60)+'j '+Math.floor(durMin%60)+'m') : '';
     html+='<div style="border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:8px">'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><b style="font-size:13px;flex:1;min-width:0">'+_absEsc(r.nama)+'</b><span style="font-size:10px;color:'+warna+';font-weight:700">'+status+'</span></div>'
-      +'<div style="font-size:12px;color:var(--muted);margin-bottom:9px">Masuk <b style="font-family:var(--mono)">'+(_absEsc(r.masuk)||'—')+'</b> · Keluar <b style="font-family:var(--mono)">'+(_absEsc(r.keluar)||'—')+'</b>'+(durTxt?(' · '+durTxt):'')+'</div>'
+      +'<div style="font-size:12px;color:var(--muted);margin-bottom:9px">Masuk <b style="font-family:var(--mono)">'+(rm||'—')+'</b> · Keluar <b style="font-family:var(--mono)">'+(rk||'—')+'</b>'+(durTxt?(' · '+durTxt):'')+'</div>'
       +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
       +'<button class="km-act-btn" onclick="absenAdminSet(\''+_absEsc(r.nama)+'\',\'masuk\')">✎ Set masuk</button>'
       +'<button class="km-act-btn" onclick="absenAdminSet(\''+_absEsc(r.nama)+'\',\'keluar\')">⏹ Set keluar</button>'
