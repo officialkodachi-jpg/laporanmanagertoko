@@ -772,7 +772,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 </div>
 
 <div class="topbar"><div class="topbar-inner"><div class="brand">
-  <span class="brand-tag">Manager · v6.3</span>
+  <span class="brand-tag">Manager · v6.6</span>
   <span class="brand-name">Laporan Manager Kodachi Shop</span>
   <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
 </div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="role-badge manager" id="role-badge" style="display:none">MANAGER</span><button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">🚪 Logout</button></div></div></div>
@@ -2619,7 +2619,7 @@ function onLocOk(pos){
         saveLocData();updateLocBanner('in');
         showToast('✓ Kamu tiba di Kodachi Shop!','ok');
         logActivity('Tiba di toko','Jarak '+dist+'m');pushManagerLoc();
-        try{ absenAutoCheckin(); }catch(e){}   // (v6.2) auto check-in saat GPS konfirmasi tiba
+        /* (v6.5) auto check-in DIMATIKAN — check-in HARUS manual (pencet tombol Check in). */
       }else if(canOpen){
         // (v6.1) GPS di radius tapi kehadiran belum terkonfirmasi penuh →
         // tunggu konfirmasi sebelum buka sesi. Picu cek di latar.
@@ -2934,39 +2934,49 @@ function _mgrAbsenRow(){
   }
   return hit || anyMasuk;
 }
+// (v6.5) Durasi kerja dari CHECK-IN dgn presisi DETIK → bar/timer keliatan jalan.
+function _durMinFromCheckin(masuk, keluar){
+  var mIn=_absHmToMin(masuk); if(mIn==null) return 0;
+  var now=new Date();
+  var inSec=mIn*60, endSec;
+  if(keluar){ var mo=_absHmToMin(keluar); if(mo==null) return 0; endSec=mo*60; }
+  else endSec=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
+  var d=endSec-inSec; if(d<0) d+=86400;
+  var dm=d/60; if(dm>ABS_CAP_HARI) dm=ABS_CAP_HARI;
+  return dm; // menit pecahan (ada detiknya)
+}
+function _hms(menit){
+  var tot=Math.max(0,Math.floor((Number(menit)||0)*60));
+  var h=Math.floor(tot/3600), m=Math.floor((tot%3600)/60), s=tot%60;
+  return {h:h,m:m,s:s,clock:h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')};
+}
 function _mgrLiveMinutes(d){
   var r=_mgrAbsenRow();
   if(r && r.masuk){
     var mIn=_absHmToMin(r.masuk);
     if(mIn!=null){
-      if(r.keluar){
-        var dur=Number(r.durasi)||0;
-        if(!dur){ var mo=_absHmToMin(r.keluar); if(mo!=null){ dur=mo-mIn; if(dur<0)dur+=1440; } }
-        if(dur>ABS_CAP_HARI)dur=ABS_CAP_HARI;
-        return {menit:dur, live:false, masuk:r.masuk, keluar:r.keluar, fromAbsen:true};
-      }
-      var dl=_absMinNow()-mIn; if(dl<0)dl+=1440; if(dl>ABS_CAP_HARI)dl=ABS_CAP_HARI;
-      return {menit:dl, live:true, masuk:r.masuk, keluar:'', fromAbsen:true};
+      if(r.keluar) return {menit:_durMinFromCheckin(r.masuk,r.keluar), live:false, masuk:r.masuk, keluar:r.keluar, fromAbsen:true};
+      return {menit:_durMinFromCheckin(r.masuk,''), live:true, masuk:r.masuk, keluar:'', fromAbsen:true};
     }
   }
   return {menit:(d&&d.menit)||0, live:false, masuk:'', keluar:'', fromAbsen:false};
 }
-// Render hanya bagian TIMER/BAR durasi kerja (dipakai render utama + ticker 10 dtk)
+// Render hanya bagian TIMER/BAR durasi kerja (dipakai render utama + ticker 1 dtk)
 function _renderMgrTimer(){
   if(userRole!=='admin') return;
   var tm=document.getElementById('loc-timer'); if(!tm) return;
   var d=_lastMgrLoc; if(!d) return;
   var lm=_mgrLiveMinutes(d);
-  var menit=lm.menit||0, h=Math.floor(menit/60), m=Math.floor(menit%60);
+  var menit=lm.menit||0, hms=_hms(menit);
   var p=Math.min(100,menit/TARGET_MENIT*100);
-  tm.textContent=h+':'+String(m).padStart(2,'0');
+  tm.textContent = lm.fromAbsen ? hms.clock : (hms.h+':'+String(hms.m).padStart(2,'0'));
   tm.className='loc-timer'+(p>=100?' done':p>=50?' warn':'');
   var f=document.getElementById('time-bar-fill'); if(f){ f.style.width=p+'%'; f.className='time-bar-fill'+(p>=100?' done':''); }
   var lbl=document.getElementById('time-bar-left');
   if(lbl){
-    if(lm.fromAbsen && lm.live) lbl.textContent=(menit>=60?(h+'j '+m+'m'):(m+' menit'))+' kerja · sejak '+lm.masuk;
-    else if(lm.fromAbsen && lm.keluar) lbl.textContent='Selesai · '+h+'j '+m+'m ('+lm.masuk+'–'+lm.keluar+')';
-    else lbl.textContent=h+' jam '+m+' menit (Manager)';
+    if(lm.fromAbsen && lm.live) lbl.textContent=(menit>=60?(hms.h+'j '+hms.m+'m'):(hms.m+'m '+hms.s+'d'))+' kerja · sejak '+lm.masuk;
+    else if(lm.fromAbsen && lm.keluar) lbl.textContent='Selesai · '+hms.h+'j '+hms.m+'m ('+lm.masuk+'–'+lm.keluar+')';
+    else lbl.textContent='Manager belum check-in';
   }
 }
 function renderManagerLoc(d){
@@ -3537,29 +3547,31 @@ function _enforcePresence(){
   }
 }
 function getCurrentTotalMinutes(){
-  // (v6.2) SUMBER RESMI = check-in/out (kerja). GPS-otomatis hanya indikator "lagi di toko".
-  if(typeof _absen!=='undefined' && _absen.loaded){
-    if(!_absen.masuk) return 0;                       // belum check-in hari ini
-    var mIn=_absHmToMin(_absen.masuk); if(mIn==null) return 0;
-    var mOut = _absen.keluar ? _absHmToMin(_absen.keluar) : _absMinNow();  // belum keluar → sampai sekarang
-    if(mOut==null) return 0;
-    var d=mOut-mIn; if(d<0) d+=1440;
-    if(d>ABS_CAP_HARI) d=ABS_CAP_HARI;
-    return d;
+  // (v6.5) Bar/timer = durasi kerja RESMI dari CHECK-IN (presisi DETIK).
+  // Belum check-in → 0. GPS hanya penentu "boleh check-in", BUKAN penghitung jam.
+  // Bar jalan terus dari check-in s/d check-out, walau GPS sempat goyang.
+  if(typeof _absen!=='undefined' && _absen.loaded && _absen.masuk){
+    return _durMinFromCheckin(_absen.masuk, _absen.keluar);
   }
-  // fallback sebelum data absen termuat: pakai GPS lama biar tidak terlihat 0 sesaat
-  let t=totalMinutesToday;
-  if(isAtStore && sessionStart){
-    var fresh = (document.visibilityState==='visible') && _lastPresentTime && (Date.now()-_lastPresentTime)<=PRESENCE_STALE_MS;
-    var endRef = fresh ? Date.now() : (_lastPresentTime && _lastPresentTime>sessionStart ? _lastPresentTime : sessionStart);
-    var add=(endRef - sessionStart)/60000;
-    if(add>0) t+=add;
-  }
-  return t;
+  return 0;
 }
 function fmtDur(m){const h=Math.floor(m/60),n=Math.floor(m%60);return h>0?h+'j '+n+'m':n+'m';}
 function _katCls(k){k=String(k||'').toLowerCase();if(k.indexOf('operasi')>=0)return'kat-op';if(k.indexOf('keuang')>=0||k.indexOf('uang')>=0)return'kat-uang';if(k.indexOf('invent')>=0)return'kat-inv';if(k.indexOf('sdm')>=0)return'kat-sdm';if(k.indexOf('visual')>=0)return'kat-vis';if(k.indexOf('layan')>=0)return'kat-lay';return'kat-op';}
-function updateTimerDisplay(){_enforcePresence();const t=getCurrentTotalMinutes(),h=Math.floor(t/60),m=Math.floor(t%60),p=Math.min(100,t/TARGET_MENIT*100);document.getElementById('loc-timer').textContent=h+':'+String(m).padStart(2,'0');document.getElementById('loc-timer').className='loc-timer'+(p>=100?' done':p>=50?' warn':'');const f=document.getElementById('time-bar-fill');f.style.width=p+'%';f.className='time-bar-fill'+(p>=100?' done':'');document.getElementById('time-bar-left').textContent=t>=60?h+' jam '+m+' menit di toko':Math.floor(t)+' menit di toko';document.getElementById('loc-total-today').textContent=h+'j '+m+'m';var _tbt=document.getElementById('time-bar-target');if(_tbt)_tbt.textContent='Target: '+_targetJamTxt();updateD01Card();}
+function updateTimerDisplay(){
+  _enforcePresence();
+  var t=getCurrentTotalMinutes();
+  var hms=_hms(t);
+  var p=Math.min(100,t/TARGET_MENIT*100);
+  var tEl=document.getElementById('loc-timer');
+  tEl.textContent=hms.clock;                                   // (v6.5) jam BERDETAK: H:MM:SS
+  tEl.className='loc-timer'+(p>=100?' done':p>=50?' warn':'');
+  var f=document.getElementById('time-bar-fill'); f.style.width=p+'%'; f.className='time-bar-fill'+(p>=100?' done':'');
+  var leftTxt = t>=60 ? (hms.h+' jam '+hms.m+' mnt di toko') : (t>=1 ? (hms.m+' mnt '+hms.s+' dtk di toko') : (hms.s+' detik di toko'));
+  document.getElementById('time-bar-left').textContent=leftTxt;
+  document.getElementById('loc-total-today').textContent=hms.h+'j '+hms.m+'m';
+  var _tbt=document.getElementById('time-bar-target'); if(_tbt)_tbt.textContent='Target: '+_targetJamTxt();
+  updateD01Card();
+}
 function updateD01Card(){const t=getCurrentTotalMinutes(),p=Math.min(100,t/TARGET_MENIT*100),done=t>=TARGET_MENIT,h=Math.floor(t/60),m=Math.floor(t%60);const card=document.getElementById('d01-card'),chk=document.getElementById('d01-check'),badge=document.getElementById('d01-badge'),dv=document.getElementById('d01-dur-val'),pf=document.getElementById('d01-prog-fill'),dot=document.getElementById('d01-caption-dot'),cap=document.getElementById('d01-caption-text');if(!card)return;card.className='d01-card '+(done?'d01-done':t>0?'d01-warn':'');if(t>0){const col=done?'%2316a34a':'%23d97706';chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='"+col+"' stroke='"+col+"' stroke-width='2'/%3E%3Ctext x='14' y='19' text-anchor='middle' font-size='13' font-weight='700' fill='white'%3E%E2%9C%93%3C/text%3E%3C/svg%3E";}else{chk.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12' fill='none' stroke='%23adb5bd' stroke-width='2'/%3E%3C/svg%3E";}if(t===0){badge.innerHTML='<span class="d01-badge-dot"></span>GPS aktif';badge.className='d01-badge empty';}else if(done){badge.innerHTML='≥ '+_targetJamTxt()+' ✓';badge.className='d01-badge done';}else{badge.innerHTML='< '+_targetJamTxt();badge.className='d01-badge warn';}dv.textContent=h+'j '+m+'m';dv.className='d01-dur-val '+(t===0?'muted':done?'green':'orange');pf.style.width=p+'%';pf.style.background=done?'var(--green)':t>0?'var(--orange)':'var(--hint)';if(_atStoreCount()){dot.className='dot green';cap.textContent='Sedang di dalam toko — timer berjalan';}else if(isAtStore){dot.className='dot orange';cap.textContent='Di area toko — memastikan kehadiran…';}else if(t>0){dot.className='dot orange';cap.textContent=done?'Target tercapai':'Durasi '+fmtDur(t)+' tercatat';}else{dot.className='dot grey';cap.textContent='Menunggu sinyal GPS...';}notes['D01']=t>0?'GPS: '+h+'j '+m+'m di toko'+(done?'':' (< target '+_targetJamTxt()+')')+' · '+(isAtStore?'Sedang di toko':'Sudah keluar toko'):'';if(t>0&&!checked['D01']){checked['D01']=true;updateStats();}}
 
 // ════════════════════════════════════════════════════════════
@@ -3627,6 +3639,7 @@ function absenCheckout(){
   if(_absenBusy) return;
   if(!_absen.masuk){ showToast('Belum check in hari ini','err'); return; }
   if(_absen.keluar){ showToast('Sudah check out hari ini','err'); return; }
+  if(!isAtStore){ showToast('Kamu harus berada di toko untuk check out','err'); return; }  // (v6.6) check-out hanya di toko
   if(!confirm('Check out sekarang?\n\nDurasi kerja hari ini dikunci sampai jam ini.')) return;
   _absenBusy=true;
   var jam=_absHHMM();
@@ -3660,9 +3673,10 @@ function absenRender(){
     if(info) info.innerHTML='Masuk <b>'+_absEsc(_absen.masuk)+'</b> · Keluar <b>'+_absEsc(_absen.keluar)+'</b> — hari ini selesai';
     btn.style.display='none';
   } else if(_absen.masuk){
-    if(info) info.innerHTML='Sudah check in jam <b>'+_absEsc(_absen.masuk)+'</b>'+(_absen.sumberMasuk==='auto'?' <span style="color:var(--accent)">· otomatis</span>':'');
-    btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer';
+    if(info) info.innerHTML='Sudah check in jam <b>'+_absEsc(_absen.masuk)+'</b>'+(_absen.sumberMasuk==='auto'?' <span style="color:var(--accent)">· otomatis</span>':'')+(!isAtStore?' <span style="color:var(--red)">· check out hanya bisa di toko</span>':'');
     btn.textContent='⏹ Check out'; btn.style.background='var(--orange)'; btn.onclick=absenCheckout;
+    if(isAtStore){ btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer'; }
+    else { btn.disabled=true; btn.style.opacity='.5'; btn.style.cursor='default'; }
   } else if(isAtStore){
     if(info) info.textContent='Kamu di toko — silakan check in';
     btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer';
@@ -7078,7 +7092,7 @@ function applyRole(){
     loadManagerLoc();
     _adminLocTimer=setInterval(loadManagerLoc,60000);
     if(_adminTimerTick)clearInterval(_adminTimerTick);
-    _adminTimerTick=setInterval(function(){ try{ _renderMgrTimer(); }catch(e){} },10000); // (v6.3) durasi kerja jalan tiap menit walau loc poll 60 dtk
+    _adminTimerTick=setInterval(function(){ try{ _renderMgrTimer(); }catch(e){} },1000); // (v6.5) jam admin berdetak per detik walau loc poll 60 dtk
     startAdminAutoRefresh();
     loadAdminNote();
     if(_adminNoteTimer)clearInterval(_adminNoteTimer);
