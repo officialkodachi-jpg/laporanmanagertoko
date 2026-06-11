@@ -48,12 +48,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .loc-icon .loc-spin{animation:locSpin .85s linear infinite;transform-origin:center}
 @keyframes pulse-loc{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,.4)}50%{box-shadow:0 0 0 6px rgba(22,163,74,0)}}
 .loc-info{flex:1;min-width:0}
-.loc-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.loc-top .loc-status{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.loc-headtext{flex:1;min-width:0}
+.loc-top .loc-status{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .loc-status{font-size:12px;font-weight:600}
 .loc-status.in{color:var(--green)}.loc-status.out{color:var(--red)}.loc-status.waiting{color:var(--orange)}
 .loc-detail{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.45}
-.loc-timer{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--text);flex-shrink:0;letter-spacing:-.3px}
+.loc-timer{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--text);flex-shrink:0;letter-spacing:-.3px;white-space:nowrap}
+.loc-top .loc-activate-btn{width:auto;margin-top:0;padding:8px 13px;flex-shrink:0;font-size:11.5px;white-space:nowrap}
 .loc-timer.done{color:var(--green)}.loc-timer.warn{color:var(--orange)}
 .time-bar-wrap{margin-top:10px}
 .time-bar-track{height:8px;background:var(--surface);border-radius:4px;overflow:hidden}
@@ -774,7 +776,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 </div>
 
 <div class="topbar"><div class="topbar-inner"><div class="brand">
-  <span class="brand-tag">Manager · v6.9</span>
+  <span class="brand-tag">Manager · v7.0</span>
   <span class="brand-name">Laporan Manager Kodachi Shop</span>
   <span class="brand-sub">Jl. Monjali No. 107, Yogyakarta</span>
 </div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="role-badge manager" id="role-badge" style="display:none">MANAGER</span><button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">🚪 Logout</button></div></div></div>
@@ -786,16 +788,18 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   <div class="loc-icon" id="loc-icon"><svg class="loc-ic" viewBox="0 0 24 24" fill="none" style="stroke:var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg></div>
   <div class="loc-info">
     <div class="loc-top">
-      <div class="loc-status waiting" id="loc-status">Memulai GPS...</div>
-      <div class="loc-timer" id="loc-timer">0:00</div>
+      <div class="loc-headtext">
+        <div class="loc-status waiting" id="loc-status">Memulai GPS...</div>
+        <div class="loc-detail" id="loc-detail">Mendeteksi posisi kamu</div>
+      </div>
+      <div class="loc-timer" id="loc-timer" style="display:none">0:00</div>
+      <button class="loc-activate-btn btn-press" id="loc-activate-btn" style="display:none" onclick="aktifkanLokasi()"><span id="loc-act-ico" style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" style="stroke:currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><span id="loc-act-lbl">Aktifkan</span></button>
     </div>
-    <div class="loc-detail" id="loc-detail">Mendeteksi posisi kamu</div>
     <div class="time-bar-wrap"><div class="time-bar-track"><div class="time-bar-fill" id="time-bar-fill" style="width:0%"></div></div><div class="time-bar-label"><span id="time-bar-left">0 menit di toko</span><span id="time-bar-target">Target: 4 jam</span></div></div>
     <div id="absen-row" style="display:none;flex-direction:column;gap:8px;margin-top:10px">
       <div id="absen-masuk-info" style="font-size:11.5px;color:var(--muted);line-height:1.45">Memuat absen…</div>
       <button id="absen-btn" class="btn-press" style="width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px;border-radius:var(--r);border:none;color:#fff;font-weight:700;font-size:13.5px;background:var(--green);cursor:pointer">✓ Check in</button>
     </div>
-    <button class="loc-activate-btn btn-press" id="loc-activate-btn" style="display:none" onclick="aktifkanLokasi()"><span id="loc-act-ico" style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" style="stroke:currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><span id="loc-act-lbl">Aktifkan lokasi</span></button>
     <button class="admin-refresh btn-press" id="admin-loc-refresh" style="display:none" onclick="loadManagerLoc(true)"><span class="spin-ico" id="admin-loc-ico">⟳</span> Perbarui posisi Manager</button>
   </div>
 </div></div>
@@ -2784,16 +2788,18 @@ function _syncActivateBtn(s){
   var connected = (s==='in') || (!!lastPos);   // GPS aktif & sudah dapat posisi
   _locConnected = connected;
   var b=document.getElementById('loc-activate-btn');
+  var _tmr=document.getElementById('loc-timer');
   if(b){
-    if(userRole!=='manager'){ b.style.display='none'; }
-    else if(connected){ b.style.display='none'; }   // lokasi aktif → tombol absen yang jadi aksi utama (status GPS ada di teks kartu)
+    if(userRole!=='manager'){ b.style.display='none'; if(_tmr)_tmr.style.display=''; }
+    else if(connected){ b.style.display='none'; if(_tmr)_tmr.style.display=''; }   // lokasi aktif → timer tampil, tombol absen jadi aksi utama
     else {
       b.style.display='';
+      if(_tmr)_tmr.style.display='none';                                            // belum aktif → timer disembunyikan (tetap ada bar)
       b.classList.remove('ok');
       b.classList.toggle('glow', _locTimedOut===true);
       var icoEl=document.getElementById('loc-act-ico'), lblEl=document.getElementById('loc-act-lbl');
       if(icoEl)icoEl.innerHTML='<svg viewBox="0 0 24 24" fill="none" style="stroke:currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
-      if(lblEl)lblEl.textContent='Aktifkan lokasi';
+      if(lblEl)lblEl.textContent='Aktifkan';
     }
   }
   try{ if(typeof absenRender==='function') absenRender(); }catch(e){}
@@ -2808,7 +2814,7 @@ function _armLocTimeout(){
     var i=document.getElementById('loc-icon'), st=document.getElementById('loc-status'), d=document.getElementById('loc-detail');
     if(i){ i.innerHTML=ICO.pin(); i.className='loc-icon inactive'; }
     if(st){ st.textContent='Lokasi belum aktif'; st.className='loc-status waiting'; }
-    if(d){ d.textContent="Tap \u201CAktifkan lokasi\u201D untuk bagikan posisi"; }
+    if(d){ d.textContent='Tap tombol untuk mulai mencatat'; }
     _syncActivateBtn('waiting');               // tampil + berdenyut
   }, 15000);
 }
@@ -2969,6 +2975,7 @@ function _mgrLiveMinutes(d){
 function _renderMgrTimer(){
   if(userRole!=='admin') return;
   var tm=document.getElementById('loc-timer'); if(!tm) return;
+  tm.style.display='';
   var d=_lastMgrLoc; if(!d) return;
   var lm=_mgrLiveMinutes(d);
   var menit=lm.menit||0, hms=_hms(menit);
@@ -2987,6 +2994,7 @@ function renderManagerLoc(d){
   try{updateMgrMap(d);}catch(e){}
   var i=document.getElementById('loc-icon'),st=document.getElementById('loc-status'),
       det=document.getElementById('loc-detail'),tm=document.getElementById('loc-timer');
+  if(tm)tm.style.display='';
   if(!d||(!d.lat&&!d.menit&&d.inStore===undefined)){
     i.innerHTML=ICO.watch();i.className='loc-icon';st.textContent='Memantau posisi Manager';st.className='loc-status waiting';
     var _lm0=_mgrLiveMinutes(d);
