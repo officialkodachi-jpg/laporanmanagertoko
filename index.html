@@ -593,6 +593,55 @@ body.role-admin #admin-mgrlog{display:none!important}
 .sd-row button:active{opacity:.85}
 .sd-warn{display:flex;align-items:flex-start;gap:6px;background:rgba(217,119,6,.1);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--orange);line-height:1.45;margin-top:9px}
 .sd-hint{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:var(--hint);line-height:1.45;margin-top:8px}
+/* ══ PROJEK — papan projek (gambar, link, paragraf + bold) ══ */
+.pj-perm{display:flex;align-items:flex-start;gap:9px;border-radius:var(--r);padding:11px 13px;font-size:12px;line-height:1.55;margin-bottom:14px}
+.pj-perm.edit{background:rgba(22,163,74,.10);border:1px solid rgba(22,163,74,.25);color:var(--green)}
+.pj-perm.view{background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+.pj-perm .pj-perm-ic{font-size:16px;line-height:1.2;flex-shrink:0}
+.pj-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pj-add-btn{flex:1 1 auto;min-width:96px;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 10px;border:1.5px dashed var(--border2);background:var(--card);color:var(--text);border-radius:var(--r);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;transition:.12s}
+.pj-add-btn:active{transform:scale(.97)}
+.pj-add-btn .pj-add-ic{font-size:15px}
+.pj-block{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 15px;margin-bottom:11px;position:relative}
+.pj-block.is-img{padding:11px}
+.pj-text{font-size:14px;line-height:1.7;color:var(--text);word-break:break-word}
+.pj-text b{font-weight:700;color:var(--text)}
+.pj-text a{color:var(--accent);text-decoration:none;word-break:break-all}
+.pj-text a:active{opacity:.8}
+.pj-img{display:block;width:100%;border-radius:11px;border:1px solid var(--border);background:var(--surface)}
+.pj-img-wrap{position:relative;display:block;text-decoration:none}
+.pj-cap{font-size:12px;color:var(--muted);line-height:1.55;margin-top:8px;word-break:break-word}
+.pj-cap b{font-weight:700;color:var(--text)}
+.pj-linkrow{display:flex;align-items:center;gap:13px;padding:13px 14px;background:var(--surface);border:1px solid var(--border);border-radius:11px;text-decoration:none;color:var(--text)}
+.pj-linkrow .pj-link-ic{font-size:20px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--card);border-radius:10px;flex-shrink:0}
+.pj-linkrow .pj-link-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pj-linkrow .pj-link-tx b{font-size:13px;font-weight:600;line-height:1.35;word-break:break-word}
+.pj-linkrow .pj-link-tx small{font-size:11px;color:var(--muted);word-break:break-all}
+.pj-linkrow .pj-link-ar{color:var(--accent);font-size:18px;flex-shrink:0}
+.pj-ctrl{display:flex;align-items:center;gap:6px;margin-top:11px;padding-top:10px;border-top:1px dashed var(--border);flex-wrap:wrap}
+.pj-ctrl-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 11px;border-radius:18px;border:1.5px solid var(--border2);background:var(--card);color:var(--muted);font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer}
+.pj-ctrl-btn:active{background:var(--surface)}
+.pj-ctrl-btn.del{border-color:var(--red);color:var(--red)}
+.pj-ctrl-btn.del:active{background:rgba(220,38,38,.08)}
+.pj-ctrl-ord{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;line-height:1;border:1.5px solid var(--border2);background:var(--card);color:var(--muted);border-radius:8px;cursor:pointer;font-weight:700;padding:0}
+.pj-ctrl-ord:active{background:var(--surface)}
+.pj-ctrl-ord:disabled{opacity:.32;cursor:not-allowed}
+.pj-ctrl-spacer{flex:1}
+.pj-meta{font-size:10px;color:var(--hint);font-family:var(--mono);margin-top:8px;line-height:1.5;word-break:break-word}
+.pj-ed-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.pj-bold-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border:1.5px solid var(--border2);background:var(--surface);color:var(--text);border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:800;cursor:pointer}
+.pj-bold-btn:active{background:var(--card)}
+.pj-bold-hint{font-size:10px;color:var(--hint);line-height:1.4}
+.pj-ta{width:100%;min-height:120px;padding:12px 13px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;outline:none;resize:vertical}
+.pj-ta:focus{border-color:var(--accent)}
+.pj-prev-lbl{font-size:10px;color:var(--hint);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin:12px 0 5px}
+.pj-prev{background:var(--bg);border:1px dashed var(--border2);border-radius:var(--r);padding:12px 13px;font-size:14px;line-height:1.7;color:var(--text);min-height:24px;word-break:break-word}
+.pj-prev b{font-weight:700}.pj-prev a{color:var(--accent);text-decoration:none}
+.pj-field-lbl{font-size:11px;color:var(--muted);font-weight:600;margin:0 0 6px}
+.pj-file{width:100%;font-size:12px;color:var(--text)}
+.pj-img-prev{margin-top:10px}
+.pj-img-prev img{max-width:100%;max-height:200px;border-radius:11px;border:1px solid var(--border);display:block}
+.pj-modal{max-width:480px;max-height:88vh;overflow-y:auto}
 </style>
 <style>
 /* ===== App-shell (bottom nav + sheet + FAB) — layer tampilan, tidak mengubah logika ===== */
@@ -865,6 +914,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
       <button class="tab" onclick="switchTab('pegawai',this)">👥 Kepegawaian<span class="tab-badge" id="badge-pegawai" style="background:var(--red)">0</span></button>
       <button class="tab" id="tab-meeting" onclick="switchTab('meeting',this)">📹 Meeting Link<span class="tab-badge" id="badge-meeting" style="background:var(--green)">🔔</span></button>
       <button class="tab" onclick="switchTab('laporan',this)">📈 Laporan<span class="tab-badge" id="badge-laporan">!</span></button>
+      <button class="tab" id="tab-projek" onclick="switchTab('projek',this)">📁 Projek</button>
       <button class="tab" onclick="switchTab('link',this)">🔗 Link</button>
       <button class="tab admin-only" id="tab-sumberdata" onclick="switchTab('sumberdata',this)">🗄️ Sumber Data</button>
     </div>
@@ -1590,6 +1640,39 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <a class="link-row" href="https://docs.google.com/spreadsheets/d/1aFyLfd0R1M7wasdbjB2sF7ap01EiCWosltFHI-wGjds/edit?gid=0#gid=0" target="_blank"><span class="link-ic">👟</span><span class="link-tx"><b>Monitoring Display Sepatu</b><small>Cek display & rak sepatu</small></span><span class="link-ar">→</span></a>
   </div>
 
+  <!-- ══ PROJEK — papan projek (gambar, link, paragraf + bold). Admin kelola; manager lihat & bisa edit bila diizinkan ══ -->
+  <div class="panel" id="panel-projek">
+    <div class="alert info" style="margin-bottom:12px">📁 <b>Projek</b> — papan catatan projek toko: tempel <b>gambar</b>, <b>link</b>, &amp; <b>paragraf</b> (bisa diatur tebal/bold). Dikelola admin; manager bisa melihat, dan ikut mengedit bila admin mengizinkan.</div>
+
+    <!-- Kontrol admin: izinkan manager edit (hanya tampil untuk admin) -->
+    <div class="adm-only-block" style="margin-bottom:14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)">
+        <span class="hicon" style="background:rgba(37,99,235,.13);font-size:18px">🛠️</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">Kontrol Projek (Admin)</div>
+          <div style="font-size:10px;color:var(--hint)">Atur apakah manager boleh ikut mengedit &amp; menambah. Berlaku ke semua perangkat.</div>
+        </div>
+      </div>
+      <div style="padding:12px 14px">
+        <button id="proj-mgredit-toggle" onclick="admToggleProjekEdit()" style="width:100%;font-size:12px;font-weight:700;padding:11px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:9px;cursor:pointer">✍️ Izinkan Manager edit &amp; tambah Projek</button>
+        <div style="font-size:10px;color:var(--hint);line-height:1.5;margin-top:8px">💡 Saat <b>diizinkan</b>, manager bisa menambah/edit/hapus isi Projek. Saat <b>dikunci</b>, manager hanya bisa melihat. Admin selalu bisa mengedit.</div>
+      </div>
+    </div>
+
+    <!-- Status izin untuk akun manager -->
+    <div id="proj-perm" class="pj-perm view" style="display:none"><span class="pj-perm-ic">👁</span><span id="proj-perm-tx">Mode lihat saja.</span></div>
+
+    <!-- Toolbar tambah (admin selalu; manager bila diizinkan) -->
+    <div id="proj-toolbar" class="pj-toolbar" style="display:none">
+      <button class="pj-add-btn" onclick="projOpen('teks')"><span class="pj-add-ic">✍️</span> Teks</button>
+      <button class="pj-add-btn" onclick="projOpen('gambar')"><span class="pj-add-ic">🖼️</span> Gambar</button>
+      <button class="pj-add-btn" onclick="projOpen('link')"><span class="pj-add-ic">🔗</span> Link</button>
+    </div>
+
+    <!-- Daftar blok projek -->
+    <div id="projek-list"><div class="empty" style="padding:30px"><span class="spinner"></span> Memuat…</div></div>
+  </div>
+
   <!-- ══ SUMBER DATA (admin) — ganti spreadsheet/GAS tanpa edit kode ══ -->
   <div class="panel" id="panel-sumberdata">
 
@@ -1747,6 +1830,45 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   </div>
 
   <div class="modal-btns" style="margin-top:16px"><button class="modal-cancel" onclick="tmClose()">Batal</button><button class="modal-save" id="tm-save-btn" onclick="tmSave()">Simpan</button></div>
+</div></div>
+
+<!-- ══ MODAL: Tambah/Edit blok Projek (teks / gambar / link) ══ -->
+<div class="modal-bg" id="proj-modal"><div class="modal pj-modal">
+  <div class="modal-title" id="proj-modal-title">Tambah Teks</div>
+  <div class="modal-sub" id="proj-modal-sub">Tulis paragraf. Pilih kata lalu tekan Bold untuk menebalkan.</div>
+
+  <!-- TEKS -->
+  <div id="proj-fields-teks">
+    <div class="pj-ed-toolbar">
+      <button type="button" class="pj-bold-btn" onclick="projBold()"><b>B</b> Bold</button>
+      <span class="pj-bold-hint">Pilih teks lalu tekan <b>Bold</b>. Atau ketik <b>**tebal**</b> langsung.</span>
+    </div>
+    <textarea class="pj-ta" id="proj-teks-input" placeholder="Tulis paragraf projek di sini…" oninput="projTeksPreview()"></textarea>
+    <div class="pj-prev-lbl">Pratinjau</div>
+    <div class="pj-prev" id="proj-teks-prev"></div>
+  </div>
+
+  <!-- GAMBAR -->
+  <div id="proj-fields-gambar" style="display:none">
+    <div class="pj-field-lbl">Pilih gambar (galeri atau kamera)</div>
+    <input type="file" accept="image/*" class="pj-file" id="proj-img-input" onchange="projImgChange()">
+    <div class="pj-img-prev" id="proj-img-prev"></div>
+    <div class="pj-field-lbl" style="margin-top:12px">Keterangan (opsional) — bisa <b>**tebal**</b></div>
+    <input class="modal-input" id="proj-cap-input" placeholder="mis. Desain banner promo Lebaran" style="font-family:var(--sans);margin-bottom:0">
+  </div>
+
+  <!-- LINK -->
+  <div id="proj-fields-link" style="display:none">
+    <div class="pj-field-lbl">URL / Link</div>
+    <input class="modal-input" id="proj-link-url" placeholder="https://…" inputmode="url" style="margin-bottom:12px">
+    <div class="pj-field-lbl">Judul link (opsional)</div>
+    <input class="modal-input" id="proj-link-label" placeholder="mis. Folder desain di Drive" style="font-family:var(--sans);margin-bottom:0">
+  </div>
+
+  <div class="modal-btns" style="margin-top:18px">
+    <button class="modal-cancel" onclick="projClose()">Batal</button>
+    <button class="modal-save" id="proj-save-btn" onclick="projSave()">Simpan</button>
+  </div>
 </div></div>
 
 <div class="ac-dropdown" id="ac-dropdown"></div>
@@ -2437,6 +2559,8 @@ function applyAppConfig(){
   // Denyut & urutan kiriman juga muncul di kartu "Kiriman belum sampai" (atas tab, dilihat manager) & widget Home admin
   try{ if(typeof renderNotifStack==='function' && document.getElementById('notif-stack')) renderNotifStack(); }catch(e){}
   try{ if(typeof _renderHomeKiriman==='function' && document.getElementById('home-kiriman-list') && typeof _homeKmRows!=='undefined' && _homeKmRows.length) _renderHomeKiriman(); }catch(e){}
+  // (Projek) refleksikan izin manager-edit ke UI tab Projek
+  try{ if(typeof _projApplyCfg==='function') _projApplyCfg(); }catch(e){}
 }
 var _appCfgMgrSelfPrev = null;
 function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
@@ -5087,7 +5211,8 @@ function switchTab(name,btn){
   if(name==='laporan'&&userRole==='admin')loadLog();
   if(name==='harian'){fixD01SwipeHeight();if(scriptUrl)loadStreakHarian();annotateD04Card();}
   if(name==='event'){annotateEventCards();}
-  var tabNama={home:'Home',harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link'};
+  if(name==='projek'){loadProjek();}
+  var tabNama={home:'Home',harian:'Harian',event:'Non-Harian',gudang:'Stok & Gudang',cash:'Uang Cash',shift:'Shift',meeting:'Meeting Link',laporan:'Laporan',link:'Link',projek:'Projek'};
   logActivity('Buka tab',tabNama[name]||name);
 }
 function switchGudangView(v,btn){
@@ -8601,15 +8726,16 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
     laporan:'<path d="M4 4v16h16"/><rect x="7" y="11" width="3" height="6" rx=".7"/><rect x="12" y="7.5" width="3" height="9.5" rx=".7"/><rect x="17" y="13" width="3" height="4" rx=".7"/>',
     link:'<path d="M9.6 13.6a4 4 0 0 0 5.7 0l2.7-2.7a4 4 0 1 0-5.7-5.7l-1.3 1.3"/><path d="M14.4 10.4a4 4 0 0 0-5.7 0L6 13.1a4 4 0 1 0 5.7 5.7l1.3-1.3"/>',
     sumberdata:'<ellipse cx="12" cy="5.6" rx="7.4" ry="2.8"/><path d="M4.6 5.6v6c0 1.5 3.3 2.8 7.4 2.8s7.4-1.3 7.4-2.8v-6"/><path d="M4.6 11.6v6c0 1.5 3.3 2.8 7.4 2.8s7.4-1.3 7.4-2.8v-6"/>',
-    lainnya:'<rect x="4" y="4" width="6.6" height="6.6" rx="1.6"/><rect x="13.4" y="4" width="6.6" height="6.6" rx="1.6"/><rect x="4" y="13.4" width="6.6" height="6.6" rx="1.6"/><rect x="13.4" y="13.4" width="6.6" height="6.6" rx="1.6"/>'
+    lainnya:'<rect x="4" y="4" width="6.6" height="6.6" rx="1.6"/><rect x="13.4" y="4" width="6.6" height="6.6" rx="1.6"/><rect x="4" y="13.4" width="6.6" height="6.6" rx="1.6"/><rect x="13.4" y="13.4" width="6.6" height="6.6" rx="1.6"/>',
+    projek:'<path d="M3.5 8.2a2 2 0 0 1 2-2h3.3l2.1 2.2H18.5a2 2 0 0 1 2 2v6.6a2 2 0 0 1-2 2H5.5a2 2 0 0 1-2-2z"/>'
   };
   function _navSvg(k){return '<svg viewBox="0 0 24 24">'+(ICONS[k]||'')+'</svg>';}
 
-  var NAVLBL={home:'Beranda',harian:'Harian',event:'Non-harian',gudang:'Stok',cash:'Cash',shift:'Shift',pegawai:'Pegawai',meeting:'Meeting',laporan:'Laporan',link:'Link',sumberdata:'Sumber data'};
-  var SHEETLBL={home:'Beranda',harian:'Harian',event:'Non-harian',gudang:'Stok & gudang',cash:'Uang cash',shift:'Shift',pegawai:'Kepegawaian',meeting:'Meeting',laporan:'Laporan',link:'Link',sumberdata:'Sumber data'};
-  var TITLE={home:'Beranda',harian:'Tugas harian',event:'Non-harian',gudang:'Stok & gudang',cash:'Uang cash',shift:'Jadwal shift',pegawai:'Kepegawaian',meeting:'Meeting link',laporan:'Laporan',link:'Link',sumberdata:'Sumber data'};
+  var NAVLBL={home:'Beranda',harian:'Harian',event:'Non-harian',gudang:'Stok',cash:'Cash',shift:'Shift',pegawai:'Pegawai',meeting:'Meeting',laporan:'Laporan',link:'Link',projek:'Projek',sumberdata:'Sumber data'};
+  var SHEETLBL={home:'Beranda',harian:'Harian',event:'Non-harian',gudang:'Stok & gudang',cash:'Uang cash',shift:'Shift',pegawai:'Kepegawaian',meeting:'Meeting',laporan:'Laporan',link:'Link',projek:'Projek',sumberdata:'Sumber data'};
+  var TITLE={home:'Beranda',harian:'Tugas harian',event:'Non-harian',gudang:'Stok & gudang',cash:'Uang cash',shift:'Jadwal shift',pegawai:'Kepegawaian',meeting:'Meeting link',laporan:'Laporan',link:'Link',projek:'Projek',sumberdata:'Sumber data'};
   var BADGE={home:'badge-home',harian:'badge-harian',event:'badge-event',gudang:'badge-stok',cash:'badge-cash',shift:'badge-shift',pegawai:'badge-pegawai',meeting:'badge-meeting',laporan:'badge-laporan'};
-  var NAVCOLOR={home:'#2563eb',harian:'#16a34a',event:'#f59e0b',gudang:'#7c3aed',cash:'#0d9488',shift:'#4f46e5',pegawai:'#dc2626',meeting:'#0891b2',laporan:'#db2777',link:'#0ea5e9',sumberdata:'#475569',lainnya:'#64748b'};
+  var NAVCOLOR={home:'#2563eb',harian:'#16a34a',event:'#f59e0b',gudang:'#7c3aed',cash:'#0d9488',shift:'#4f46e5',pegawai:'#dc2626',meeting:'#0891b2',laporan:'#db2777',link:'#0ea5e9',projek:'#6d28d9',sumberdata:'#475569',lainnya:'#64748b'};
   var FAB_ON=['event','gudang','cash','pegawai','meeting'];
 
   function _badgeActive(id){
@@ -9099,5 +9225,283 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
   window._thmPaint=function(){ if(!dirty){ draft=published(); paint(); } };             // sinkron saat tema global berubah & tidak sedang mengedit
 })();
 </script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   📁 PROJEK — papan projek toko (gambar / link / paragraf bold).
+   Dikelola admin; manager selalu bisa LIHAT, dan ikut edit/tambah
+   bila admin mengizinkan (config global: projekMgrEdit). Konten =
+   daftar blok berurutan (teks / gambar / link).
+   ══════════════════════════════════════════════════════════════ */
+var _projRows=[], _projLoadedOnce=false, _projLoading=false;
+var _projEditId=null, _projEditType='teks', _projImgBase64='', _projSaving=false;
+
+// Boleh edit? admin selalu; manager bila config projekMgrEdit==='1'.
+function projCanEdit(){
+  if(userRole==='admin') return true;
+  if(userRole==='manager') return String((_appCfg&&_appCfg.projekMgrEdit)||'')==='1';
+  return false;
+}
+
+// Render teks: escape → **bold** → auto-link → newline.
+function projFmt(t){
+  var s=escH(String(t||''));
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+  s=s.replace(/(https?:\/\/[^\s<]+)/g,function(u){return '<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>';});
+  s=s.replace(/\n/g,'<br>');
+  return s;
+}
+
+// URL Drive /view → thumbnail (mirror tampilan foto lain di app).
+function projImgUrl(u){
+  u=String(u||'');
+  var m=u.match(/\/d\/([a-zA-Z0-9_-]+)/)||u.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w1000';
+  return u;
+}
+
+// Terapkan config izin manager ke UI panel Projek.
+function _projApplyCfg(){
+  var on=String((_appCfg&&_appCfg.projekMgrEdit)||'')==='1';
+  var tg=document.getElementById('proj-mgredit-toggle');
+  if(tg){
+    if(on){
+      tg.innerHTML='🔓 Manager DIIZINKAN edit &amp; tambah — ketuk untuk mengunci';
+      tg.style.background='rgba(22,163,74,.12)'; tg.style.borderColor='rgba(22,163,74,.4)'; tg.style.color='var(--green)';
+    }else{
+      tg.innerHTML='🔒 Manager hanya bisa LIHAT — ketuk untuk mengizinkan edit';
+      tg.style.background='var(--bg)'; tg.style.borderColor='var(--border)'; tg.style.color='var(--text)';
+    }
+  }
+  var pm=document.getElementById('proj-perm'); var px=document.getElementById('proj-perm-tx');
+  if(pm&&px){
+    var ic=pm.querySelector('.pj-perm-ic');
+    if(userRole==='manager'){
+      pm.style.display='flex';
+      if(on){ pm.className='pj-perm edit'; if(ic)ic.textContent='✍️'; px.innerHTML='Admin <b>mengizinkan</b> kamu menambah, mengedit &amp; menghapus isi Projek.'; }
+      else  { pm.className='pj-perm view'; if(ic)ic.textContent='👁'; px.innerHTML='Mode <b>lihat saja</b>. Admin belum mengizinkan manager mengedit Projek.'; }
+    }else{ pm.style.display='none'; }
+  }
+  var tb=document.getElementById('proj-toolbar');
+  if(tb) tb.style.display=projCanEdit()?'flex':'none';
+  var panel=document.getElementById('panel-projek');
+  if(panel&&panel.classList.contains('active')&&_projLoadedOnce) projRender();
+}
+
+// Admin: toggle izin manager edit/tambah.
+function admToggleProjekEdit(){
+  if(userRole!=='admin'){ showToast('Hanya admin yang bisa mengatur ini','err'); return; }
+  var on=String((_appCfg&&_appCfg.projekMgrEdit)||'')==='1';
+  var next=on?'0':'1';
+  _appCfg.projekMgrEdit=next;
+  appConfigSet('projekMgrEdit', next, null);
+  _projApplyCfg();
+  showToast(next==='1'?'Manager diizinkan edit Projek ✓':'Projek dikunci — manager lihat saja ✓','ok');
+}
+
+// Muat daftar projek dari server.
+function loadProjek(){
+  var box=document.getElementById('projek-list');
+  if(!scriptUrl){ if(box)box.innerHTML='<div class="empty" style="padding:30px">URL server belum diatur.</div>'; return; }
+  if(_projLoading) return;
+  _projLoading=true;
+  if(box&&!_projLoadedOnce) box.innerHTML='<div class="empty" style="padding:30px"><span class="spinner"></span> Memuat…</div>';
+  fetch(scriptUrl+'?type=projek&email='+encodeURIComponent(userEmail||'')+'&_='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      _projRows=(d&&d.rows)?d.rows:[];
+      if(d&&d.mgrEdit!=null){ _appCfg.projekMgrEdit=d.mgrEdit?'1':'0'; }
+      _projLoadedOnce=true; _projLoading=false;
+      projRender(); _projApplyCfg();
+    })
+    .catch(function(){
+      _projLoading=false;
+      if(box&&!_projLoadedOnce) box.innerHTML='<div class="empty" style="padding:30px">Gagal memuat. Buka lagi tab ini untuk menyegarkan.</div>';
+    });
+}
+
+// Render semua blok projek.
+function projRender(){
+  var box=document.getElementById('projek-list');
+  if(!box) return;
+  var canEdit=projCanEdit();
+  if(!_projRows.length){
+    box.innerHTML='<div class="empty" style="padding:36px 20px;text-align:center"><div style="font-size:34px;margin-bottom:8px">📁</div><div style="font-weight:700;color:var(--text);margin-bottom:4px">Belum ada isi Projek</div><div style="font-size:12px;color:var(--muted)">'+(canEdit?'Ketuk tombol di atas untuk menambah teks, gambar, atau link.':'Admin belum menambahkan apa pun di sini.')+'</div></div>';
+    return;
+  }
+  var n=_projRows.length, html='';
+  _projRows.forEach(function(b,i){
+    var id=escH(String(b.id||''));
+    var tipe=String(b.tipe||'teks');
+    var inner='';
+    if(tipe==='gambar'){
+      var src=projImgUrl(b.url);
+      inner='<div class="pj-img-wrap"><a href="'+escH(String(b.url||src))+'" target="_blank" rel="noopener"><img class="pj-img" src="'+escH(src)+'" alt="" loading="lazy" onerror="this.style.opacity=.4"></a></div>';
+      if(b.konten) inner+='<div class="pj-cap">'+projFmt(b.konten)+'</div>';
+    }else if(tipe==='link'){
+      var url=String(b.url||''); var label=String(b.konten||'')||url;
+      var host=''; try{ host=new URL(url).hostname.replace(/^www\./,''); }catch(e){ host=url; }
+      inner='<a class="pj-linkrow" href="'+escH(url)+'" target="_blank" rel="noopener"><span class="pj-link-ic">🔗</span><span class="pj-link-tx"><b>'+escH(label)+'</b><small>'+escH(host)+'</small></span><span class="pj-link-ar">→</span></a>';
+    }else{
+      inner='<div class="pj-text">'+projFmt(b.konten)+'</div>';
+    }
+    var meta='';
+    var who=escH(String(b.oleh||'')); var when=escH(String(b.diubah||b.dibuat||''));
+    if(who||when) meta='<div class="pj-meta">'+(who?('oleh '+who):'')+((who&&when)?' · ':'')+(when||'')+'</div>';
+    var ctrl='';
+    if(canEdit){
+      ctrl='<div class="pj-ctrl">'
+        +'<button class="pj-ctrl-ord" onclick="projMove(\''+id+'\',\'up\')" '+(i===0?'disabled':'')+' title="Naik">▲</button>'
+        +'<button class="pj-ctrl-ord" onclick="projMove(\''+id+'\',\'down\')" '+(i===n-1?'disabled':'')+' title="Turun">▼</button>'
+        +'<span class="pj-ctrl-spacer"></span>'
+        +'<button class="pj-ctrl-btn" onclick="projEdit(\''+id+'\')">✏️ Edit</button>'
+        +'<button class="pj-ctrl-btn del" onclick="projDelete(\''+id+'\')">🗑 Hapus</button>'
+        +'</div>';
+    }
+    html+='<div class="pj-block'+(tipe==='gambar'?' is-img':'')+'">'+inner+meta+ctrl+'</div>';
+  });
+  box.innerHTML=html;
+}
+
+// ── Editor ──
+function _projShowFields(tipe){
+  document.getElementById('proj-fields-teks').style.display=(tipe==='teks')?'block':'none';
+  document.getElementById('proj-fields-gambar').style.display=(tipe==='gambar')?'block':'none';
+  document.getElementById('proj-fields-link').style.display=(tipe==='link')?'block':'none';
+}
+function _projResetFields(){
+  document.getElementById('proj-teks-input').value='';
+  document.getElementById('proj-teks-prev').innerHTML='';
+  document.getElementById('proj-img-input').value='';
+  document.getElementById('proj-img-prev').innerHTML='';
+  document.getElementById('proj-cap-input').value='';
+  document.getElementById('proj-link-url').value='';
+  document.getElementById('proj-link-label').value='';
+  _projImgBase64='';
+}
+
+function projOpen(tipe){
+  if(!projCanEdit()){ showToast('Belum diizinkan mengedit Projek','err'); return; }
+  _projEditId=null; _projEditType=tipe;
+  document.getElementById('proj-modal-title').textContent={teks:'Tambah Teks',gambar:'Tambah Gambar',link:'Tambah Link'}[tipe]||'Tambah';
+  document.getElementById('proj-modal-sub').textContent={teks:'Tulis paragraf. Pilih kata lalu tekan Bold untuk menebalkan.',gambar:'Unggah gambar dari galeri atau kamera. Beri keterangan bila perlu.',link:'Tempel URL & beri judul agar mudah dikenali.'}[tipe]||'';
+  _projResetFields();
+  _projShowFields(tipe);
+  document.getElementById('proj-modal').classList.add('open');
+}
+
+function projEdit(id){
+  if(!projCanEdit()){ showToast('Belum diizinkan mengedit Projek','err'); return; }
+  var b=null; for(var i=0;i<_projRows.length;i++){ if(String(_projRows[i].id)===String(id)){ b=_projRows[i]; break; } }
+  if(!b){ showToast('Item tidak ditemukan','err'); return; }
+  _projEditId=String(id); _projEditType=String(b.tipe||'teks');
+  var t=_projEditType;
+  document.getElementById('proj-modal-title').textContent={teks:'Edit Teks',gambar:'Edit Gambar',link:'Edit Link'}[t]||'Edit';
+  document.getElementById('proj-modal-sub').textContent=(t==='gambar')?'Ubah keterangan, atau pilih file baru untuk mengganti gambar.':'Ubah isi lalu simpan.';
+  _projResetFields();
+  if(t==='teks'){ document.getElementById('proj-teks-input').value=String(b.konten||''); projTeksPreview(); }
+  else if(t==='gambar'){ document.getElementById('proj-cap-input').value=String(b.konten||''); var src=projImgUrl(b.url); document.getElementById('proj-img-prev').innerHTML='<img src="'+escH(src)+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Gambar saat ini — pilih file untuk mengganti.</div>'; }
+  else if(t==='link'){ document.getElementById('proj-link-url').value=String(b.url||''); document.getElementById('proj-link-label').value=String(b.konten||''); }
+  _projShowFields(t);
+  document.getElementById('proj-modal').classList.add('open');
+}
+
+function projClose(){ document.getElementById('proj-modal').classList.remove('open'); }
+
+function projTeksPreview(){
+  var v=document.getElementById('proj-teks-input').value;
+  document.getElementById('proj-teks-prev').innerHTML=v?projFmt(v):'<span style="color:var(--hint)">Pratinjau tampil di sini…</span>';
+}
+
+// Bold: bungkus seleksi dengan ** (toggle bila sudah ter-bold).
+function projBold(){
+  var ta=document.getElementById('proj-teks-input');
+  var s=ta.selectionStart, e=ta.selectionEnd, val=ta.value;
+  if(s===e){
+    var ins='**tebal**'; ta.value=val.slice(0,s)+ins+val.slice(e);
+    ta.selectionStart=s+2; ta.selectionEnd=s+7;
+  }else{
+    var sel=val.slice(s,e);
+    if(/^\*\*[\s\S]+\*\*$/.test(sel)){ var inner=sel.slice(2,-2); ta.value=val.slice(0,s)+inner+val.slice(e); ta.selectionStart=s; ta.selectionEnd=s+inner.length; }
+    else{ ta.value=val.slice(0,s)+'**'+sel+'**'+val.slice(e); ta.selectionStart=s; ta.selectionEnd=e+4; }
+  }
+  ta.focus(); projTeksPreview();
+}
+
+function projImgChange(){
+  var f=document.getElementById('proj-img-input').files[0];
+  _projImgBase64=''; var prev=document.getElementById('proj-img-prev');
+  if(!f){ prev.innerHTML=''; return; }
+  prev.innerHTML='<div style="font-size:11px;color:var(--muted)">Memproses gambar…</div>';
+  _kmCompress(f,function(b64){
+    _projImgBase64=b64; var kb=Math.round(b64.length/1024);
+    prev.innerHTML='<img src="'+b64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Gambar siap (~'+kb+' KB)</div>';
+  });
+}
+
+function projSave(){
+  if(_projSaving) return;
+  if(!projCanEdit()){ showToast('Belum diizinkan','err'); return; }
+  var t=_projEditType, isEdit=!!_projEditId;
+  var payload={ tipe:t, oleh:(userRole==='admin'?'admin':(userEmail||'manager')), olehEmail:(userEmail||'') };
+  if(isEdit){ payload.type='projek_update'; payload.id=_projEditId; }
+  else { payload.type='projek_add'; }
+  if(t==='teks'){
+    var teks=document.getElementById('proj-teks-input').value.trim();
+    if(!teks){ showToast('Teks masih kosong','err'); return; }
+    payload.konten=teks;
+  }else if(t==='gambar'){
+    payload.konten=document.getElementById('proj-cap-input').value.trim();
+    if(_projImgBase64) payload.foto=_projImgBase64;
+    else if(!isEdit){ showToast('Pilih gambar dulu','err'); return; }
+  }else if(t==='link'){
+    var url=document.getElementById('proj-link-url').value.trim();
+    if(!url){ showToast('URL masih kosong','err'); return; }
+    if(!/^https?:\/\//i.test(url)) url='https://'+url;
+    payload.url=url;
+    payload.konten=document.getElementById('proj-link-label').value.trim();
+  }
+  _projSaving=true;
+  var btn=document.getElementById('proj-save-btn'); var old=btn?btn.textContent:'';
+  if(btn){ btn.textContent='Menyimpan…'; btn.disabled=true; }
+  fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
+    .then(function(){
+      setTimeout(function(){
+        _projSaving=false; if(btn){ btn.textContent=old; btn.disabled=false; }
+        projClose();
+        showToast(isEdit?'Projek diperbarui ✓':'Ditambahkan ke Projek ✓','ok');
+        try{ if(typeof logActivity==='function') logActivity('Projek '+(isEdit?'edit':'tambah'), t+(payload.konten?(' · '+String(payload.konten).slice(0,40)):'')); }catch(e){}
+        loadProjek();
+      },800);
+    })
+    .catch(function(){
+      _projSaving=false; if(btn){ btn.textContent=old; btn.disabled=false; }
+      showToast('Gagal menyimpan ke server','err');
+    });
+}
+
+function projDelete(id){
+  if(!projCanEdit()){ showToast('Belum diizinkan','err'); return; }
+  if(!confirm('Hapus item ini dari Projek? Tidak bisa dibatalkan.')) return;
+  _projRows=_projRows.filter(function(b){ return String(b.id)!==String(id); });
+  projRender();
+  fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'projek_delete', id:String(id), oleh:(userRole==='admin'?'admin':(userEmail||'manager')), olehEmail:(userEmail||'')})})
+    .then(function(){ showToast('Item dihapus ✓','ok'); setTimeout(loadProjek,800); })
+    .catch(function(){ showToast('Gagal menghapus','err'); loadProjek(); });
+}
+
+function projMove(id,dir){
+  if(!projCanEdit()){ showToast('Belum diizinkan','err'); return; }
+  var idx=-1; for(var i=0;i<_projRows.length;i++){ if(String(_projRows[i].id)===String(id)){ idx=i; break; } }
+  if(idx<0) return;
+  var j=(dir==='up')?idx-1:idx+1;
+  if(j<0||j>=_projRows.length) return;
+  var tmp=_projRows[idx]; _projRows[idx]=_projRows[j]; _projRows[j]=tmp;
+  projRender();
+  fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'projek_reorder', id:String(id), dir:dir, oleh:(userRole==='admin'?'admin':(userEmail||'manager')), olehEmail:(userEmail||'')})})
+    .then(function(){ setTimeout(loadProjek,800); })
+    .catch(function(){ loadProjek(); });
+}
+</script>
+
 </body>
 </html>
