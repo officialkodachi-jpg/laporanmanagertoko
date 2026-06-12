@@ -1850,11 +1850,13 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 
   <!-- GAMBAR -->
   <div id="proj-fields-gambar" style="display:none">
-    <div class="pj-field-lbl">Pilih gambar (galeri atau kamera)</div>
-    <input type="file" accept="image/*" class="pj-file" id="proj-img-input" onchange="projImgChange()">
+    <div class="pj-field-lbl">Pilih gambar (galeri atau kamera) — boleh banyak sekaligus</div>
+    <input type="file" accept="image/*" class="pj-file" id="proj-img-input" multiple onchange="projImgChange()">
     <div class="pj-img-prev" id="proj-img-prev"></div>
-    <div class="pj-field-lbl" style="margin-top:12px">Keterangan (opsional) — bisa <b>**tebal**</b></div>
-    <input class="modal-input" id="proj-cap-input" placeholder="mis. Desain banner promo Lebaran" style="font-family:var(--sans);margin-bottom:0">
+    <div id="proj-cap-wrap">
+      <div class="pj-field-lbl" style="margin-top:12px">Keterangan (opsional) — bisa <b>**tebal**</b></div>
+      <input class="modal-input" id="proj-cap-input" placeholder="mis. Desain banner promo Lebaran" style="font-family:var(--sans);margin-bottom:0">
+    </div>
   </div>
 
   <!-- LINK -->
@@ -9233,7 +9235,7 @@ window.matchMedia('(display-mode: standalone)').addEventListener('change', e => 
    daftar blok berurutan (teks / gambar / link).
    ══════════════════════════════════════════════════════════════ */
 var _projRows=[], _projLoadedOnce=false, _projLoading=false;
-var _projEditId=null, _projEditType='teks', _projImgBase64='', _projSaving=false;
+var _projEditId=null, _projEditType='teks', _projImgBase64='', _projImgList=[], _projSaving=false;
 
 // Boleh edit? admin selalu; manager bila config projekMgrEdit==='1'.
 function projCanEdit(){
@@ -9350,8 +9352,10 @@ function projRender(){
     var ctrl='';
     if(canEdit){
       ctrl='<div class="pj-ctrl">'
+        +'<button class="pj-ctrl-ord" onclick="projMove(\''+id+'\',\'top\')" '+(i===0?'disabled':'')+' title="Paling atas">⤒</button>'
         +'<button class="pj-ctrl-ord" onclick="projMove(\''+id+'\',\'up\')" '+(i===0?'disabled':'')+' title="Naik">▲</button>'
         +'<button class="pj-ctrl-ord" onclick="projMove(\''+id+'\',\'down\')" '+(i===n-1?'disabled':'')+' title="Turun">▼</button>'
+        +'<button class="pj-ctrl-ord" onclick="projMove(\''+id+'\',\'bottom\')" '+(i===n-1?'disabled':'')+' title="Paling bawah">⤓</button>'
         +'<span class="pj-ctrl-spacer"></span>'
         +'<button class="pj-ctrl-btn" onclick="projEdit(\''+id+'\')">✏️ Edit</button>'
         +'<button class="pj-ctrl-btn del" onclick="projDelete(\''+id+'\')">🗑 Hapus</button>'
@@ -9376,14 +9380,15 @@ function _projResetFields(){
   document.getElementById('proj-cap-input').value='';
   document.getElementById('proj-link-url').value='';
   document.getElementById('proj-link-label').value='';
-  _projImgBase64='';
+  _projImgBase64=''; _projImgList=[];
+  var cw=document.getElementById('proj-cap-wrap'); if(cw) cw.style.display='block';
 }
 
 function projOpen(tipe){
   if(!projCanEdit()){ showToast('Belum diizinkan mengedit Projek','err'); return; }
   _projEditId=null; _projEditType=tipe;
   document.getElementById('proj-modal-title').textContent={teks:'Tambah Teks',gambar:'Tambah Gambar',link:'Tambah Link'}[tipe]||'Tambah';
-  document.getElementById('proj-modal-sub').textContent={teks:'Tulis paragraf. Pilih kata lalu tekan Bold untuk menebalkan.',gambar:'Unggah gambar dari galeri atau kamera. Beri keterangan bila perlu.',link:'Tempel URL & beri judul agar mudah dikenali.'}[tipe]||'';
+  document.getElementById('proj-modal-sub').textContent={teks:'Tulis paragraf. Pilih kata lalu tekan Bold untuk menebalkan.',gambar:'Unggah satu atau beberapa gambar sekaligus — tiap gambar jadi satu blok. Tanpa kompres.',link:'Tempel URL & beri judul agar mudah dikenali.'}[tipe]||'';
   _projResetFields();
   _projShowFields(tipe);
   document.getElementById('proj-modal').classList.add('open');
@@ -9427,21 +9432,74 @@ function projBold(){
   ta.focus(); projTeksPreview();
 }
 
+// Baca file APA ADANYA (tanpa kompres) → dataURL base64 kualitas penuh.
+function _projReadFile(file,cb){
+  var r=new FileReader();
+  r.onload=function(){ cb(String(r.result||'')); };
+  r.onerror=function(){ cb(''); };
+  r.readAsDataURL(file);
+}
+function _projKB(kb){ return kb>=1024?(Math.round(kb/102.4)/10+' MB'):(kb+' KB'); }
+
 function projImgChange(){
-  var f=document.getElementById('proj-img-input').files[0];
-  _projImgBase64=''; var prev=document.getElementById('proj-img-prev');
-  if(!f){ prev.innerHTML=''; return; }
-  prev.innerHTML='<div style="font-size:11px;color:var(--muted)">Memproses gambar…</div>';
-  _kmCompress(f,function(b64){
-    _projImgBase64=b64; var kb=Math.round(b64.length/1024);
-    prev.innerHTML='<img src="'+b64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Gambar siap (~'+kb+' KB)</div>';
+  var inp=document.getElementById('proj-img-input');
+  var prev=document.getElementById('proj-img-prev');
+  var capWrap=document.getElementById('proj-cap-wrap');
+  _projImgBase64=''; _projImgList=[];
+  var files=(inp&&inp.files)?Array.prototype.slice.call(inp.files):[];
+  if(!files.length){ prev.innerHTML=''; if(capWrap)capWrap.style.display='block'; return; }
+
+  // Mode EDIT → ganti 1 gambar saja (ambil file pertama). Caption tetap tampil.
+  if(_projEditId){
+    if(capWrap)capWrap.style.display='block';
+    prev.innerHTML='<div style="font-size:11px;color:var(--muted)">Memproses…</div>';
+    _projReadFile(files[0],function(b64){
+      _projImgBase64=b64; var kb=Math.round(b64.length/1024);
+      prev.innerHTML=b64?('<img src="'+b64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Gambar baru siap ('+_projKB(kb)+') — tanpa kompres</div>'):'<div style="font-size:11px;color:var(--red)">Gagal membaca file</div>';
+    });
+    return;
+  }
+
+  // Mode TAMBAH → bisa banyak. Caption disembunyikan bila >1 (per-gambar diedit nanti).
+  if(capWrap)capWrap.style.display=(files.length>1)?'none':'block';
+  prev.innerHTML='<div style="font-size:11px;color:var(--muted)">Memproses '+files.length+' gambar…</div>';
+  var slots=new Array(files.length), done=0;
+  files.forEach(function(f,idx){
+    _projReadFile(f,function(b64){
+      slots[idx]={b64:b64,name:(f.name||('gambar'+(idx+1)))};
+      done++;
+      if(done===files.length){
+        _projImgList=slots.filter(function(x){ return x&&x.b64; }); // buang yg gagal, jaga urutan
+        if(_projImgList.length===1) _projImgBase64=_projImgList[0].b64;
+        _projRenderImgPrev();
+      }
+    });
   });
+}
+function _projRenderImgPrev(){
+  var prev=document.getElementById('proj-img-prev');
+  var list=_projImgList;
+  if(!list.length){ prev.innerHTML='<div style="font-size:11px;color:var(--red)">Gagal membaca file</div>'; return; }
+  var totalKB=0; list.forEach(function(x){ totalKB+=Math.round(x.b64.length/1024); });
+  if(list.length===1){
+    prev.innerHTML='<img src="'+list[0].b64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Gambar siap ('+_projKB(totalKB)+') — tanpa kompres</div>';
+    return;
+  }
+  var g='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:6px;margin-bottom:6px">';
+  list.forEach(function(x){ g+='<img src="'+x.b64+'" style="width:100%;height:62px;object-fit:cover;border-radius:8px;border:1px solid var(--border);max-height:62px">'; });
+  g+='</div><div style="font-size:12px;color:var(--text);font-weight:700">'+list.length+' gambar siap ditambahkan</div>'
+    +'<div style="font-size:10px;color:var(--muted)">total ~'+_projKB(totalKB)+' · tanpa kompres · tiap gambar jadi 1 blok (urut sesuai pilihan)</div>';
+  prev.innerHTML=g;
 }
 
 function projSave(){
   if(_projSaving) return;
   if(!projCanEdit()){ showToast('Belum diizinkan','err'); return; }
   var t=_projEditType, isEdit=!!_projEditId;
+
+  // Tambah BANYAK gambar sekaligus → tiap gambar jadi 1 blok (jalur khusus).
+  if(t==='gambar' && !isEdit && _projImgList.length>1){ projSaveMulti(); return; }
+
   var payload={ tipe:t, oleh:(userRole==='admin'?'admin':(userEmail||'manager')), olehEmail:(userEmail||'') };
   if(isEdit){ payload.type='projek_update'; payload.id=_projEditId; }
   else { payload.type='projek_add'; }
@@ -9451,7 +9509,8 @@ function projSave(){
     payload.konten=teks;
   }else if(t==='gambar'){
     payload.konten=document.getElementById('proj-cap-input').value.trim();
-    if(_projImgBase64) payload.foto=_projImgBase64;
+    var oneB64=_projImgBase64||((_projImgList[0]&&_projImgList[0].b64)||'');
+    if(oneB64) payload.foto=oneB64;
     else if(!isEdit){ showToast('Pilih gambar dulu','err'); return; }
   }else if(t==='link'){
     var url=document.getElementById('proj-link-url').value.trim();
@@ -9479,6 +9538,34 @@ function projSave(){
     });
 }
 
+// Unggah banyak gambar BERURUTAN: request berikutnya baru jalan setelah
+// yang sebelumnya selesai → digabung LockService server, urutan blok
+// terjaga sesuai urutan pilih. Tanpa kompres.
+function projSaveMulti(){
+  var list=_projImgList.slice();
+  if(!list.length){ showToast('Pilih gambar dulu','err'); return; }
+  _projSaving=true;
+  var btn=document.getElementById('proj-save-btn'); var old=btn?btn.textContent:'';
+  var oleh=(userRole==='admin'?'admin':(userEmail||'manager')); var em=(userEmail||'');
+  var i=0, okN=0;
+  function step(){
+    if(i>=list.length){
+      _projSaving=false; if(btn){ btn.textContent=old; btn.disabled=false; }
+      projClose();
+      showToast(okN+' gambar ditambahkan ✓','ok');
+      try{ if(typeof logActivity==='function') logActivity('Projek tambah', okN+' gambar sekaligus'); }catch(e){}
+      loadProjek();
+      return;
+    }
+    if(btn){ btn.textContent='Mengunggah '+(i+1)+'/'+list.length+'…'; btn.disabled=true; }
+    var payload={ type:'projek_add', tipe:'gambar', konten:'', foto:list[i].b64, oleh:oleh, olehEmail:em };
+    fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
+      .then(function(){ okN++; i++; setTimeout(step,300); })
+      .catch(function(){ i++; setTimeout(step,300); });
+  }
+  step();
+}
+
 function projDelete(id){
   if(!projCanEdit()){ showToast('Belum diizinkan','err'); return; }
   if(!confirm('Hapus item ini dari Projek? Tidak bisa dibatalkan.')) return;
@@ -9493,9 +9580,17 @@ function projMove(id,dir){
   if(!projCanEdit()){ showToast('Belum diizinkan','err'); return; }
   var idx=-1; for(var i=0;i<_projRows.length;i++){ if(String(_projRows[i].id)===String(id)){ idx=i; break; } }
   if(idx<0) return;
-  var j=(dir==='up')?idx-1:idx+1;
-  if(j<0||j>=_projRows.length) return;
-  var tmp=_projRows[idx]; _projRows[idx]=_projRows[j]; _projRows[j]=tmp;
+  if(dir==='top'){
+    if(idx===0) return;
+    var itT=_projRows.splice(idx,1)[0]; _projRows.unshift(itT);
+  }else if(dir==='bottom'){
+    if(idx===_projRows.length-1) return;
+    var itB=_projRows.splice(idx,1)[0]; _projRows.push(itB);
+  }else{
+    var j=(dir==='up')?idx-1:idx+1;
+    if(j<0||j>=_projRows.length) return;
+    var tmp=_projRows[idx]; _projRows[idx]=_projRows[j]; _projRows[j]=tmp;
+  }
   projRender();
   fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'projek_reorder', id:String(id), dir:dir, oleh:(userRole==='admin'?'admin':(userEmail||'manager')), olehEmail:(userEmail||'')})})
     .then(function(){ setTimeout(loadProjek,800); })
