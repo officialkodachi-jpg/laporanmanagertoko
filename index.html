@@ -1511,7 +1511,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 
       <!-- Uang Receh -->
       <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:12px;color:var(--muted)">🪙 Uang Receh di Rify</div>
+        <div id="cash-receh-label" style="font-size:12px;color:var(--muted)">🪙 Uang Receh di Rify</div>
         <div id="cash-total-receh" style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--orange);line-height:1">—</div>
       </div>
     </div>
@@ -2644,6 +2644,8 @@ function applyAppConfig(){
   if(hSelf) hSelf.innerHTML = '💡 <b>Tampilkan data '+escH(MGR_NAME)+'</b>: manager bisa lihat catatan dirinya (read-only) untuk evaluasi.<br>• Tab tampil + '+escH(MGR_NAME)+' on → manager lihat semua partimer <b>dan</b> '+escH(MGR_NAME)+'.<br>• Tab disembunyikan + '+escH(MGR_NAME)+' on → tab tetap muncul tapi isinya <b>khusus '+escH(MGR_NAME)+' saja</b> (partimer lain disembunyikan). Cocok untuk sesi evaluasi.';
   // (v6.3) Label "Pengambilan <manager>" di tab Uang di Toko ikut nama manager dari Sumber Data.
   try{ var kat=document.getElementById('kas-ambil-title'); if(kat) kat.textContent='📤 Pengambilan '+MGR_NAME; }catch(e){}
+  // (v6.4) Catatan sumber KAS: sebut label baris yang dideteksi sesuai nama manager aktif.
+  try{ var ksn=document.getElementById('kas-src-note'); if(ksn) ksn.innerHTML='📊 Saldo awal &amp; akhir dibaca otomatis dari sheet <b>Penjualan</b> (H6 = awal, baris terakhir = akhir). Baris <b>"Uang Keluar Ambil '+escH(MGR_NAME)+'"</b> dicatat otomatis sebagai pengambilan hari itu. Tanpa hitung selisih.'; }catch(e){}
   // bila status berubah utk manager & tab sudah pernah dibuka, muat ulang daftar nama
   var cfgSig = (showKep?'1':'0')+'|'+(showSelf?'1':'0');
   if(userRole==='manager' && _pgLoadedOnce && _appCfgMgrSelfPrev!==cfgSig){ loadPartimer(); }
@@ -7779,6 +7781,8 @@ function applyCashSummary(rows, meta){
   // Nama manager dari header sheet
   document.getElementById('cash-nama-b').textContent = cashHeaders.b;
   document.getElementById('cash-btn-b-label').textContent = cashHeaders.b;
+  // (v6.4) label "Uang Receh di <nama>" ikut nama kolom B dari baris 2 sheet cash
+  var _rl=document.getElementById('cash-receh-label'); if(_rl) _rl.textContent='🪙 Uang Receh di '+cashHeaders.b;
 
   // Nilai belum disetor = langsung dari B1 spreadsheet (dikirim GAS sebagai meta.belumB)
   var belumB = (meta && meta.belumB != null) ? Number(meta.belumB) : null;
