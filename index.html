@@ -809,7 +809,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 
 <!-- SALDO KAS KURANG BANNER — merah, jika uang fisik toko < seharusnya -->
 <div class="alarm-banner" id="kas-alarm-banner" onclick="gotoData('cash')" style="background:#b91c1c;animation-name:shiftBannerPulse">
-  <span>📤 Rifyh ambil uang <span id="kas-alarm-amount"></span> hari ini (<span id="kas-alarm-tgl"></span>)</span>
+  <span>⚠️ Rifyh ambil <span id="kas-alarm-amount"></span> belum tercatat di "Sudah Diambil" (<span id="kas-alarm-tgl"></span>)</span>
   <span class="mute-hint" onclick="event.stopPropagation();muteKasAlarm()">👆 Tap untuk lihat · 🔕 bisukan</span>
 </div>
 
@@ -7593,6 +7593,8 @@ async function loadCashData(){
       var meta = d.meta || null;
       applyCashSummary(cashData, meta);
       renderCashRecent();
+      cashReady=true;
+      try{ if(typeof kasRenderHari==='function' && kasData && kasData.rows){ kasRenderHari(); kasRenderHist(); kasTriggerBanner(); } }catch(e){}
       setCashStatus('✓ ' + new Date().toLocaleTimeString('id-ID'), 'ok');
     } else {
       setCashStatus('⚠️ ' + (d.message||'error'),'err');
@@ -7974,6 +7976,7 @@ function buildCashBulanFilter(){}
 // ════════════════════════════════════════════════════════════
 var kasData={};
 var kasMuted=false;
+var cashReady=false;
 
 // ── Muat data kas dari GAS utama ──
 function loadKasData(){
@@ -7994,7 +7997,41 @@ function switchCashSub(which){
   act(bT,on); act(bD,!on);
 }
 
-// ── Kartu hari ini: saldo awal/akhir + ambil Rifyh ──
+// ── Normalisasi tanggal apa pun -> 'yyyy-mm-dd' ──
+function kasP2(n){ return String(n).padStart(2,'0'); }
+function kasBulanIdx(name){ name=String(name||'').toLowerCase(); for(var i=0;i<BULAN_NAMES.length;i++){ if(BULAN_NAMES[i].toLowerCase()===name) return i+1; } return 0; }
+function kasNormTgl(s){
+  if(s==null) return '';
+  if(s instanceof Date) return s.getFullYear()+'-'+kasP2(s.getMonth()+1)+'-'+kasP2(s.getDate());
+  s=String(s).trim();
+  var m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/); if(m) return m[1]+'-'+kasP2(m[2])+'-'+kasP2(m[3]);
+  m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})/); if(m){ var y=m[3]; if(y.length===2)y='20'+y; return y+'-'+kasP2(m[2])+'-'+kasP2(m[1]); }
+  m=s.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/); if(m){ var mo=kasBulanIdx(m[2]); if(mo>0) return m[3]+'-'+kasP2(mo)+'-'+kasP2(m[1]); }
+  return s;
+}
+
+// ── Cocokkan Ambil Rifyh (Penjualan) vs catatan "Sudah Diambil" ──
+// Hasil: { 'yyyy-mm-dd': {status:'ok'|'partial'|'none', recorded, ambil} }
+// Tiap entri Sudah Diambil hanya dipakai 1x (match by tanggal dulu, lalu by jumlah persis).
+function kasReconcile(){
+  var out={};
+  if(!cashReady) return out;                       // data Sudah Diambil belum dimuat -> jangan nge-flag
+  var pool=[];
+  (typeof cashData!=='undefined'?cashData:[]||[]).forEach(function(r){
+    if(r && r.rify!=null){ var v=Number(r.rify); if(v>0) pool.push({tgl:kasNormTgl(r.tgl), val:v, used:false}); }
+  });
+  var krows=((kasData.rows)||[]).slice().reverse();   // lama -> baru
+  krows.forEach(function(r){
+    var amt=(r.ambilRifyh||0); if(amt<=0) return;
+    var rec=0;
+    pool.forEach(function(p){ if(!p.used && p.tgl===r.tanggal){ rec+=p.val; p.used=true; } });   // 1) by tanggal
+    if(rec<amt){ for(var i=0;i<pool.length;i++){ if(!pool[i].used && pool[i].val===(amt-rec)){ rec+=pool[i].val; pool[i].used=true; break; } } } // 2) by jumlah persis
+    out[r.tanggal]={ status:(rec>=amt?'ok':(rec>0?'partial':'none')), recorded:rec, ambil:amt };
+  });
+  return out;
+}
+
+// ── Kartu hari ini: saldo awal/akhir + ambil Rifyh + status tercatat ──
 function kasRenderHari(){
   var tg=document.getElementById('kas-hari-tgl');
   if(tg) tg.textContent=kasData.tanggal?('Hari ini · '+kasData.tanggal):'—';
@@ -8002,23 +8039,44 @@ function kasRenderHari(){
   var ak=document.getElementById('kas-akhir'); if(ak) ak.textContent=(kasData.saldoAkhir!=null)?fRpPlain(kasData.saldoAkhir):'—';
 
   var amb=(kasData.ambilRifyh||0);
+  var recon=kasReconcile();
+  var rc=recon[kasData.tanggal]||null;
+  var st=rc?rc.status:null;
+
   var bd=document.getElementById('kas-hari-badge');
   if(bd){
     if(kasData.sumberOk===false){ bd.textContent='⚠️ sumber?'; bd.style.background='rgba(217,119,6,.12)'; bd.style.color='#d97706'; }
+    else if(amb>0 && cashReady && st==='none'){ bd.textContent='🔴 belum dicatat'; bd.style.background='rgba(220,38,38,.12)'; bd.style.color='#dc2626'; }
+    else if(amb>0 && cashReady && st==='partial'){ bd.textContent='🟠 sebagian'; bd.style.background='rgba(217,119,6,.12)'; bd.style.color='#d97706'; }
+    else if(amb>0 && cashReady && st==='ok'){ bd.textContent='✅ tercatat'; bd.style.background='rgba(13,148,136,.12)'; bd.style.color='#0d9488'; }
     else if(amb>0){ bd.textContent='📤 Ambil Rifyh'; bd.style.background='rgba(217,119,6,.12)'; bd.style.color='#d97706'; }
     else if(!kasData.adaAktual){ bd.textContent='⏳ belum tutup'; bd.style.background='var(--surface)'; bd.style.color='var(--muted)'; }
-    else { bd.textContent='✅ tercatat'; bd.style.background='rgba(13,148,136,.12)'; bd.style.color='#0d9488'; }
+    else { bd.textContent='✅'; bd.style.background='rgba(13,148,136,.12)'; bd.style.color='#0d9488'; }
   }
+
   var box=document.getElementById('kas-ambil-box');
   if(box){
-    if(amb>0){ box.style.display='block'; box.style.background='rgba(217,119,6,.1)'; box.style.color='#d97706'; box.innerHTML='📤 Rifyh ambil hari ini: '+fRpPlain(amb)+(kasData.ambilCount>1?(' ('+kasData.ambilCount+'x)'):''); }
-    else if(kasData.sumberOk===false){ box.style.display='block'; box.style.background='rgba(217,119,6,.1)'; box.style.color='#d97706'; box.innerHTML='⚠️ Sheet Penjualan tidak terbaca. Cek izin / ID spreadsheet.'; }
-    else { box.style.display='none'; }
+    if(amb>0){
+      box.style.display='block';
+      var head='📤 Rifyh ambil hari ini: '+fRpPlain(amb)+(kasData.ambilCount>1?(' ('+kasData.ambilCount+'x)'):'');
+      var sub='', bg='rgba(217,119,6,.1)', cl='#d97706';
+      if(!cashReady){ sub='⏳ buka tab "Sudah Diambil" untuk cek pencatatan'; }
+      else if(st==='ok'){ sub='✓ sudah tercatat di "Sudah Diambil"'; bg='rgba(13,148,136,.1)'; cl='#0d9488'; }
+      else if(st==='partial'){ sub='⚠️ baru '+fRpPlain(rc.recorded)+' tercatat — kurang '+fRpPlain(amb-rc.recorded); bg='rgba(220,38,38,.1)'; cl='#dc2626'; }
+      else { sub='⚠️ BELUM tercatat di "Sudah Diambil"'; bg='rgba(220,38,38,.1)'; cl='#dc2626'; }
+      box.style.background=bg; box.style.color=cl;
+      box.innerHTML=head+'<div style="font-size:11px;font-weight:600;margin-top:4px;opacity:.95">'+sub+'</div>';
+    } else if(kasData.sumberOk===false){
+      box.style.display='block'; box.style.background='rgba(217,119,6,.1)'; box.style.color='#d97706';
+      box.innerHTML='⚠️ Sheet Penjualan tidak terbaca. Cek izin / ID spreadsheet.';
+    } else { box.style.display='none'; }
   }
-  var dot=document.getElementById('cst-toko-dot'); if(dot) dot.style.display=(amb>0)?'block':'none';
+
+  var dot=document.getElementById('cst-toko-dot');
+  if(dot) dot.style.display=(amb>0 && cashReady && (st==='none'||st==='partial'))?'block':'none';
 }
 
-// ── Riwayat saldo harian (awal → akhir + ambil Rifyh) ──
+// ── Riwayat saldo harian (awal→akhir + ambil Rifyh + status tercatat) ──
 function kasRenderHist(){
   var el=document.getElementById('kas-hist'); if(!el)return;
   var rows=kasData.rows||[];
@@ -8026,18 +8084,27 @@ function kasRenderHist(){
     el.innerHTML='<div style="font-size:11px;color:var(--hint);text-align:center;padding:10px">Belum ada data. Menunggu pembacaan saldo (atau pasang trigger harian kasSnapshotHarian).</div>';
     return;
   }
+  var recon=kasReconcile();
   var isAdmin=(userRole==='admin');
   var html='';
   rows.forEach(function(r){
     var amb=(r.ambilRifyh||0);
-    var col=amb>0?'#d97706':'var(--muted)';
+    var rc=recon[r.tanggal]||null;
+    var st=rc?rc.status:null;
+    var col=amb>0?((cashReady&&st==='none')?'#dc2626':(cashReady&&st==='partial')?'#d97706':'#0d9488'):'var(--muted)';
+    var tag='';
+    if(amb>0 && cashReady){
+      if(st==='ok') tag='<span style="font-size:9px;color:#0d9488;font-weight:700">✓ tercatat</span>';
+      else if(st==='partial') tag='<span style="font-size:9px;color:#d97706;font-weight:700">⚠️ kurang '+fRpPlain(amb-rc.recorded)+'</span>';
+      else tag='<span style="font-size:9px;color:#dc2626;font-weight:700">⚠️ belum dicatat</span>';
+    } else if(amb>0){ tag='<span style="font-size:9px;color:var(--hint)">ambil Rifyh</span>'; }
     html+='<div style="background:var(--card);border:1px solid var(--border);border-left:3px solid '+col+';border-radius:8px;padding:10px 12px">'
       +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
         +'<div>'
           +'<div style="font-size:12px;font-weight:700">'+r.tanggal+'</div>'
           +'<div style="font-size:11px;color:var(--muted);margin-top:3px;font-family:var(--mono)">awal '+(r.saldoAwal!=null?fRpPlain(r.saldoAwal):'—')+'  →  akhir '+(r.saldoAkhir!=null?fRpPlain(r.saldoAkhir):'—')+'</div>'
         +'</div>'
-        +(amb>0?('<div style="text-align:right;white-space:nowrap"><div style="font-family:var(--mono);font-size:13px;font-weight:800;color:#d97706">📤 '+fRpPlain(amb)+'</div><div style="font-size:9px;color:var(--hint)">ambil Rifyh</div></div>'):'')
+        +(amb>0?('<div style="text-align:right;white-space:nowrap"><div style="font-family:var(--mono);font-size:13px;font-weight:800;color:'+col+'">📤 '+fRpPlain(amb)+'</div>'+tag+'</div>'):'')
       +'</div>';
     if(isAdmin){
       html+='<div style="display:flex;gap:6px;margin-top:8px">'
@@ -8073,13 +8140,18 @@ function kasAdminReset(tgl){
     .catch(function(){ showToast('Gagal','err'); });
 }
 
-// ── Banner Ambil Rifyh (muncul kalau hari ini ada pengambilan) ──
+// ── Banner: Rifyh ambil uang TAPI belum tercatat di "Sudah Diambil" ──
 function muteKasAlarm(){ kasMuted=true; var b=document.getElementById('kas-alarm-banner'); if(b)b.classList.remove('show'); }
 function kasTriggerBanner(){
   var b=document.getElementById('kas-alarm-banner'); if(!b)return;
-  if(kasData.alarm && !kasMuted){
-    var amt=document.getElementById('kas-alarm-amount'); if(amt)amt.textContent=fRpPlain(kasData.alarm.ambil);
-    var tg=document.getElementById('kas-alarm-tgl'); if(tg)tg.textContent=kasData.alarm.tanggal;
+  var amb=(kasData.ambilRifyh||0);
+  var recon=kasReconcile();
+  var rc=recon[kasData.tanggal]||null;
+  var st=rc?rc.status:null;
+  if(!kasMuted && amb>0 && cashReady && (st==='none'||st==='partial')){
+    var kurang=(st==='partial')?(amb-rc.recorded):amb;
+    var amt=document.getElementById('kas-alarm-amount'); if(amt)amt.textContent=fRpPlain(kurang);
+    var tg=document.getElementById('kas-alarm-tgl'); if(tg)tg.textContent=kasData.tanggal;
     b.classList.add('show');
   } else { b.classList.remove('show'); }
 }
