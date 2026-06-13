@@ -418,6 +418,7 @@ body.role-admin .adm-only-block{display:block}
 @keyframes bannerShake{0%{background:#dc2626}100%{background:#b91c1c}}
 @keyframes meetingShake{0%{background:#0f766e}100%{background:#0d9488}}
 @keyframes shiftBannerPulse{0%{background:#d97706}100%{background:#b45309}}
+@keyframes kasBannerPulse{0%{background:#ef4444}100%{background:#7f1d1d}}
 .alarm-banner .mute-hint{font-size:11px;font-weight:400;opacity:.85;margin-left:8px}
 
 /* GUDANG IN/OUT */
@@ -808,8 +809,8 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 </div>
 
 <!-- SALDO KAS KURANG BANNER — merah, jika uang fisik toko < seharusnya -->
-<div class="alarm-banner" id="kas-alarm-banner" onclick="gotoData('cash')" style="background:#b91c1c;animation-name:shiftBannerPulse">
-  <span>⚠️ Rifyh ambil <span id="kas-alarm-amount"></span> belum tercatat di "Sudah Diambil" (<span id="kas-alarm-tgl"></span>)</span>
+<div class="alarm-banner" id="kas-alarm-banner" onclick="gotoData('cash')" style="background:#dc2626;animation-name:kasBannerPulse">
+  <span>🚨 Uang diambil dari toko BELUM tercatat: <span id="kas-alarm-amount"></span> · <span id="kas-alarm-tgl"></span></span>
   <span class="mute-hint" onclick="event.stopPropagation();muteKasAlarm()">👆 Tap untuk lihat · 🔕 bisukan</span>
 </div>
 
@@ -1467,6 +1468,19 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
         <div id="kas-src-note" style="font-size:10px;color:var(--hint);margin-top:10px;line-height:1.5">📊 Saldo awal &amp; akhir dibaca otomatis dari sheet <b>Penjualan</b> (H6 = awal, baris terakhir = akhir). Baris <b>"Uang Keluar Ambil Rifyh"</b> dicatat otomatis sebagai pengambilan hari itu. Tanpa hitung selisih.</div>
       </div>
 
+      <!-- Daftar pengambilan Rifyh (bisa di-sort) -->
+      <div id="kas-ambil-card" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:800">📤 Pengambilan Rifyh</div>
+          <div style="display:flex;gap:4px;background:var(--surface);padding:3px;border-radius:8px">
+            <button id="kas-sort-tgl" onclick="kasSetSortAmbil('date')" style="padding:5px 9px;border:none;border-radius:6px;font-family:var(--sans);font-size:10px;font-weight:700;cursor:pointer;background:var(--card);color:var(--text)">Terbaru</button>
+            <button id="kas-sort-amt" onclick="kasSetSortAmbil('amount')" style="padding:5px 9px;border:none;border-radius:6px;font-family:var(--sans);font-size:10px;font-weight:700;cursor:pointer;background:transparent;color:var(--muted)">Terbesar</button>
+          </div>
+        </div>
+        <div id="kas-ambil-summary" style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5"></div>
+        <div id="kas-ambil-list" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+
       <!-- Riwayat progresif saldo harian -->
       <div style="font-size:11px;color:var(--muted);font-weight:600;margin:4px 0 8px">📒 Saldo harian (terbaru di atas)</div>
       <div id="kas-hist" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -1519,6 +1533,15 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
               <option value="Setor">📥 Setor</option>
             </select>
           </div>
+        </div>
+
+        <!-- Konfirmasi: pengambilan tgl mana yg lagi dicatat (link ke Uang di Toko) -->
+        <div id="cash-konfirm-row" style="display:none;margin-bottom:12px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500">🔗 Ini pengambilan tanggal berapa? <span style="font-weight:400;color:var(--hint)">(konfirmasi ke Uang di Toko)</span></div>
+          <select id="cash-konfirm-tgl" style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-family:var(--sans);font-size:12px;background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+            <option value="">— belum dikonfirmasi / bukan dari Penjualan —</option>
+          </select>
+          <div style="font-size:10px;color:var(--hint);margin-top:4px;line-height:1.4">Pilih hari pengambilan yang lagi kamu catat → di Uang di Toko hari itu jadi ✓ tercatat.</div>
         </div>
 
         <!-- Jumlah — di atas badge manager -->
@@ -7593,8 +7616,6 @@ async function loadCashData(){
       var meta = d.meta || null;
       applyCashSummary(cashData, meta);
       renderCashRecent();
-      cashReady=true;
-      try{ if(typeof kasRenderHari==='function' && kasData && kasData.rows){ kasRenderHari(); kasRenderHist(); kasTriggerBanner(); } }catch(e){}
       setCashStatus('✓ ' + new Date().toLocaleTimeString('id-ID'), 'ok');
     } else {
       setCashStatus('⚠️ ' + (d.message||'error'),'err');
@@ -7735,7 +7756,7 @@ function renderCashRecent(){
 }
 
 // ── Helpers interaksi form ─────────────────────────────────
-function cashOnKetChange(){ updateCashPreview(); }
+function cashOnKetChange(){ updateCashPreview(); kasFillKonfirmDropdown(); var ket=(document.getElementById('cash-inp-ket')||{}).value||''; var row=document.getElementById('cash-konfirm-row'); if(row)row.style.display=(ket==='Ambil')?'block':'none'; }
 
 function cashOnRecehKetChange(){
   var ket   = document.getElementById('cash-inp-ket-receh').value;
@@ -7890,6 +7911,12 @@ async function simpanCashData(){
       document.getElementById('cash-inp-nominal').value='';
       document.getElementById('cash-inp-ket').value='';
       var pv=document.getElementById('cash-preview-nominal');if(pv)pv.textContent='';
+      var _kfTgl=(document.getElementById('cash-konfirm-tgl')||{}).value||'';
+      if(ket==='Ambil' && _kfTgl){
+        try{ fetch(scriptUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'kas_confirm',tanggal:_kfTgl,jumlah:nom,oleh:(userRole||'manager'),olehEmail:(userEmail||'')})}); }catch(_e){}
+        var _kfs=document.getElementById('cash-konfirm-tgl'); if(_kfs)_kfs.value='';
+        setTimeout(function(){ try{ if(typeof loadKasData==='function')loadKasData(); }catch(_e2){} }, 1600);
+      }
       setTimeout(loadCashData, 700);
     } else {
       if(sta){sta.style.color='var(--red)'; sta.textContent='⚠️ '+(data.message||'Gagal');}
@@ -7976,14 +8003,13 @@ function buildCashBulanFilter(){}
 // ════════════════════════════════════════════════════════════
 var kasData={};
 var kasMuted=false;
-var cashReady=false;
 
 // ── Muat data kas dari GAS utama ──
 function loadKasData(){
   var url=scriptUrl; if(!url||!url.startsWith('http'))return;
   fetch(url+'?type=kas&email='+encodeURIComponent(userEmail||'')+'&_='+Date.now())
     .then(function(r){return r.json();})
-    .then(function(d){ kasData=d||{}; kasRenderHari(); kasRenderHist(); kasTriggerBanner(); })
+    .then(function(d){ kasData=d||{}; kasRenderHari(); kasRenderAmbilList(); kasRenderHist(); kasTriggerBanner(); kasFillKonfirmDropdown(); })
     .catch(function(){});
 }
 
@@ -7997,59 +8023,80 @@ function switchCashSub(which){
   act(bT,on); act(bD,!on);
 }
 
-// ── Normalisasi tanggal apa pun -> 'yyyy-mm-dd' ──
-function kasP2(n){ return String(n).padStart(2,'0'); }
-function kasBulanIdx(name){ name=String(name||'').toLowerCase(); for(var i=0;i<BULAN_NAMES.length;i++){ if(BULAN_NAMES[i].toLowerCase()===name) return i+1; } return 0; }
-function kasNormTgl(s){
-  if(s==null) return '';
-  if(s instanceof Date) return s.getFullYear()+'-'+kasP2(s.getMonth()+1)+'-'+kasP2(s.getDate());
-  s=String(s).trim();
-  var m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/); if(m) return m[1]+'-'+kasP2(m[2])+'-'+kasP2(m[3]);
-  m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})/); if(m){ var y=m[3]; if(y.length===2)y='20'+y; return y+'-'+kasP2(m[2])+'-'+kasP2(m[1]); }
-  m=s.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/); if(m){ var mo=kasBulanIdx(m[2]); if(mo>0) return m[3]+'-'+kasP2(mo)+'-'+kasP2(m[1]); }
-  return s;
+// ── Status pengambilan 1 hari (dari KONFIRMASI manager, bukan nebak) ──
+function kasStatusOf(r){
+  var a=(r&&r.ambilRifyh)||0, k=(r&&r.konfirmasi)||0;
+  if(a<=0) return null;
+  return (k>=a)?'ok':(k>0?'partial':'none');
 }
 
-// ── Cocokkan Ambil Rifyh (Penjualan) vs catatan "Sudah Diambil" ──
-// Hasil: { 'yyyy-mm-dd': {status:'ok'|'partial'|'none', recorded, ambil} }
-// Tiap entri Sudah Diambil hanya dipakai 1x (match by tanggal dulu, lalu by jumlah persis).
-function kasReconcile(){
-  var out={};
-  if(!cashReady) return out;                       // data Sudah Diambil belum dimuat -> jangan nge-flag
-  var pool=[];
-  (typeof cashData!=='undefined'?cashData:[]||[]).forEach(function(r){
-    if(r && r.rify!=null){ var v=Number(r.rify); if(v>0) pool.push({tgl:kasNormTgl(r.tgl), val:v, used:false}); }
+// ── Isi dropdown konfirmasi di form "Sudah Diambil" (hari yg belum dikonfirmasi penuh) ──
+function kasFillKonfirmDropdown(){
+  var sel=document.getElementById('cash-konfirm-tgl'); if(!sel)return;
+  var prev=sel.value;
+  var items=((kasData.rows)||[]).filter(function(r){ return (r.ambilRifyh||0) > (r.konfirmasi||0); });
+  items.sort(function(a,b){ return String(b.tanggal).localeCompare(String(a.tanggal)); });
+  var html='<option value="">— belum dikonfirmasi / bukan dari Penjualan —</option>';
+  items.forEach(function(r){
+    var sisa=(r.ambilRifyh||0)-(r.konfirmasi||0);
+    html+='<option value="'+r.tanggal+'">'+r.tanggal+' — '+fRpPlain(r.ambilRifyh)+(((r.konfirmasi||0)>0)?(' (sisa '+fRpPlain(sisa)+')'):'')+'</option>';
   });
-  var krows=((kasData.rows)||[]).slice().reverse();   // lama -> baru
-  krows.forEach(function(r){
-    var amt=(r.ambilRifyh||0); if(amt<=0) return;
-    var rec=0;
-    pool.forEach(function(p){ if(!p.used && p.tgl===r.tanggal){ rec+=p.val; p.used=true; } });   // 1) by tanggal
-    if(rec<amt){ for(var i=0;i<pool.length;i++){ if(!pool[i].used && pool[i].val===(amt-rec)){ rec+=pool[i].val; pool[i].used=true; break; } } } // 2) by jumlah persis
-    out[r.tanggal]={ status:(rec>=amt?'ok':(rec>0?'partial':'none')), recorded:rec, ambil:amt };
-  });
-  return out;
+  sel.innerHTML=html;
+  if(prev) sel.value=prev;
 }
 
-// ── Kartu hari ini: saldo awal/akhir + ambil Rifyh + status tercatat ──
+// ── Daftar pengambilan Rifyh (sortable) ──
+var kasSortAmbil='date';
+function kasSetSortAmbil(s){
+  kasSortAmbil=s;
+  var bt=document.getElementById('kas-sort-tgl'), ba=document.getElementById('kas-sort-amt');
+  function act(b,a){ if(!b)return; b.style.background=a?'var(--card)':'transparent'; b.style.color=a?'var(--text)':'var(--muted)'; }
+  act(bt,s==='date'); act(ba,s==='amount');
+  kasRenderAmbilList();
+}
+function kasRenderAmbilList(){
+  var list=document.getElementById('kas-ambil-list'); var sum=document.getElementById('kas-ambil-summary');
+  if(!list||!sum)return;
+  var items=((kasData.rows)||[]).filter(function(r){return (r.ambilRifyh||0)>0;}).map(function(r){
+    return { tgl:r.tanggal, amt:(r.ambilRifyh||0), konf:(r.konfirmasi||0), st:kasStatusOf(r) };
+  });
+  if(kasSortAmbil==='amount') items.sort(function(a,b){ return b.amt-a.amt || String(b.tgl).localeCompare(String(a.tgl)); });
+  else items.sort(function(a,b){ return String(b.tgl).localeCompare(String(a.tgl)); });
+  var total=0, unrecCnt=0, unrecAmt=0;
+  items.forEach(function(it){ total+=it.amt; if(it.st==='none'||it.st==='partial'){ unrecCnt++; unrecAmt += (it.amt - it.konf); } });
+  if(!items.length){ sum.innerHTML='Belum ada pengambilan tercatat.'; list.innerHTML=''; return; }
+  var s='Total diambil <b style="color:var(--text)">'+fRpPlain(total)+'</b> · '+items.length+'x';
+  if(unrecCnt>0) s+=' · <b style="color:#dc2626">⚠️ '+fRpPlain(unrecAmt)+' belum dikonfirmasi ('+unrecCnt+' hari)</b>';
+  else s+=' · <span style="color:#0d9488">✓ semua tercatat</span>';
+  sum.innerHTML=s;
+  list.innerHTML=items.map(function(it){
+    var tag='', col='#dc2626';
+    if(it.st==='ok'){ tag='<span style="font-size:9px;color:#0d9488;font-weight:700">✓ tercatat</span>'; col='#0d9488'; }
+    else if(it.st==='partial'){ tag='<span style="font-size:9px;color:#d97706;font-weight:700">⚠️ kurang '+fRpPlain(it.amt-it.konf)+'</span>'; col='#d97706'; }
+    else { tag='<span style="font-size:9px;color:#dc2626;font-weight:700">⚠️ belum dikonfirmasi</span>'; col='#dc2626'; }
+    return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:var(--surface);border-radius:8px;border-left:3px solid '+col+'">'
+      +'<div style="font-size:12px;font-weight:700;font-family:var(--mono)">'+it.tgl+'</div>'
+      +'<div style="text-align:right"><div style="font-family:var(--mono);font-size:13px;font-weight:800;color:'+col+'">'+fRpPlain(it.amt)+'</div>'+tag+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+// ── Kartu hari ini: saldo awal/akhir + ambil Rifyh + status konfirmasi ──
 function kasRenderHari(){
   var tg=document.getElementById('kas-hari-tgl');
   if(tg) tg.textContent=kasData.tanggal?('Hari ini · '+kasData.tanggal):'—';
   var aw=document.getElementById('kas-awal'); if(aw) aw.textContent=(kasData.saldoAwal!=null)?fRpPlain(kasData.saldoAwal):'—';
   var ak=document.getElementById('kas-akhir'); if(ak) ak.textContent=(kasData.saldoAkhir!=null)?fRpPlain(kasData.saldoAkhir):'—';
 
-  var amb=(kasData.ambilRifyh||0);
-  var recon=kasReconcile();
-  var rc=recon[kasData.tanggal]||null;
-  var st=rc?rc.status:null;
+  var amb=(kasData.ambilRifyh||0), konf=(kasData.konfirmasi||0);
+  var st = amb>0 ? ((konf>=amb)?'ok':(konf>0?'partial':'none')) : null;
 
   var bd=document.getElementById('kas-hari-badge');
   if(bd){
     if(kasData.sumberOk===false){ bd.textContent='⚠️ sumber?'; bd.style.background='rgba(217,119,6,.12)'; bd.style.color='#d97706'; }
-    else if(amb>0 && cashReady && st==='none'){ bd.textContent='🔴 belum dicatat'; bd.style.background='rgba(220,38,38,.12)'; bd.style.color='#dc2626'; }
-    else if(amb>0 && cashReady && st==='partial'){ bd.textContent='🟠 sebagian'; bd.style.background='rgba(217,119,6,.12)'; bd.style.color='#d97706'; }
-    else if(amb>0 && cashReady && st==='ok'){ bd.textContent='✅ tercatat'; bd.style.background='rgba(13,148,136,.12)'; bd.style.color='#0d9488'; }
-    else if(amb>0){ bd.textContent='📤 Ambil Rifyh'; bd.style.background='rgba(217,119,6,.12)'; bd.style.color='#d97706'; }
+    else if(st==='none'){ bd.textContent='🔴 belum dikonfirmasi'; bd.style.background='rgba(220,38,38,.12)'; bd.style.color='#dc2626'; }
+    else if(st==='partial'){ bd.textContent='🟠 sebagian'; bd.style.background='rgba(217,119,6,.12)'; bd.style.color='#d97706'; }
+    else if(st==='ok'){ bd.textContent='✅ tercatat'; bd.style.background='rgba(13,148,136,.12)'; bd.style.color='#0d9488'; }
     else if(!kasData.adaAktual){ bd.textContent='⏳ belum tutup'; bd.style.background='var(--surface)'; bd.style.color='var(--muted)'; }
     else { bd.textContent='✅'; bd.style.background='rgba(13,148,136,.12)'; bd.style.color='#0d9488'; }
   }
@@ -8059,11 +8106,10 @@ function kasRenderHari(){
     if(amb>0){
       box.style.display='block';
       var head='📤 Rifyh ambil hari ini: '+fRpPlain(amb)+(kasData.ambilCount>1?(' ('+kasData.ambilCount+'x)'):'');
-      var sub='', bg='rgba(217,119,6,.1)', cl='#d97706';
-      if(!cashReady){ sub='⏳ buka tab "Sudah Diambil" untuk cek pencatatan'; }
-      else if(st==='ok'){ sub='✓ sudah tercatat di "Sudah Diambil"'; bg='rgba(13,148,136,.1)'; cl='#0d9488'; }
-      else if(st==='partial'){ sub='⚠️ baru '+fRpPlain(rc.recorded)+' tercatat — kurang '+fRpPlain(amb-rc.recorded); bg='rgba(220,38,38,.1)'; cl='#dc2626'; }
-      else { sub='⚠️ BELUM tercatat di "Sudah Diambil"'; bg='rgba(220,38,38,.1)'; cl='#dc2626'; }
+      var sub='', bg='rgba(220,38,38,.1)', cl='#dc2626';
+      if(st==='ok'){ sub='✓ sudah dikonfirmasi tercatat'; bg='rgba(13,148,136,.1)'; cl='#0d9488'; }
+      else if(st==='partial'){ sub='⚠️ baru '+fRpPlain(konf)+' dikonfirmasi — kurang '+fRpPlain(amb-konf); bg='rgba(217,119,6,.1)'; cl='#d97706'; }
+      else { sub='⚠️ BELUM dikonfirmasi — catat di "Sudah Diambil" lalu pilih tanggal ini'; }
       box.style.background=bg; box.style.color=cl;
       box.innerHTML=head+'<div style="font-size:11px;font-weight:600;margin-top:4px;opacity:.95">'+sub+'</div>';
     } else if(kasData.sumberOk===false){
@@ -8072,11 +8118,12 @@ function kasRenderHari(){
     } else { box.style.display='none'; }
   }
 
+  var anyUnrec=false; ((kasData.rows)||[]).forEach(function(r){ if((r.ambilRifyh||0) > (r.konfirmasi||0)) anyUnrec=true; });
   var dot=document.getElementById('cst-toko-dot');
-  if(dot) dot.style.display=(amb>0 && cashReady && (st==='none'||st==='partial'))?'block':'none';
+  if(dot) dot.style.display=anyUnrec?'block':'none';
 }
 
-// ── Riwayat saldo harian (awal→akhir + ambil Rifyh + status tercatat) ──
+// ── Riwayat saldo harian (awal→akhir + ambil Rifyh + status konfirmasi) ──
 function kasRenderHist(){
   var el=document.getElementById('kas-hist'); if(!el)return;
   var rows=kasData.rows||[];
@@ -8084,20 +8131,18 @@ function kasRenderHist(){
     el.innerHTML='<div style="font-size:11px;color:var(--hint);text-align:center;padding:10px">Belum ada data. Menunggu pembacaan saldo (atau pasang trigger harian kasSnapshotHarian).</div>';
     return;
   }
-  var recon=kasReconcile();
   var isAdmin=(userRole==='admin');
   var html='';
   rows.forEach(function(r){
     var amb=(r.ambilRifyh||0);
-    var rc=recon[r.tanggal]||null;
-    var st=rc?rc.status:null;
-    var col=amb>0?((cashReady&&st==='none')?'#dc2626':(cashReady&&st==='partial')?'#d97706':'#0d9488'):'var(--muted)';
+    var st=kasStatusOf(r);
+    var col=amb>0?(st==='none'?'#dc2626':(st==='partial'?'#d97706':'#0d9488')):'var(--muted)';
     var tag='';
-    if(amb>0 && cashReady){
+    if(amb>0){
       if(st==='ok') tag='<span style="font-size:9px;color:#0d9488;font-weight:700">✓ tercatat</span>';
-      else if(st==='partial') tag='<span style="font-size:9px;color:#d97706;font-weight:700">⚠️ kurang '+fRpPlain(amb-rc.recorded)+'</span>';
-      else tag='<span style="font-size:9px;color:#dc2626;font-weight:700">⚠️ belum dicatat</span>';
-    } else if(amb>0){ tag='<span style="font-size:9px;color:var(--hint)">ambil Rifyh</span>'; }
+      else if(st==='partial') tag='<span style="font-size:9px;color:#d97706;font-weight:700">⚠️ kurang '+fRpPlain(amb-(r.konfirmasi||0))+'</span>';
+      else tag='<span style="font-size:9px;color:#dc2626;font-weight:700">⚠️ belum dikonfirmasi</span>';
+    }
     html+='<div style="background:var(--card);border:1px solid var(--border);border-left:3px solid '+col+';border-radius:8px;padding:10px 12px">'
       +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
         +'<div>'
@@ -8121,9 +8166,9 @@ function kasRenderHist(){
 // ── ADMIN betulin angka suatu hari ──
 function kasAdminEdit(tgl){
   if(userRole!=='admin')return;
-  var field=prompt('Ubah apa? ketik:  awal  /  akhir  /  ambil  /  catatan','akhir');
+  var field=prompt('Ubah apa? ketik:  awal / akhir / ambil / konfirmasi / catatan','konfirmasi');
   if(!field)return; field=field.trim().toLowerCase();
-  if(['awal','akhir','ambil','catatan'].indexOf(field)<0){ showToast('Ketik awal/akhir/ambil/catatan','err'); return; }
+  if(['awal','akhir','ambil','konfirmasi','catatan'].indexOf(field)<0){ showToast('Ketik awal/akhir/ambil/konfirmasi/catatan','err'); return; }
   var val=prompt('Nilai baru untuk '+field+(field==='catatan'?' (teks):':' (angka):'),'');
   if(val===null)return;
   var url=scriptUrl;
@@ -8140,18 +8185,15 @@ function kasAdminReset(tgl){
     .catch(function(){ showToast('Gagal','err'); });
 }
 
-// ── Banner: Rifyh ambil uang TAPI belum tercatat di "Sudah Diambil" ──
+// ── Banner: ada pengambilan dari toko yg BELUM dikonfirmasi tercatat ──
 function muteKasAlarm(){ kasMuted=true; var b=document.getElementById('kas-alarm-banner'); if(b)b.classList.remove('show'); }
 function kasTriggerBanner(){
   var b=document.getElementById('kas-alarm-banner'); if(!b)return;
-  var amb=(kasData.ambilRifyh||0);
-  var recon=kasReconcile();
-  var rc=recon[kasData.tanggal]||null;
-  var st=rc?rc.status:null;
-  if(!kasMuted && amb>0 && cashReady && (st==='none'||st==='partial')){
-    var kurang=(st==='partial')?(amb-rc.recorded):amb;
-    var amt=document.getElementById('kas-alarm-amount'); if(amt)amt.textContent=fRpPlain(kurang);
-    var tg=document.getElementById('kas-alarm-tgl'); if(tg)tg.textContent=kasData.tanggal;
+  var totUnrec=0, cnt=0;
+  ((kasData.rows)||[]).forEach(function(r){ var a=(r.ambilRifyh||0), k=(r.konfirmasi||0); if(a>k){ totUnrec += (a-k); cnt++; } });
+  if(!kasMuted && totUnrec>0){
+    var amt=document.getElementById('kas-alarm-amount'); if(amt)amt.textContent=fRpPlain(totUnrec);
+    var tg=document.getElementById('kas-alarm-tgl'); if(tg)tg.textContent=cnt+' hari';
     b.classList.add('show');
   } else { b.classList.remove('show'); }
 }
