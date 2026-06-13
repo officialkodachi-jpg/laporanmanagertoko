@@ -1310,6 +1310,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
           <input type="file" accept="image/*" id="km-foto" style="font-size:12px" onchange="kmFotoChange()"><div style="font-size:10px;color:var(--hint);margin-top:3px">💡 di PC/Mac bisa salin gambar lalu tekan Ctrl/Cmd+V untuk menempel</div>
           <div class="km-foto-prev" id="km-foto-prev"></div>
         </div>
+        <div style="font-size:10px;color:var(--muted);background:var(--card2);border:1px dashed var(--border);border-radius:8px;padding:8px 10px;margin-bottom:8px;line-height:1.5">📌 Kalau ada foto, kirim ini otomatis mencentang tugas Non-Harian <b>E05 — Laporan stok datang dari pabrik</b> (foto + isi kiriman jadi buktinya).</div>
         <button class="km-save-btn" id="km-save-btn" onclick="kmSave()">📤 Kirim ke Sheets</button>
       </div>
 
@@ -5030,6 +5031,35 @@ function kmSuratFotoChange(){
   _kmCompress(f,function(b64){_kmSuratBase64=b64;var kb=Math.round(b64.length/1024);
     document.getElementById('km-suratjalan-prev').innerHTML='<img src="'+b64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Surat pengantar siap (~'+kb+' KB)</div>';});
 }
+// (v6.2) AUTO-CENTANG Non-Harian E05 ("Laporan stok datang dari pabrik").
+// Dipicu saat lapor Kiriman Stok yang ADA fotonya → task non-harian E05 ikut
+// tercatat Selesai (✓) otomatis, lengkap dgn foto bukti + catatan isi kiriman.
+// HANYA jalan kalau ada foto (E05 wajib bukti). Aman bila E05 tidak ada di
+// config tugas (pakai metadata default). Fire-and-forget (no-cors) + refresh
+// badge Non-Harian. Tidak mengganggu alur simpan kiriman walau gagal.
+function _autoCekE05(tgl, isiText, fotoB64){
+  try{
+    if(!fotoB64) return;                                   // tak ada foto → jangan auto-centang
+    var url=scriptUrl; if(!url||!url.startsWith('http')) return;
+    var ev=(typeof EVENTS!=='undefined' && EVENTS.length)
+      ? EVENTS.find(function(x){return String(x.kode).toUpperCase()==='E05';}) : null;
+    var nama      = ev ? ev.nama      : 'Laporan stok datang dari pabrik';
+    var kategori  = ev ? ev.kategori  : 'Inventaris';
+    var frekuensi = ev ? (ev.frekuensi||'Insidental') : 'Insidental';
+    var prioritas = ev ? ev.prioritas : 'Penting';
+    var catatan   = 'Auto dari Kiriman Stok'+(isiText?(': '+String(isiText).slice(0,120)):'');
+    var payload={type:'event',tanggal:(tgl||todayValue),kode:'E05',nama:nama,kategori:kategori,
+      frekuensi:frekuensi,prioritas:prioritas,status:'✓',catatan:catatan,foto:fotoB64,
+      oleh:userRole,olehEmail:(typeof userEmail!=='undefined'?(userEmail||''):'')};
+    fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
+      .then(function(){
+        try{ logActivity('Catat Non-Harian','E05 — '+nama+' (auto dari Kiriman Stok)'); }catch(e){}
+        setTimeout(function(){ try{ if(typeof checkEventBadge==='function')checkEventBadge(); }catch(e){} },2500);
+        setTimeout(function(){ try{ if(typeof annotateEventCards==='function')annotateEventCards(); }catch(e){} },2700);
+      })
+      .catch(function(){});
+  }catch(e){}
+}
 function kmSave(){
   var url=scriptUrl;if(!url||!url.startsWith('http')){showToast('URL belum dikonfigurasi','err');return;}
   var tgl=document.getElementById('km-tgl').value||todayValue;
@@ -5040,6 +5070,8 @@ function kmSave(){
   var adaFoto=!!_kmFotoBase64,adaResi=!!_kmResiBase64,adaSurat=!!_kmSuratBase64;
   btn.innerHTML='<span class="spinner"></span>'+((adaFoto||adaResi||adaSurat)?'Mengirim + upload foto...':'Mengirim...');
   var payload={type:'kiriman_add',tglKirim:tgl,jasa:jasa,resi:'',isi:isi,foto:_kmFotoBase64||'',fotoResi:_kmResiBase64||'',fotoSurat:_kmSuratBase64||'',oleh:userRole,olehEmail:userEmail||''};
+  // (v6.2) tangkap foto + isi untuk auto-centang E05 SEBELUM form di-reset
+  var _e05Foto=_kmSuratBase64||_kmFotoBase64||_kmResiBase64, _e05Isi=isi;
   function resetForm(){
     document.getElementById('km-isi').value='';
     document.getElementById('km-foto').value='';_kmFotoBase64='';document.getElementById('km-foto-prev').innerHTML='';
@@ -5054,14 +5086,15 @@ function kmSave(){
         if(adaFoto&&!d.foto)gagal.push('nota');
         if(adaResi&&!d.fotoResi)gagal.push('resi');
         if(gagal.length)showToast('FOTO GAGAL: '+gagal.join(' & ')+' — '+((d.fotoErr||'').slice(0,40)),'err');
-        else showToast('✓ Kiriman tersimpan','ok');
+        else showToast('✓ Kiriman tersimpan'+(_e05Foto?' · E05 auto-tercentang':''),'ok');
         logActivity('Tambah kiriman stok',jasa+' — '+isi.slice(0,40));
+        _autoCekE05(tgl, _e05Isi, _e05Foto);   // (v6.2) ikut centang Non-Harian E05
       }else{showToast('Gagal: '+((d&&d.message)||'error'),'err');}
       resetForm();setTimeout(kmLoad,1500);
     })
     .catch(function(){
       fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
-        .then(function(){showToast('✓ Terkirim (cek setelah refresh)','ok');resetForm();setTimeout(kmLoad,3500);})
+        .then(function(){showToast('✓ Terkirim (cek setelah refresh)','ok');_autoCekE05(tgl,_e05Isi,_e05Foto);resetForm();setTimeout(kmLoad,3500);})
         .catch(function(){showToast('Gagal mengirim','err');});
     })
     .finally(function(){btn.disabled=false;btn.innerHTML='📤 Kirim ke Sheets';});
