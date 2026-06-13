@@ -1441,21 +1441,25 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <div id="kas-section" style="margin-bottom:18px">
       <div class="section-hdr"><span class="section-hdr-label">💰 Saldo Kas Toko</span><div class="section-hdr-line"></div></div>
 
-      <!-- Kartu uang di toko sekarang (otomatis dari kolom H) -->
+      <!-- Kartu hari ini: seharusnya vs aktual (fisik) -->
       <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-          <div>
-            <div style="font-size:11px;color:var(--muted)">Uang kas di toko sekarang</div>
-            <div style="font-size:10px;color:var(--hint);margin-top:2px" id="kas-terkini-tgl">—</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
+          <div style="font-size:12px;font-weight:800" id="kas-hari-tgl">—</div>
+          <div id="kas-hari-badge" style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;background:var(--surface);color:var(--muted)">—</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:var(--surface);border-radius:10px;padding:10px 12px">
+            <div style="font-size:10px;color:var(--muted)">Seharusnya (hitungan)</div>
+            <div id="kas-seharusnya" style="font-family:var(--mono);font-size:18px;font-weight:800;color:var(--text);margin-top:2px;line-height:1.1">—</div>
           </div>
-          <div id="kas-terkini" style="font-family:var(--mono);font-size:30px;font-weight:800;color:var(--text);line-height:1">—</div>
+          <div style="background:var(--surface);border-radius:10px;padding:10px 12px">
+            <div style="font-size:10px;color:var(--muted)">Aktual (uang fisik)</div>
+            <div id="kas-aktual" style="font-family:var(--mono);font-size:18px;font-weight:800;color:var(--text);margin-top:2px;line-height:1.1">—</div>
+          </div>
         </div>
         <div id="kas-selisih-box" style="display:none;margin-top:12px;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:600;line-height:1.5"></div>
-        <div id="kas-src-note" style="font-size:10px;color:var(--hint);margin-top:10px;line-height:1.5">📊 Saldo dibaca otomatis dari kolom H sheet keuangan. Kalau turun lebih dari <b id="kas-ambang-lbl">Rp500.000</b> tanpa keterangan → <b style="color:#dc2626">tanda merah</b>. Tandai sebagai uang diambil untuk menghilangkannya.</div>
+        <div id="kas-src-note" style="font-size:10px;color:var(--hint);margin-top:10px;line-height:1.5">📊 App baca otomatis dari sheet saldo toko. <b>Seharusnya</b> = saldo awal + penjualan cash − uang keluar tercatat. Kalau <b>uang fisik (Aktual)</b> kurang dari seharusnya lebih dari <b id="kas-ambang-lbl">Rp500.000</b> → ada uang keluar tak tercatat → <b style="color:#dc2626">merah</b>. Tandai sebagai uang diambil untuk menutupnya.</div>
       </div>
-
-      <!-- (ADMIN) Input saldo manual beberapa hari (awalan) -->
-      <div id="kas-admin-seed" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px"></div>
 
       <!-- Riwayat progresif saldo harian -->
       <div style="font-size:11px;color:var(--muted);font-weight:600;margin:4px 0 8px">📒 Saldo harian (terbaru di atas)</div>
@@ -7955,7 +7959,7 @@ function buildCashBulanFilter(){}
 //  Turun > ambang (default 500rb) tanpa keterangan → MERAH.
 //  Manager cukup menandai "uang diambil" → tanda merah hilang.
 //  TIDAK ADA input hitung manual dari manager (anti salah hitung).
-//  Backend: scriptUrl (GAS utama) type=kas / kas_ambil / kas_seed / kas_override / kas_reset.
+//  Backend: scriptUrl (GAS utama) type=kas / kas_ambil / kas_override / kas_reset.
 // ════════════════════════════════════════════════════════════
 var kasData={};
 var kasMuted=false;
@@ -7967,84 +7971,58 @@ function loadKasData(){
     .then(function(r){return r.json();})
     .then(function(d){
       kasData=d||{};
-      kasRenderTerkini();
-      kasRenderSeed();
+      kasRenderHari();
       kasRenderHist();
       kasTriggerBanner();
     })
     .catch(function(){});
 }
 
-// ── Kartu uang di toko sekarang + ringkasan alarm ──
-function kasRenderTerkini(){
-  var t=document.getElementById('kas-terkini');
-  var tt=document.getElementById('kas-terkini-tgl');
-  if(t) t.textContent=(kasData.saldoTerkini!=null)?fRpPlain(kasData.saldoTerkini):'—';
-  if(tt){
-    if(kasData.saldoTerkiniTgl) tt.textContent='per '+kasData.saldoTerkiniTgl;
-    else if(kasData.sumberOk===false) tt.textContent='⚠️ sheet sumber tdk ketemu';
-    else tt.textContent='belum ada data';
-  }
+// ── Kartu hari ini: seharusnya vs aktual (fisik) ──
+function kasRenderHari(){
+  var tg=document.getElementById('kas-hari-tgl');
+  if(tg) tg.textContent=kasData.tanggal?('Hari ini · '+kasData.tanggal):'—';
+  var sh=document.getElementById('kas-seharusnya');
+  var ak=document.getElementById('kas-aktual');
+  if(sh) sh.textContent=(kasData.seharusnya!=null)?fRpPlain(kasData.seharusnya):'—';
+  if(ak) ak.textContent=(kasData.aktual!=null)?fRpPlain(kasData.aktual):'—';
   var lbl=document.getElementById('kas-ambang-lbl');
   if(lbl && kasData.ambang!=null) lbl.textContent=fRpPlain(kasData.ambang);
 
+  var bd=document.getElementById('kas-hari-badge');
+  var st=kasData.statusHari||'';
+  if(bd){
+    if(kasData.sumberOk===false){ bd.textContent='⚠️ sumber?'; bd.style.background='rgba(217,119,6,.12)'; bd.style.color='#d97706'; }
+    else if(st==='MERAH'){ bd.textContent='🔴 SELISIH'; bd.style.background='rgba(220,38,38,.12)'; bd.style.color='#dc2626'; }
+    else if(st==='DIAKUI'){ bd.textContent='🟠 sudah diakui'; bd.style.background='rgba(217,119,6,.12)'; bd.style.color='#d97706'; }
+    else if(!kasData.adaAktual){ bd.textContent='⏳ belum dihitung'; bd.style.background='var(--surface)'; bd.style.color='var(--muted)'; }
+    else { bd.textContent='✅ cocok'; bd.style.background='rgba(13,148,136,.12)'; bd.style.color='#0d9488'; }
+  }
+
   var box=document.getElementById('kas-selisih-box');
   if(box){
-    if(kasData.alarm){
-      var a=kasData.alarm;
+    if(kasData.sumberOk===false){
+      box.style.display='block'; box.style.background='rgba(217,119,6,.1)'; box.style.color='#d97706';
+      box.innerHTML='⚠️ Sheet sumber saldo tidak terbaca. Cek izin / ID spreadsheet.';
+    } else if((kasData.sisa||0)>0 && st==='MERAH'){
       box.style.display='block'; box.style.background='rgba(220,38,38,.1)'; box.style.color='#dc2626';
-      box.innerHTML='🔴 <b>Saldo turun '+fRpPlain(a.tdkWajar)+' tanpa keterangan</b> ('+a.tanggal+'). Cek apakah ada uang diambil yang belum dicatat — lalu tandai di daftar bawah.';
-    } else if(kasData.sudahSeed){
+      box.innerHTML='🔴 <b>Uang fisik kurang '+fRpPlain(kasData.sisa)+' dari seharusnya.</b> Ada uang keluar yang belum dicatat. Kalau ini uang diambil/disetor, tandai di daftar bawah.';
+    } else if(st==='DIAKUI'){
+      box.style.display='block'; box.style.background='rgba(217,119,6,.1)'; box.style.color='#d97706';
+      box.innerHTML='🟠 Selisih '+fRpPlain(kasData.selisih)+' sudah diakui sebagai uang diambil (tercatat).';
+    } else if(kasData.adaAktual){
       box.style.display='block'; box.style.background='rgba(13,148,136,.1)'; box.style.color='#0d9488';
-      box.innerHTML='✅ <b>Saldo aman</b> — tidak ada penurunan mencurigakan.';
+      box.innerHTML='✅ <b>Cocok</b> — uang fisik sesuai hitungan. Tidak ada selisih.';
     } else { box.style.display='none'; }
   }
 }
 
-// ── (ADMIN) Panel input saldo manual beberapa hari (awalan) ──
-function kasRenderSeed(){
-  var box=document.getElementById('kas-admin-seed'); if(!box)return;
-  if(userRole!=='admin'){ box.style.display='none'; return; }
-  box.style.display='block';
-  if(box.dataset.built) return; // jangan re-render input (biar tidak reset saat refresh)
-  box.innerHTML=''
-    +'<div style="font-size:12px;font-weight:800;margin-bottom:3px">⚙️ Input saldo manual (admin)</div>'
-    +'<div style="font-size:10px;color:var(--hint);margin-bottom:10px;line-height:1.5">Untuk awalan: isi <b>saldo akhir</b> beberapa hari terakhir (mis. 5 hari). Setelah ada datanya, saldo hari berjalan otomatis dari kolom H.</div>'
-    +'<div style="display:grid;grid-template-columns:1.1fr 1fr auto;gap:6px;align-items:center">'
-      +'<input type="date" id="kas-seed-tgl" style="padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--surface);color:var(--text);outline:none;color-scheme:light">'
-      +'<input type="number" id="kas-seed-saldo" inputmode="numeric" placeholder="saldo akhir" style="padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:13px;background:var(--surface);color:var(--text);outline:none">'
-      +'<button onclick="kasSeedSave()" style="padding:8px 12px;border:none;border-radius:8px;background:#0d9488;color:#fff;font-weight:700;font-size:12px;cursor:pointer">Simpan</button>'
-    +'</div>'
-    +'<div id="kas-seed-status" style="font-size:11px;margin-top:6px;min-height:14px;font-family:var(--mono)"></div>';
-  box.dataset.built='1';
-}
-function kasSeedSave(){
-  if(userRole!=='admin')return;
-  var tgl=(document.getElementById('kas-seed-tgl').value||'').trim();
-  var saldoRaw=(document.getElementById('kas-seed-saldo').value||'').trim();
-  var st=document.getElementById('kas-seed-status');
-  if(!tgl){ if(st){st.style.color='var(--red)';st.textContent='Pilih tanggal dulu.';} return; }
-  var saldo=parseInt(saldoRaw,10);
-  if(!isFinite(saldo)){ if(st){st.style.color='var(--red)';st.textContent='Isi saldo (angka).';} return; }
-  var url=scriptUrl;
-  if(st){st.style.color='var(--muted)';st.textContent='Menyimpan...';}
-  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'kas_seed',tanggal:tgl,saldo:saldo,adminEmail:(userEmail||'')})})
-    .then(function(){
-      if(st){st.style.color='var(--green)';st.textContent='✓ Saldo '+tgl+' tersimpan';}
-      document.getElementById('kas-seed-saldo').value='';
-      try{logActivity('Input saldo kas',tgl+' = '+fRpPlain(saldo));}catch(e){}
-      setTimeout(loadKasData,1500);
-    })
-    .catch(function(){ if(st){st.style.color='var(--red)';st.textContent='Gagal — coba lagi.';} });
-}
-
-// ── Riwayat progresif saldo harian (merah → ada form "tandai diambil") ──
+// ── Riwayat saldo harian (merah → ada form "tandai diambil") ──
 function kasRenderHist(){
   var el=document.getElementById('kas-hist'); if(!el)return;
   var rows=kasData.rows||[];
   if(!rows.length){
-    el.innerHTML='<div style="font-size:11px;color:var(--hint);text-align:center;padding:10px">Belum ada data saldo. '
-      +(userRole==='admin'?'Isi saldo manual di atas untuk memulai (mis. 5 hari terakhir).':'Menunggu admin mengisi saldo awal.')+'</div>';
+    el.innerHTML='<div style="font-size:11px;color:var(--hint);text-align:center;padding:10px">Belum ada data. Menunggu pembacaan saldo (atau pasang trigger harian kasSnapshotHarian).</div>';
     return;
   }
   var isAdmin=(userRole==='admin');
@@ -8052,17 +8030,17 @@ function kasRenderHist(){
   rows.forEach(function(r){
     var st=r.status||'';
     var isRed=(st==='MERAH');
-    var col=isRed?'#dc2626':(st==='NAIK'?'#0d9488':(st==='TURUN-OK'?'#d97706':'var(--muted)'));
-    var ic =isRed?'🔴':(st==='NAIK'?'🟢':(st==='TURUN-OK'?'🟠':'⚪'));
-    var selisih=r.selisih;
-    var selTxt=(selisih==null)?'—':((selisih>0?'+':'')+fRpPlain(selisih));
-    var label=isRed?'turun tanpa keterangan':(st==='NAIK'?'naik':(st==='TURUN-OK'?'turun (sudah dicatat)':'tetap'));
+    var col=isRed?'#dc2626':(st==='DIAKUI'?'#d97706':(st==='AMAN'?'#0d9488':'var(--muted)'));
+    var ic =isRed?'🔴':(st==='DIAKUI'?'🟠':(st==='AMAN'?'🟢':'⚪'));
+    var sel=r.selisih;
+    var selTxt=(sel==null)?'—':(sel>0?('-'+fRpPlain(sel)):(sel<0?('+'+fRpPlain(-sel)):fRpPlain(0)));
+    var label=isRed?('kurang '+fRpPlain(r.sisa)):(st==='DIAKUI'?'sudah diakui':(st==='AMAN'?'cocok':st));
     html+='<div style="background:var(--card);border:1px solid var(--border);border-left:3px solid '+col+';border-radius:8px;padding:10px 12px">'
       +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
         +'<div>'
           +'<div style="font-size:12px;font-weight:700">'+r.tanggal+'</div>'
-          +'<div style="font-size:10px;color:var(--muted);margin-top:2px">awal '+(r.saldoAwal!=null?fRpPlain(r.saldoAwal):'—')+' → akhir '+(r.saldoAkhir!=null?fRpPlain(r.saldoAkhir):'—')+'</div>'
-          +(r.diambil>0?('<div style="font-size:10px;color:var(--hint);margin-top:1px">diakui diambil: '+fRpPlain(r.diambil)+'</div>'):'')
+          +'<div style="font-size:10px;color:var(--muted);margin-top:2px">seharusnya '+(r.seharusnya!=null?fRpPlain(r.seharusnya):'—')+' · fisik '+(r.aktual!=null?fRpPlain(r.aktual):'—')+'</div>'
+          +(r.diakui>0?('<div style="font-size:10px;color:var(--hint);margin-top:1px">diakui diambil: '+fRpPlain(r.diakui)+'</div>'):'')
         +'</div>'
         +'<div style="text-align:right;white-space:nowrap">'
           +'<div style="font-family:var(--mono);font-size:13px;font-weight:800;color:'+col+'">'+ic+' '+selTxt+'</div>'
@@ -8071,9 +8049,9 @@ function kasRenderHist(){
       +'</div>';
     if(isRed){
       html+='<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">'
-        +'<div style="font-size:10px;color:#dc2626;font-weight:600;margin-bottom:5px">Turun '+fRpPlain(r.tdkWajar)+' belum ada keterangan. Kalau ini uang yang diambil/disetor, catat:</div>'
+        +'<div style="font-size:10px;color:#dc2626;font-weight:600;margin-bottom:5px">Kurang '+fRpPlain(r.sisa)+' dari seharusnya. Kalau ini uang yang diambil/disetor, catat jumlahnya:</div>'
         +'<div style="display:flex;gap:6px">'
-          +'<input type="number" inputmode="numeric" id="kas-amb-'+r.tanggal+'" placeholder="jumlah diambil" value="'+(r.tdkWajar||'')+'" style="flex:1;padding:7px 9px;border:1px solid var(--border2);border-radius:7px;font-family:var(--mono);font-size:12px;background:var(--surface);color:var(--text);outline:none">'
+          +'<input type="number" inputmode="numeric" id="kas-amb-'+r.tanggal+'" placeholder="jumlah diambil" value="'+(r.sisa||'')+'" style="flex:1;padding:7px 9px;border:1px solid var(--border2);border-radius:7px;font-family:var(--mono);font-size:12px;background:var(--surface);color:var(--text);outline:none">'
           +'<button onclick="kasAmbilSave(\''+r.tanggal+'\')" style="padding:7px 11px;border:none;border-radius:7px;background:#dc2626;color:#fff;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">✓ Tandai diambil</button>'
         +'</div>'
         +'<div id="kas-amb-st-'+r.tanggal+'" style="font-size:10px;margin-top:4px;min-height:12px;font-family:var(--mono)"></div>'
@@ -8085,13 +8063,13 @@ function kasRenderHist(){
         +'<button onclick="kasAdminReset(\''+r.tanggal+'\')" style="font-size:10px;padding:4px 8px;border:1px solid rgba(220,38,38,.4);background:rgba(220,38,38,.06);border-radius:6px;cursor:pointer;color:#dc2626">🗑 Hapus</button>'
       +'</div>';
     }
-    if(r.catatan){ html+='<div style="font-size:10px;color:var(--hint);margin-top:6px;line-height:1.4">📝 '+escH(r.catatan)+'</div>'; }
+    if(r.catatan){ html+='<div style="font-size:10px;color:var(--hint);margin-top:6px;line-height:1.4;white-space:pre-line">📝 '+escH(r.catatan)+'</div>'; }
     html+='</div>';
   });
   el.innerHTML=html;
 }
 
-// ── Manager menandai uang keluar/diambil (clear tanda merah) ──
+// ── Manager menandai uang diambil (akui selisih → clear merah) ──
 function kasAmbilSave(tgl){
   var inp=document.getElementById('kas-amb-'+tgl);
   var st=document.getElementById('kas-amb-st-'+tgl);
@@ -8109,18 +8087,17 @@ function kasAmbilSave(tgl){
     .catch(function(){ if(st){st.style.color='var(--red)';st.textContent='Gagal — coba lagi.';} });
 }
 
-// ── ADMIN ubah saldo akhir / jumlah diambil suatu hari ──
+// ── ADMIN betulin angka suatu hari ──
 function kasAdminEdit(tgl){
   if(userRole!=='admin')return;
-  var field=prompt('Ubah apa? ketik:  saldo  atau  diambil','saldo');
+  var field=prompt('Ubah apa? ketik:  aktual  /  diakui  /  catatan','aktual');
   if(!field)return; field=field.trim().toLowerCase();
-  var f=(field==='saldo')?'saldoAkhir':((field==='diambil')?'diambil':'');
-  if(!f){ showToast('Ketik "saldo" atau "diambil"','err'); return; }
-  var val=prompt('Nilai baru untuk '+field+' (angka; kosongkan = hapus):','');
+  if(field!=='aktual'&&field!=='diakui'&&field!=='catatan'){ showToast('Ketik aktual / diakui / catatan','err'); return; }
+  var val=prompt('Nilai baru untuk '+field+(field==='catatan'?' (teks):':' (angka):'),'');
   if(val===null)return;
   var url=scriptUrl;
-  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'kas_override',tanggal:tgl,field:f,value:val.trim(),adminEmail:(userEmail||'')})})
-    .then(function(){ showToast('✓ Tersimpan','ok'); try{logActivity('Ubah saldo kas',tgl+' '+f+'='+val);}catch(e){} setTimeout(loadKasData,1500); })
+  fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'kas_override',tanggal:tgl,field:field,value:val.trim(),adminEmail:(userEmail||'')})})
+    .then(function(){ showToast('✓ Tersimpan','ok'); try{logActivity('Ubah saldo kas',tgl+' '+field+'='+val);}catch(e){} setTimeout(loadKasData,1500); })
     .catch(function(){ showToast('Gagal','err'); });
 }
 function kasAdminReset(tgl){
@@ -8137,7 +8114,7 @@ function muteKasAlarm(){ kasMuted=true; var b=document.getElementById('kas-alarm
 function kasTriggerBanner(){
   var b=document.getElementById('kas-alarm-banner'); if(!b)return;
   if(kasData.alarm && !kasMuted){
-    var amt=document.getElementById('kas-alarm-amount'); if(amt)amt.textContent='turun '+fRpPlain(kasData.alarm.tdkWajar);
+    var amt=document.getElementById('kas-alarm-amount'); if(amt)amt.textContent='kurang '+fRpPlain(kasData.alarm.sisa);
     var tg=document.getElementById('kas-alarm-tgl'); if(tg)tg.textContent=kasData.alarm.tanggal;
     b.classList.add('show');
   } else { b.classList.remove('show'); }
