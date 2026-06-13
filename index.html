@@ -2054,7 +2054,7 @@ const STOK_AUTO_REFRESH_MS=5*60*1000;
 const STOK_EMPTY_NS='stok_empty_since:';
 
 // ════ STATE ════
-let checked={},notes={};
+let checked={},notes={};var harianOleh={}; // (v6.4) email penyelesai per tugas harian
 let scriptUrl=localStorage.getItem('mtg_url')||DEFAULT_URL;
 // Koreksi otomatis kalau localStorage menyimpan URL lama yang rusak
 if(scriptUrl.indexOf('xFQgBZjQgFE_')>=0 || !scriptUrl.startsWith('http')){scriptUrl=DEFAULT_URL;localStorage.setItem('mtg_url',DEFAULT_URL);}
@@ -3294,7 +3294,7 @@ function _jenisMeta(j){
     note_bukti:{l:'Note',i:'📝'}
   })[j]||{l:j,i:'•'};
 }
-function _monOlehShort(o){ o=String(o||''); var m=o.split('(')[0].trim(); return m||o; }
+function _monOlehShort(o){ o=String(o||'').trim(); var m=o.match(/\(([^)]+)\)/); if(m&&m[1])return m[1].trim(); return o; } // (v6.4) tampilkan email pencatat
 
 // ── Sumber data monitor: HANYA bukti kerja manager ──
 function monMgrItems(){ return (_cekData||[]).filter(_cekItemIsMgr); }
@@ -3441,6 +3441,7 @@ function cekRender(){
       +(function(){var b=_dilihatMgrBadge(it);return b?('<div style="margin:0 0 5px">'+b+'</div>'):'';})()
       +'<div style="font-size:12px;font-weight:600;color:var(--text)">'+escH(_cekJudul(it))+'</div>'
       +(it.detail?'<div style="font-size:11px;color:var(--muted);margin:2px 0 6px">'+escH(it.detail)+'</div>':'<div style="height:6px"></div>')
+      +(it.oleh?'<div style="font-size:10px;color:var(--hint);margin:0 0 6px">✍ Dicatat: '+escH(_monOlehShort(it.oleh))+'</div>':'')
       +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+thumbs+'</div>'
       +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
         +'<button onclick="event.stopPropagation();cekGoto(\''+it.jenis+'\','+it.row+')" style="flex:1;min-width:90px;font-size:11px;padding:6px;border:1px solid var(--border);background:var(--bg);border-radius:7px;cursor:pointer;color:var(--accent)">🔗 Buka sumber</button>'
@@ -3999,6 +4000,7 @@ function absenAdminRender(){
     html+='<div style="border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:8px">'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><b style="font-size:13px;flex:1;min-width:0">'+_absEsc(r.nama)+'</b><span style="font-size:10px;color:'+warna+';font-weight:700">'+status+'</span></div>'
       +'<div style="font-size:12px;color:var(--muted);margin-bottom:'+(sesi.length?'6px':'9px')+'">Masuk awal <b style="font-family:var(--mono)">'+(rm||'—')+'</b> · Keluar akhir <b style="font-family:var(--mono)">'+(rk||'—')+'</b>'+(totTxt?(' · total <b>'+totTxt+'</b>'):'')+'</div>'
+      +(r.emailPencatat?'<div style="font-size:10px;color:var(--hint);margin-bottom:'+(sesi.length?'6px':'9px')+';word-break:break-all">✍ '+_absEsc(r.emailPencatat)+'</div>':'')
       +sesiHtml
       +'<div style="display:flex;gap:6px;flex-wrap:wrap">';
     if(open) html+='<button class="km-act-btn" style="color:var(--orange);font-weight:700" onclick="absenAdminCheckoutNow(\''+_absEsc(r.nama)+'\')">⏹ Keluarkan sekarang</button>';
@@ -5240,6 +5242,7 @@ function kmRender(){
     return '<div class="km-card '+s.cls+'" onclick="kmOpenDetail('+r.row+')">'
       +'<div class="km-card-top"><span class="km-resi">'+hdrTxt+'</span><span class="km-badge '+s.cls+'">'+s.badge+'</span></div>'
       +'<div class="km-isi">Isi: '+escH(r.isi||'-')+'</div>'
+      +(r.oleh?'<div style="font-size:10px;color:var(--hint);margin-top:2px;word-break:break-all">✍ '+escH(_monOlehShort(r.oleh))+'</div>':'')
       +fotosVisible+cekStrip+note+actions+adminCtrl
       +'</div>';
   }).join('');
@@ -5341,6 +5344,7 @@ function kmOpenDetail(row){
   html+='<div class="km-d-row"><span class="k">Isi kiriman</span><span class="v">'+escH(r.isi||'-')+'</span></div>';
   if(r.sesuai)html+='<div class="km-d-row"><span class="k">Kesesuaian</span><span class="v">'+escH(r.sesuai)+'</span></div>';
   if(r.catatan)html+='<div class="km-d-row"><span class="k">Catatan</span><span class="v" style="color:var(--red)">'+escH(r.catatan)+'</span></div>';
+  if(r.oleh)html+='<div class="km-d-row"><span class="k">Dicatat oleh</span><span class="v">'+escH(pgOlehLabel(r.oleh))+'</span></div>';
   // Foto Resi
   if(r.fotoResi){
     html+='<div style="font-size:11px;color:var(--muted);margin-top:14px;text-transform:uppercase;letter-spacing:.05em">🧾 Foto Resi</div>';
@@ -5852,7 +5856,7 @@ function renderHarian(){
             +'<div id="hf-'+t.kode+'-prev" style="margin-top:6px"></div>'
             +'</div>';
         }
-        el.innerHTML='<div class="task-icon '+_katCls(t.kategori)+'">'+(t.icon||'📌')+'</div><div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">'+t.nama+'</div><div class="task-meta">'+t.kode+' · '+t.kategori+' · '+t.kpi+'</div><span class="task-note-toggle" onclick="toggleNote(event,\''+t.kode+'\')">📝 catatan</span><textarea class="task-note-input" id="note-'+t.kode+'" placeholder="Tulis catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes[\''+t.kode+'\']=this.value"></textarea>'+strukHtml+fotoHtml+'</div>';
+        el.innerHTML='<div class="task-icon '+_katCls(t.kategori)+'">'+(t.icon||'📌')+'</div><div class="task-check"><span class="check-icon">✓</span></div><div class="task-body"><div class="task-name">'+t.nama+'</div><div class="task-meta">'+t.kode+' · '+t.kategori+' · '+t.kpi+'</div><div class="task-oleh" id="task-oleh-'+t.kode+'" style="font-size:10px;color:var(--hint);margin-top:3px;word-break:break-all">'+((checked[t.kode]&&harianOleh[t.kode])?('✍ '+escH(_monOlehShort(harianOleh[t.kode]))):'')+'</div><span class="task-note-toggle" onclick="toggleNote(event,\''+t.kode+'\')">📝 catatan</span><textarea class="task-note-input" id="note-'+t.kode+'" placeholder="Tulis catatan..." rows="2" style="display:none" onclick="event.stopPropagation()" oninput="notes[\''+t.kode+'\']=this.value"></textarea>'+strukHtml+fotoHtml+'</div>';
         el.addEventListener('click',()=>toggleCheck(t.kode));
         list.appendChild(el);
       }
@@ -5906,6 +5910,7 @@ function _restoreHarianFotoPrev(){
     if(prev && harianFotos[k]) prev.innerHTML='<img src="'+harianFotos[k]+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--green);margin-top:3px">✓ Foto bukti siap</div>';
   });
 }
+function _setTaskOleh(kode,email){ if(email) harianOleh[kode]=email; else delete harianOleh[kode]; var e=document.getElementById('task-oleh-'+kode); if(e) e.innerHTML=email?('✍ '+escH(_monOlehShort(email))):''; } // (v6.4) tampilkan penyelesai tugas harian
 function toggleCheck(k){
   if(userRole==='admin'){ showToast('Admin hanya memantau — tugas harian diisi oleh manager',''); return; }
   if(userRole==='manager'&&harianIsLocked()){showToast('Sudah lewat batas — tidak bisa diubah hari ini','');return;}
@@ -5917,10 +5922,10 @@ function toggleCheck(k){
       if(cb)switchTab('cash',cb); else switchTab('cash');
       return;
     }else{
-      checked['D04']=false;var e4=document.getElementById('task-D04');if(e4)e4.classList.remove('done');updateStats();return;
+      checked['D04']=false;var e4=document.getElementById('task-D04');if(e4)e4.classList.remove('done');_setTaskOleh('D04','');updateStats();return;
     }
   }
-  checked[k]=!checked[k];var el=document.getElementById('task-'+k);if(el)el.classList.toggle('done',checked[k]);updateStats();
+  checked[k]=!checked[k];var el=document.getElementById('task-'+k);if(el)el.classList.toggle('done',checked[k]);_setTaskOleh(k, checked[k]?(userEmail||''):'');updateStats();
 }
 // Dipanggil setelah manager menyimpan transaksi di tab Uang Cash → centang D04 otomatis.
 // Kirim status 1 tugas harian ke spreadsheet (tanpa harus tekan Simpan) — agar tahan refresh
@@ -5931,6 +5936,7 @@ function kirimHarianAuto(kode){
 function markD04Done(){
   checked['D04']=true;
   var el=document.getElementById('task-D04');if(el)el.classList.add('done');
+  _setTaskOleh('D04', userEmail||'');
   if(!notes['D04']) notes['D04']='Terisi via tab Uang Cash';
   try{ updateStats(); }catch(e){}
   kirimHarianAuto('D04'); // simpan ke spreadsheet supaya centang D04 tetap ada walau refresh/close
@@ -6061,11 +6067,12 @@ async function restoreHarianHariIni(){
     if(!d||!d.rows)return;
     d.rows.forEach(function(row){
       // row = [tgl, kode, nama, kategori, prioritas, status, catatan]
-      if(row[0]===todayValue && row[5]==='✓'){ checked[row[1]]=true; }
+      if(row[0]===todayValue && row[5]==='✓'){ checked[row[1]]=true; if(row[7]) harianOleh[row[1]]=row[7]; }
     });
     HARIAN.forEach(function(t){
       var el=document.getElementById('task-'+t.kode);
       if(el) el.classList.toggle('done', !!checked[t.kode]);
+      _setTaskOleh(t.kode, checked[t.kode]?(harianOleh[t.kode]||''):'');
     });
     try{ updateStats(); }catch(e){}
   }catch(e){}
@@ -8208,7 +8215,7 @@ function kasRenderAmbilList(){
   var list=document.getElementById('kas-ambil-list'); var sum=document.getElementById('kas-ambil-summary');
   if(!list||!sum)return;
   var items=((kasData.rows)||[]).filter(function(r){return (r.ambilRifyh||0)>0;}).map(function(r){
-    return { tgl:r.tanggal, amt:(r.ambilRifyh||0), konf:(r.konfirmasi||0), st:kasStatusOf(r) };
+    return { tgl:r.tanggal, amt:(r.ambilRifyh||0), konf:(r.konfirmasi||0), st:kasStatusOf(r), catatan:String(r.catatan||'') };
   });
   if(kasSortAmbil==='amount') items.sort(function(a,b){ return b.amt-a.amt || String(b.tgl).localeCompare(String(a.tgl)); });
   else items.sort(function(a,b){ return String(b.tgl).localeCompare(String(a.tgl)); });
@@ -8224,9 +8231,10 @@ function kasRenderAmbilList(){
     if(it.st==='ok'){ tag='<span style="font-size:9px;color:#0d9488;font-weight:700">✓ tercatat</span>'; col='#0d9488'; }
     else if(it.st==='partial'){ tag='<span style="font-size:9px;color:#d97706;font-weight:700">⚠️ kurang '+fRpPlain(it.amt-it.konf)+'</span>'; col='#d97706'; }
     else { tag='<span style="font-size:9px;color:#dc2626;font-weight:700">⚠️ belum dikonfirmasi</span>'; col='#dc2626'; }
+    var by=''; if(it.catatan){ var mm=it.catatan.match(/\[([^\]]+)\]/g); if(mm&&mm.length){ by=_monOlehShort(mm[mm.length-1].replace(/^\[|\]$/g,'')); } }
     return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:var(--surface);border-radius:8px;border-left:3px solid '+col+'">'
       +'<div style="font-size:12px;font-weight:700;font-family:var(--mono)">'+it.tgl+'</div>'
-      +'<div style="text-align:right"><div style="font-family:var(--mono);font-size:13px;font-weight:800;color:'+col+'">'+fRpPlain(it.amt)+'</div>'+tag+'</div>'
+      +'<div style="text-align:right"><div style="font-family:var(--mono);font-size:13px;font-weight:800;color:'+col+'">'+fRpPlain(it.amt)+'</div>'+tag+(by?'<div style="font-size:9px;color:var(--hint);margin-top:2px;word-break:break-all">✓ '+escH(by)+'</div>':'')+'</div>'
       +'</div>';
   }).join('');
 }
