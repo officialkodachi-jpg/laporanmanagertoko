@@ -944,7 +944,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
         <span class="hicon" style="background:rgba(217,119,6,.15);font-size:18px">🕒</span>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:800;color:var(--text)">Absen manager hari ini</div>
-          <div style="font-size:10px;color:var(--hint)">Check-in/out (sumber resmi durasi) · admin bisa set/ubah jam & reset</div>
+          <div style="font-size:10px;color:var(--hint)">Check-in/out multi-sesi (sumber resmi durasi) · admin bisa "keluarkan sekarang", masukkan lagi, set/ubah jam & reset · jeda di luar toko tidak dihitung</div>
         </div>
         <button class="btn-press" onclick="absenFetch()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer">⟳ Muat</button>
       </div>
@@ -3140,13 +3140,13 @@ function _mgrAbsenRow(){
   if(userRole!=='admin' || !_absenAdminRows || !_absenAdminRows.length) return null;
   var names=(typeof _mgrNamesNow==='function'?_mgrNamesNow():[MGR_NAME])
     .map(function(s){return String(s||'').trim().toLowerCase();});
-  var hit=null, anyMasuk=null;
+  var hit=null, anyAct=null;
   for(var i=0;i<_absenAdminRows.length;i++){
     var r=_absenAdminRows[i]; var nm=String(r.nama||'').trim().toLowerCase();
     if(names.indexOf(nm)>=0){ hit=r; break; }
-    if(!anyMasuk && r.masuk) anyMasuk=r;   // app ini absennya khusus manager → baris ber-check-in = manager
+    if(!anyAct && (r.open || (Number(r.akumulasi!=null?r.akumulasi:r.durasi)||0)>0 || r.masuk)) anyAct=r;   // app ini absennya khusus manager
   }
-  return hit || anyMasuk;
+  return hit || anyAct;
 }
 // (v6.5) Durasi kerja dari CHECK-IN dgn presisi DETIK → bar/timer keliatan jalan.
 function _durMinFromCheckin(masuk, keluar){
@@ -3166,14 +3166,16 @@ function _hms(menit){
 }
 function _mgrLiveMinutes(d){
   var r=_mgrAbsenRow();
-  if(r && r.masuk){
+  if(r && (r.open || (Number(r.akumulasi!=null?r.akumulasi:r.durasi)||0)>0 || r.masuk)){
     var masuk=_absToHHMM(r.masuk), keluar=_absToHHMM(r.keluar);
-    if(masuk){
-      if(keluar) return {menit:_durMinFromCheckin(masuk,keluar), live:false, masuk:masuk, keluar:keluar, fromAbsen:true};
-      return {menit:_durMinFromCheckin(masuk,''), live:true, masuk:masuk, keluar:'', fromAbsen:true};
-    }
+    var akum=Number(r.akumulasi!=null?r.akumulasi:r.durasi)||0;   // menit sesi yang sudah SELESAI (server)
+    var open=!!r.open;                                            // ada sesi berjalan (belum di-checkout)?
+    var sb=_absToHHMM(r.sesiBuka);                                // jam mulai sesi berjalan ("HH:mm")
+    var live=(open&&sb)?_absLiveSinceMin(sb):0;                   // menit sesi berjalan (sekarang − sesiBuka)
+    var menit=akum+live; if(menit>ABS_CAP_HARI) menit=ABS_CAP_HARI;
+    return {menit:menit, live:open, akum:akum, open:open, sesiBuka:sb, masuk:masuk, keluar:keluar, fromAbsen:true};
   }
-  return {menit:(d&&d.menit)||0, live:false, masuk:'', keluar:'', fromAbsen:false};
+  return {menit:(d&&d.menit)||0, live:false, akum:0, open:false, sesiBuka:'', masuk:'', keluar:'', fromAbsen:false};
 }
 // Render hanya bagian TIMER/BAR durasi kerja (dipakai render utama + ticker 1 dtk)
 function _renderMgrTimer(){
@@ -3189,8 +3191,9 @@ function _renderMgrTimer(){
   var f=document.getElementById('time-bar-fill'); if(f){ f.style.width=p+'%'; f.className='time-bar-fill'+(p>=100?' done':''); }
   var lbl=document.getElementById('time-bar-left');
   if(lbl){
-    if(lm.fromAbsen && lm.live) lbl.textContent=(menit>=60?(hms.h+'j '+hms.m+'m'):(hms.m+'m '+hms.s+'d'))+' kerja · sejak '+lm.masuk;
-    else if(lm.fromAbsen && lm.keluar) lbl.textContent='selesai · '+lm.masuk+'–'+lm.keluar;
+    var _ht=Math.floor(menit/60), _mt=Math.floor(menit%60);
+    if(lm.fromAbsen && lm.open) lbl.textContent=(menit>=60?(_ht+'j '+_mt+'m'):(hms.m+'m '+hms.s+'d'))+' kerja · sesi jalan sejak '+(lm.sesiBuka||lm.masuk);
+    else if(lm.fromAbsen && lm.akum>0) lbl.textContent='total '+_ht+'j '+_mt+'m · sesi ditutup (bisa lanjut)';
     else lbl.textContent='Manager belum check-in';
   }
 }
@@ -3202,9 +3205,12 @@ function renderManagerLoc(d){
   if(!d||(!d.lat&&!d.menit&&d.inStore===undefined)){
     i.innerHTML=ICO.watch();i.className='loc-icon';st.textContent='Memantau posisi Manager';st.className='loc-status waiting';
     var _lm0=_mgrLiveMinutes(d);
-    if(_lm0.fromAbsen && _lm0.masuk){
-      // Posisi GPS belum/tidak terkirim, tapi manager sudah check-in → durasi resmi tetap ditampilkan.
-      det.innerHTML='Posisi GPS belum terkirim hari ini, tapi <b>jam kerja resmi sudah berjalan</b> dari absen check-in.<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
+    if(_lm0.fromAbsen && (_lm0.open || _lm0.akum>0)){
+      // Posisi GPS belum/tidak terkirim, tapi manager punya sesi kerja → durasi resmi tetap ditampilkan.
+      var _a0h=Math.floor((_lm0.akum||0)/60), _a0m=Math.floor((_lm0.akum||0)%60);
+      det.innerHTML = _lm0.open
+        ? 'Posisi GPS belum terkirim hari ini, tapi <b>jam kerja sedang berjalan</b> dari absen check-in.<div class="admin-note">Mode admin · kamu tidak di-tracking</div>'
+        : 'Posisi GPS belum terkirim hari ini. <b>Total kerja '+_a0h+'j '+_a0m+'m</b>, sesi ditutup — bisa dilanjut kalau manager check-in lagi.<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
       _lastMgrLoc=d||{}; _renderMgrTimer(); return;
     }
     det.innerHTML='Belum ada data posisi Manager hari ini<div class="admin-note">Mode admin · kamu tidak di-tracking</div>';
@@ -3759,11 +3765,14 @@ function _enforcePresence(){
   }
 }
 function getCurrentTotalMinutes(){
-  // (v6.5) Bar/timer = durasi kerja RESMI dari CHECK-IN (presisi DETIK).
-  // Belum check-in → 0. GPS hanya penentu "boleh check-in", BUKAN penghitung jam.
-  // Bar jalan terus dari check-in s/d check-out, walau GPS sempat goyang.
-  if(typeof _absen!=='undefined' && _absen.loaded && _absen.masuk){
-    return _durMinFromCheckin(_absen.masuk, _absen.keluar);
+  // (v6.10) Bar/timer = durasi kerja RESMI MULTI-SESI: akumulasi sesi selesai
+  // + sesi berjalan (sekarang−sesiBuka). Belum check-in → 0. GPS cuma penentu
+  // "boleh check-in", bukan penghitung jam. Jeda di luar (antara check-out &
+  // check-in lagi) TIDAK dihitung.
+  if(typeof _absen!=='undefined' && _absen.loaded){
+    var t=(Number(_absen.akumulasi)||0) + (_absen.open ? _absLiveSinceMin(_absen.sesiBuka) : 0);
+    if(t>ABS_CAP_HARI) t=ABS_CAP_HARI;
+    return t;
   }
   return 0;
 }
@@ -3795,7 +3804,10 @@ function updateD01Card(){const t=getCurrentTotalMinutes(),p=Math.min(100,t/TARGE
 //  re-fetch utk konfirmasi. Jam resmi dari server (GAS).
 // ════════════════════════════════════════════════════════════
 var ABS_CAP_HARI = 16*60;
-var _absen = { tgl:'', masuk:'', keluar:'', durasi:0, sumberMasuk:'', sumberKeluar:'', loaded:false };
+// (v6.10) MULTI-SESI: durasi resmi = akumulasi sesi yang sudah selesai (server).
+// open = sedang ada sesi berjalan (check-in tanpa check-out). sesiBuka = jam masuk
+// sesi berjalan. Total tampil = akumulasi + (open ? sekarang−sesiBuka : 0).
+var _absen = { tgl:'', masuk:'', keluar:'', durasi:0, akumulasi:0, open:false, sesiBuka:'', sesiCount:0, sesi:[], sumberMasuk:'', sumberKeluar:'', loaded:false };
 var _absenAdminRows = [];
 var _absenBusy = false;
 var _locConnected = false;   // GPS aktif & sudah dapat posisi (di-set oleh _syncActivateBtn)
@@ -3810,6 +3822,15 @@ function _absToHHMM(v){
 }
 function _absHmToMin(s){ var hm=_absToHHMM(s); if(!hm) return null; var a=hm.split(':'); return parseInt(a[0],10)*60+parseInt(a[1],10); }
 function _absMinNow(){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }
+// (v6.10) menit pecahan (ada detik) dari jam "HH:mm" s/d SEKARANG (jam HP) — utk live di layar.
+function _absLiveSinceMin(hhmm){
+  var mIn=_absHmToMin(hhmm); if(mIn==null) return 0;
+  var now=new Date();
+  var inSec=mIn*60, endSec=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
+  var d=endSec-inSec; if(d<0) d+=86400;
+  return d/60;
+}
+function _absAkumTxt(){ var t=Number(_absen.akumulasi)||0; var h=Math.floor(t/60), m=Math.floor(t%60); return h>0?(h+'j '+m+'m'):(m+'m'); }
 function _absHHMM(){ var d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 function _absEsc(s){ return String(s||'').replace(/[<>&"']/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c];}); }
 
@@ -3824,7 +3845,12 @@ function absenFetch(){
       _absen.tgl=TODAY_KEY();
       _absen.masuk = me?_absToHHMM(me.masuk):'';
       _absen.keluar = me?_absToHHMM(me.keluar):'';
-      _absen.durasi = me?(Number(me.durasi)||0):0;
+      _absen.akumulasi = me?(Number(me.akumulasi!=null?me.akumulasi:me.durasi)||0):0;
+      _absen.durasi = _absen.akumulasi;
+      _absen.open = me?!!me.open:false;
+      _absen.sesiBuka = me?_absToHHMM(me.sesiBuka):'';
+      _absen.sesiCount = me?(Number(me.sesiCount)||0):0;
+      _absen.sesi = (me&&me.sesi&&me.sesi.length)?me.sesi:[];
       _absen.sumberMasuk = me?String(me.sumberMasuk||''):'';
       _absen.sumberKeluar = me?String(me.sumberKeluar||''):'';
       _absen.loaded=true;
@@ -3844,60 +3870,77 @@ function _absenPost(payload, optimistic){
 function absenCheckin(sumber){
   if(userRole!=='manager') return;
   if(_absenBusy) return;
-  if(_absen.loaded && _absen.masuk) return;                 // sudah check-in
+  if(_absen.loaded && _absen.open) return;                  // sudah ada sesi berjalan
   if(sumber!=='auto' && !isAtStore){ showToast('Kamu harus berada di toko untuk check in','err'); return; }
   _absenBusy=true;
   var jam=_absHHMM();
+  var lanjut=(Number(_absen.akumulasi)||0)>0;               // ada sesi sebelumnya → ini melanjutkan
   _absenPost({type:'absen_in', tanggal:TODAY_KEY(), nama:'', sumber:(sumber||'manual'), email:(userEmail||''), oleh:(userEmail||'')}, function(){
-    if(!_absen.masuk){ _absen.masuk=jam; _absen.sumberMasuk=(sumber||'manual'); _absen.loaded=true; absenRender(); try{updateTimerDisplay();}catch(e){} }
+    if(!_absen.open){ _absen.open=true; _absen.sesiBuka=jam; if(!_absen.masuk)_absen.masuk=jam; _absen.sumberMasuk=(sumber||'manual'); _absen.loaded=true; absenRender(); try{updateTimerDisplay();}catch(e){} }
   });
-  if(sumber!=='auto') showToast('✓ Check in '+jam,'ok');
+  if(sumber!=='auto') showToast((lanjut?'✓ Lanjut kerja · check in ':'✓ Check in ')+jam,'ok');
   setTimeout(function(){ _absenBusy=false; },2500);
 }
 
 function absenCheckout(){
   if(userRole!=='manager') return;
   if(_absenBusy) return;
-  if(!_absen.masuk){ showToast('Belum check in hari ini','err'); return; }
-  if(_absen.keluar){ showToast('Sudah check out hari ini','err'); return; }
+  if(!_absen.open){ showToast('Tidak ada sesi yang sedang berjalan','err'); return; }
   if(!isAtStore){ showToast('Kamu harus berada di toko untuk check out','err'); return; }  // (v6.6) check-out hanya di toko
-  if(!confirm('Check out sekarang?\n\nDurasi kerja hari ini dikunci sampai jam ini.')) return;
+  if(!confirm('Check out sekarang?\n\nWaktu kerja sesi ini dikunci. Kalau nanti kamu datang lagi, tinggal Check in lagi untuk melanjutkan total hari ini.')) return;
   _absenBusy=true;
   var jam=_absHHMM();
   _absenPost({type:'absen_out', tanggal:TODAY_KEY(), nama:'', sumber:'manual', email:(userEmail||''), oleh:(userEmail||'')}, function(){
-    _absen.keluar=jam; _absen.sumberKeluar='manual'; absenRender(); try{updateTimerDisplay();}catch(e){}
+    _absen.akumulasi=(Number(_absen.akumulasi)||0)+_absLiveSinceMin(_absen.sesiBuka);
+    _absen.open=false; _absen.keluar=jam; _absen.sesiBuka=''; _absen.sumberKeluar='manual'; _absen.durasi=_absen.akumulasi;
+    absenRender(); try{updateTimerDisplay();}catch(e){}
   });
   showToast('✓ Check out '+jam,'ok');
   setTimeout(function(){ _absenBusy=false; },2500);
 }
 
-// Dipanggil saat GPS mengonfirmasi tiba di toko (lihat onLocOk).
+// Dipanggil saat GPS mengonfirmasi tiba di toko (saat ini auto check-in DIMATIKAN;
+// resume selalu manual). Tetap aman bila kelak diaktifkan: hanya menembak sesi
+// PERTAMA hari itu — resume dibuat manual supaya tak terakumulasi tak sengaja.
 function absenAutoCheckin(){
   if(userRole!=='manager') return;
-  if(_absen.loaded && (_absen.masuk || _absen.keluar)) return;   // sudah masuk / sudah keluar hari ini
+  if(_absen.loaded && (_absen.open || (Number(_absen.akumulasi)||0)>0 || (_absen.sesiCount||0)>0)) return;
   absenCheckin('auto');
 }
 
 function absenRender(){
   var row=document.getElementById('absen-row'); if(!row) return;
   if(userRole!=='manager'){ row.style.display='none'; return; }
-  // Tampil hanya bila lokasi sudah aktif ATAU sudah check-in. Kalau lokasi
-  // belum aktif & belum check-in → sembunyikan (tombol "Aktifkan lokasi"
-  // yang jadi aksi utama → tidak ada dua tombol berebut).
-  if(!_locConnected && !_absen.masuk){ row.style.display='none'; return; }
+  // Tampil bila lokasi aktif ATAU ada sesi berjalan ATAU sudah ada jam kerja
+  // hari ini (bisa lanjut). Kalau belum apa-apa & lokasi belum aktif →
+  // sembunyikan (tombol "Aktifkan lokasi" jadi aksi utama).
+  if(!_locConnected && !_absen.open && !((Number(_absen.akumulasi)||0)>0)){ row.style.display='none'; return; }
   row.style.display='flex';
   var info=document.getElementById('absen-masuk-info'), btn=document.getElementById('absen-btn');
   if(!btn) return;
   if(!_absen.loaded){ if(info) info.textContent='Memuat absen…'; btn.style.display='none'; return; }
   btn.style.display='flex';
-  if(_absen.keluar){
-    if(info) info.innerHTML='Masuk <b>'+_absEsc(_absen.masuk)+'</b> · Keluar <b>'+_absEsc(_absen.keluar)+'</b> — hari ini selesai';
-    btn.style.display='none';
-  } else if(_absen.masuk){
-    if(info) info.innerHTML='Sudah check in jam <b>'+_absEsc(_absen.masuk)+'</b>'+(_absen.sumberMasuk==='auto'?' <span style="color:var(--accent)">· otomatis</span>':'')+(!isAtStore?' <span style="color:var(--red)">· check out hanya bisa di toko</span>':'');
+  var akum=Number(_absen.akumulasi)||0, akumTxt=_absAkumTxt();
+  if(_absen.open){
+    // sedang ada sesi berjalan → bisa check out
+    if(info) info.innerHTML='Sedang kerja sejak <b>'+_absEsc(_absen.sesiBuka)+'</b>'
+      +(_absen.sumberMasuk==='auto'?' <span style="color:var(--accent)">· otomatis</span>':'')
+      +(akum>0?(' · terkumpul sebelumnya <b>'+akumTxt+'</b>'):'')
+      +(!isAtStore?' <span style="color:var(--red)">· check out hanya bisa di toko</span>':'');
     btn.textContent='⏹ Check out'; btn.style.background='var(--orange)'; btn.onclick=absenCheckout;
     if(isAtStore){ btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer'; }
     else { btn.disabled=true; btn.style.opacity='.5'; btn.style.cursor='default'; }
+  } else if(akum>0){
+    // sudah check out — masih bisa lanjut (resume) dengan check in lagi
+    if(isAtStore){
+      if(info) info.innerHTML='Sesi terakhir selesai · total kerja hari ini <b>'+akumTxt+'</b>. Datang lagi? Check in untuk lanjut.';
+      btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer';
+      btn.textContent='▶ Check in lagi (lanjut)'; btn.style.background='var(--green)'; btn.onclick=function(){ absenCheckin('manual'); };
+    } else {
+      if(info) info.innerHTML='Total kerja hari ini <b>'+akumTxt+'</b> (sesi ditutup). Datang ke toko untuk lanjut — check in lagi.';
+      btn.disabled=true; btn.style.opacity='.5'; btn.style.cursor='default';
+      btn.textContent='▶ Check in lagi'; btn.style.background='var(--hint)'; btn.onclick=null;
+    }
   } else if(isAtStore){
     if(info) info.textContent='Kamu di toko — silakan check in';
     btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer';
@@ -3909,40 +3952,80 @@ function absenRender(){
   }
 }
 
-// ── Panel admin: daftar absen hari ini + override ──
+// ── Panel admin: daftar absen hari ini + override (multi-sesi/resume) ──
 function absenAdminRender(){
   var box=document.getElementById('absen-admin-list'); if(!box) return;
   if(!_absenAdminRows.length){ box.innerHTML='<div style="font-size:12px;color:var(--hint);padding:8px">Belum ada absen hari ini.</div>'; return; }
   var html='';
   _absenAdminRows.forEach(function(r){
     var rm=_absToHHMM(r.masuk), rk=_absToHHMM(r.keluar);
-    var status = rk ? 'selesai' : (rm ? 'sedang di toko' : 'belum masuk');
-    var warna = rk ? 'var(--green)' : (rm ? 'var(--orange)' : 'var(--hint)');
-    var durMin = (rm&&rk) ? _durMinFromCheckin(rm,rk) : (Number(r.durasi)||0);
-    var durTxt = durMin>0 ? (Math.floor(durMin/60)+'j '+Math.floor(durMin%60)+'m') : '';
+    var akum=Number(r.akumulasi!=null?r.akumulasi:r.durasi)||0;     // menit sesi selesai (server)
+    var open=!!r.open;                                              // ada sesi berjalan?
+    var sb=_absToHHMM(r.sesiBuka);
+    var live=(open&&sb)?_absLiveSinceMin(sb):0;
+    var total=akum+live; if(total>ABS_CAP_HARI) total=ABS_CAP_HARI;
+    var status = open ? 'sedang kerja' : (akum>0 ? 'selesai (bisa lanjut)' : 'belum masuk');
+    var warna = open ? 'var(--orange)' : (akum>0 ? 'var(--green)' : 'var(--hint)');
+    var totTxt = total>0 ? (Math.floor(total/60)+'j '+Math.floor(total%60)+'m') : '';
+    var sesi = (r.sesi&&r.sesi.length)?r.sesi:[];
+    var sesiHtml='';
+    if(sesi.length){
+      sesiHtml='<div style="font-size:11px;color:var(--muted);margin-bottom:9px;line-height:1.7">';
+      sesi.forEach(function(s,ix){
+        var si=_absToHHMM(s.i), so=_absToHHMM(s.o);
+        var oTxt = so ? ('<b style="font-family:var(--mono)">'+so+'</b>') : ((open&&ix===sesi.length-1) ? '<span style="color:var(--orange);font-weight:700">jalan…</span>' : '—');
+        sesiHtml+='<div>#'+(ix+1)+' <b style="font-family:var(--mono)">'+(si||'—')+'</b> → '+oTxt+'</div>';
+      });
+      sesiHtml+='</div>';
+    }
     html+='<div style="border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:8px">'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><b style="font-size:13px;flex:1;min-width:0">'+_absEsc(r.nama)+'</b><span style="font-size:10px;color:'+warna+';font-weight:700">'+status+'</span></div>'
-      +'<div style="font-size:12px;color:var(--muted);margin-bottom:9px">Masuk <b style="font-family:var(--mono)">'+(rm||'—')+'</b> · Keluar <b style="font-family:var(--mono)">'+(rk||'—')+'</b>'+(durTxt?(' · '+durTxt):'')+'</div>'
-      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-      +'<button class="km-act-btn" onclick="absenAdminSet(\''+_absEsc(r.nama)+'\',\'masuk\')">✎ Set masuk</button>'
-      +'<button class="km-act-btn" onclick="absenAdminSet(\''+_absEsc(r.nama)+'\',\'keluar\')">⏹ Set keluar</button>'
-      +'<button class="km-act-btn" style="color:var(--red)" onclick="absenAdminReset(\''+_absEsc(r.nama)+'\')">↺ Reset</button>'
+      +'<div style="font-size:12px;color:var(--muted);margin-bottom:'+(sesi.length?'6px':'9px')+'">Masuk awal <b style="font-family:var(--mono)">'+(rm||'—')+'</b> · Keluar akhir <b style="font-family:var(--mono)">'+(rk||'—')+'</b>'+(totTxt?(' · total <b>'+totTxt+'</b>'):'')+'</div>'
+      +sesiHtml
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">';
+    if(open) html+='<button class="km-act-btn" style="color:var(--orange);font-weight:700" onclick="absenAdminCheckoutNow(\''+_absEsc(r.nama)+'\')">⏹ Keluarkan sekarang</button>';
+    else if(akum>0) html+='<button class="km-act-btn" style="color:var(--green);font-weight:700" onclick="absenAdminCheckinNow(\''+_absEsc(r.nama)+'\')">➕ Masuk lagi (skrg)</button>';
+    html+='<button class="km-act-btn" onclick="absenAdminSet(\''+_absEsc(r.nama)+'\',\'masuk\')">✎ Set masuk</button>'
+      +'<button class="km-act-btn" onclick="absenAdminSet(\''+_absEsc(r.nama)+'\',\'keluar\')">✎ Set keluar</button>';
+    if(sesi.length) html+='<button class="km-act-btn" onclick="absenAdminSesiDel(\''+_absEsc(r.nama)+'\')">🗑 Sesi akhir</button>';
+    html+='<button class="km-act-btn" style="color:var(--red)" onclick="absenAdminReset(\''+_absEsc(r.nama)+'\')">↺ Reset</button>'
       +'</div></div>';
   });
   box.innerHTML=html;
 }
+function absenAdminCheckoutNow(nama){
+  if(userRole!=='admin') return;
+  if(!confirm('Keluarkan '+nama+' sekarang?\n\nSesi kerja yang sedang berjalan ditutup di jam server saat ini & waktunya dikunci ke total hari ini. Kalau manager datang lagi, tinggal "Masuk lagi" untuk melanjutkan (jeda di luar tidak dihitung).')) return;
+  _absenPost({type:'absen_out', tanggal:TODAY_KEY(), nama:nama, sumber:'admin', adminEmail:(userEmail||'')}, null);
+  showToast('✓ '+nama+' dikeluarkan — sesi ditutup','ok');
+}
+function absenAdminCheckinNow(nama){
+  if(userRole!=='admin') return;
+  if(!confirm('Masukkan '+nama+' lagi sekarang?\n\nBuka sesi kerja BARU di jam server saat ini — melanjutkan total kerja hari ini. Jeda waktu di luar toko tidak ikut dihitung.')) return;
+  _absenPost({type:'absen_in', tanggal:TODAY_KEY(), nama:nama, sumber:'admin', adminEmail:(userEmail||'')}, null);
+  showToast('✓ '+nama+' masuk lagi — sesi baru','ok');
+}
+function absenAdminSesiDel(nama){
+  if(userRole!=='admin') return;
+  if(!confirm('Hapus SESI TERAKHIR '+nama+'?\n\nSatu sesi (pasangan masuk–keluar paling akhir) dihapus dari hari ini. Tidak bisa dibatalkan.')) return;
+  _absenPost({type:'absen_sesi_del', tanggal:TODAY_KEY(), nama:nama, adminEmail:(userEmail||'')}, null);
+  showToast('✓ Sesi terakhir '+nama+' dihapus','ok');
+}
 function absenAdminSet(nama, field){
   if(userRole!=='admin') return;
-  var v=prompt('Set jam '+(field==='masuk'?'MASUK':'KELUAR')+' untuk '+nama+'\nFormat HH:mm (mis. 09:15). Kosongkan = hapus.', _absHHMM());
+  var hint = field==='masuk'
+    ? 'Set jam MASUK sesi berjalan untuk '+nama+'\nFormat HH:mm (mis. 09:15). Kosongkan = batalkan sesi yang sedang berjalan.'
+    : 'Set jam KELUAR sesi terakhir untuk '+nama+'\nFormat HH:mm (mis. 17:30). Kosongkan = buka lagi sesi terakhir (status jadi sedang kerja).';
+  var v=prompt(hint, _absHHMM());
   if(v===null) return;
   v=String(v).trim();
   if(v && !/^\d{1,2}:\d{2}$/.test(v)){ showToast('Format jam salah — pakai HH:mm','err'); return; }
   _absenPost({type:'absen_override', tanggal:TODAY_KEY(), nama:nama, field:field, value:v, adminEmail:(userEmail||'')}, null);
-  showToast('✓ '+(field==='masuk'?'Masuk':'Keluar')+' '+nama+' → '+(v||'dihapus'),'ok');
+  showToast('✓ '+(field==='masuk'?'Masuk':'Keluar')+' '+nama+' → '+(v||'(kosong)'),'ok');
 }
 function absenAdminReset(nama){
   if(userRole!=='admin') return;
-  if(!confirm('Reset absen '+nama+' hari ini?\nJam masuk & keluar akan dihapus.')) return;
+  if(!confirm('Reset SEMUA absen '+nama+' hari ini?\n\nSemua sesi (semua pasangan masuk–keluar) dihapus. Tidak bisa dibatalkan.')) return;
   _absenPost({type:'absen_reset', tanggal:TODAY_KEY(), nama:nama, adminEmail:(userEmail||'')}, null);
   showToast('✓ Absen '+nama+' direset','ok');
 }
