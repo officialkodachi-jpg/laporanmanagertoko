@@ -1465,6 +1465,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
             <div id="kas-akhir" style="font-family:var(--mono);font-size:18px;font-weight:800;color:var(--text);margin-top:2px;line-height:1.1">—</div>
           </div>
         </div>
+        <div id="kas-toko-warn" style="display:none;margin-top:12px;padding:11px 13px;border-radius:10px;font-size:12px;font-weight:700;line-height:1.5"></div>
         <div id="kas-ambil-box" style="display:none;margin-top:12px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:700;line-height:1.4;background:rgba(217,119,6,.1);color:#d97706"></div>
         <div id="kas-src-note" style="font-size:10px;color:var(--hint);margin-top:10px;line-height:1.5">📊 Saldo awal &amp; akhir dibaca otomatis dari sheet <b>Penjualan</b> (H6 = awal, baris terakhir = akhir). Baris <b>"Uang Keluar Ambil Rifyh"</b> dicatat otomatis sebagai pengambilan hari itu. Tanpa hitung selisih.</div>
       </div>
@@ -1472,7 +1473,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
       <!-- Daftar pengambilan Rifyh (bisa di-sort) -->
       <div id="kas-ambil-card" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
-          <div style="font-size:12px;font-weight:800">📤 Pengambilan Rifyh</div>
+          <div style="font-size:12px;font-weight:800" id="kas-ambil-title">📤 Pengambilan Rifyh</div>
           <div style="display:flex;gap:4px;background:var(--surface);padding:3px;border-radius:8px">
             <button id="kas-sort-tgl" onclick="kasSetSortAmbil('date')" style="padding:5px 9px;border:none;border-radius:6px;font-family:var(--sans);font-size:10px;font-weight:700;cursor:pointer;background:var(--card);color:var(--text)">Terbaru</button>
             <button id="kas-sort-amt" onclick="kasSetSortAmbil('amount')" style="padding:5px 9px;border:none;border-radius:6px;font-family:var(--sans);font-size:10px;font-weight:700;cursor:pointer;background:transparent;color:var(--muted)">Terbesar</button>
@@ -1561,6 +1562,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
           <div id="cash-pending" style="margin-top:6px"></div>
         </div>
 
+        <div id="cash-e02-hint" style="display:none;font-size:10px;color:var(--muted);background:var(--card2);border:1px dashed var(--border);border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.5">📌 <b>Setor</b> + foto bukti → otomatis mencentang Non-Harian <b>E02 — Setor uang ke owner &amp; laporan keuangan</b>.</div>
         <!-- Badge nama manager — klik untuk simpan -->
         <button id="cash-btn-b" onclick="simpanCashData()" style="width:100%;padding:15px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;font-family:var(--sans);font-size:15px;font-weight:700;text-align:center;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.25)">💾 Simpan — <span id="cash-btn-b-label">Manager</span> → Kolom B</button>
         <div id="cash-simpan-status" style="text-align:center;font-size:12px;margin-bottom:4px;min-height:14px;font-family:var(--mono)"></div>
@@ -1767,28 +1769,45 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <div class="alert info" style="margin-bottom:14px">🗄️ <b>Sumber Data</b> — ganti link/ID spreadsheet di sini tanpa ngedit kode. Tempel link Google Sheet penuh, sistem ambil ID-nya otomatis, lalu <b>Simpan</b>. Berlaku ke semua perangkat.</div>
 
     <div class="sd-card">
-      <div class="sd-top"><span class="sd-ic">📅</span><div class="sd-meta"><div class="sd-name">Orderan Tahunan</div><div class="sd-desc">Sumber Rekap Barang Hilang Retur · ganti tiap ganti tahun</div></div><span class="sd-tag ss">Spreadsheet</span></div>
-      <div class="sd-cur">aktif: <span id="sd-tail-ss_orderan">…</span></div>
-      <div class="sd-row"><input id="sd-in-ss_orderan" type="text" placeholder="tempel link Orderan tahun baru…"><button onclick="saveSumber('ss_orderan','sd-in-ss_orderan')">💾 Simpan</button></div>
-      <div class="sd-hint">ℹ️ <span>Tiap ganti tahun: buka spreadsheet Orderan tahun baru → salin URL dari address bar → tempel di sini → Simpan. Rekap Hilang/Retur langsung tersegarkan.</span></div>
-    </div>
+      <div class="sd-top"><span class="sd-ic">🔗</span><div class="sd-meta"><div class="sd-name">Link Penting — Spreadsheet · GAS · Drive</div><div class="sd-desc">Semua sumber inti dikumpulkan di 1 kartu. Tempel link baru → Simpan (ID diambil otomatis).</div></div><span class="sd-tag ss">Inti</span></div>
 
-    <div class="sd-card">
-      <div class="sd-top"><span class="sd-ic">📦</span><div class="sd-meta"><div class="sd-name">Stok Toko &amp; Gudang</div><div class="sd-desc">Sumber Monitoring Stok &amp; autocomplete produk</div></div><span class="sd-tag ss">Spreadsheet</span></div>
-      <div class="sd-cur">aktif: <span id="sd-tail-ss_stok">…</span></div>
-      <div class="sd-row"><input id="sd-in-ss_stok" type="text" placeholder="tempel link baru…"><button onclick="saveSumber('ss_stok','sd-in-ss_stok')">💾 Simpan</button></div>
-    </div>
+      <div style="padding-top:10px;border-top:1px dashed var(--border);margin-top:6px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin-bottom:4px"><span>📅</span><span>Orderan Tahunan</span><span class="sd-tag ss" style="margin-left:auto">Sheet</span></div>
+        <div class="sd-desc" style="margin-bottom:5px">Sumber Rekap Barang Hilang/Retur · ganti tiap ganti tahun</div>
+        <div class="sd-cur">aktif: <span id="sd-tail-ss_orderan">…</span></div>
+        <div class="sd-row"><input id="sd-in-ss_orderan" type="text" placeholder="tempel link Orderan tahun baru…"><button onclick="saveSumber('ss_orderan','sd-in-ss_orderan')">💾</button></div>
+      </div>
 
-    <div class="sd-card">
-      <div class="sd-top"><span class="sd-ic">📅</span><div class="sd-meta"><div class="sd-name">Jadwal Shift</div><div class="sd-desc">Sumber partimer &amp; shift kosong</div></div><span class="sd-tag ss">Spreadsheet</span></div>
-      <div class="sd-cur">aktif: <span id="sd-tail-ss_shift">…</span></div>
-      <div class="sd-row"><input id="sd-in-ss_shift" type="text" placeholder="tempel link baru…"><button onclick="saveSumber('ss_shift','sd-in-ss_shift')">💾 Simpan</button></div>
-    </div>
+      <div style="padding-top:10px;border-top:1px dashed var(--border);margin-top:11px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin-bottom:4px"><span>📦</span><span>Stok Toko &amp; Gudang</span><span class="sd-tag ss" style="margin-left:auto">Sheet</span></div>
+        <div class="sd-desc" style="margin-bottom:5px">Sumber Monitoring Stok &amp; autocomplete produk</div>
+        <div class="sd-cur">aktif: <span id="sd-tail-ss_stok">…</span></div>
+        <div class="sd-row"><input id="sd-in-ss_stok" type="text" placeholder="tempel link baru…"><button onclick="saveSumber('ss_stok','sd-in-ss_stok')">💾</button></div>
+      </div>
 
-    <div class="sd-card">
-      <div class="sd-top"><span class="sd-ic">🖼️</span><div class="sd-meta"><div class="sd-name">Folder Foto</div><div class="sd-desc">Tempat simpan foto nota, resi, bukti (Google Drive)</div></div><span class="sd-tag folder">Folder</span></div>
-      <div class="sd-cur">aktif: <span id="sd-tail-folder_foto">…</span></div>
-      <div class="sd-row"><input id="sd-in-folder_foto" type="text" placeholder="tempel link folder Drive baru…"><button onclick="saveSumber('folder_foto','sd-in-folder_foto')">💾 Simpan</button></div>
+      <div style="padding-top:10px;border-top:1px dashed var(--border);margin-top:11px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin-bottom:4px"><span>📅</span><span>Jadwal Shift</span><span class="sd-tag ss" style="margin-left:auto">Sheet</span></div>
+        <div class="sd-desc" style="margin-bottom:5px">Sumber partimer &amp; shift kosong</div>
+        <div class="sd-cur">aktif: <span id="sd-tail-ss_shift">…</span></div>
+        <div class="sd-row"><input id="sd-in-ss_shift" type="text" placeholder="tempel link baru…"><button onclick="saveSumber('ss_shift','sd-in-ss_shift')">💾</button></div>
+      </div>
+
+      <div style="padding-top:10px;border-top:1px dashed var(--border);margin-top:11px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin-bottom:4px"><span>🖼️</span><span>Folder Foto</span><span class="sd-tag folder" style="margin-left:auto">Drive</span></div>
+        <div class="sd-desc" style="margin-bottom:5px">Tempat simpan foto nota, resi, bukti (Google Drive)</div>
+        <div class="sd-cur">aktif: <span id="sd-tail-folder_foto">…</span></div>
+        <div class="sd-row"><input id="sd-in-folder_foto" type="text" placeholder="tempel link folder Drive baru…"><button onclick="saveSumber('folder_foto','sd-in-folder_foto')">💾</button></div>
+      </div>
+
+      <div style="padding-top:10px;border-top:1px dashed var(--border);margin-top:11px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin-bottom:4px"><span>🖥️</span><span>URL Backend (GAS)</span><span class="sd-tag gas" style="margin-left:auto">API</span></div>
+        <div class="sd-desc" style="margin-bottom:5px">Alamat Web App tempat semua data ditarik</div>
+        <div class="sd-cur">aktif: <span id="sd-tail-gas">…</span></div>
+        <div class="sd-row"><input id="sd-in-gas" type="text" placeholder="https://script.google.com/macros/s/.../exec"><button onclick="saveSumberGas()">💾</button></div>
+        <div class="sd-warn" style="margin-top:6px">⚠️ Biasanya <b>tidak diganti</b>. Isi hanya kalau kamu redeploy GAS &amp; dapat URL baru — salah isi = app putus dari semua data. Lupa link? Apps Script → <b>Deploy → Manage deployments</b> → salin URL yang berakhiran <b>/exec</b>.</div>
+      </div>
+
+      <div class="sd-hint" style="margin-top:11px">ℹ️ <span>Empat sumber pertama dibaca lewat ID, aman diganti kapan saja (mis. ganti tahun) tanpa redeploy GAS. Hanya <b>URL Backend (GAS)</b> yang perlu hati-hati.</span></div>
     </div>
 
     <div class="sd-card">
@@ -1823,15 +1842,6 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
       <div class="sd-hint">ℹ️ <span>Turun di bawah nilai ini dianggap wajar (penjualan/operasional biasa). Turun <b>lebih dari</b> nilai ini &amp; belum ditandai "uang diambil" → <b style="color:#dc2626">merah</b>. Default Rp500.000.</span></div>
     </div>
 
-    <div class="sd-card warn">
-      <div class="sd-top"><span class="sd-ic">🖥️</span><div class="sd-meta"><div class="sd-name">URL Backend (GAS)</div><div class="sd-desc">Alamat Web App tempat semua data ditarik</div></div><span class="sd-tag gas">GAS</span></div>
-      <div class="sd-cur">aktif: <span id="sd-tail-gas">…</span></div>
-      <div class="sd-row"><input id="sd-in-gas" type="text" placeholder="https://script.google.com/macros/s/.../exec"><button onclick="saveSumberGas()">💾 Simpan</button></div>
-      <div class="sd-hint">ℹ️ <span>Lupa link GAS yang mana? Buka Apps Script → <b>Deploy → Manage deployments</b> → salin URL Web App yang berakhiran <b>/exec</b>.</span></div>
-      <div class="sd-warn">⚠️ Biasanya <b>tidak diganti</b>. Isi hanya kalau kamu redeploy GAS &amp; dapat URL baru. Salah isi → app putus dari semua data.</div>
-    </div>
-
-    <div class="alert info" style="margin-top:8px;font-size:11px;line-height:1.6">ℹ️ <b>Catatan:</b> empat sumber di atas dibaca lewat ID, jadi aman diganti kapan saja (mis. ganti tahun) tanpa perlu redeploy GAS. Hanya <b>URL Backend (GAS)</b> yang perlu hati-hati.</div>
   </div>
 
 </div>
@@ -2034,6 +2044,7 @@ var EVENTS=[
 const BULAN_NAMES=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const DAY_SHORT=['Min','Sen','Sel','Rab','Kam','Jum','Sab'],DAY_FULL=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 var TOKO={lat:-7.761684,lng:110.369448,radius:150},TARGET_MENIT=240,SETOR_AMBANG=3000000,KAS_DROP=500000;
+var KAS_TOKO_MAX=2000000, KAS_KEMBALIAN=300000;  // (v6.3) peringatan "Uang di Toko": cash di toko ≥ ini → tanda; kembalian cukup segini
 function _targetJamTxt(){ return (Math.round(TARGET_MENIT/60*10)/10)+' jam'; }
 const DEFAULT_URL='https://script.google.com/macros/s/AKfycbxUKq6YblsPBLrXi0cG9LKueXnBqxnWs7c7EaqY2yO5Olm67U2Ud-xFQgBEBZjQgFE_/exec';
 const SHEET_URL='https://docs.google.com/spreadsheets/d/1b3AoEE_y8EIq3dNdb1q0-BYvROLwqb1180U1kPvVNVs/edit?gid=0#gid=0';
@@ -2577,6 +2588,8 @@ function _applyOpsConfig(){
     var tm=parseInt(c.targetMenit,10); if(isFinite(tm)&&tm>=30&&tm<=1440) TARGET_MENIT=tm;
     var sa=parseInt(c.setorAmbang,10); if(isFinite(sa)&&sa>=0) SETOR_AMBANG=sa;
     var skt=parseInt(c.kasDropAmbang,10); if(isFinite(skt)&&skt>=0) KAS_DROP=skt;
+    var ktm=parseInt(c.kasTokoMax,10); if(isFinite(ktm)&&ktm>=0) KAS_TOKO_MAX=ktm;        // (v6.3) ambang peringatan cash di toko
+    var kkb=parseInt(c.kasKembalian,10); if(isFinite(kkb)&&kkb>=0) KAS_KEMBALIAN=kkb;     // (v6.3) nominal kembalian cukup
     var ipRaw=String(c.ipToko||'').trim();
     if(ipRaw){ IP_TOKO = ipRaw.split(/[,\n; ]+/).map(function(s){return s.trim();}).filter(function(s){return s;}); }
     else { IP_TOKO = ['']; }
@@ -2629,6 +2642,8 @@ function applyAppConfig(){
   if(aSelf) aSelf.textContent = showSelf ? ('🙈 Sembunyikan data '+MGR_NAME+' dari Manager') : ('👁 Tampilkan data '+MGR_NAME+' ke Manager (evaluasi)');
   var hSelf=document.getElementById('adm-mgrself-hint');
   if(hSelf) hSelf.innerHTML = '💡 <b>Tampilkan data '+escH(MGR_NAME)+'</b>: manager bisa lihat catatan dirinya (read-only) untuk evaluasi.<br>• Tab tampil + '+escH(MGR_NAME)+' on → manager lihat semua partimer <b>dan</b> '+escH(MGR_NAME)+'.<br>• Tab disembunyikan + '+escH(MGR_NAME)+' on → tab tetap muncul tapi isinya <b>khusus '+escH(MGR_NAME)+' saja</b> (partimer lain disembunyikan). Cocok untuk sesi evaluasi.';
+  // (v6.3) Label "Pengambilan <manager>" di tab Uang di Toko ikut nama manager dari Sumber Data.
+  try{ var kat=document.getElementById('kas-ambil-title'); if(kat) kat.textContent='📤 Pengambilan '+MGR_NAME; }catch(e){}
   // bila status berubah utk manager & tab sudah pernah dibuka, muat ulang daftar nama
   var cfgSig = (showKep?'1':'0')+'|'+(showSelf?'1':'0');
   if(userRole==='manager' && _pgLoadedOnce && _appCfgMgrSelfPrev!==cfgSig){ loadPartimer(); }
@@ -5031,35 +5046,45 @@ function kmSuratFotoChange(){
   _kmCompress(f,function(b64){_kmSuratBase64=b64;var kb=Math.round(b64.length/1024);
     document.getElementById('km-suratjalan-prev').innerHTML='<img src="'+b64+'"><div style="font-size:10px;color:var(--muted);margin-top:4px">Surat pengantar siap (~'+kb+' KB)</div>';});
 }
-// (v6.2) AUTO-CENTANG Non-Harian E05 ("Laporan stok datang dari pabrik").
-// Dipicu saat lapor Kiriman Stok yang ADA fotonya → task non-harian E05 ikut
-// tercatat Selesai (✓) otomatis, lengkap dgn foto bukti + catatan isi kiriman.
-// HANYA jalan kalau ada foto (E05 wajib bukti). Aman bila E05 tidak ada di
-// config tugas (pakai metadata default). Fire-and-forget (no-cors) + refresh
-// badge Non-Harian. Tidak mengganggu alur simpan kiriman walau gagal.
-function _autoCekE05(tgl, isiText, fotoB64){
+// (v6.3) AUTO-CENTANG Non-Harian (generic). Dipicu dari integrasi menu lain
+// yang menghasilkan bukti foto → task Non-Harian (kode) ikut tercatat Selesai
+// (✓) otomatis, lengkap dgn foto bukti + catatan. Integrasi aktif:
+//   • Kiriman Stok (ada foto)  → E05 "Laporan stok datang dari pabrik"
+//   • Setor uang (Cash, ada foto) → E02 "Setor uang ke owner & laporan keuangan"
+// HANYA jalan kalau ADA foto (task ini wajib bukti). Aman bila kode tidak ada
+// di config tugas (pakai metadata fallback). Fire-and-forget (no-cors) +
+// refresh badge Non-Harian. Tidak mengganggu alur simpan sumbernya walau gagal.
+var _AUTO_EV_FALLBACK={
+  E02:{nama:'Setor uang ke owner & laporan keuangan',kategori:'Keuangan',frekuensi:'Mingguan',prioritas:'Wajib'},
+  E05:{nama:'Laporan stok datang dari pabrik',kategori:'Inventaris',frekuensi:'Insidental',prioritas:'Penting'}
+};
+function _autoCekNonHarian(kode, isiText, fotoB64, tgl){
   try{
     if(!fotoB64) return;                                   // tak ada foto → jangan auto-centang
     var url=scriptUrl; if(!url||!url.startsWith('http')) return;
+    kode=String(kode||'').toUpperCase(); if(!kode) return;
     var ev=(typeof EVENTS!=='undefined' && EVENTS.length)
-      ? EVENTS.find(function(x){return String(x.kode).toUpperCase()==='E05';}) : null;
-    var nama      = ev ? ev.nama      : 'Laporan stok datang dari pabrik';
-    var kategori  = ev ? ev.kategori  : 'Inventaris';
-    var frekuensi = ev ? (ev.frekuensi||'Insidental') : 'Insidental';
-    var prioritas = ev ? ev.prioritas : 'Penting';
-    var catatan   = 'Auto dari Kiriman Stok'+(isiText?(': '+String(isiText).slice(0,120)):'');
-    var payload={type:'event',tanggal:(tgl||todayValue),kode:'E05',nama:nama,kategori:kategori,
+      ? EVENTS.find(function(x){return String(x.kode).toUpperCase()===kode;}) : null;
+    var fb=_AUTO_EV_FALLBACK[kode]||{};
+    var nama      = ev ? ev.nama      : (fb.nama||('Non-Harian '+kode));
+    var kategori  = ev ? ev.kategori  : (fb.kategori||'Operasional');
+    var frekuensi = ev ? (ev.frekuensi||'Insidental') : (fb.frekuensi||'Insidental');
+    var prioritas = ev ? ev.prioritas : (fb.prioritas||'Penting');
+    var catatan   = 'Auto'+(isiText?(': '+String(isiText).slice(0,120)):'');
+    var payload={type:'event',tanggal:(tgl||todayValue),kode:kode,nama:nama,kategori:kategori,
       frekuensi:frekuensi,prioritas:prioritas,status:'✓',catatan:catatan,foto:fotoB64,
       oleh:userRole,olehEmail:(typeof userEmail!=='undefined'?(userEmail||''):'')};
     fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
       .then(function(){
-        try{ logActivity('Catat Non-Harian','E05 — '+nama+' (auto dari Kiriman Stok)'); }catch(e){}
+        try{ logActivity('Catat Non-Harian',kode+' — '+nama+' (auto)'); }catch(e){}
         setTimeout(function(){ try{ if(typeof checkEventBadge==='function')checkEventBadge(); }catch(e){} },2500);
         setTimeout(function(){ try{ if(typeof annotateEventCards==='function')annotateEventCards(); }catch(e){} },2700);
       })
       .catch(function(){});
   }catch(e){}
 }
+// Wrapper kompat: dipakai alur Kiriman Stok (tanda tangan lama tetap).
+function _autoCekE05(tgl, isiText, fotoB64){ _autoCekNonHarian('E05', isiText, fotoB64, tgl); }
 function kmSave(){
   var url=scriptUrl;if(!url||!url.startsWith('http')){showToast('URL belum dikonfigurasi','err');return;}
   var tgl=document.getElementById('km-tgl').value||todayValue;
@@ -7872,7 +7897,7 @@ function renderCashRecent(){
 }
 
 // ── Helpers interaksi form ─────────────────────────────────
-function cashOnKetChange(){ updateCashPreview(); kasFillKonfirmDropdown(); var ket=(document.getElementById('cash-inp-ket')||{}).value||''; var row=document.getElementById('cash-konfirm-row'); if(row)row.style.display=(ket==='Ambil')?'block':'none'; }
+function cashOnKetChange(){ updateCashPreview(); kasFillKonfirmDropdown(); var ket=(document.getElementById('cash-inp-ket')||{}).value||''; var row=document.getElementById('cash-konfirm-row'); if(row)row.style.display=(ket==='Ambil')?'block':'none'; var e2=document.getElementById('cash-e02-hint'); if(e2)e2.style.display=(ket==='Setor')?'block':'none'; }
 
 function cashOnRecehKetChange(){
   var ket   = document.getElementById('cash-inp-ket-receh').value;
@@ -7931,6 +7956,11 @@ function kirimCashBukti(jenis,nominal,catatan,fotoB64){
       jenis:jenis,nominal:nominal,catatan:catatan||'',foto:fotoB64,
       oleh:((typeof userEmail!=='undefined'&&userEmail)?userEmail:'Manager'),olehEmail:(typeof userEmail!=='undefined'?userEmail:''),waktu:Date.now()};
     fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+    // (v6.3) Setor uang berfoto → ikut centang Non-Harian E02
+    if(/setor/i.test(String(jenis||''))){
+      var nomTxt=(nominal!==''&&nominal!=null)?(' '+fRpPlain(nominal)):'';
+      _autoCekNonHarian('E02', 'Setor uang'+nomTxt+(catatan?(' · '+catatan):''), fotoB64);
+    }
   }catch(e){}
 }
 // ── Konfirmasi uang kembalian cukup (tugas harian D05) ──
@@ -8204,6 +8234,17 @@ function kasRenderHari(){
   var aw=document.getElementById('kas-awal'); if(aw) aw.textContent=(kasData.saldoAwal!=null)?fRpPlain(kasData.saldoAwal):'—';
   var ak=document.getElementById('kas-akhir'); if(ak) ak.textContent=(kasData.saldoAkhir!=null)?fRpPlain(kasData.saldoAkhir):'—';
 
+  // (v6.3) Peringatan: uang cash di toko mencapai ambang → segera setor/amankan.
+  var warn=document.getElementById('kas-toko-warn');
+  if(warn){
+    var saT=Number(kasData.saldoAkhir)||0;
+    if(kasData.saldoAkhir!=null && saT>=KAS_TOKO_MAX){
+      warn.style.display='block';
+      warn.style.background='rgba(220,38,38,.1)'; warn.style.color='#dc2626';
+      warn.innerHTML='⚠️ Uang cash di toko sudah <b>'+fRpPlain(saT)+'</b> (≥ '+fRpPlain(KAS_TOKO_MAX)+'). Segera setor / amankan ke Bank — buat kembalian cukup simpan <b>'+fRpPlain(KAS_KEMBALIAN)+'</b> aja di toko.';
+    } else { warn.style.display='none'; }
+  }
+
   var amb=(kasData.ambilRifyh||0), konf=(kasData.konfirmasi||0);
   var st = amb>0 ? ((konf>=amb)?'ok':(konf>0?'partial':'none')) : null;
 
@@ -8221,7 +8262,7 @@ function kasRenderHari(){
   if(box){
     if(amb>0){
       box.style.display='block';
-      var head='📤 Rifyh ambil hari ini: '+fRpPlain(amb)+(kasData.ambilCount>1?(' ('+kasData.ambilCount+'x)'):'');
+      var head='📤 '+MGR_NAME+' ambil hari ini: '+fRpPlain(amb)+(kasData.ambilCount>1?(' ('+kasData.ambilCount+'x)'):'');
       var sub='', bg='rgba(220,38,38,.1)', cl='#dc2626';
       if(st==='ok'){ sub='✓ sudah dikonfirmasi tercatat'; bg='rgba(13,148,136,.1)'; cl='#0d9488'; }
       else if(st==='partial'){ sub='⚠️ baru '+fRpPlain(konf)+' dikonfirmasi — kurang '+fRpPlain(amb-konf); bg='rgba(217,119,6,.1)'; cl='#d97706'; }
