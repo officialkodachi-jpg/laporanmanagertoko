@@ -1438,6 +1438,12 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     <div id="cash-warn" style="display:none;border-radius:var(--r);padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:14px;line-height:1.5"></div>
 
     <!-- ══ SALDO KAS TOKO (monitor saldo harian otomatis) ══ -->
+      <!-- Sub-tab Cash -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;background:var(--surface);padding:4px;border-radius:12px">
+        <button id="cst-diambil" onclick="switchCashSub('diambil')" style="flex:1;padding:9px 8px;border:none;border-radius:9px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--muted)">📤 Sudah Diambil</button>
+        <button id="cst-toko" onclick="switchCashSub('toko')" style="flex:1;padding:9px 8px;border:none;border-radius:9px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12);position:relative">💰 Uang di Toko<span id="cst-toko-dot" style="display:none;position:absolute;top:5px;right:7px;width:8px;height:8px;background:#dc2626;border-radius:50%"></span></button>
+      </div>
+      <div id="cash-sub-toko">
     <div id="kas-section" style="margin-bottom:18px">
       <div class="section-hdr"><span class="section-hdr-label">💰 Saldo Kas Toko</span><div class="section-hdr-line"></div></div>
 
@@ -1466,6 +1472,9 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
       <div id="kas-hist" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
 
+      </div><!-- /cash-sub-toko -->
+
+      <div id="cash-sub-diambil" style="display:none">
     <!-- ══ KARTU BELUM DISETOR ══ -->
     <div style="margin-bottom:16px">
       <div class="section-hdr"><span class="section-hdr-label">🔴 Belum Disetor</span><div class="section-hdr-line"></div></div>
@@ -1606,6 +1615,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
     </div>
 
     <a class="stok-sheet-link" id="cash-sheet-link" href="https://docs.google.com/spreadsheets/d/1xYQepA-hAl3T_YBEQPCC8_dtzkPrt8aLmglO_8NN2co/edit?gid=0#gid=0" target="_blank">📊 Buka Google Sheet Uang Cash →</a>
+      </div><!-- /cash-sub-diambil -->
 
   </div>
 
@@ -2252,12 +2262,13 @@ function gotoData(tujuan){
       stok:   {tab:'gudang', gview:'monitor', el:'stok-list'},
       minus:  {tab:'gudang', gview:'monitor', el:'stok-minus-warn'},
       shift:  {tab:'shift',  gview:null,      el:'shift-list'},
-      cash:   {tab:'cash',   gview:null,      el:'cash-warn'}
+      cash:   {tab:'cash',   gview:null,      el:'kas-section'}
     };
     var t=map[tujuan]; if(!t) return;
     var tabBtn=document.querySelector(".tab[onclick*=\"switchTab('"+t.tab+"'\"]");
     if(tabBtn) switchTab(t.tab, tabBtn); else { var p=document.getElementById('panel-'+t.tab); if(p){document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});p.classList.add('active');} }
     if(t.gview){ var gb=document.getElementById('gtab-'+t.gview); if(gb) switchGudangView(t.gview, gb); }
+    if(tujuan==='cash' && typeof switchCashSub==='function') switchCashSub('toko');
     setTimeout(function(){
       var el=document.getElementById(t.el); if(!el) return;
       if(el.style.display==='none'){ /* elemen tersembunyi: scroll ke kontainernya saja */ el=document.getElementById('panel-'+t.tab)||el; }
@@ -7988,6 +7999,7 @@ function kasRenderHari(){
   if(ak) ak.textContent=(kasData.aktual!=null)?fRpPlain(kasData.aktual):'—';
   var lbl=document.getElementById('kas-ambang-lbl');
   if(lbl && kasData.ambang!=null) lbl.textContent=fRpPlain(kasData.ambang);
+  var dot=document.getElementById('cst-toko-dot'); if(dot) dot.style.display=((kasData.sisa||0)>0 && kasData.statusHari==='MERAH')?'block':'none';
 
   var bd=document.getElementById('kas-hari-badge');
   var st=kasData.statusHari||'';
@@ -8107,6 +8119,16 @@ function kasAdminReset(tgl){
   fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'kas_reset',tanggal:tgl})})
     .then(function(){ showToast('✓ Dihapus','ok'); try{logActivity('Hapus saldo kas',tgl);}catch(e){} setTimeout(loadKasData,1500); })
     .catch(function(){ showToast('Gagal','err'); });
+}
+
+// ── Sub-tab Cash: Sudah Diambil <-> Uang di Toko ──
+function switchCashSub(which){
+  var on=(which==='toko');
+  var toko=document.getElementById('cash-sub-toko'); if(toko)toko.style.display=on?'block':'none';
+  var dia=document.getElementById('cash-sub-diambil'); if(dia)dia.style.display=on?'none':'block';
+  var bT=document.getElementById('cst-toko'), bD=document.getElementById('cst-diambil');
+  function act(b,a){ if(!b)return; b.style.background=a?'var(--card)':'transparent'; b.style.color=a?'var(--text)':'var(--muted)'; b.style.boxShadow=a?'0 1px 3px rgba(0,0,0,.12)':'none'; }
+  act(bT,on); act(bD,!on);
 }
 
 // ── Banner KAS KURANG (merah) ──
